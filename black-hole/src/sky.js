@@ -188,9 +188,12 @@ void main() {
       float pd = dot(pos, dir);
       float disc = pd * pd - (D * D - 4900.0);
       pos += dir * (-pd - sqrt(max(disc, 0.0)));
-      // pre-bend for the far part of the path
-      float pre = 1.0 / max(b, 1e-3);
-      dir = normalize(dir - vec3(normalize(d.xy) * pre, 0.0) * 0.5);
+      // bend picked up on the far part of the path (camera -> r = 70): the loop's 1.5 h^2 / r^5 pull summed
+      // along the straight line. It goes to 0 as D -> 70, so the hole doesn't jump when the loop takes over.
+      float u0 = -cosT, u1 = -sqrt(max(1.0 - b * b / 4900.0, 0.0));
+      float pre = ((1.5 * u1 - 0.5 * u1 * u1 * u1) - (1.5 * u0 - 0.5 * u0 * u0 * u0)) / max(b, 1e-3);
+      float th = atan(sinT, cosT) - pre;
+      dir = vec3(d.xy / max(sinT, 1e-6) * sin(th), cos(th));
     }
     // disk orientation: almost edge-on, tipped toward us
     // (the plane of the torn-up Moon's path: the debris stream runs from upper left down to the hole, so the disk keeps that tilt)
