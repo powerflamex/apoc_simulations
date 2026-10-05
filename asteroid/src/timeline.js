@@ -8,7 +8,7 @@ export const VIDEO_DURATION = DURATION - STORY_START;
 export const T_IMPACT = 16.5;
 export const T_SHOCK = 35.0;       // air blast reaches the city
 export const T_BEACH = 70.5;       // wave front reaches the promenade
-export const T_ENGULF = 73.4;      // wave reaches the camera
+export const T_ENGULF = 72.72;     // the face of the wave reaches the lens (found frame by frame in renders: video 61.72 s)
 
 export const CAPTIONS = [
   [11.3, 14.4, 'A mile-wide asteroid is seconds from impact.'],
@@ -44,9 +44,13 @@ export const COUNTERS = [
   },
   {
     from: T_BEACH, to: 76.2, label: 'THE WAVE', unit: 'FEET AWAY', fmt: fmtInt,
-    value: (t) => keys([[T_BEACH, 750], [72, 310], [T_ENGULF, 0]], t),
+    // distance to the face, not to the crest: the curling lip runs ~40 m ahead of waveFront, so count down to the moment it hits
+    value: (t) => Math.max(0, waveFront(t) - waveFront(T_ENGULF)) * 3.281,
   },
 ];
+
+// where the front of the wave is (metres from the camera); its lip reaches the lens at T_ENGULF, before this reaches 0
+const waveFront = (t) => keys([[57.5, 16000], [62, 9000], [66, 4200], [68.5, 1800], [T_BEACH, 230], [72, 95], [73.4, -5], [76, -60]], t);
 
 export function state(t) {
   const s = { t };
@@ -73,11 +77,11 @@ export function state(t) {
 
   // sea
   s.drawback = smooth(41.5, 56, t) * (1 - smooth(68, 71, t));                // metres x 14
-  s.waveF = keys([[57.5, 16000], [62, 9000], [66, 4200], [68.5, 1800], [T_BEACH, 230], [72, 95], [T_ENGULF, -5], [76, -60]], t);
-  s.waveH = keys([[57.5, 80], [62, 130], [66, 165], [68.5, 180], [T_BEACH, 185], [T_ENGULF, 175]], t);
+  s.waveF = waveFront(t);
+  s.waveH = keys([[57.5, 80], [62, 130], [66, 165], [68.5, 180], [T_BEACH, 185], [73.4, 175]], t);
   s.waveOn = t > 57 ? 1 : 0;
   s.lip = smooth(66, T_BEACH, t);                   // crest starts to curl over
-  s.under = smooth(T_ENGULF - 0.1, T_ENGULF + 0.5, t);
+  s.under = t >= T_ENGULF ? 1 : 0;                  // straight underwater on the frame the water hits
 
   // shaking
   s.quake = smooth(17.6, 18.6, t) * (1 - smooth(21, 25, t)) * 0.8 + s.blast * 2.2 + smooth(64, T_ENGULF, t) * 1.3;

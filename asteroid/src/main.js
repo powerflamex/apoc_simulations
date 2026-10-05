@@ -63,9 +63,9 @@ const finish = new ShaderPass({
       vec2 off = c * uAb * 0.012;
       vec3 col = vec3(texture2D(tDiffuse, vUv + wob + off).r, texture2D(tDiffuse, vUv + wob).g, texture2D(tDiffuse, vUv + wob - off).b);
       if (uUnder > 0.0) {
-        vec3 blur = (texture2D(tDiffuse, vUv + wob + vec2(0.01, 0.0)).rgb + texture2D(tDiffuse, vUv + wob - vec2(0.01, 0.0)).rgb +
-                     texture2D(tDiffuse, vUv + wob + vec2(0.0, 0.006)).rgb + texture2D(tDiffuse, vUv + wob - vec2(0.0, 0.006)).rgb) * 0.25;
-        vec3 murk = vec3(0.02, 0.12, 0.13) * (1.2 - vUv.y * 0.8) + blur * vec3(0.2, 0.5, 0.5) * 0.4;
+        // only churning water, nothing of the scene shows through (no surface seen from below)
+        float churn = fbm(vUv * vec2(3.0, 5.0) + wob * 20.0 + vec2(uTime * 0.4, uTime * 1.3));
+        vec3 murk = vec3(0.02, 0.12, 0.13) * (1.2 - vUv.y * 0.8) + vec3(0.03, 0.09, 0.09) * churn;
         vec2 bp = vUv * vec2(18.0, 32.0) + vec2(0.0, -uTime * 3.0);
         vec2 bi = floor(bp), bf = fract(bp) - 0.5;
         float bub = step(0.82, h(bi)) * smoothstep(0.18, 0.1, length(bf + (vec2(h(bi + 3.1), h(bi + 7.7)) - 0.5) * 0.4));
