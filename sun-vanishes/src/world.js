@@ -6,6 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { G, patch } from './bend.js';
 import { SKY_COMMON } from './sky.js';
 import { rng, smooth, clamp, lerp, DEG } from './util.js';
+import { gridBrown, gridOffT } from './timeline.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 
@@ -291,9 +292,9 @@ export function makeWorld(scene) {
   scene.add(shadowy(lampPole)); lampBulb.frustumCulled = false; scene.add(lampBulb);
   function updateLamps(t) {
     lamps.forEach(([x, z, on, off], i) => {
-      const onT = 27.5 + on * 0.8, offT = 46 + off * 5;
+      const onT = 27.5 + on * 0.8, offT = gridOffT(x, z) + off * 0.3;   // the grid goes down section by section
       const fl = Math.sin(t * 90 + i * 7) > 0 ? 1 : 0;
-      const lit = t < onT ? 0 : t < onT + 0.3 ? fl : t < offT - 0.5 ? 1 : t < offT ? fl : 0;
+      const lit = t < onT ? 0 : t < onT + 0.3 ? fl : t < offT - 0.5 ? (gridBrown(t) > 0.62 ? 1 : 0) : t < offT ? fl : 0;
       dummy.position.set(x, terrainH(x, z), z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(lit ? 1 : 0.0001); dummy.updateMatrix();
       lampBulb.setMatrixAt(i, dummy.matrix);
     });

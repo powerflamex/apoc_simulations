@@ -8,6 +8,7 @@
 // slope. Every random choice is hashed from integers (house id, face, window cell), so it is the
 // same on every pixel and every frame: no sparkle or flashing.
 import * as THREE from 'three';
+import { GRID } from './timeline.js';
 
 export const G = {
   uCurl: { value: 0 },
@@ -38,7 +39,14 @@ const SNOW_GLSL = /* glsl */ `
 `;
 
 const FACADE_PARS = /* glsl */ `
-varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;
+varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying vec3 vInst;
+// the grid failure, same as gridBrown / gridOffT in timeline.js
+float gridBrown(float t) { return 1.0 - 0.55 * smoothstep(${GRID.brown.toFixed(3)}, ${(GRID.brown + 0.5).toFixed(3)}, t) * (0.55 + 0.45 * sin(t * 31.0) * sin(t * 17.3)); }
+float gridOffT(vec2 p) {
+  float d = length(p - vec2(${GRID.cx.toFixed(3)}, ${GRID.cz.toFixed(3)}));
+  float j = fract(floor(p.x / ${GRID.cell.toFixed(3)}) * 0.618034 + floor(p.y / ${GRID.cell.toFixed(3)}) * 0.414214);
+  return ${GRID.t0.toFixed(3)} + ${GRID.span.toFixed(3)} * (0.75 * (1.0 - clamp(d / ${GRID.far.toFixed(3)}, 0.0, 1.0)) + 0.25 * j);
+}
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) {
   vec2 s = smoothstep(a - w, a + w, f) * (1.0 - smoothstep(b - w, b + w, f));
@@ -123,13 +131,13 @@ const FACADE = /* glsl */ `
     // lights come on after dark, then die when the grid fails
     float lit = step(r, 0.5 + 0.2 * hB) * (1.0 - closed) * (door ? 0.0 : 1.0) * (1.0 - balc * 0.7);
     float onT = 26.8 + r2 * 7.0;
-    float offT = 45.5 + r * 7.5;
+    float offT = gridOffT(vInst.xz) + r * 0.3;   // the grid goes down section by section
     float flick = step(0.45, fract(sin(floor(uTime * 7.0) * 1.7 + r * 13.0) * 43758.5));
     lit *= step(onT, uTime) * (uTime < offT - 0.6 ? 1.0 : (uTime < offT ? flick : 0.0));
     vec3 warm = mix(vec3(1.0, 0.72, 0.42), vec3(1.0, 0.88, 0.7), r2);
     if (r2 > 0.86) warm = vec3(0.65, 0.8, 1.0);
-    float avgOn = smoothstep(26.8, 33.8, uTime) * (1.0 - smoothstep(45.5, 53.0, uTime));
-    float e = mix(win * lit * (0.7 + 0.8 * r) * (0.6 + 0.4 * (1.0 - abs(f.x - 0.5) * 2.0)), 0.12 * avgOn * ok, far);
+    float avgOn = smoothstep(26.8, 33.8, uTime) * (1.0 - smoothstep(offT - 0.4, offT, uTime));
+    float e = mix(win * lit * (0.7 + 0.8 * r) * (0.6 + 0.4 * (1.0 - abs(f.x - 0.5) * 2.0)), 0.12 * avgOn * ok, far) * gridBrown(uTime);
     totalEmissiveRadiance += e * warm;
     float fire = step(0.8, r2) * win * detail * smoothstep(48.5, 50.5, uTime) * (1.0 - smoothstep(64.0, 67.0, uTime + r * 2.0)) * (door ? 0.0 : 1.0);
     totalEmissiveRadiance += fire * vec3(1.0, 0.42, 0.12) * (0.55 + 0.35 * sin(uTime * 11.0 + r * 40.0) * sin(uTime * 4.3 + r2 * 9.0));
@@ -145,7 +153,7 @@ export function patch(material, { windows = false } = {}) {
     shader.vertexShader =
       BEND_GLSL +
       `varying vec3 vWPre; varying vec3 vObjN;\n` +
-      (windows ? `attribute float aSeed; attribute float aGround; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;\n` : '') +
+      (windows ? `attribute float aSeed; attribute float aGround; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying vec3 vInst;\n` : '') +
       shader.vertexShader.replace(
         '#include <project_vertex>',
         /* glsl */ `
@@ -159,8 +167,10 @@ export function patch(material, { windows = false } = {}) {
         ${windows ? `vSeed = aSeed; vGround = aGround; vLoc = transformed;
         #ifdef USE_INSTANCING
           vSc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
+          vInst = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         #else
           vSc = vec3(1.0);
+          vInst = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         #endif` : ''}
         wp.xyz = bendWorld(wp.xyz);
         vec4 mvPosition = viewMatrix * wp;

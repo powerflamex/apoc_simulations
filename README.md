@@ -9,7 +9,7 @@ calm → escalation → climax beats. Built with Three.js, rendered headlessly, 
 | Folder | Video | Scene | Final upload file |
 |---|---|---|---|
 | `black-hole/` | What if a black hole passed by Earth? | Seaside city rooftop at dusk, ray-traced lensing + accretion disk | `out/black-hole_v4_1080x1920_60fps_tiktok.mp4` |
-| `sun-vanishes/` | What if the Sun suddenly vanished? | Alpine lake village from a chalet balcony; pasture with picnic, kids, cows, hikers; paragliders, steamer, train; star trails, freeze | `out/sun-vanishes_alpine_v4_1080x1920_60fps_tiktok.mp4` |
+| `sun-vanishes/` | What if the Sun suddenly vanished? | Alpine lake village from a chalet balcony; pasture with picnic, kids, cows, hikers; paragliders, steamer, train; blackout ~10 s in; the grid fails in a sweep across the valley; star trails, freeze | `out/sun-vanishes_alpine_v4_1080x1920_60fps_tiktok.mp4` |
 | `asteroid/` | What if a 1-mile asteroid hit the ocean? | Cycladic island bay from a clifftop terrace, steam column, drawback, 600 ft wave | `out/asteroid_island_v4_1080x1920_60fps_tiktok.mp4` |
 | `earth-falls/` | What if Earth stopped orbiting the Sun? | City beach from a hotel balcony; opens on a 1.6 s flash-forward of the end, speed counter to 0, 65-day fall (first weeks as a time-lapse), Sun grows, sea boils, fires | `out/earth-falls_1080x1920_60fps_tiktok.mp4` |
 

@@ -2,8 +2,9 @@
 import { smooth, keys, lerp, clamp } from './util.js';
 
 export const DURATION = 80;
-// the video starts this far into the story (the countdown still begins at 8:20 on the first frame)
-export const STORY_START = 10.0;
+// the video starts this far into the story (the countdown still begins at 8:20 on the first frame,
+// and runs out ~9.5 s in)
+export const STORY_START = 14.5;
 export const VIDEO_DURATION = DURATION - STORY_START;
 
 // story beats
@@ -12,9 +13,9 @@ export const T_LIMB = 26.3;        // ...and from the edge, 2.3 s later
 export const T_LAPSE = 34.5;       // time-lapse speeds up (hours -> days)
 
 export const CAPTIONS = [
-  [11.0, 15.0, 'The Sun has just vanished.'],
-  [15.4, 19.6, 'But its last light is still on the way to you.'],
-  [20.0, 23.8, 'Even its gravity takes 8 minutes to let go.'],
+  [15.2, 17.6, 'The Sun has just vanished.'],
+  [18.0, 21.0, 'But its last light is still on the way to you.'],
+  [21.3, 23.9, 'Even its gravity takes 8 minutes to let go.'],
   [24.4, 28.8, 'In 2 seconds, day turns to night.'],
   [29.4, 34.0, 'The planets glow a little longer, lit by old sunlight.'],
   [34.6, 39.6, 'Earth drifts off in a straight line, into deep space.'],
@@ -30,6 +31,17 @@ const pad2 = (n) => String(n).padStart(2, '0');
 const fmtMS = (v) => { const s = Math.max(0, Math.ceil(v - 1e-6)); return `${Math.floor(s / 60)}:${pad2(s % 60)}`; };
 const fmtHM = (v) => { const m = Math.max(0, Math.floor(v)); return `${Math.floor(m / 60)}:${pad2(m % 60)}`; };
 const fmtF = (v) => `${v < 0 ? '−' : ''}${Math.abs(Math.round(v))}°`;
+
+// The grid fails: the whole valley browns out and flickers together, then goes dark section by
+// section (150 m cells), far shore first, sweeping in toward the camera. Shared by the window lights
+// (bend.js), the street lamps (world.js), the city glow (main.js) and the soundtrack.
+export const GRID = { brown: 46.0, t0: 47.2, span: 2.4, far: 1400, cell: 150, cx: 0, cz: 111 };
+export const gridBrown = (t) => 1 - 0.55 * smooth(GRID.brown, GRID.brown + 0.5, t) * (0.55 + 0.45 * Math.sin(t * 31.0) * Math.sin(t * 17.3));
+export function gridOffT(x, z) {
+  const d = Math.hypot(x - GRID.cx, z - GRID.cz);
+  const j = Math.floor(x / GRID.cell) * 0.618034 + Math.floor(z / GRID.cell) * 0.414214;
+  return GRID.t0 + GRID.span * (0.75 * (1 - clamp(d / GRID.far)) + 0.25 * (j - Math.floor(j)));
+}
 
 export const dayOf = (t) => Math.max(1, Math.round(keys([[40, 1], [46, 3], [52, 7], [58, 30], [64, 90], [70, 200], [75.5, 365]], t, true)));
 

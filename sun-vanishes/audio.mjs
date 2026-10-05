@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION, T_DARK } from './src/timeline.js';
+import { state, DURATION, T_DARK, GRID, gridBrown } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -64,7 +64,7 @@ export function makeSoundtrack(outFile) {
   for (let i = 0; i < 6; i++) gulls.push({ t: 24.4 + R0() * 2.2, f: 1900 + R0() * 500, d: 0.25, pan: R0() * 2 - 1, g: 0.05 });
   const crashes = [];
   for (let t = 0.3; t < 60; t += 2.2 + R0() * 1.8) crashes.push({ t, g: 0.15 + R0() * 0.12 });
-  const bells = [2.6, 5.1, 7.6, 10.1];
+  const bells = [2.6, 5.1, 7.6, 10.1, 12.6, 15.1];
   // cowbells from the pasture (right), a steamer horn on the lake, a train horn on the far shore
   const cowbells = [];
   for (let t = 0.6; t < 31; t += 0.25 + R0() * 1.4) cowbells.push({ t, f: 520 + R0() * 260, g: (0.006 + R0() * 0.01) * (t > 24 ? 0.5 : 1), pan: 0.3 + R0() * 0.6 });
@@ -77,6 +77,8 @@ export function makeSoundtrack(outFile) {
   const crackles = [];
   for (let i = 0; i < 900; i++) crackles.push({ t: 49.8 + R0() * 16.5, g: 0.02 + R0() * 0.05 * R0(), pan: R0() * 2 - 1 });
   crackles.sort((a, b) => a.t - b.t);
+  // relays clunking out as the grid goes down, far shore first (quiet, distant) to near (loud)
+  const clunks = [[47.3, 0.04, -0.6], [47.7, 0.05, 0.5], [48.1, 0.06, -0.2], [48.5, 0.08, 0.7], [48.85, 0.1, -0.5], [49.2, 0.12, 0.2], [49.5, 0.15, 0.0]];
 
   const surfLP = new OnePole(600), surfLP2 = new OnePole(450), crashF = new SVF();
   const crowd = Array.from({ length: 6 }, () => new SVF());
@@ -85,7 +87,8 @@ export function makeSoundtrack(outFile) {
   const padLP = new OnePole(900), droneLP = new OnePole(500), riserF = new SVF(), sirenF = new OnePole(3000);
   const revL = new Reverb(1), revR = new Reverb(2);
   const hornLP = new OnePole(700);
-  const ph = new Float64Array(40);
+  const ph = new Float64Array(48);
+  const humLP = new OnePole(320);
   let crI = 0;
   const activeCr = [];
 
@@ -223,6 +226,23 @@ export function makeSoundtrack(outFile) {
       ph[17] += f / SR;
       const v = sirenF.run(saw(ph[17])) * e;
       l += v * 0.7; r += v * 1.1; wet += v;
+    }
+
+    // --- the grid fails: a mains hum swells, sags and stutters with the brownout, then dies as the relays clunk out ---
+    if (t > 43.5 && t < GRID.t0 + GRID.span + 0.6) {
+      const down = smooth(GRID.t0, GRID.t0 + GRID.span + 0.5, t);
+      const g = 0.03 * smooth(43.5, 46.0, t) * gridBrown(t) * (1 - down);
+      ph[40] += (50 * (1 - 0.4 * down)) / SR;
+      const v = humLP.run(saw(ph[40]) + 0.5 * saw(ph[40] * 2)) * g;
+      l += v; r += v; wet += v * 0.3;
+    }
+    for (const [ct, cg, cp] of clunks) {
+      const dt = t - ct;
+      if (dt > 0 && dt < 0.4) {
+        ph[41] += (70 + 60 * Math.exp(-dt * 30)) / SR;
+        const v = (Math.sin(TAU * ph[41]) * Math.exp(-dt * 14) + white() * Math.exp(-dt * 120) * 0.6) * cg;
+        l += v * (1 - cp) * 0.5; r += v * (1 + cp) * 0.5; wet += v * 0.8;
+      }
     }
 
     // --- wind: picks up through the cold, with a thin whistle ---

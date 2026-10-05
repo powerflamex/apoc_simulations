@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, DURATION, STORY_START, VIDEO_DURATION } from './timeline.js';
+import { state, DURATION, STORY_START, VIDEO_DURATION, GRID, gridBrown } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -110,7 +110,7 @@ function update(t) {
   const s = state(t);
   const day = s.day;
   // city glow on the horizon at night while the grid holds
-  ctx.city = smooth(27, 32, t) * (1 - smooth(45.5, 53, t));
+  ctx.city = smooth(27, 32, t) * gridBrown(t) * (1 - smooth(GRID.t0, GRID.t0 + GRID.span, t));
   ctx.fogColor.setRGB(lerp(0.004, 0.52, day), lerp(0.006, 0.62, day), lerp(0.012, 0.78, day))
     .add(new THREE.Color(0.05, 0.03, 0.015).multiplyScalar(ctx.city))
     .add(new THREE.Color(0.02, 0.025, 0.035).multiplyScalar(s.snowFall));
@@ -123,8 +123,8 @@ function update(t) {
   );
   const shiver = s.frost * 0.08 * DEG;
   // slow camera moves that follow the story (degrees; keys ease between points)
-  const pan = keys([[10, -2.5], [22, 3], [25, -1.5], [33, 0]], t) * DEG;
-  const tilt = keys([[10, -9.5], [22.5, -9], [25, -2], [27.5, -2.5], [33, -8.5], [42, -8], [48, -4], [55, -4], [62, -9]], t) * DEG;
+  const pan = keys([[14.5, -2.5], [22, 3], [25, -1.5], [33, 0]], t) * DEG;
+  const tilt = keys([[14.5, -9.5], [22.5, -9], [25, -2], [27.5, -2.5], [33, -8.5], [42, -8], [48, -4], [55, -4], [62, -9]], t) * DEG;
   camera.rotation.set(
     tilt + wobble(t * 0.5, 4) * 0.12 * DEG + Math.sin(t * 37) * shiver,
     pan + wobble(t * 0.42, 5) * 0.18 * DEG + Math.sin(t * 29 + 1) * shiver,
