@@ -30,3 +30,12 @@ The owner is new to coding: explain in plain words, skip jargon, and never leave
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.
 - Post titles and captions for each video are in `CAPTIONS.md`.
+
+## Posting copy (keep `CAPTIONS.md` up to date for every new or changed video)
+
+- YouTube Shorts title: **max 100 characters** (YouTube's limit; count emoji as 2 to be safe). Hook first,
+  1-2 hashtags at the end. Write the count next to it.
+- YouTube description: the key facts in a few short lines, a question to get comments, then hashtags.
+- TikTok caption: longer, fact-first, ends with a question, then hashtags.
+- Only claim what the video shows (same numbers as the captions/counters in `timeline.js`).
+- The owner posts one video a day, YouTube first and TikTok a day or two later.
