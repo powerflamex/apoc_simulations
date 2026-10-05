@@ -54,7 +54,7 @@ export function state(t) {
   // Black hole: direction (rises slowly) and virtual distance in Schwarzschild radii.
   s.bhEl = keys([[0, 11], [40, 13], [64, 17], [76, 22]], t) * DEG;
   s.bhAz = keys([[0, 2.5], [76, 0]], t) * DEG;
-  s.bhD = keys([[0, 9000], [10, 5200], [22, 1700], [34, 520], [48, 170], [60, 62], [70, 26], [76, 14]], t, true);
+  s.bhD = keys([[0, 9000], [10, 4200], [22, 1100], [34, 280], [48, 85], [60, 40], [70, 26], [76, 14]], t, true);
 
   // Moon: starts up-left, gets pulled into the hole and shredded.
   s.moonProgress = Math.pow(smooth(16, 35.5, t), 1.8);
