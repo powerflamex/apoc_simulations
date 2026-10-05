@@ -8,8 +8,8 @@ Rules (also in CLAUDE.md):
 
 ## Day 1. Earth stops orbiting the Sun — `earth-falls/out/earth-falls_v4_1080x1920_60fps_tiktok.mp4`
 
-**YouTube title (82 chars)**
-What if Earth stopped orbiting the Sun? We'd fall in for 65 days ☀️ #whatif #space
+**YouTube title (87 chars)**
+What if Earth stopped orbiting the Sun? We'd crash into it in 65 days ☀️ #whatif #space
 
 **YouTube description**
 If Earth suddenly stopped in its orbit, you wouldn't feel a thing. But nothing would hold us up anymore, and we'd fall straight into the Sun in about 65 days.
