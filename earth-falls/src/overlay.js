@@ -20,7 +20,7 @@ export function makeOverlay() {
     return { c, el, value: el.querySelector('.value'), unit: el.querySelector('.unit') };
   });
 
-  return function update(t, s) {
+  return function update(t, s, v = t) {   // t: story clock, v: video clock (captions, title)
     if (window.__cover) {   // cover art: just the frame and the big title
       cover.style.opacity = '1';
       for (const el of [counter, caption, title, flash, endcard]) el.style.opacity = '0';
@@ -44,7 +44,7 @@ export function makeOverlay() {
     const hide = Math.max(s.flash || 0, s.fadeOut || 0);
     counter.style.opacity = (1 - hide).toFixed(3);
 
-    const cap = captionAt(t);
+    const cap = captionAt(v);
     if (cap) {
       if (caption.textContent !== cap.text) caption.textContent = cap.text;
       caption.style.opacity = (cap.alpha * (1 - hide)).toFixed(3);
@@ -55,7 +55,7 @@ export function makeOverlay() {
     }
 
     title.style.opacity = (s.title || 0).toFixed(3);
-    title.style.transform = `translateY(${((1 - (s.title || 0)) * (t < 2 ? 18 : -10)).toFixed(2)}px)`;
+    title.style.transform = `translateY(${((1 - (s.title || 0)) * (v < 2 ? 18 : -10)).toFixed(2)}px)`;
     title.style.filter = (s.title || 0) < 1 ? `blur(${((1 - (s.title || 0)) * 8).toFixed(2)}px)` : 'none';
 
     flash.style.background = (s.fadeOut || 0) > (s.flash || 0) ? '#000' : (s.flashColor || '#fff');

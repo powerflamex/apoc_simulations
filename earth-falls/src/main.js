@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, STORY_START, VIDEO_DURATION } from './timeline.js';
+import { state, storyTime, titleAt, STORY_START, VIDEO_DURATION } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -78,8 +78,11 @@ const dirFromAzEl = (az, el) => new THREE.Vector3(Math.sin(az) * Math.cos(el), M
 const SUN_BASE = { az: 8 * DEG, el: 4.2 * DEG };
 const ctx = { sunDir: new THREE.Vector3(), sunR: 0.00466, fogColor: new THREE.Color() };
 
-function update(t) {
+// v is video time; the scene runs on the story clock t (see storyTime in timeline.js)
+function update(v) {
+  const t = storyTime(v);
   const s = state(t);
+  s.title = titleAt(v);
   // the Sun sits low over the sea; as it swells its centre climbs a little so it stays in the sky
   ctx.sunR = 0.00466 * s.sunScale;
   ctx.sunDir.copy(dirFromAzEl(SUN_BASE.az * (1 - 0.6 * smooth(40, 58, t)), SUN_BASE.el + ctx.sunR * 1.15));
@@ -98,7 +101,7 @@ function update(t) {
     pan + wobble(t * 0.42, 5) * 0.18 * DEG,
     wobble(t * 0.37, 6) * 0.1 * DEG,
   );
-  camera.fov = 62;
+  camera.fov = keys([[0, 62], [30, 58], [60, 52]], t);   // a slow push-in toward the Sun, the whole way down
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 
@@ -123,7 +126,7 @@ function update(t) {
   finish.uniforms.uGlare.value = s.glare;
   finish.uniforms.uCounter.value = window.__cover ? 0 : smooth(28, 40, t) * (1 - s.flash);
 
-  overlay(t, s);
+  overlay(t, s, v);
   return s;
 }
 

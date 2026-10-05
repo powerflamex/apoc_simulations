@@ -11,7 +11,7 @@ calm → escalation → climax beats. Built with Three.js, rendered headlessly, 
 | `black-hole/` | What if a black hole passed by Earth? | Seaside city rooftop at dusk, ray-traced lensing + accretion disk | `out/black-hole_v4_1080x1920_60fps_tiktok.mp4` |
 | `sun-vanishes/` | What if the Sun suddenly vanished? | Alpine lake village from a chalet balcony; pasture with picnic, kids, cows, hikers; paragliders, steamer, train; star trails, freeze | `out/sun-vanishes_alpine_v4_1080x1920_60fps_tiktok.mp4` |
 | `asteroid/` | What if a 1-mile asteroid hit the ocean? | Cycladic island bay from a clifftop terrace, steam column, drawback, 600 ft wave | `out/asteroid_island_v4_1080x1920_60fps_tiktok.mp4` |
-| `earth-falls/` | What if Earth stopped orbiting the Sun? | City beach from a hotel balcony; speed counter to 0, 65-day fall, Sun grows, sea boils, fires | `out/earth-falls_1080x1920_60fps_tiktok.mp4` |
+| `earth-falls/` | What if Earth stopped orbiting the Sun? | City beach from a hotel balcony; opens on a 1.6 s flash-forward of the end, speed counter to 0, 65-day fall (first weeks as a time-lapse), Sun grows, sea boils, fires | `out/earth-falls_1080x1920_60fps_tiktok.mp4` |
 
 Older versions are also in each `out/`. Covers: `out/*cover*.png`. Post captions: `CAPTIONS.md`.
 
@@ -77,7 +77,8 @@ Node 26, ffmpeg (in PATH), Chrome. `npm install` already done in each folder (th
      the shockwave ring now rushes in (low dome, `atan(0.06, 1-k)`) and a white spray line crosses the sea, arriving
      exactly with the blast. Then `--cover 58` -> `out/asteroid_v4_cover.png` and the Sun cover `--cover 42`.
   2. DONE + checked: `earth-falls` (writes `EF2_DONE`): palms ignite one by one, fronds burn away, trunks crumble; the shallow bay boils
-     dry (cracked salt-crusted seabed); umbrellas burn; red-hot glow; sand fuses to glass. Cover `--cover 56`.
+     dry (cracked salt-crusted seabed); umbrellas burn; red-hot glow; sand fuses to glass. Cover `--cover 56` (old timing; since the cold open + time-lapse that frame is `--cover 49.5`).
+  earth-falls now has two clocks: video time -> story time via `storyTime()` in its timeline.js; captions are on the video clock.
 - Next checks: open the finished asteroid + earth-falls `_tiktok.mp4`s (durations 69 s / 66 s, audio throughout),
   then post per `CAPTIONS.md` (YouTube titles <=100 chars). If a render died, re-run `bash render-v4.sh asteroid`
   or the earth-falls block in `render-queue.sh` (it deletes `out/.segments` first).

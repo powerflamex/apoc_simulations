@@ -4,11 +4,38 @@
 // The Sun looks 1/r times wider; the ground heats roughly like 288 K / sqrt(r).
 import { smooth, keys, lerp, clamp } from './util.js';
 
-export const DURATION = 66;
-export const STORY_START = 0;            // this one is written to open straight into the action
-export const VIDEO_DURATION = DURATION - STORY_START;
+export const DURATION = 66;              // story clock: every timing in state(), COUNTERS and audio.mjs is on it
+export const STORY_START = 0;            // (the video clock below does the cutting instead)
 export const T_STOP = 5.6;               // Earth stops dead in its orbit
 export const T_FALL = 15.8;              // ...and the fall becomes the story
+
+// ---- video clock -> story clock ----
+// The video opens on a short flash-forward of the end (the hook), cuts back to the calm beach
+// "65 days earlier", and plays the quiet first weeks of the fall as a time-lapse. CAPTIONS and the
+// title are timed on the video clock; everything else on the story clock.
+export const COLD_OPEN = 1.6;            // video seconds of flash-forward
+const COLD_FROM = 56.4;                  // story time it shows: day 64, the Sun fills the sky
+const CUT_TO = 0.6;                      // story time right after the cut
+const LAPSE_V = 17.8, LAPSE_LEN = 5.6;   // time-lapse window (video seconds), speed eases 1x -> ~3.7x -> 1x
+const LAPSE_GAIN = 7.5;                  // story seconds the time-lapse skips
+export const VIDEO_DURATION = DURATION - CUT_TO + COLD_OPEN - LAPSE_GAIN;
+export function storyTime(v) {
+  if (v < COLD_OPEN) return COLD_FROM + v;
+  const x = clamp((v - LAPSE_V) / LAPSE_LEN);
+  return CUT_TO + (v - COLD_OPEN) + LAPSE_GAIN * (x - Math.sin(2 * Math.PI * x) / (2 * Math.PI));
+}
+// every video time at which story time st is on screen (the flash-forward shows a few seconds twice)
+export function videoTimesOf(st) {
+  const out = [];
+  if (st >= COLD_FROM && st < COLD_FROM + COLD_OPEN) out.push(st - COLD_FROM);
+  if (st >= CUT_TO) {
+    let lo = COLD_OPEN, hi = VIDEO_DURATION + 1;
+    for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (storyTime(m) < st) lo = m; else hi = m; }
+    out.push(lo);
+  }
+  return out;
+}
+export const titleAt = (v) => 1 - smooth(4.0, 4.8, v);   // fully up on the first frame, across the cut
 
 const TFALL = 64.6, K = TFALL / (Math.PI / 2);
 export function distAU(day) {
@@ -20,21 +47,22 @@ export function distAU(day) {
 export const tempF = (r) => (288 / Math.sqrt(r) - 273.15) * 9 / 5 + 32;
 export const dayOf = (t) => keys([[T_FALL, 0], [18.5, 1], [23, 20], [28, 41], [32.8, 49], [37.6, 57], [42.4, 61], [47.4, 63.2], [52.2, 64.1], [56.6, 64.48], [61.5, 64.58]], t);
 
+// [start, end, text] on the VIDEO clock
 export const CAPTIONS = [
-  [1.0, 4.6, "Right now, you're flying around the Sun at 67,000 mph."],
-  [5.0, 8.6, 'Now imagine Earth just… stops.'],
-  [9.0, 12.2, "You wouldn't feel a thing."],
-  [12.6, 15.6, 'But nothing is holding Earth up anymore.'],
-  [16.0, 20.6, 'So it starts to fall toward the Sun.'],
-  [21.0, 25.8, "For weeks, it doesn't look like much."],
-  [26.2, 31.2, "Day 41: we cross Venus's orbit. It's 150°F."],
-  [31.6, 36.4, 'Day 49: the oceans start to boil.'],
-  [36.8, 41.6, 'Day 57: past Mercury. Forests catch fire.'],
-  [42.0, 46.8, "Day 61: it's hot enough to melt lead."],
-  [47.2, 51.4, 'The shallow seas boil dry.'],
-  [51.8, 55.4, 'Day 64: the Sun fills the sky.'],
-  [55.8, 58.4, 'The sand melts into glass.'],
-  [58.8, 61.4, 'The whole fall takes just 65 days.'],
+  [1.7, 3.0, '65 days earlier…'],
+  [3.3, 6.3, "Right now, you're flying around the Sun at 67,000 mph."],
+  [6.6, 9.6, 'Now imagine Earth just… stops.'],
+  [10.0, 13.2, "You wouldn't feel a thing."],
+  [13.6, 16.6, 'But nothing is holding Earth up anymore.'],
+  [17.0, 20.3, 'So it starts to fall toward the Sun.'],
+  [20.7, 24.7, "Day 41: we cross Venus's orbit. It's 150°F."],
+  [25.1, 29.9, 'Day 49: the oceans start to boil.'],
+  [30.3, 35.1, 'Day 57: past Mercury. Forests catch fire.'],
+  [35.5, 40.3, "Day 61: it's hot enough to melt lead."],
+  [40.7, 44.9, 'The shallow seas boil dry.'],
+  [45.3, 48.9, 'Day 64: the Sun fills the sky.'],
+  [49.3, 51.9, 'The sand melts into glass.'],
+  [52.3, 54.9, 'The whole fall takes just 65 days.'],
 ];
 
 const fmtInt = (v) => Math.round(v).toLocaleString('en-US');
@@ -76,7 +104,6 @@ export function state(t) {
   s.drain = smooth(46.5, 56, t);                     // shallow coastal water boils off (hours, at this distance)
   // camera exposure: a phone fighting more and more light
   s.exposure = keys([[0, 0.95], [22, 0.92], [40, 0.86], [52, 0.8], [58, 0.74]], t);
-  s.title = 1 - smooth(3.0, 3.8, t);
   s.flash = smooth(60.0, 62.0, t);
   s.flashColor = '#fff6e6';
   s.fadeOut = 0;
@@ -85,7 +112,7 @@ export function state(t) {
   return s;
 }
 
-export function captionAt(t) {
+export function captionAt(t) {   // t: video time
   for (const [a, b, text] of CAPTIONS) {
     if (t >= a - 0.01 && t <= b + 0.01) {
       const fadeIn = clamp((t - a) / 0.55);

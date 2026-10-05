@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION } from './src/timeline.js';
+import { state, DURATION, VIDEO_DURATION, COLD_OPEN, T_STOP, storyTime, videoTimesOf } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -53,7 +53,7 @@ class Reverb {
 const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 
 export function makeSoundtrack(outFile) {
-  const N = Math.round(DURATION * SR);
+  const N = Math.round(VIDEO_DURATION * SR);   // written on the video clock; the mix follows the story clock
   const L = new Float32Array(N), R = new Float32Array(N);
   const R0 = rng(65);
   const white = () => R0() * 2 - 1;
@@ -68,6 +68,11 @@ export function makeSoundtrack(outFile) {
   const dayHits = [18.5, 23, 28, 32.8, 37.6, 42.4, 47.4, 52.2];   // a pulse as each new day comes up on the counter
   const crackles = [];
   for (let i = 0; i < 1800; i++) crackles.push({ t: 38 + R0() * 23.5, g: 0.02 + R0() * 0.06 * R0(), pan: R0() * 2 - 1 });
+  // one-shots are scheduled in story time but play at their natural length on the video clock
+  // (so the time-lapse doesn't squash them); the flash-forward repeats the ones it shows
+  const toVideo = (list) => list.flatMap((e) => videoTimesOf(e.t).map((v) => ({ ...e, t: v })));
+  for (const list of [gulls, crashes, laughs, crackles]) list.splice(0, list.length, ...toVideo(list));
+  const dayHitsV = dayHits.flatMap(videoTimesOf), stopV = videoTimesOf(T_STOP);
   crackles.sort((a, b) => a.t - b.t);
 
   const surfLP = new OnePole(600), surfLP2 = new OnePole(450), crashF = new SVF();
@@ -79,10 +84,15 @@ export function makeSoundtrack(outFile) {
   let crI = 0;
   const activeCr = [];
 
-  let s = state(0);
+  let s = state(storyTime(0));
+  let flushed = false;
   for (let n = 0; n < N; n++) {
-    const t = n / SR;
+    const v = n / SR, t = storyTime(v);
     if (n % 48 === 0) s = state(t);
+    if (v >= COLD_OPEN && !flushed) {   // hard cut from the flash-forward: no roar tail into the calm beach
+      for (const rv of [revL, revR]) { rv.combs.forEach((c) => { c.buf.fill(0); c.lp = 0; }); rv.aps.forEach((a) => a.buf.fill(0)); }
+      flushed = true;
+    }
     const end = t >= 62.2;
     let l = 0, r = 0, wet = 0;
 
@@ -91,7 +101,7 @@ export function makeSoundtrack(outFile) {
     const wash = surfLP2.run(surfLP.run(white())) * seaG * 0.45 * (0.7 + 0.3 * Math.sin(t * 0.4));
     let crash = 0;
     for (const c of crashes) {
-      const dt = t - c.t;
+      const dt = v - c.t;
       if (dt > 0 && dt < 4) crash += white() * c.g * Math.min(dt / 0.25, 1) * Math.exp(-dt * 1.2);
     }
     const cf = crashF.run(crash, 700 + 900 * Math.exp(-((t * 0.2) % 1)), 0.7).lp * seaG * 1.6;
@@ -99,7 +109,7 @@ export function makeSoundtrack(outFile) {
 
     // --- gulls and the beach crowd, thinning out as people leave ---
     for (const g of gulls) {
-      const dt = t - g.t;
+      const dt = v - g.t;
       if (dt > 0 && dt < g.d) {
         const k = dt / g.d;
         const f = g.f * (1 - 0.35 * k) * (1 + 0.03 * Math.sin(dt * 70));
@@ -109,7 +119,7 @@ export function makeSoundtrack(outFile) {
       }
     }
     for (const b of laughs) {
-      const dt = t - b.t;
+      const dt = v - b.t;
       if (dt > 0 && dt < b.d) {
         const k = dt / b.d;
         ph[1] += b.f * (1 + 0.25 * Math.sin(dt * 38)) / SR;
@@ -137,8 +147,8 @@ export function makeSoundtrack(outFile) {
       l += pv; r += pv; wet += pv * 0.8;
     }
     // the stop: a deep hit and a breath of silence
-    {
-      const dt = t - 5.6;
+    for (const sv of stopV) {
+      const dt = v - sv;
       if (dt > 0 && dt < 5) {
         ph[8] += (36 + 26 * Math.exp(-dt * 3)) / SR;
         const b = Math.sin(TAU * ph[8]) * Math.exp(-dt * 0.8) * 0.55;
@@ -156,8 +166,8 @@ export function makeSoundtrack(outFile) {
       dv = droneLP.run(dv) * drG;
       l += dv; r += dv; wet += dv * 0.8;
     }
-    for (const dh of dayHits) {
-      const dt = t - dh;
+    for (const dh of dayHitsV) {
+      const dt = v - dh;
       if (dt > 0 && dt < 1.2) {
         ph[20] += (48 + 20 * Math.exp(-dt * 8)) / SR;
         const v = Math.sin(TAU * ph[20]) * (Math.exp(-dt * 6) + 0.5 * Math.exp(-Math.max(dt - 0.28, 0) * 6) * (dt > 0.28 ? 1 : 0)) * 0.32;
@@ -170,7 +180,7 @@ export function makeSoundtrack(outFile) {
     if (hissG > 0) { const hv = hissF.run(white(), 4200 + 800 * Math.sin(t * 0.7), 0.5).bp * hissG; l += hv; r += hv * 0.9; }
     const roarG = (0.04 * smooth(30, 50, t) + 0.25 * smooth(50, 61.8, t)) * (end ? 0 : 1);
     if (roarG > 0) { const rv = roarLP.run(roarF.run(white(), 180 + 500 * smooth(40, 60, t), 0.4).lp) * roarG * 2.5; l += rv; r += rv * 0.95; wet += rv * 0.3; }
-    while (crI < crackles.length && crackles[crI].t <= t) activeCr.push({ ...crackles[crI++], age: 0 });
+    while (crI < crackles.length && crackles[crI].t <= v) activeCr.push({ ...crackles[crI++], age: 0 });
     for (let i = activeCr.length - 1; i >= 0; i--) {
       const c = activeCr[i];
       c.age += 1 / SR;
