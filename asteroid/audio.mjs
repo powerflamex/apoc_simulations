@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION, T_IMPACT, T_SHOCK, T_ENGULF } from './src/timeline.js';
+import { state, DURATION, T_IMPACT, T_SHOCK, T_ENGULF, STORY_START, T_SWITCH, LOOP } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -262,6 +262,21 @@ export function makeSoundtrack(outFile) {
     if (!end) { ol = muffle[0].run(ol); orr = muffle[1].run(orr); }
     if (end && t < 76.5) { ol = 0; orr = 0; }
     L[n] = ol; R[n] = orr;
+  }
+
+  // the video loops: from T_SWITCH on (under the water) the soundtrack becomes what plays just before the first
+  // frame, muffled at first and clearing as you surface, so the end runs straight into the start
+  {
+    const a = Math.round(T_SWITCH * SR), b = Math.round((STORY_START - LOOP) * SR), n = Math.round(LOOP * SR), xf = Math.round(0.15 * SR);
+    const lpL = new OnePole(400), lpR = new OnePole(400);
+    for (let i = 0; i < n; i++) {
+      const k = Math.min(1, i / xf), wi = Math.sin(k * Math.PI / 2), wo = Math.cos(k * Math.PI / 2);
+      const u = i / n, fc = 400 * Math.pow(45, smooth(0, 0.8, u)), dry = smooth(0.6, 0.95, u);
+      lpL.set(fc); lpR.set(fc);
+      const pl = lpL.run(L[b + i]), pr = lpR.run(R[b + i]);
+      L[a + i] = L[a + i] * wo + (pl + (L[b + i] - pl) * dry) * wi;
+      R[a + i] = R[a + i] * wo + (pr + (R[b + i] - pr) * dry) * wi;
+    }
   }
 
   let peak = 0;

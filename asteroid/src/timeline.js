@@ -4,7 +4,14 @@ import { smooth, keys, lerp, clamp } from './util.js';
 export const DURATION = 80;
 // the video starts this far into the story, so something is already happening on the first frame
 export const STORY_START = 11.0;
-export const VIDEO_DURATION = DURATION - STORY_START;
+// The video loops: after the wave hits, the deep water closes over everything (UNDER_COLOR), at T_SWITCH the
+// scene jumps back to just before the first frame, and the water clears into it over the last LOOP seconds,
+// like surfacing, so the last frame runs straight into the first. (No end card: a black screen at the end makes
+// people swipe away.)
+export const T_SWITCH = 74.9;
+export const LOOP = 0.9;
+export const UNDER_COLOR = '#04191b';
+export const VIDEO_DURATION = T_SWITCH - STORY_START + LOOP;
 export const T_IMPACT = 16.5;
 export const T_SHOCK = 35.0;       // air blast reaches the city
 export const T_BEACH = 70.5;       // wave front reaches the promenade
@@ -92,7 +99,8 @@ export function state(t) {
 
   s.exposure = lerp(0.95, 0.85, s.haze) * (1 - 0.5 * s.under);
   s.title = 1 - smooth(STORY_START + 3.0, STORY_START + 3.8, t);   // fully up on the first frame
-  s.fadeOut = smooth(74.6, 76.0, t);
+  s.fadeOut = 0;
+  if (t > T_ENGULF) { s.flash = smooth(T_SWITCH - 0.6, T_SWITCH, t); s.flashColor = UNDER_COLOR; }   // the water closes over everything
   s.endcard = t >= 76.0 ? 1 : 0;
   s.endText = smooth(76.7, 77.8, t);
   return s;

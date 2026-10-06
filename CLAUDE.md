@@ -30,6 +30,11 @@ The owner is new to coding: explain in plain words, skip jargon, and never leave
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.
 - Post titles and captions for each video are in `CAPTIONS.md`.
+- Every video loops seamlessly (no end card: a black screen at the end made people swipe away). The ending builds
+  to a full cover (white flash / deep water / solid lens ice), at `T_SWITCH` the scene jumps back to just before
+  the first frame, and the cover clears over the last `LOOP` seconds (`renderFrame` in `main.js`); the soundtrack
+  does the same (end of `audio.mjs`). Keep this working when changing an ending or an opening: the last frame
+  (`VIDEO_DURATION - 1/60`) must look like the next frame after it would be frame 0, and the sound must not jump.
 
 ## Posting copy (keep `CAPTIONS.md` up to date for every new or changed video)
 

@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE, AZ_IMPACT, waterHeight } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, DURATION, T_IMPACT, T_SHOCK, STORY_START, VIDEO_DURATION } from './timeline.js';
+import { state, DURATION, T_IMPACT, T_SHOCK, STORY_START, VIDEO_DURATION, LOOP, UNDER_COLOR } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -91,8 +91,12 @@ const ROCK_A = dirFromAzEl(15 * DEG, 22 * DEG);   // starts inside the top of th
 const ROCK_B = dirFromAzEl(AZ_IMPACT, -0.6 * DEG);
 const ctx = { sunDir: SUN_DIR.clone(), impactDir: IMPACT_DIR.clone(), rockDir: new THREE.Vector3(), fogColor: new THREE.Color(), sunVis: 1 };
 
-function update(t) {
+function update(t, cover = -1) {
   const s = state(t);
+  if (cover >= 0) {   // loop tail: the deep water clears into the first frame, like surfacing
+    s.flash = cover; s.flashColor = UNDER_COLOR; s.under = cover; s.exposure *= 1 - 0.5 * cover;
+    s.fadeOut = 0; s.endcard = 0; s.endText = 0;
+  }
   ctx.rockDir.copy(ROCK_A).lerp(ROCK_B, s.rockPath).normalize();
   // the wave rises in front of the low sun and puts the whole city in its shadow
   const waveTop = s.waveOn ? s.waveH : 0;
@@ -136,7 +140,7 @@ function update(t) {
   u.uRockB.value.copy(ROCK_B);
   u.uRockPath.value = Math.max(s.rockPath, 0.0001);
   u.uRockGlow.value = s.rockGlow;
-  u.uTrailFade.value = t > 10.5 ? s.trailFade : 0;
+  u.uTrailFade.value = t > 10.0 ? s.trailFade : 0;   // (from 10 s: the loop tail replays 10.1-11 s)
   u.uFireball.value = s.fireball;
   u.uPlume.value = s.plume;
   u.uAnvil.value = s.anvil;
@@ -156,9 +160,12 @@ function update(t) {
 }
 
 let comp = null;
-// t is video time; the story starts STORY_START seconds in
+// t is video time; the story starts STORY_START seconds in. The last LOOP seconds replay the moments just
+// before the first frame while the water clears, so the video loops seamlessly.
 function renderFrame(t) {
-  update(t + STORY_START);
+  const tail = t - (VIDEO_DURATION - LOOP);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   composer.render();
   if (comp) comp.paint();
 }

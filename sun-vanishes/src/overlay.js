@@ -41,7 +41,7 @@ export function makeOverlay() {
         if (r.unit.textContent !== u) r.unit.textContent = u;
       }
     }
-    const hide = Math.max(s.flash || 0, s.fadeOut || 0);
+    const hide = 1 - (1 - Math.max(s.flash || 0, s.fadeOut || 0)) * (1 - (s.hideText || 0));
     counter.style.opacity = (1 - hide).toFixed(3);
 
     const cap = captionAt(t);
@@ -54,7 +54,7 @@ export function makeOverlay() {
       caption.style.opacity = '0';
     }
 
-    title.style.opacity = (s.title || 0).toFixed(3);
+    title.style.opacity = ((s.title || 0) * (1 - (s.hideText || 0))).toFixed(3);
     title.style.transform = `translateY(${((1 - (s.title || 0)) * (t < 2 ? 18 : -10)).toFixed(2)}px)`;
     title.style.filter = (s.title || 0) < 1 ? `blur(${((1 - (s.title || 0)) * 8).toFixed(2)}px)` : 'none';
 

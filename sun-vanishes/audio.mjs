@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION, T_DARK, GRID, gridBrown } from './src/timeline.js';
+import { state, DURATION, T_DARK, GRID, gridBrown, STORY_START, T_SWITCH, LOOP } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -77,6 +77,12 @@ export function makeSoundtrack(outFile) {
   const crackles = [];
   for (let i = 0; i < 900; i++) crackles.push({ t: 49.8 + R0() * 16.5, g: 0.02 + R0() * 0.05 * R0(), pan: R0() * 2 - 1 });
   crackles.sort((a, b) => a.t - b.t);
+  // the lens ice cracks: ticks that come faster and faster until it shatters at T_SWITCH (own random stream)
+  const RC = rng(4242), noise = () => RC() * 2 - 1;
+  const ticks = [];
+  for (let t = 75.45; t < T_SWITCH; t += 0.012 + RC() * 0.07 * (1 - (t - 75.45) / (T_SWITCH - 75.45))) {
+    ticks.push({ t, g: 0.05 + RC() * 0.12, f: 2500 + RC() * 4500, pan: RC() * 1.6 - 0.8 });
+  }
   // relays clunking out as the grid goes down, far shore first (quiet, distant) to near (loud)
   const clunks = [[47.3, 0.04, -0.6], [47.7, 0.05, 0.5], [48.1, 0.06, -0.2], [48.5, 0.08, 0.7], [48.85, 0.1, -0.5], [49.2, 0.12, 0.2], [49.5, 0.15, 0.0]];
 
@@ -98,6 +104,13 @@ export function makeSoundtrack(outFile) {
     if (n % 48 === 0) s = state(t);
     const end = t >= 76.0;
     let l = 0, r = 0, wet = 0;
+    for (const k of ticks) {
+      const dt = t - k.t;
+      if (dt > 0 && dt < 0.03) {
+        const v = (noise() * Math.exp(-dt * 400) + Math.sin(TAU * k.f * dt) * Math.exp(-dt * 160) * 0.6) * k.g;
+        l += v * (1 - k.pan) * 0.5; r += v * (1 + k.pan) * 0.5; wet += v * 0.6;
+      }
+    }
 
     // --- surf: steady wash + a crash every few seconds; dies away as the sea freezes ---
     const seaG = (0.16 + 0.1 * smooth(0, 2, t)) * s.waves * (end ? 0 : 1);
@@ -296,6 +309,28 @@ export function makeSoundtrack(outFile) {
 
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
     L[n] = l + rl * 0.9; R[n] = r + rr * 0.9;
+  }
+
+  // the video loops: from T_SWITCH on (under the ice) the soundtrack becomes what plays just before the first
+  // frame, so the end runs straight into the start; the shatter rings out on top and dies before the loop point
+  {
+    const a = Math.round(T_SWITCH * SR), b = Math.round((STORY_START - LOOP) * SR), n = Math.round(LOOP * SR), xf = Math.round(0.15 * SR);
+    const pings = [];
+    for (let i = 0; i < 46; i++) pings.push({ t: Math.pow(RC(), 1.6) * 0.55, f: 2200 + RC() * 5200, g: 0.02 + RC() * 0.05, d: 0.04 + RC() * 0.16, pan: RC() * 2 - 1 });
+    let prev = 0;
+    for (let i = 0; i < n; i++) {
+      const k = Math.min(1, i / xf), wi = Math.sin(k * Math.PI / 2), wo = Math.cos(k * Math.PI / 2);
+      const t = i / SR, die = 1 - smooth(0.55, 0.85, t / LOOP);
+      const w = noise(), burst = (w - prev) * Math.exp(-t * 14) * 0.22 * die;   // bright crunch
+      prev = w;
+      let fl = burst, fr = burst;
+      for (const p of pings) {
+        const dt = t - p.t;
+        if (dt > 0 && dt < p.d * 6) { const v = Math.sin(TAU * p.f * dt) * Math.exp(-dt / p.d) * p.g * die; fl += v * (1 - p.pan) * 0.5; fr += v * (1 + p.pan) * 0.5; }
+      }
+      L[a + i] = L[a + i] * wo + L[b + i] * wi + fl;
+      R[a + i] = R[a + i] * wo + R[b + i] * wi + fr;
+    }
   }
 
   let peak = 0;

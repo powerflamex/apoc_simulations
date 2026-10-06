@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, DURATION, STORY_START, VIDEO_DURATION, GRID, gridBrown } from './timeline.js';
+import { state, DURATION, STORY_START, VIDEO_DURATION, LOOP, GRID, gridBrown } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -47,10 +47,10 @@ composer.addPass(bloom);
 composer.addPass(new OutputPass());
 // grain, vignette, and frost creeping over the lens at the end
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: params.has('grain') ? 0.026 : 0 }, uVig: { value: 0.3 }, uFrost: { value: 0 }, uTitle: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: params.has('grain') ? 0.026 : 0 }, uVig: { value: 0.3 }, uFrost: { value: 0 }, uTitle: { value: 0 }, uIce: { value: 0 }, uCrack: { value: 0 }, uShatter: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse; uniform float uTime; uniform float uGrain; uniform float uVig; uniform float uFrost; uniform float uTitle;
+    uniform sampler2D tDiffuse; uniform float uTime; uniform float uGrain; uniform float uVig; uniform float uFrost; uniform float uTitle; uniform float uIce; uniform float uCrack; uniform float uShatter;
     varying vec2 vUv;
     float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -86,10 +86,51 @@ const finish = new ShaderPass({
                    texture2D(tDiffuse, vUv + off + vec2(0.0, 0.004)).rgb + texture2D(tDiffuse, vUv + off - vec2(0.0, 0.004)).rgb) * 0.25;
       vec3 frost = blur * 0.5 + vec3(0.24, 0.29, 0.36) * (0.4 + 0.6 * crystal) + vec3(0.5, 0.58, 0.68) * (facet * 0.3 + veins * 0.3);
       col = mix(col, frost, mask * 0.92);
-      float v = 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
-      col *= v;
       // a soft dark band behind the opening title so it reads on any sky
       col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - 0.69) / 0.095, 2.0));
+      // the end: the frost closes into solid ice, cracks out from the middle, then shatters away; the video
+      // loops into its first frame underneath (the shards shrink and drop, each inside its own cell)
+      if (uIce > 0.0) {
+        vec3 ice = vec3(0.50, 0.59, 0.67) * (0.62 + 0.38 * crystal) + vec3(0.78, 0.85, 0.92) * (facet * 0.3 + veins * 0.25);
+        const float CELLS = 4.2;
+        vec2 sp = vUv * asp * CELLS;
+        vec2 hit = vec2(0.5, 0.57) * asp * CELLS;
+        vec2 si = floor(sp);
+        float d1 = 8.0, d2 = 8.0; vec2 cid = vec2(0.0), cpt = vec2(0.0);
+        for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+          vec2 g = si + vec2(x, y);
+          vec2 pt = g + 0.15 + 0.7 * vec2(h(g + 3.3), h(g + 9.1));
+          float d = length(pt - sp);
+          if (d < d1) { d2 = d1; d1 = d; cid = g; cpt = pt; } else if (d < d2) d2 = d;
+        }
+        float hd = length(cpt - hit);
+        // cracks run out from the hit point along the shard edges
+        float crack = smoothstep(0.035, 0.0, d2 - d1) * smoothstep(uCrack * 5.2, uCrack * 5.2 - 0.4, length(sp - hit));
+        float alpha = 1.0, glint = 0.0;
+        if (uShatter > 0.0) {
+          float ts = 0.05 + 0.5 * clamp(hd / 4.6, 0.0, 1.0) + 0.1 * h(cid + 1.7);
+          float lp = clamp((uShatter - ts) / 0.35, 0.0, 1.0);
+          float sc = max(1.0 - lp, 1e-3);
+          vec2 q = cpt + (sp + vec2(0.0, 0.12 * lp * lp) - cpt) / sc;   // back to where this point of the shard started
+          vec2 qi = floor(q);
+          float e1 = 8.0, e2 = 8.0; vec2 qid = vec2(-99.0);
+          for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+            vec2 g = qi + vec2(x, y);
+            vec2 pt = g + 0.15 + 0.7 * vec2(h(g + 3.3), h(g + 9.1));
+            float d = length(pt - q);
+            if (d < e1) { e2 = e1; e1 = d; qid = g; } else if (d < e2) e2 = d;
+          }
+          alpha = (all(equal(qid, cid)) ? 1.0 : 0.0) * (1.0 - smoothstep(0.65, 1.0, lp));
+          float loose = smoothstep(0.0, 0.15, lp);
+          glint = smoothstep(0.05, 0.0, e2 - e1) * loose;                       // bright broken edges
+          ice *= 1.0 + (0.3 * h(cid + 5.5) - 0.15 + 0.25 * lp) * loose;        // each shard tilts and catches the light
+          crack *= 1.0 - loose;                                               // cracks stay until the shard breaks loose
+        }
+        ice += vec3(0.85, 0.92, 1.0) * (crack * 0.9 + glint * 0.6);
+        col = mix(col, ice, clamp(uIce * alpha, 0.0, 1.0));
+      }
+      float v = 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
+      col *= v;
       col += (h(vUv * 1920.0 + fract(uTime * 7.13) * 100.0) - 0.5) * uGrain;   // film grain: off by default, it wrecks TikTok/YouTube compression
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -106,8 +147,12 @@ const JUPITER = dirFromAzEl(10 * DEG, 21 * DEG);
 const SATURN = dirFromAzEl(-15 * DEG, 13 * DEG);
 const ctx = { sunDir: SUN_DIR.clone(), fogColor: new THREE.Color(), city: 0 };
 
-function update(t) {
+function update(t, cover = -1) {
   const s = state(t);
+  if (cover >= 0) {   // loop tail: the ice shatters away from the first frame
+    s.lensIce = 1; s.crack = 1; s.shatter = 1 - cover; s.hideText = 1 - smooth(0.4, 0.95, 1 - cover);
+    s.fadeOut = 0; s.endcard = 0; s.endText = 0;
+  }
   const day = s.day;
   // city glow on the horizon at night while the grid holds
   ctx.city = smooth(27, 32, t) * gridBrown(t) * (1 - smooth(GRID.t0, GRID.t0 + GRID.span, t));
@@ -159,15 +204,21 @@ function update(t) {
   finish.uniforms.uTime.value = t;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uFrost.value = s.frost;
+  finish.uniforms.uIce.value = s.lensIce;
+  finish.uniforms.uCrack.value = s.crack;
+  finish.uniforms.uShatter.value = s.shatter;
 
   overlay(t, s);
   return s;
 }
 
 let comp = null;
-// t is video time; the story starts STORY_START seconds in
+// t is video time; the story starts STORY_START seconds in. The last LOOP seconds replay the moments just
+// before the first frame while the ice shatters away, so the video loops seamlessly.
 function renderFrame(t) {
-  update(t + STORY_START);
+  const tail = t - (VIDEO_DURATION - LOOP);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   if (world.beforeRender) world.beforeRender(renderer, camera, sky.mesh);
   composer.render();
   if (comp) comp.paint();

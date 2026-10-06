@@ -5,7 +5,12 @@ export const DURATION = 80;
 // the video starts this far into the story (the countdown still begins at 8:20 on the first frame,
 // and runs out ~9.5 s in)
 export const STORY_START = 14.5;
-export const VIDEO_DURATION = DURATION - STORY_START;
+// The video loops: the frost on the lens closes into solid ice and cracks; at T_SWITCH the scene jumps back to
+// just before the first frame under the ice, and the ice shatters away over the last LOOP seconds, so the last
+// frame runs straight into the first. (No end card: a black screen at the end makes people swipe away.)
+export const T_SWITCH = 76.0;
+export const LOOP = 1.0;
+export const VIDEO_DURATION = T_SWITCH - STORY_START + LOOP;
 
 // story beats
 export const T_DARK = 24.0;        // the last sunlight from the centre of the disk arrives
@@ -93,12 +98,16 @@ export function state(t) {
   s.snow = smooth(51, 66, t);
   s.ice = smooth(55.5, 71, t);           // freeze front progress
   s.frost = smooth(69.5, 75.8, t);       // lens frost
+  s.lensIce = smooth(75.0, 75.8, t);     // ...closes into solid ice
+  s.crack = smooth(75.45, T_SWITCH, t);  // ...which cracks out from the middle
+  s.shatter = 0;                         // (the shards fall away in the loop tail, see main.js)
+  s.hideText = smooth(75.3, 75.75, t);   // text off while the scene switches under the ice
   s.waves = 1 - smooth(52, 62, t);
 
   // camera exposure: a phone camera fighting the dark
   s.exposure = lerp(0.82, 2.4, smooth(T_DARK + 0.5, 31, t)) * (1 - 0.35 * smooth(70, 75.8, t));
   s.title = 1 - smooth(STORY_START + 3.0, STORY_START + 3.8, t);   // fully up on the first frame
-  s.fadeOut = smooth(74.8, 76.0, t);
+  s.fadeOut = 0;
   s.endcard = t >= 76.0 ? 1 : 0;
   s.endText = smooth(76.7, 77.8, t);
   s.flash = 0;

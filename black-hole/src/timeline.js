@@ -4,7 +4,12 @@ import { smooth, keys, lerp, clamp, DEG } from './util.js';
 export const DURATION = 80;
 // the video starts this far into the story, so the counter is already racing on the first frame
 export const STORY_START = 12.0;
-export const VIDEO_DURATION = DURATION - STORY_START;
+// The video loops: at T_SWITCH the screen is fully white (the final flash), the scene jumps back to just
+// before the first frame, and the flash clears into it over the last LOOP seconds, so the last frame runs
+// straight into the first. (No end card: a black screen at the end makes people swipe away.)
+export const T_SWITCH = 76.0;
+export const LOOP = 0.9;
+export const VIDEO_DURATION = T_SWITCH - STORY_START + LOOP;
 
 // Narration (italic serif, lower middle). [start, end, text]
 export const CAPTIONS = [

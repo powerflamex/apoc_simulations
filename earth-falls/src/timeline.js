@@ -18,7 +18,12 @@ const COLD_FROM = 56.4;                  // story time it shows: day 64, the Sun
 const CUT_TO = 0.6;                      // story time right after the cut
 const LAPSE_V = 17.8, LAPSE_LEN = 5.6;   // time-lapse window (video seconds), speed eases 1x -> ~3.7x -> 1x
 const LAPSE_GAIN = 7.5;                  // story seconds the time-lapse skips
-export const VIDEO_DURATION = DURATION - CUT_TO + COLD_OPEN - LAPSE_GAIN;
+// The video loops: at T_SWITCH (story clock) the screen is fully white (the final flash), the scene jumps back to
+// just before the first frame, and the flash clears into it over the last LOOP seconds, so the last frame runs
+// straight into the first. (No end card: a black screen at the end makes people swipe away.)
+export const T_SWITCH = 62.0;
+export const LOOP = 0.9;
+export const VIDEO_DURATION = T_SWITCH - CUT_TO + COLD_OPEN - LAPSE_GAIN + LOOP;
 export function storyTime(v) {
   if (v < COLD_OPEN) return COLD_FROM + v;
   const x = clamp((v - LAPSE_V) / LAPSE_LEN);
@@ -27,7 +32,7 @@ export function storyTime(v) {
 // every video time at which story time st is on screen (the flash-forward shows a few seconds twice)
 export function videoTimesOf(st) {
   const out = [];
-  if (st >= COLD_FROM && st < COLD_FROM + COLD_OPEN) out.push(st - COLD_FROM);
+  if (st >= COLD_FROM - LOOP && st < COLD_FROM + COLD_OPEN) out.push(st - COLD_FROM);   // (negative: the loop tail)
   if (st >= CUT_TO) {
     let lo = COLD_OPEN, hi = VIDEO_DURATION + 1;
     for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (storyTime(m) < st) lo = m; else hi = m; }

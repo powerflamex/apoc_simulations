@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION } from './src/timeline.js';
+import { state, DURATION, STORY_START, T_SWITCH, LOOP } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -211,6 +211,17 @@ export function makeSoundtrack(outFile) {
   }
 
   // master: soft clip + normalize to -1 dBFS, 5 ms fades
+  // the video loops: from T_SWITCH on (under the full cover) the soundtrack becomes what plays just before the
+  // first frame, so the end runs straight into the start
+  {
+    const a = Math.round(T_SWITCH * SR), b = Math.round((STORY_START - LOOP) * SR), n = Math.round(LOOP * SR), xf = Math.round(0.15 * SR);
+    for (let i = 0; i < n; i++) {
+      const k = Math.min(1, i / xf), wi = Math.sin(k * Math.PI / 2), wo = Math.cos(k * Math.PI / 2);
+      L[a + i] = L[a + i] * wo + L[b + i] * wi;
+      R[a + i] = R[a + i] * wo + R[b + i] * wi;
+    }
+  }
+
   let peak = 0;
   for (let n = 0; n < N; n++) {
     L[n] = Math.tanh(L[n] * 1.4); R[n] = Math.tanh(R[n] * 1.4);

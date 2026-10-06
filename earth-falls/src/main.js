@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, storyTime, titleAt, STORY_START, VIDEO_DURATION } from './timeline.js';
+import { state, storyTime, titleAt, STORY_START, VIDEO_DURATION, LOOP } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -79,10 +79,11 @@ const SUN_BASE = { az: 8 * DEG, el: 4.2 * DEG };
 const ctx = { sunDir: new THREE.Vector3(), sunR: 0.00466, fogColor: new THREE.Color() };
 
 // v is video time; the scene runs on the story clock t (see storyTime in timeline.js)
-function update(v) {
+function update(v, cover = -1) {
   const t = storyTime(v);
   const s = state(t);
   s.title = titleAt(v);
+  if (cover >= 0) { s.flash = cover; s.endcard = 0; s.endText = 0; }   // loop tail: the white flash clears into the first frame
   // the Sun sits low over the sea; as it swells its centre climbs a little so it stays in the sky
   ctx.sunR = 0.00466 * s.sunScale;
   ctx.sunDir.copy(dirFromAzEl(SUN_BASE.az * (1 - 0.6 * smooth(40, 58, t)), SUN_BASE.el + ctx.sunR * 1.15));
@@ -131,9 +132,12 @@ function update(v) {
 }
 
 let comp = null;
-// t is video time; the story starts STORY_START seconds in
+// t is video time. The last LOOP seconds replay the moments just before the first frame (video time -LOOP..0)
+// while the flash clears, so the video loops seamlessly.
 function renderFrame(t) {
-  update(t + STORY_START);
+  const tail = t - (VIDEO_DURATION - LOOP);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   composer.render();
   if (comp) comp.paint();
 }

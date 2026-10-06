@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, DURATION, STORY_START, VIDEO_DURATION } from './timeline.js';
+import { state, DURATION, STORY_START, VIDEO_DURATION, LOOP } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -80,8 +80,9 @@ function slerpDir(a, b, k, out) {
   return out.copy(fwd).applyQuaternion(q0);
 }
 
-function update(t) {
+function update(t, cover = -1) {
   const s = state(t);
+  if (cover >= 0) { s.flash = cover; s.endcard = 0; s.endText = 0; }   // loop tail: the white flash clears into the first frame
   ctx.bhDir.copy(dirFromAzEl(s.bhAz, s.bhEl));
   slerpDir(MOON_START, ctx.bhDir, s.moonProgress, ctx.moonDir);
   const n = s.night;
@@ -142,9 +143,12 @@ function update(t) {
 }
 
 let comp = null;
-// t is video time; the story starts STORY_START seconds in
+// t is video time; the story starts STORY_START seconds in. The last LOOP seconds replay the moments just
+// before the first frame while the flash clears, so the video loops seamlessly.
 function renderFrame(t) {
-  update(t + STORY_START);
+  const tail = t - (VIDEO_DURATION - LOOP);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   composer.render();
   if (comp) comp.paint();
 }

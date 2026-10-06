@@ -1,7 +1,7 @@
 # Apocalypse "What if" sims
 
 Vertical (1080×1920, 60fps, 80s) first-person disaster simulations in the style of TikTok "what if" videos:
-serif counter (left), italic narration (lower middle), opening title + end card, one continuous POV shot,
+serif counter (left), italic narration (lower middle), opening title, one continuous POV shot that loops seamlessly (no end card),
 calm → escalation → climax beats. Built with Three.js, rendered headlessly, soundtrack synthesized from the same timeline.
 
 ## Projects (each folder is self-contained)

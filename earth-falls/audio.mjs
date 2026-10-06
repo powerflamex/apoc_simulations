@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, DURATION, VIDEO_DURATION, COLD_OPEN, T_STOP, storyTime, videoTimesOf } from './src/timeline.js';
+import { state, DURATION, VIDEO_DURATION, COLD_OPEN, T_STOP, LOOP, storyTime, videoTimesOf } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -55,6 +55,10 @@ const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 export function makeSoundtrack(outFile) {
   const N = Math.round(VIDEO_DURATION * SR);   // written on the video clock; the mix follows the story clock
   const L = new Float32Array(N), R = new Float32Array(N);
+  // the video loops: synthesis starts LOOP seconds before the first frame (video time -LOOP..0, kept in PL/PR)
+  // and that lead-in becomes the end of the soundtrack, so the end runs straight into the start
+  const N0 = Math.round(LOOP * SR);
+  const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(65);
   const white = () => R0() * 2 - 1;
 
@@ -86,7 +90,7 @@ export function makeSoundtrack(outFile) {
 
   let s = state(storyTime(0));
   let flushed = false;
-  for (let n = 0; n < N; n++) {
+  for (let n = -N0; n < N; n++) {
     const v = n / SR, t = storyTime(v);
     if (n % 48 === 0) s = state(t);
     if (v >= COLD_OPEN && !flushed) {   // hard cut from the flash-forward: no roar tail into the calm beach
@@ -196,7 +200,16 @@ export function makeSoundtrack(outFile) {
     }
 
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
-    L[n] = l + rl * 0.9; R[n] = r + rr * 0.9;
+    if (n < 0) { PL[n + N0] = l + rl * 0.9; PR[n + N0] = r + rr * 0.9; } else { L[n] = l + rl * 0.9; R[n] = r + rr * 0.9; }
+  }
+
+  {   // under the full white flash the soundtrack turns into the lead-in to the first frame
+    const a = N - N0, xf = Math.round(0.15 * SR);
+    for (let i = 0; i < N0; i++) {
+      const k = Math.min(1, i / xf), wi = Math.sin(k * Math.PI / 2), wo = Math.cos(k * Math.PI / 2);
+      L[a + i] = L[a + i] * wo + PL[i] * wi;
+      R[a + i] = R[a + i] * wo + PR[i] * wi;
+    }
   }
 
   let peak = 0;
@@ -211,9 +224,8 @@ export function makeSoundtrack(outFile) {
   buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(2, 22);
   buf.writeUInt32LE(SR, 24); buf.writeUInt32LE(SR * 4, 28); buf.writeUInt16LE(4, 32); buf.writeUInt16LE(16, 34);
   buf.write('data', 36); buf.writeUInt32LE(N * 4, 40);
-  const fade = SR * 0.005;
   for (let n = 0; n < N; n++) {
-    const f = Math.min(1, n / fade, (N - n) / fade);
+    const f = 1;   // no fade at the ends: they join up when the video loops
     buf.writeInt16LE(Math.round(clamp(L[n] * g * f, -1, 1) * 32767), 44 + n * 4);
     buf.writeInt16LE(Math.round(clamp(R[n] * g * f, -1, 1) * 32767), 46 + n * 4);
   }

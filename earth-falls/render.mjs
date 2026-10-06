@@ -265,7 +265,7 @@ if (!NO_AUDIO) {
   const wav = makeSoundtrack(path.join(ROOT, 'out', 'soundtrack.wav'));
   await run('ffmpeg', [
     '-y', '-loglevel', 'error', '-i', VIDEO_TMP, '-ss', String(START + STORY_START), '-i', wav,
-    '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'afade=t=in:d=0.25', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000',
+    '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000',
     '-shortest', '-movflags', '+faststart', OUT,
   ]);
   fs.unlinkSync(VIDEO_TMP);
