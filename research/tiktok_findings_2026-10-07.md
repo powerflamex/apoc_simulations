@@ -55,3 +55,24 @@ city 1.4M - Yellowstone 1.2M. Absurd food/novelty topics (Jello statue, tea bag 
 - No big logo on screen.
 - Next topics with proof: Earth stops spinning (biggest hit in the niche; nobody does it on YouTube in this
   style), Moon crashes into Earth, "X disappears for 5 seconds".
+
+## Same videos on YouTube (checked 2026-10-07)
+Lunar (@lunarcheeseee, 528 subs) and Clover (@cloveranimationns, 78 subs) post the same clips on YouTube Shorts.
+
+| video | TikTok | YouTube | on YouTube since |
+|---|---|---|---|
+| Lunar: biggest earthquake | 1.4M | 1,754 | Oct 4 |
+| Lunar: black hole heading for Earth | - | 42 | Oct 5 |
+| Lunar: atmosphere disappears | - | 29 | Oct 5 |
+| Lunar: Earth stopped spinning | 20.4M | 10 | Oct 6 (~20 h) |
+| Lunar: Moon crashed | 8.7M | 3 | Oct 6 (~20 h) |
+| Clover: Earth stops spinning | 309K | 2,191 | Oct 4 |
+| Clover: asteroid hits the Atlantic | 252K | 1,306 | Oct 4 |
+| Clover: black hole enters the solar system | - | 1,215 | Oct 4 |
+| Ours: earth falls / asteroid / black hole | 42K-113K | 1,100-1,600 | Oct 4-5 |
+
+Nobody in the niche is breaking out on YouTube yet, not even Lunar: same-age Shorts all sit at ~1-2K views,
+whatever their TikTok numbers. Ours are normal for the niche (and the best YouTube/TikTok ratio). TikTok's hooks
+don't transfer by themselves; the YouTube version of the format is still unsolved. Track "stayed to watch" per
+opening style on our channel, re-check these channels around Oct 11-12, and consider long-form (3-10 min, the
+big "what if" channels on YouTube are long-form) as a separate bet.
