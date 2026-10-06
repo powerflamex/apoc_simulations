@@ -19,6 +19,27 @@ After changing any project, without being asked and without stopping to ask:
 
 The owner is new to coding: explain in plain words, skip jargon, and never leave them a manual step you could do.
 
+How the owner likes to work:
+- When they ask "what do you think" or "answer before you build", give your opinion and wait. Don't start building.
+- Do only what was asked (e.g. "captions" means the posting text, not the on-screen title).
+- When describing a video plan, lay it out in the order a viewer sees it, from 0:00 to the end, then the loop.
+- Downloaded competitor videos stay private: keep them in the scratchpad, never in the repo.
+
+## What makes these videos work (from `research/` and the owner's own stats)
+
+Use this for every new video and every rework:
+- **Frame 0:** the question (title) and a number already racing are on screen and readable. No subtitle, logo or
+  "A SIMULATION" line: anything that delays the hook costs viewers.
+- **First seconds:** something visibly happens right away, not just the counter. Opening on the climax (a cold
+  open) did best for the owner: earth-falls kept 59.8% of viewers vs 47% and 39% for the others.
+- **Scenes:** bright and busy, with people, cars and city lights, so the viewer pictures themselves there.
+- **On-screen captions:** short, put "you" somewhere concrete, and give one hard number.
+- **Length:** 60-80 s. **Loop:** always (nobody else in the niche does it).
+- **Loop point on a plain screen:** TikTok and Shorts freeze the last frame for a moment when they loop, so the cut
+  must sit inside a full white flash, deep water, or solid ice, never in the middle of a detailed shot.
+- Topics that are proven hits: Earth stops spinning, the Moon crashes into Earth, "X disappears for 5 seconds".
+  Silly novelty topics flop.
+
 ## Working on the sims
 
 - Each sim is a pure function of time: `src/timeline.js` holds the story (captions, counters, when events happen),
