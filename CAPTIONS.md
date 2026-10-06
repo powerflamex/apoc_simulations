@@ -54,7 +54,7 @@ If the Sun vanished right now, you wouldn't notice for 8 minutes and 20 seconds.
 
 Cover: `sun-vanishes/out/sun-vanishes_v4_cover.png`
 
-## Day 3. Black hole (repost, new version) — `black-hole/out/black-hole_v4_1080x1920_60fps_tiktok.mp4`
+## Day 3. Black hole (repost, new version: no subtitle, racing countdown, "Can you see it?") — `black-hole/out/black-hole_v4_1080x1920_60fps_tiktok.mp4`
 
 **YouTube title (81 chars)**
 What if a black hole passed by Earth? You'd never see it coming 🕳️ #whatif #space
@@ -64,14 +64,14 @@ A black hole gives off no light. If one passed through the solar system, the fir
 
 Then it tears the Moon into a glowing ring. The ocean leans toward it, you start to feel lighter, and everything that isn't bolted down falls up.
 
-Which part would scare you most? 👇
+Did you spot it before it reached the Moon? 👀👇
 
 The light bending is ray-traced: every pixel of the sky follows a real path of light around the black hole.
 
 #whatif #blackhole #space #science #physics #astronomy #simulation
 
 **TikTok**
-A black hole gives off no light at all. If one passed through the solar system, the first sign would be the stars around an empty patch of sky starting to bend. Then it tears the Moon into a glowing ring, the ocean leans toward it, and everything that isn't bolted down starts to fall… up. Which part would scare you most? 👇
+A black hole gives off no light at all. If one passed through the solar system, the first sign would be the stars around an empty patch of sky starting to bend. Then it tears the Moon into a glowing ring, the ocean leans toward it, and everything that isn't bolted down starts to fall… up. Did you spot it before it reached the Moon? 👀👇
 
 #whatif #blackhole #space #science #physics #simulation #pov #astronomy #fyp
 

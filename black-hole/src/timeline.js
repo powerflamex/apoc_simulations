@@ -15,9 +15,10 @@ export const VIDEO_DURATION = T_SWITCH - STORY_START + LOOP;
 export const CAPTIONS = [
   [13.0, 17.2, 'A black hole is passing through the solar system.'],
   [17.6, 21.6, "It gives off no light. You can't see it coming."],
-  [22.0, 24.8, 'Only the stars around it bend.'],
-  [25.2, 30.2, "It's heading straight for the Moon."],
-  [30.8, 37.4, 'The Moon is torn into a glowing ring.'],
+  [22.0, 24.4, 'Only the stars around it bend.'],
+  [24.6, 27.4, 'Can you see it? Right there in the sky.'],   // the hole has just become a dark dot in a swirl of stars
+  [27.6, 30.6, "It's heading straight for the Moon."],
+  [30.9, 37.4, 'The Moon is torn into a glowing ring.'],
   [38.4, 44.0, 'The ocean leans toward it.'],
   [44.8, 50.6, 'You start to feel lighter.'],
   [51.4, 57.4, "Everything that isn't bolted down falls up."],
@@ -25,13 +26,31 @@ export const CAPTIONS = [
   [65.4, 71.2, 'Then your building lets go.'],
 ];
 
+// A smooth curve through [t, value] keys in log space that never stalls between keys (monotone cubic,
+// Fritsch-Carlson), so a countdown keeps racing instead of easing to a stop at every key.
+function logCurve(pts) {
+  const x = pts.map((p) => p[0]), y = pts.map((p) => Math.log(p[1])), n = pts.length;
+  const d = x.slice(1).map((xi, i) => (y[i + 1] - y[i]) / (xi - x[i]));
+  const m = y.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : d[i - 1] * d[i] <= 0 ? 0 : 2 / (1 / d[i - 1] + 1 / d[i])));
+  return (t) => {
+    if (t <= x[0]) return Math.exp(y[0]);
+    if (t >= x[n - 1]) return Math.exp(y[n - 1]);
+    let i = 0;
+    while (t > x[i + 1]) i++;
+    const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
+    return Math.exp((2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1]);
+  };
+}
+// distance to the black hole (miles): racing down from the first frame, the Moon's distance at 34 s
+const bhMiles = logCurve([[0, 92_960_000], [14, 21_400_000], [27, 2_380_000], [34, 238_900], [40, 61_200]]);
+
 // Counter segments: label / unit / value(t) / formatter.
 const fmtInt = (v) => Math.round(v).toLocaleString('en-US');
 const fmtG = (v) => (v < 10 ? v.toFixed(1) : Math.round(v).toLocaleString('en-US'));
 export const COUNTERS = [
   {
     from: 0.0, to: 39.6, label: 'BLACK HOLE', unit: 'MILES AWAY', fmt: fmtInt,
-    value: (t) => keys([[0, 92_960_000], [14, 21_400_000], [27, 2_380_000], [34, 238_900], [40, 61_200]], t, true),
+    value: bhMiles,
   },
   {
     from: 39.6, to: 55.0, label: 'YOUR WEIGHT', unit: 'POUNDS', fmt: fmtInt,
