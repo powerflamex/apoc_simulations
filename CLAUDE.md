@@ -30,8 +30,10 @@ How the owner likes to work:
 Use this for every new video and every rework:
 - **Frame 0:** the question (title) and a number already racing are on screen and readable. No subtitle, logo or
   "A SIMULATION" line: anything that delays the hook costs viewers.
-- **First seconds:** something visibly happens right away, not just the counter. Opening on the climax (a cold
-  open) did best for the owner: earth-falls kept 59.8% of viewers vs 47% and 39% for the others.
+- **First seconds:** something visibly happens right away, not just the counter. The owner's YouTube "stayed to
+  watch": sun-vanishes 69.4% (best: a countdown racing on frame 0 to an event you see at ~10 s, day turning to
+  night; no cold open), earth-falls 59.8% (cold open on the climax), the old black hole 47% and asteroid 39%
+  (no title or counter on frame 0).
 - **Scenes:** bright and busy, with people, cars and city lights, so the viewer pictures themselves there.
 - **On-screen captions:** short, put "you" somewhere concrete, and give one hard number.
 - **Length:** 60-80 s. **Loop:** always (nobody else in the niche does it).
