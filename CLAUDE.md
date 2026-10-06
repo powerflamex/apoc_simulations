@@ -27,6 +27,10 @@ The owner is new to coding: explain in plain words, skip jargon, and never leave
 - Times in `timeline.js` are story time; the video starts `STORY_START` seconds in. `earth-falls` also has a
   separate video clock (`storyTime()`: cold open + time-lapse); its captions are timed on the video clock.
 - `crowd.js` and `cars.js` are the same file in every project: edit one, copy to the others.
+- Rendering speed: `render.mjs` runs two Chromes on alternate 10 s segments, encodes H.264 on the GPU's video
+  encoder when Chrome has one (it falls back to the CPU by itself and logs `encoder: ...`), and `render-v4.sh`
+  compresses each upload copy in the background while the next video renders. If a render misbehaves, the old
+  settings are `node render.mjs --workers 1 --software`. `render-v4.sh` prints how long each step took.
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.
 - Post titles and captions for each video are in `CAPTIONS.md`.

@@ -53,6 +53,11 @@ Live preview: `node server.mjs` then open `http://127.0.0.1:5178/?t=45` (space =
 ## Things learned
 - Fast renderer: frames are composited into one canvas and H.264-encoded in Chrome (WebCodecs) → ~20–25 fps
   render speed (4 min per video). The old screenshot path was ~2 fps (37 min). GPU draw is only ~7 ms/frame.
+- Most of the render time was never the GPU draw (~7 ms) but the H.264 encode on the CPU and the hand-offs.
+  So two Chromes now render alternate segments (`--workers 2`), the encode uses the GPU's video encoder when
+  Chrome offers one (checked: no reordered frames; any failure falls back to the CPU), frames go to/from the
+  page in batches of 15, and the upload copies use x264 `medium` in the background. Old behaviour:
+  `--workers 1 --software`.
 - Renders are crash-safe: 10 s segments in `out/.segments/`, auto-relaunch, re-run resumes. Delete
   `out/.segments/` before re-rendering after code changes (otherwise old segments are reused).
 - A render died once because the laptop went to sleep (lid closed). Set lid-close to "Do nothing" when plugged in.

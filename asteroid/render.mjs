@@ -6,8 +6,12 @@
 //   node render.mjs --no-audio              -> video only
 //   node render.mjs --grain                 -> keep the film-grain effect (looks worse after TikTok compression)
 //   node render.mjs --screenshot            -> old path: capture page screenshots + x264 (~10x slower)
+//   node render.mjs --workers 1 --software  -> the old, slower settings (one Chrome, H.264 on the CPU)
 // Default path: each frame is composited into one canvas in the page and encoded there with WebCodecs
-// (H.264 High), so only small compressed chunks leave Chrome.
+// (H.264 High), so only small compressed chunks leave Chrome. Speed: the GPU draws a frame in a few ms but the
+// H.264 encode and the hand-offs take far longer, so two Chromes render alternate segments side by side
+// (--workers), the encode runs on the GPU's video encoder when there is one (falls back to the CPU), and
+// frames go back and forth in batches.
 // Crash-safe: renders 10 s segments into out/.segments/, keeps finished ones, relaunches Chrome
 // if it dies, and simply resumes when re-run.
 import { spawn } from 'node:child_process';
@@ -37,7 +41,9 @@ const SCALE = DRAFT ? 0.5 : 1;
 const STILLS = arg('stills', COVER);
 const NO_AUDIO = has('no-audio');
 const SCREENSHOT = has('screenshot') || has('png');
-const WORKERS = Math.max(1, Number(arg('workers', SCREENSHOT ? 2 : 1)));
+const WORKERS = Math.max(1, Number(arg('workers', 2)));
+let USE_HW = !has('software');    // GPU video encoder if Chrome has one; switched off for good after any failure
+const BATCH = 15;                 // frames per round trip to the page
 const BITRATE = Number(arg('mbps', DRAFT ? 12 : 50)) * 1e6;
 const FORMAT = has('png') ? 'png' : 'jpeg';
 const QUALITY = Number(arg('quality', 100));
@@ -86,26 +92,36 @@ async function launch() {
         fr.readAsDataURL(new Blob(parts));
       });
       window.__seg = {
-        async start(fps, bitrate) {
-          const cfg = { codec: 'avc1.640033', width: 1080, height: 1920, bitrate, framerate: fps, hardwareAcceleration: 'prefer-software',
+        async start(fps, bitrate, hw) {
+          const base = { codec: 'avc1.640033', width: 1080, height: 1920, bitrate, framerate: fps,
             avc: { format: 'annexb' }, latencyMode: 'quality', bitrateMode: 'variable' };
-          const sup = await VideoEncoder.isConfigSupported(cfg);
-          if (!sup.supported) throw new Error('H.264 encoder config not supported');
+          let cfg = null;
+          for (const acc of hw ? ['prefer-hardware', 'prefer-software'] : ['prefer-software']) {
+            const c = { ...base, hardwareAcceleration: acc };
+            if ((await VideoEncoder.isConfigSupported(c)).supported) { cfg = c; break; }
+          }
+          if (!cfg) throw new Error('H.264 encoder config not supported');
           this.fps = fps; this.i = 0; this.chunks = []; this.err = null;
           this.enc = new VideoEncoder({
             output: (c) => { const b = new Uint8Array(c.byteLength); c.copyTo(b); this.chunks.push(b); },
             error: (e) => { this.err = String(e); },
           });
           this.enc.configure(cfg);
+          return cfg.hardwareAcceleration;
         },
-        async frame(t) {
+        // frames i0 .. i0+n-1 at t0 + i / fps (same arithmetic as the caller used per frame before)
+        async frames(i0, n, t0, fps) {
+          for (let k = 0; k < n; k++) await this.frame(t0 + (i0 + k) / fps, false);
+          return this.take();
+        },
+        async frame(t, take = true) {
           window.renderFrame(t);
           const f = new VideoFrame(window.__comp.canvas, { timestamp: Math.round(this.i * 1e6 / this.fps), duration: Math.round(1e6 / this.fps) });
           this.enc.encode(f, { keyFrame: this.i % (this.fps * 2) === 0 });
           f.close();
           this.i++;
           while (this.enc.encodeQueueSize > 3) await new Promise((r) => setTimeout(r, 1));
-          return this.take();
+          if (take) return this.take();
         },
         async end() { await this.enc.flush(); const r = await this.take(); this.enc.close(); return r; },
         take() { if (this.err) throw new Error(this.err); return b64(this.chunks.splice(0)); },
@@ -121,11 +137,21 @@ async function launch() {
     return Buffer.from(data, 'base64');
   };
   const seg = {
-    start: (fps, bitrate) => page.evaluate((f, b) => window.__seg.start(f, b), fps, bitrate),
-    frame: async (t) => Buffer.from(await page.evaluate((x) => window.__seg.frame(x), t), 'base64'),
+    start: (fps, bitrate) => page.evaluate((f, b, h) => window.__seg.start(f, b, h), fps, bitrate, USE_HW),
+    frames: async (i0, n) => Buffer.from(await page.evaluate((a, b, c, d) => window.__seg.frames(a, b, c, d), i0, n, START, FPS), 'base64'),
     end: async () => Buffer.from(await page.evaluate(() => window.__seg.end()), 'base64'),
   };
   return { browser, frame, gpu, seg };
+}
+
+function runOut(cmd, argv) {
+  return new Promise((res, rej) => {
+    const p = spawn(cmd, argv, { stdio: ['ignore', 'pipe', 'inherit'] });
+    let out = '';
+    p.stdout.on('data', (d) => (out += d));
+    p.on('error', rej);
+    p.on('close', (c) => (c === 0 ? res(out) : rej(new Error(`${cmd} exit ${c}`))));
+  });
 }
 
 function run(cmd, argv) {
@@ -165,7 +191,7 @@ const todo = segs.filter((s) => !fs.existsSync(s.file));
 console.log(`${segs.length - todo.length}/${segs.length} segments already done; rendering ${todo.length} with ${Math.min(WORKERS, todo.length)} worker(s) (${SCREENSHOT ? `screenshots ${FORMAT} + x264 ${PRESET}` : `in-page H.264 ${BITRATE / 1e6} Mbps`})`);
 
 const t0 = performance.now();
-let done = 0, lastLog = 0;
+let done = 0, lastLog = 0, encoderLogged = SCREENSHOT;
 const framesTodo = todo.reduce((n, s) => n + s.f1 - s.f0, 0);
 function progress() {
   const now = performance.now();
@@ -180,20 +206,28 @@ async function renderSegmentWebCodecs(w, seg) {
   const tmp = seg.file + '.part.mp4';
   const raw = seg.file + '.part.h264';
   const parts = [];
-  let n = 0;
+  let n = 0, acc = null;
   try {
-    await w.seg.start(FPS, BITRATE);
-    for (let i = seg.f0; i < seg.f1; i++) {
-      parts.push(await w.seg.frame(START + i / FPS));
-      n++; done++;
+    acc = await w.seg.start(FPS, BITRATE);
+    if (!encoderLogged) { encoderLogged = true; console.log(`encoder: ${acc === 'prefer-hardware' ? 'GPU (hardware)' : 'CPU (software)'}`); }
+    for (let i = seg.f0; i < seg.f1; i += BATCH) {
+      const k = Math.min(BATCH, seg.f1 - i);
+      parts.push(await w.seg.frames(i, k));
+      n += k; done += k;
       progress();
     }
     parts.push(await w.seg.end());
     fs.writeFileSync(raw, Buffer.concat(parts));
     await run('ffmpeg', ['-y', '-loglevel', 'error', '-fflags', '+genpts', '-r', String(FPS), '-i', raw, '-c', 'copy', tmp]);
     fs.rmSync(raw, { force: true });
+    if (acc === 'prefer-hardware') {
+      // the segments are joined assuming frames come out in order: a hardware encoder that reorders (B-frames) is not used
+      const b = await runOut('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=has_b_frames', '-of', 'csv=p=0', tmp]);
+      if (parseInt(b, 10) > 0) throw new Error('the GPU encoder reorders frames');
+    }
     fs.renameSync(tmp, seg.file);
   } catch (e) {
+    if (acc === 'prefer-hardware' && USE_HW) { USE_HW = false; console.log(`GPU encoder failed (${e.message.split('\n')[0]}); using the CPU encoder from now on`); }
     done -= n;
     fs.rmSync(raw, { force: true });
     fs.rmSync(tmp, { force: true });
