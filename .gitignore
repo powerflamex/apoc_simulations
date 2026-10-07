@@ -1,5 +1,6 @@
 # big or regenerable stuff stays local
 node_modules/
+node_modules
 out/
 stills/
 *.mp4

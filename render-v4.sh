@@ -16,6 +16,8 @@ for d in "$@"; do
     black-hole) name=black-hole_v4 ;;
     *) name=${d}_v4 ;;
   esac
+  # a new project folder needs its packages once (three.js, the renderer's Chrome driver, the font)
+  [ -d "$d/node_modules" ] || (cd "$d" && npm install --no-audit --no-fund --loglevel=error) || { echo "$d: npm install FAILED"; continue; }
   rm -rf "$d/out/.segments"
   t=$SECONDS
   (cd "$d" && node render.mjs --out "out/${name}_1080x1920_60fps.mp4" > out_render_v4.log 2>&1) || { echo "$d FAILED (see $d/out_render_v4.log)"; continue; }

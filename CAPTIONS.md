@@ -98,8 +98,32 @@ The asteroid that wiped out the dinosaurs hit the sea. Here's a 1-mile one hitti
 
 Cover: `asteroid/out/asteroid_v4_cover.png`
 
+## Day 5. Earth spins 17 times faster — `earth-spins/out/earth-spins_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (82 chars)**
+What if Earth spun 17 times faster? You'd float away in 50 hours 🌍 #whatif #space
+
+**YouTube description**
+Right now the ground at the equator carries you east at 1,037 mph. Spin Earth faster and every day gets shorter.
+
+Soon the Sun rises and sets every few seconds.
+The oceans pile up at the equator and flood the city.
+At a 2-hour day, you weigh half as much.
+At 1 hour 24 minutes, the ground moves at 17,700 mph. That's orbit speed: you weigh nothing, and everything floats up into the sky.
+
+Would you rather be at the equator or the North Pole for this? 👇
+
+#whatif #space #earth #physics #science #simulation
+
+**TikTok**
+You're in Singapore, right on the equator, where the ground carries you east at 1,037 mph. Now Earth starts spinning faster. Days shrink to a few hours, the oceans pile up at the equator and flood the streets, and at a 2-hour day you weigh half as much. At 1 hour 24 minutes the ground hits 17,700 mph, orbit speed, and everything floats up into the sky. Would you rather be at the equator or the North Pole? 👇
+
+#whatif #earth #space #physics #science #simulation #pov #fyp
+
+Cover: `earth-spins/out/earth-spins_v4_cover.png`
+
 ## Posting plan
-- One a day on YouTube: Earth stops orbiting → Sun vanishes → black hole → asteroid. Each one goes on TikTok a day or two after YouTube.
+- One a day on YouTube: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. Each one goes on TikTok a day or two after YouTube.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
 - In YouTube Studio, check "Viewed vs. swiped away" for each Short: it shows whether the opening hooked people. For the two
   reposts, also compare "stayed to watch" against the originals (34% / 45%).
