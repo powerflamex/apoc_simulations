@@ -16,11 +16,13 @@ const W = 1080, H = 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
+const RES = Math.min(1, Math.max(0.25, Number(params.get('res') || 1)));   // ?res=0.5: a quicker, softer preview (the text stays sharp)
+const RW = Math.round(W * RES), RH = Math.round(H * RES);
 
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true, logarithmicDepthBuffer: true });
 renderer.setPixelRatio(1);
-renderer.setSize(W, H, false);
+renderer.setSize(RW, RH, false);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
@@ -38,12 +40,12 @@ const world = makeWorld(scene, sky.uniforms);
 const overlay = makeOverlay();
 
 // post: MSAA scene target -> bloom -> tone map -> vignette + title band
-const rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: 4 });
+const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(1);
-composer.setSize(W, H);
+composer.setSize(RW, RH);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(W / 2, H / 2), 0.35, 0.4, 1.0);
+const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.35, 0.4, 1.0);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
@@ -119,7 +121,7 @@ function update(v, cover = -1) {
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
   u.uTime.value = v;
-  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / H;
+  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
   u.uSunDir.value.copy(ctx.sunDir);
   u.uSunPrev.value.copy(ctx.sunPrev);
   u.uMoonDir.value.copy(ctx.moonDir);
