@@ -35,6 +35,10 @@ Use this for every new video and every rework:
   turning to night; no cold open) and earth-falls 59.8% (cold open on the climax) are about equal; the old
   black hole 47% and asteroid 39% had no title or counter on frame 0. Early numbers (under ~300 views) swing by
   10 points, so compare videos once they have a few hundred views.
+- **Frame 0 reads at a glance and is already strange** (`research/youtube_findings_2026-10-07.md`): strong
+  contrast, never mostly white, black or hazy, and the unusual thing (giant Sun, meteor, rings) already on screen
+  or visibly changing within ~2 s. On YouTube, Shorts that open on a calm "normal day" and make you wait 8-12 s
+  stall at <300 views; same-channel twins that open on the spectacle get the first ~1,000.
 - **Scenes:** bright and busy, with people, cars and city lights, so the viewer pictures themselves there.
 - **On-screen captions:** short, put "you" somewhere concrete, and give one hard number.
 - **Length:** 60-80 s. **Loop:** always (nobody else in the niche does it).
