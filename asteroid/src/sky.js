@@ -95,12 +95,12 @@ void main() {
       vec3 smokeC = mix(vec3(0.5, 0.46, 0.45), vec3(1.0, 0.78, 0.55), 0.6) * puff;
       c = mix(c, smokeC, sm * 0.75 * uTrailFade);
       // plasma just behind the head
-      float pl = exp(-pow(perp / (uPx * 2.2 + 0.0012), 2.0)) * exp(-behind / 0.05);
-      c += vec3(1.0, 0.7, 0.35) * pl * 12.0 * uRockGlow;
+      float pl = exp(-pow(perp / (uPx * 3.0 + 0.002), 2.0)) * exp(-behind / 0.09);
+      c += vec3(1.0, 0.7, 0.35) * pl * 14.0 * uRockGlow;
     }
   }
   float ha = acos(clamp(dot(v, head), -1.0, 1.0));
-  c += vec3(1.0, 0.92, 0.8) * uRockGlow * (60.0 * exp(-pow(ha / (uPx * 2.5), 2.0)) + 2.0 * exp(-ha / 0.012) + 0.25 * exp(-ha / 0.06));
+  c += vec3(1.0, 0.92, 0.8) * uRockGlow * (60.0 * exp(-pow(ha / (uPx * 4.0), 2.0)) + 3.0 * exp(-ha / 0.016) + 0.4 * exp(-ha / 0.07));
 
   // --- impact: fireball + steam column + mushroom cap (angular coordinates around the impact point) ---
   if (uPlume > 0.0 || uFireball > 0.0) {

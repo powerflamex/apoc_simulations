@@ -18,8 +18,8 @@ export const T_BEACH = 70.5;       // wave front reaches the promenade
 export const T_ENGULF = 72.72;     // the face of the wave reaches the lens (found frame by frame in renders: video 61.72 s)
 
 export const CAPTIONS = [
-  [11.3, 14.4, 'A mile-wide asteroid is seconds from impact.'],
-  [14.7, 16.4, 'Watch the horizon.'],
+  [11.0, 14.6, "You're on a Greek island. A mile-wide asteroid is seconds from impact."],
+  [14.9, 16.5, 'Watch the horizon.'],
   [18.2, 22.8, 'It hits the ocean 60 miles offshore.'],
   [23.4, 28.4, 'A column of steam rises 20 miles high.'],
   [29.0, 34.4, 'The ground shakes first. Then comes the shockwave.'],
@@ -62,9 +62,9 @@ const waveFront = (t) => keys([[57.5, 16000], [62, 9000], [66, 4200], [68.5, 180
 export function state(t) {
   const s = { t };
   // asteroid entry: progress along its path in the sky (accelerates as it closes in)
-  s.rock = clamp((t - 8.0) / (T_IMPACT - 8.0));
+  s.rock = clamp((t + 4.0) / (T_IMPACT + 4.0));   // on the first frame it's already well into the sky, its trail streaming from the corner
   s.rockPath = Math.pow(s.rock, 2.2);
-  s.rockGlow = (0.45 + 0.55 * smooth(11, 15.5, t)) * smooth(9.2, 10.2, t) * (t < T_IMPACT ? 1 : 0);   // already blazing on the first frame
+  s.rockGlow = (0.78 + 0.22 * smooth(11, 15.5, t)) * smooth(9.2, 10.2, t) * (t < T_IMPACT ? 1 : 0);   // already blazing on the first frame
   s.trailFade = t < T_IMPACT ? 1 : 1 - 0.75 * smooth(T_IMPACT, 60, t);
 
   // impact
@@ -97,7 +97,7 @@ export function state(t) {
   s.stopLook = smooth(T_IMPACT, T_IMPACT + 1.5, t);
   s.run = smooth(52, 56, t);
 
-  s.exposure = lerp(0.95, 0.85, s.haze) * (1 - 0.5 * s.under);
+  s.exposure = lerp(0.95, 0.85, s.haze) * (1 - 0.5 * s.under) * (1 - 0.1 * (1 - smooth(16.5, 21, t)));   // a touch darker before the impact: more contrast on the opening
   s.title = 1 - smooth(STORY_START + 3.0, STORY_START + 3.8, t);   // fully up on the first frame
   s.fadeOut = 0;
   if (t > T_ENGULF) { s.flash = smooth(T_SWITCH - 0.6, T_SWITCH, t); s.flashColor = UNDER_COLOR; }   // the water closes over everything

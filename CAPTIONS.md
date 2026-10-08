@@ -77,13 +77,13 @@ A black hole gives off no light at all. If one passed through the solar system, 
 
 Cover: `black-hole/out/black-hole_v4_cover.png`
 
-## Day 4. Asteroid (repost, new version) — `asteroid/out/asteroid_island_v4_1080x1920_60fps_tiktok.mp4`
+## Day 4. Asteroid (repost, new version: meteor in the sky from the first frame, no subtitle, counter hits 0 with the wave, loops) — `asteroid/out/asteroid_island_v4_1080x1920_60fps_tiktok.mp4`
 
 **YouTube title (82 chars)**
 What if a 1-mile asteroid hit the ocean 60 miles from you? 🌊☄️ #whatif #simulation
 
 **YouTube description**
-A mile-wide asteroid hits the ocean 60 miles offshore. A flash on the horizon, then a column of steam 20 miles high. The ground shakes first, then the shockwave arrives and every window in the city shatters.
+You're on a Greek island. A mile-wide asteroid hits the ocean 60 miles offshore. A flash on the horizon, then a column of steam 20 miles high. The ground shakes first, then the shockwave arrives and every window in the city shatters.
 
 Then the sea pulls away from the shore. That's the warning: you have minutes. A 600-foot wave comes in at 100 miles an hour.
 
@@ -92,7 +92,7 @@ Would you run inland or head for high ground? 👇
 #whatif #asteroid #tsunami #space #science #disaster #simulation
 
 **TikTok**
-The asteroid that wiped out the dinosaurs hit the sea. Here's a 1-mile one hitting the ocean 60 miles from you: a flash on the horizon, a column of steam 20 miles high, a shockwave that shatters every window… then the sea pulls back, and a 600-foot wave comes in at 100 mph. Would you run inland or head for high ground? 👇
+You're on a Greek island when a 1-mile asteroid hits the ocean 60 miles away: a flash on the horizon, a column of steam 20 miles high, a shockwave that shatters every window… then the sea pulls back, and a 600-foot wave comes in at 100 mph. Would you run inland or head for high ground? 👇
 
 #whatif #asteroid #tsunami #space #science #simulation #pov #disaster #fyp
 

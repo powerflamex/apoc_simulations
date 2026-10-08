@@ -87,7 +87,7 @@ const dirFromAzEl = (az, el) => new THREE.Vector3(Math.sin(az) * Math.cos(el), M
 const SUN_EL = 8 * DEG;
 const SUN_DIR = dirFromAzEl(12 * DEG, SUN_EL);
 const IMPACT_DIR = dirFromAzEl(AZ_IMPACT, 0.0);
-const ROCK_A = dirFromAzEl(15 * DEG, 22 * DEG);   // starts inside the top of the frame
+const ROCK_A = dirFromAzEl(22 * DEG, 32 * DEG);   // enters beyond the top-right corner, so its trail streams across the sky
 const ROCK_B = dirFromAzEl(AZ_IMPACT, -0.6 * DEG);
 const ctx = { sunDir: SUN_DIR.clone(), impactDir: IMPACT_DIR.clone(), rockDir: new THREE.Vector3(), fogColor: new THREE.Color(), sunVis: 1 };
 
