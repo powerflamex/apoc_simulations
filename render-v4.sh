@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 # Re-render the given projects from scratch (v4: action from the first frame, camera moves),
 # then make the TikTok upload copies.   usage: bash render-v4.sh asteroid sun-vanishes
-# Each upload copy is compressed in the background while the next video renders.
+# Each upload copy is compressed in the background while the next video renders; then older videos in that
+# project's out/ are deleted (only the new video and its upload copy are kept).
 cd "$(dirname "$0")"
 T0=$SECONDS
+# keep only the video just made and its upload copy in the project's out folder (no old versions)
+clean_old() {
+  local d=$1 m=$2 f
+  for f in "$d"/out/*.mp4; do
+    [ -e "$f" ] || continue
+    [ "$f" = "$m" ] || [ "$f" = "${m%.mp4}_tiktok.mp4" ] || { rm -f "$f"; echo "$d: removed old $(basename "$f")"; }
+  done
+}
 upload_copy() {
   local d=$1 m=$2 t=$SECONDS
   ffmpeg -y -loglevel error -i "$m" -c:v libx264 -preset medium -crf 18 -maxrate 24M -bufsize 48M -pix_fmt yuv420p -profile:v high -level 5.1 -c:a copy -movflags +faststart "${m%.mp4}_tiktok.mp4" \
-    && echo "$d done: ${m%.mp4}_tiktok.mp4 (upload copy $((SECONDS - t)) s)" || echo "$d upload copy FAILED"
+    && echo "$d done: ${m%.mp4}_tiktok.mp4 (upload copy $((SECONDS - t)) s)" && clean_old "$d" "$m" || echo "$d upload copy FAILED"
 }
 for d in "$@"; do
   case $d in

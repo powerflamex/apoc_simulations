@@ -10,7 +10,8 @@ After changing any project, without being asked and without stopping to ask:
 
 1. Re-render every project you changed, from the repo root: `bash render-v4.sh <project> [<project> ...]`
    (about 5 min per video; it clears `out/.segments` itself and writes `out/<name>_v4_1080x1920_60fps.mp4`
-   plus the `_tiktok.mp4` upload copy). Overwrite the old videos; no backups are wanted.
+   plus the `_tiktok.mp4` upload copy). Overwrite the old videos; no backups are wanted (the script deletes any
+   other .mp4 in that project's `out/` once the new upload copy is made).
 2. Check the result in the rendered `_tiktok.mp4`, not just the code: pull frames with ffmpeg at the moments
    you changed (`ffmpeg -ss <sec> -i <video> -frames:v 1 frame.png`), look at them, and for timing problems step
    frame by frame (1/60 s). Fix and re-render if anything is off.
