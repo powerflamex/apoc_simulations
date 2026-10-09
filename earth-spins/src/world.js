@@ -1,4 +1,4 @@
-// Singapore from a rooftop pool deck, looking west over the bay: the deck and its infinity pool, the people
+// Singapore from a rooftop pool deck, looking west over the bay: the deck and its pool, the people
 // on it, the city and its towers, the waterfront, the anchored ships and the sea. Everything is a pure
 // function of video time v. The sea rises as the oceans pile up at the equator; once the spin cancels
 // gravity, everything loose floats up: people, loungers, the pool's water, cars and boats from the flood.
@@ -13,7 +13,7 @@ import { ROOF_Y, V_FLOAT } from './timeline.js';
 
 export const CAM_BASE = new THREE.Vector3(0, ROOF_Y + 1.7, 0);
 const DECK_Z0 = -14, DECK_Z1 = 16, DECK_X = 18;        // our tower's roof
-const POOL_X0 = -6.5, POOL_X1 = 1.0, POOL_Z0 = -13.7, POOL_Z1 = -8.0;   // the infinity pool, centred in the view (we look 15° left)
+const POOL_X0 = -6.5, POOL_X1 = 1.0, POOL_Z0 = -13.7, POOL_Z1 = -8.0;   // the pool, centred in the view (we look 15° left)
 const POOL_XC = (POOL_X0 + POOL_X1) / 2, POOL_HW = (POOL_X1 - POOL_X0) / 2;
 const POOL_DEPTH = 1.4;
 const WATER_Y = ROOF_Y - 0.1;
@@ -98,7 +98,7 @@ export function makeWorld(scene, skyUniforms) {
     slab(-DECK_X, POOL_X0, yb, yt, DECK_Z0, DECK_Z1);
     slab(POOL_X1, DECK_X, yb, yt, DECK_Z0, DECK_Z1);
     slab(POOL_X0, POOL_X1, yb, yt, POOL_Z1, DECK_Z1);
-    slab(POOL_X0, POOL_X1, yb, ROOF_Y - 0.5, DECK_Z0, POOL_Z0);   // under the overflow edge
+    slab(POOL_X0, POOL_X1, yb, yt, DECK_Z0, POOL_Z0);   // under the far coping
     // teak planks running toward the view, with small gaps and a little colour variation
     const plankW = 0.14;
     const runs = [];
@@ -123,21 +123,18 @@ export function makeWorld(scene, skyUniforms) {
     coping(POOL_X0 - 0.45, POOL_X1 + 0.45, POOL_Z1, POOL_Z1 + 0.45);
     coping(POOL_X0 - 0.45, POOL_X0, DECK_Z0, POOL_Z1);
     coping(POOL_X1, POOL_X1 + 0.45, DECK_Z0, POOL_Z1);
+    coping(POOL_X0 - 0.45, POOL_X1 + 0.45, DECK_Z0, POOL_Z0);   // the far rim, at the roof's edge (a visible end to the pool)
     const tile = plainMat(0x5fc3d0, 0.35);
     const basin = [
       [POOL_XC, WATER_Y - POOL_DEPTH + 0.1, (POOL_Z0 + POOL_Z1) / 2, POOL_HW * 2, 0.1, POOL_Z1 - POOL_Z0],
       [POOL_X0, ROOF_Y - POOL_DEPTH / 2, (POOL_Z0 + POOL_Z1) / 2, 0.1, POOL_DEPTH, POOL_Z1 - POOL_Z0],
       [POOL_X1, ROOF_Y - POOL_DEPTH / 2, (POOL_Z0 + POOL_Z1) / 2, 0.1, POOL_DEPTH, POOL_Z1 - POOL_Z0],
       [POOL_XC, ROOF_Y - POOL_DEPTH / 2, POOL_Z1, POOL_HW * 2, POOL_DEPTH, 0.1],
-      [POOL_XC, ROOF_Y - 0.12 - POOL_DEPTH / 2, POOL_Z0 - 0.05, POOL_HW * 2, POOL_DEPTH - 0.04, 0.1],   // the infinity wall, just under the water line
+      [POOL_XC, ROOF_Y - POOL_DEPTH / 2, POOL_Z0, POOL_HW * 2, POOL_DEPTH, 0.1],
     ];
     for (const [x, y, z, w, h, d] of basin) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), tile); m.position.set(x, y, z); deck.add(m); }
-    // the overflow gutter beyond the infinity edge, and the tower's front face below it
-    const gut = new THREE.Mesh(new THREE.BoxGeometry(POOL_HW * 2 + 0.9, 0.3, 0.3), plainMat(0x2a3a40, 0.3));
-    gut.position.set(POOL_XC, ROOF_Y - 0.35, DECK_Z0 - 0.15);
-    deck.add(gut);
   }
-  // glass balustrade with a steel handrail along the edges (open where the pool spills over)
+  // glass balustrade with a steel handrail along the edges (right along the pool's far rim too)
   {
     const glass = new THREE.MeshStandardMaterial({ color: 0xa9c4cc, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false });
     const rail = plainMat(0xb5b8ba, 0.3, { metalness: 0.7 });
@@ -149,8 +146,7 @@ export function makeWorld(scene, skyUniforms) {
       r.position.set((x0 + x1) / 2, ROOF_Y + 1.12, (z0 + z1) / 2); r.rotation.y = ang;
       deck.add(g, r);
     };
-    run(-DECK_X, DECK_Z0 + 0.1, POOL_X0 - 0.5, DECK_Z0 + 0.1);
-    run(POOL_X1 + 0.5, DECK_Z0 + 0.1, DECK_X, DECK_Z0 + 0.1);
+    run(-DECK_X, DECK_Z0 + 0.1, DECK_X, DECK_Z0 + 0.1);
     run(-DECK_X + 0.1, DECK_Z0, -DECK_X + 0.1, DECK_Z1);
     run(DECK_X - 0.1, DECK_Z0, DECK_X - 0.1, DECK_Z1);
   }
@@ -407,12 +403,12 @@ export function makeWorld(scene, skyUniforms) {
   { const RPp = rng(4141); people.forEach((p, i) => crowd.color(i, clothes[Math.floor(RPp() * clothes.length)], [0x2b2d42, 0x3d405b, 0x1d1d1d, 0x6b705c, 0x284b63][Math.floor(RPp() * 5)], SKIN[Math.floor(RPp() * SKIN.length)], HAIR[Math.floor(RPp() * HAIR.length)], RPp() < 0.6)); }
 
   // ---------- people on our deck ----------
-  // kind: pool (chest-deep), edge (sitting on the infinity edge), lie / sit (loungers), rail (photos at the rail), walk, stand
+  // kind: pool (chest-deep), lie / sit (loungers), rail (photos at the rail), walk, stand
   const D = [];
   const addD = (kind, x, z, yaw, extra = {}) => D.push({ kind, x, z, yaw, hop: R() * 6.28, h: 0.92 + R() * 0.14, liftT: V_FLOAT + 0.3 + R() * 2.2,
     spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(1.3), ...extra });
   addD('pool', -4.9, -11.6, Math.PI + 0.3); addD('pool', -4.1, -11.9, Math.PI - 0.6); addD('pool', -1.2, -12.7, Math.PI + 0.1); addD('pool', 0.2, -9.6, -1.2); addD('pool', -5.6, -9.0, 2.6);
-  addD('edge', -3.0, DECK_Z0 + 0.45, Math.PI + 0.05); addD('edge', -2.45, DECK_Z0 + 0.45, Math.PI - 0.1); addD('edge', -0.4, DECK_Z0 + 0.45, Math.PI);
+  addD('pool', -3.0, POOL_Z0 + 0.4, Math.PI + 0.05); addD('pool', -2.45, POOL_Z0 + 0.4, Math.PI - 0.1); addD('pool', -0.4, POOL_Z0 + 0.4, Math.PI);   // at the far rim, taking in the view
   addD('lie', -5.4, -6.0, Math.PI); addD('lie', 1.4, -6.0, Math.PI); addD('sit', -7.0, -5.8, Math.PI, { phone: true }); addD('sit', 3.0, -5.8, Math.PI);
   addD('rail', -7.5, DECK_Z0 + 0.7, Math.PI + 0.05, { phone: true }); addD('rail', -8.3, DECK_Z0 + 0.65, Math.PI - 0.1); addD('rail', 5.0, DECK_Z0 + 0.7, Math.PI + 0.1, { phone: true }); addD('rail', 6.2, DECK_Z0 + 0.7, Math.PI - 0.05);
   addD('rail', -12.2, DECK_Z0 + 0.7, Math.PI - 0.15); addD('rail', 7.8, DECK_Z0 + 0.8, Math.PI + 0.2, { phone: true });
@@ -422,8 +418,8 @@ export function makeWorld(scene, skyUniforms) {
   const swim = [0x1d3557, 0xe63946, 0x2a9d8f, 0xf4a261, 0x000000, 0xffb703, 0x8338ec, 0xff006e];
   { const RD = rng(515); D.forEach((p, i) => {
     const skin = SKIN[Math.floor(RD() * SKIN.length)];
-    const top = p.kind === 'pool' || p.kind === 'lie' || p.kind === 'edge' ? (RD() < 0.5 ? skin : swim[Math.floor(RD() * swim.length)]) : clothes[Math.floor(RD() * clothes.length)];
-    deckCrowd.color(i, top, p.kind === 'pool' || p.kind === 'lie' || p.kind === 'edge' ? swim[Math.floor(RD() * swim.length)] : [0x2b2d42, 0xedf2f4, 0x1d1d1d, 0xd4a373][Math.floor(RD() * 4)], skin, HAIR[Math.floor(RD() * HAIR.length)], p.kind === 'rail' || p.kind === 'walk' || p.kind === 'stand' ? RD() < 0.5 : false);
+    const top = p.kind === 'pool' || p.kind === 'lie' ? (RD() < 0.5 ? skin : swim[Math.floor(RD() * swim.length)]) : clothes[Math.floor(RD() * clothes.length)];
+    deckCrowd.color(i, top, p.kind === 'pool' || p.kind === 'lie' ? swim[Math.floor(RD() * swim.length)] : [0x2b2d42, 0xedf2f4, 0x1d1d1d, 0xd4a373][Math.floor(RD() * 4)], skin, HAIR[Math.floor(RD() * HAIR.length)], p.kind === 'rail' || p.kind === 'walk' || p.kind === 'stand' ? RD() < 0.5 : false);
   }); }
 
   // ---------- boats in the bay and ships anchored offshore ----------
@@ -594,10 +590,9 @@ export function makeWorld(scene, skyUniforms) {
       const dt = v - p.liftT, up = liftDisp(dt, 0.55, 0.22), r = dt > 0 ? dt * dt * 0.18 : 0;
       const flail = dt > 0 ? smooth(0, 1.2, dt) : 0;
       const hopPeriod = 1.4 + 3.0 * light;
-      const hop = Math.max(0, Math.sin(v * Math.PI * 2 / hopPeriod + p.hop)) * hopAmp * (p.kind === 'pool' ? 0.25 : 1) * (p.kind === 'lie' || p.kind === 'sit' || p.kind === 'edge' ? 0.15 : 1);
+      const hop = Math.max(0, Math.sin(v * Math.PI * 2 / hopPeriod + p.hop)) * hopAmp * (p.kind === 'pool' ? 0.25 : 1) * (p.kind === 'lie' || p.kind === 'sit' ? 0.15 : 1);
       let x = p.x, z = p.z, y = ROOF_Y, yaw = p.yaw, pitch = 0, sit = 0, walk = 0, stride = 0, armL = 0, armR = 0, look = 0;
       if (p.kind === 'pool') { y = WATER_Y - POOL_DEPTH + 0.1 + Math.sin(v * 1.2 + p.hop) * 0.03; armL = 0.3; armR = 0.25; }
-      else if (p.kind === 'edge') { y = ROOF_Y + 0.42; sit = 1; }
       else if (p.kind === 'lie') { y = ROOF_Y + 0.47; pitch = -1.3; z -= 0.95; }   // feet at the far end, back on the backrest
       else if (p.kind === 'sit') { y = ROOF_Y + 0.5; sit = 1; armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.9 : 0; }
       else if (p.kind === 'rail') { armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.95 : 0; look = 0.15; }
@@ -741,7 +736,7 @@ function makeParticles(R) {
   return { points, uniforms };
 }
 
-// the infinity pool: clear turquoise water over a pale mosaic, reflecting the sky; it sloshes in slow, tall
+// the pool: clear turquoise water over a pale mosaic, reflecting the sky; it sloshes in slow, tall
 // waves as gravity fades and glows from underwater lights at night
 function makePool(skyU) {
   const geo = new THREE.PlaneGeometry(POOL_HW * 2, POOL_Z1 - POOL_Z0, 48, 48).rotateX(-Math.PI / 2).translate(POOL_XC, WATER_Y, (POOL_Z0 + POOL_Z1) / 2);
