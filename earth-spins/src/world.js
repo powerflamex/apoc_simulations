@@ -457,7 +457,7 @@ export function makeWorld(scene, skyUniforms) {
     const c0 = t0 + Math.floor((v - t0) / P) * P;
     if (c0 > JUMP_LAST) return null;
     const f = (v - c0) / P;
-    if (f < JUMP_GROUND) { const c = Math.sin(Math.PI * f / JUMP_GROUND); return { y: -0.16 * c, crouch: c, armsUp: -0.45 * c, tuck: 0.2 * c }; }
+    if (f < JUMP_GROUND) { const c = Math.sin(Math.PI * f / JUMP_GROUND); return { y: 0, crouch: c, armsUp: -0.45 * c, tuck: 0.3 * c }; }
     const x = (f - JUMP_GROUND) / (1 - JUMP_GROUND), H = 0.45 + 0.55 * smooth(JUMP_T0, 49, c0);
     return { y: H * 4 * x * (1 - x), crouch: 0, armsUp: 1.35 * smooth(0, 0.2, x) * (1 - smooth(0.7, 1, x)), tuck: 0.14 * Math.sin(Math.PI * x) };
   }
@@ -522,7 +522,8 @@ export function makeWorld(scene, skyUniforms) {
   scene.add(pool.mesh);
 
   // ---------- the sea ----------
-  const ocean = makeOcean(skyU);
+  const ocean = makeOcean(skyU, makeCityMap(B, trees, lamps));
+  const lampU = ocean.uniforms.uLamps.value, carU = ocean.uniforms.uCars.value;
   scene.add(ocean.mesh);
 
   // ---------- lights ----------
@@ -589,6 +590,7 @@ export function makeWorld(scene, skyUniforms) {
       dummy.position.set(l.x, 1.15, l.z); dummy.rotation.set(0, l.side > 0 ? 0 : Math.PI, 0); dummy.scale.setScalar(1); dummy.updateMatrix();
       poleMesh.setMatrixAt(i, dummy.matrix);
       const on = city > 0.25 + l.on * 0.5 && level < 6;
+      lampU[i].set(l.x - 1.5 * Math.sign(l.side), 9.0, l.z, on ? 1 : 0);
       if (!on) dummy.scale.setScalar(0.0001);
       dummy.updateMatrix();
       bulbMesh.setMatrixAt(i, dummy.matrix);
@@ -616,6 +618,8 @@ export function makeWorld(scene, skyUniforms) {
       dummy.scale.setScalar(carAt.z > -20 ? 0.0001 : 1);   // under our own tower: never in view (and kept out of the roof when they lift)
       dummy.updateMatrix();
       fleet.set(i, dummy.matrix, city > 0.2 || level > 1.6);
+      const inFlood = carAt.z <= -20 && level > 1.4 && up < 0.4;   // floating in the street (not yet lifting off)
+      carU[i].set(dummy.position.x, dummy.position.z, yaw, inFlood ? (city > 0.2 ? 2 : 1) : 0);
     });
     fleet.commit();
 
@@ -636,7 +640,13 @@ export function makeWorld(scene, skyUniforms) {
       const dt = v - p.liftT, up = liftDisp(dt, 0.55, 0.22), r = dt > 0 ? dt * dt * 0.18 : 0;
       const flail = dt > 0 ? smooth(0, 1.2, dt) : 0;
       let x = p.x, z = p.z, y = ROOF_Y, yaw = p.yaw, pitch = 0, sit = 0, walk = 0, stride = 0, armL = 0, armR = 0, look = 0, hop = 0;
-      if (p.kind === 'pool') { y = WATER_Y - POOL_DEPTH + 0.1 + Math.sin(v * 1.2 + p.hop) * (0.03 + 0.1 * light * smooth(JUMP_T0, 47, v)); armL = 0.3; armR = 0.25; }
+      if (p.kind === 'pool') {   // drifting about, turning, paddling (more bob as they get lighter)
+        y = WATER_Y - POOL_DEPTH + 0.1 + Math.sin(v * 1.2 + p.hop) * (0.04 + 0.1 * light * smooth(JUMP_T0, 47, v));
+        x += 0.35 * Math.sin(v * 0.35 + p.hop * 1.7);
+        z += p.z < POOL_Z0 + 1 ? 0.15 * (1 + Math.sin(v * 0.27 + p.hop * 2.3)) : 0.25 * Math.sin(v * 0.27 + p.hop * 2.3);   // (the ones at the far rim stay off the wall)
+        yaw += 0.35 * Math.sin(v * 0.45 + p.hop);
+        armL = 0.3 + 0.22 * Math.sin(v * 1.7 + p.hop); armR = 0.25 + 0.22 * Math.sin(v * 1.9 + p.hop * 1.3);
+      }
       else if (p.kind === 'lie') { y = ROOF_Y + 0.47; pitch = -1.3; z -= 0.95; }   // feet at the far end, back on the backrest
       else if (p.kind === 'sit') { y = ROOF_Y + 0.5; sit = 1; armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.9 : 0; }
       else if (p.kind === 'rail') { armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.95 : 0; look = 0.15; }
@@ -654,7 +664,11 @@ export function makeWorld(scene, skyUniforms) {
         const point = 1.1 * smooth(44, 47, v) * (i % 2);
         const jp = jump(p, v);
         if (jp) {
-          hop = jp.y; sit = jp.tuck; pitch += 0.25 * jp.crouch;
+          sit = jp.tuck; pitch += 0.3 * jp.crouch;
+          // (the legs have no knees: 'sit' drops the hips 0.42 m * sit while the bent, leaning legs reach less far down,
+          // so lift the body by the difference: the feet stay exactly on the deck instead of sinking into it)
+          const lean = pitch + 0.06 * sit;
+          hop = jp.y + 0.42 * sit - 0.9 * p.h * (Math.cos(lean) - Math.cos(lean - 1.45 * sit));
           if (!p.phone) { armL = jp.armsUp; armR = Math.max(jp.armsUp, point); }
         } else armR = Math.max(armR, point);
       }
@@ -863,7 +877,41 @@ function makePool(skyU) {
   };
 }
 
-function makeOcean(skyU) {
+
+// A top-down map of the flooded part of the city for the flood water: per texel (0.5 m), the distance to the
+// nearest wall / trunk / pole (R, 0..12.75 m), that obstacle's height (G, m), and the building height right here (A, m)
+// (B unused). The water uses it for foam along walls and around trees and posts, wakes behind them, and reflections.
+export const MAP_X0 = -330, MAP_Z0 = -200, MAP_RES = 0.5, MAP_W = 1320, MAP_H = 460;
+function makeCityMap(B, trees, lamps) {
+  const dist = new Float32Array(MAP_W * MAP_H).fill(12.75), dh = new Float32Array(MAP_W * MAP_H), here = new Float32Array(MAP_W * MAP_H);
+  const R = 5;   // how far out from an obstacle we keep track
+  const stamp = (x0, x1, z0, z1, h, round) => {   // a box footprint (or a disc of radius (x1-x0)/2 when round)
+    const i0 = Math.max(0, Math.floor((x0 - R - MAP_X0) / MAP_RES)), i1 = Math.min(MAP_W - 1, Math.ceil((x1 + R - MAP_X0) / MAP_RES));
+    const j0 = Math.max(0, Math.floor((z0 - R - MAP_Z0) / MAP_RES)), j1 = Math.min(MAP_H - 1, Math.ceil((z1 + R - MAP_Z0) / MAP_RES));
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, rad = (x1 - x0) / 2;
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = MAP_X0 + (i + 0.5) * MAP_RES, z = MAP_Z0 + (j + 0.5) * MAP_RES;
+      const d = round ? Math.max(0, Math.hypot(x - cx, z - cz) - rad) : Math.hypot(Math.max(x0 - x, 0, x - x1), Math.max(z0 - z, 0, z - z1));
+      const k = j * MAP_W + i;
+      if (d < dist[k]) { dist[k] = d; dh[k] = h; }
+      if (d === 0 && !round) here[k] = Math.max(here[k], h);
+    }
+  };
+  for (const b of B) if (b.x - b.w / 2 < MAP_X0 + MAP_W * MAP_RES && b.x + b.w / 2 > MAP_X0 && b.z - b.d / 2 < MAP_Z0 + MAP_H * MAP_RES && b.z + b.d / 2 > MAP_Z0)
+    stamp(b.x - b.w / 2, b.x + b.w / 2, b.z - b.d / 2, b.z + b.d / 2, b.h, false);
+  stamp(-18, 18, -14, 16, ROOF_Y, false);                                      // our own tower
+  for (const t of trees) stamp(t.x - 0.25, t.x + 0.25, t.z, t.z, t.palm ? 9 : 4.5, true);
+  for (const l of lamps) stamp(l.x - 0.12, l.x + 0.12, l.z, l.z, 9, true);
+  const data = new Uint8Array(MAP_W * MAP_H * 4);
+  for (let k = 0; k < MAP_W * MAP_H; k++) {
+    data[k * 4] = Math.round(dist[k] / 12.75 * 255); data[k * 4 + 1] = Math.min(255, Math.round(dh[k])); data[k * 4 + 3] = Math.min(255, Math.round(here[k]));
+  }
+  const tex = new THREE.DataTexture(data, MAP_W, MAP_H, THREE.RGBAFormat);
+  tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+  return tex;
+}
+
+function makeOcean(skyU, cityMap) {
   // radial grid centred under the camera: dense near, sparse far
   const rings = 260, segs = 520;
   const r0 = 18, r1 = 26000, a0 = -180 * DEG, a1 = 180 * DEG;   // all the way round: the flood is everywhere
@@ -889,6 +937,10 @@ function makeOcean(skyU) {
   const uniforms = {
     ...skyU, uTime: { value: 0 }, uLevel: { value: 0 }, uLift: { value: 0 }, uDay: { value: 1 },
     uMoonDir: { value: new THREE.Vector3() }, uFogColor: { value: new THREE.Color() }, uFogDensity: { value: 0.0001 }, uCityRefl: { value: 0 },
+    // the flood in the streets
+    uMap: { value: cityMap }, uMapMin: { value: new THREE.Vector2(MAP_X0, MAP_Z0) }, uMapSize: { value: new THREE.Vector2(MAP_W * MAP_RES, MAP_H * MAP_RES) },
+    uLamps: { value: Array.from({ length: 16 }, () => new THREE.Vector4()) },   // bulb x, y, z, on
+    uCars: { value: Array.from({ length: 70 }, () => new THREE.Vector4()) },    // x, z, yaw, 0 none / 1 afloat / 2 afloat with headlights
   };
   const mat = new THREE.ShaderMaterial({
     uniforms,
@@ -931,6 +983,8 @@ function makeOcean(skyU) {
       #include <logdepthbuf_pars_fragment>
       uniform float uTime; uniform vec3 uMoonDir; uniform float uDay;
       uniform vec3 uFogColor; uniform float uFogDensity; uniform float uCityRefl;
+      uniform float uLevel; uniform sampler2D uMap; uniform vec2 uMapMin; uniform vec2 uMapSize;
+      uniform vec4 uLamps[16]; uniform vec4 uCars[70];
       ${SKY_COMMON}
       varying vec3 vW; varying float vDist; varying vec2 vPre; varying float vLump;
       float hh(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -992,6 +1046,90 @@ function makeOcean(skyU) {
         // the city's lights shimmer on the water near the shore at night
         float near = exp(-vDist / 900.0);
         c += vec3(1.0, 0.7, 0.4) * uCityRefl * near * 0.05 * (0.4 + vn(vPre * vec2(0.6, 0.04) + vec2(0.0, uTime * 0.3)));
+
+        // ---- the flood in the streets: murky, flowing inland, foaming round walls, trees, posts and cars,
+        //      reflecting the buildings, their lit windows, the street lamps and the headlights ----
+        float coast = -0.2309 * abs(vW.z) - 40.0;   // coastX(z): land west of it (south-west shore)
+        float flood = max(smoothstep(-212.0, -184.0, vW.z), smoothstep(coast + 30.0, coast - 10.0, vW.x)) * smoothstep(0.95, 1.5, uLevel) * (1.0 - big);
+        if (flood > 0.002) {
+          vec2 p = vW.xz;
+          vec2 flowDir = vec2(0.0, 1.0);                          // the sea pours inland, toward us
+          vec2 swirl = (vec2(vn(p * 0.03 + vec2(0.0, -uTime * 0.08)), vn(p * 0.03 + vec2(9.1, -uTime * 0.08))) - 0.5) * 9.0;
+          vec2 q = p + swirl - flowDir * uTime * 3.2;             // the pattern drifts with the current
+          // ripples riding on the current (finite differences of a small-scale noise)
+          float e = 0.25;
+          float r0 = fbm2(q * 0.55) + 0.5 * vn(q * 1.7);
+          float rx = fbm2((q + vec2(e, 0.0)) * 0.55) + 0.5 * vn((q + vec2(e, 0.0)) * 1.7);
+          float rz = fbm2((q + vec2(0.0, e)) * 0.55) + 0.5 * vn((q + vec2(0.0, e)) * 1.7);
+          vec3 Nf = normalize(vec3(-(rx - r0) / e * 0.35, 1.0, -(rz - r0) / e * 0.35) + vec3(-sl.x, 0.0, -sl.y) * 0.5);
+          // muddy water: olive-brown, with silt clouds and streaks drawn out along the flow
+          float silt = fbm2(q * 0.05), streak = fbm2(vec2(q.x * 0.22, q.y * 0.035));
+          vec3 murk = mix(vec3(0.014, 0.014, 0.010), vec3(0.17, 0.15, 0.095), uDay) * (0.72 + 0.45 * silt + 0.25 * (streak - 0.5));
+          murk *= 0.8 + 0.45 * max(dot(Nf, uSunDir), 0.0) * uDay;   // ripples catching the light, even seen from above
+          // what the surface reflects: the sky, or a building facade (march the reflected ray over the city map)
+          vec3 Vf = normalize(cameraPosition - vW);
+          vec3 Rr = reflect(-Vf, Nf);
+          float fr = 0.03 + 0.97 * pow(1.0 - max(dot(Nf, Vf), 0.0), 5.0);
+          vec3 refl = min(atmosphere(normalize(vec3(Rr.x, abs(Rr.y) + 0.02, Rr.z))) * 0.8, vec3(0.85));
+          if (Rr.y > 0.0) {
+            for (int i = 1; i <= 18; i++) {
+              float t = 0.6 + float(i * i) * 0.28;
+              vec3 hp = vW + Rr * t;
+              vec2 uv = (hp.xz - uMapMin) / uMapSize;
+              if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) break;
+              float bh = texture2D(uMap, uv).a * 255.0;
+              if (hp.y < bh - 0.3) {
+                // a facade: concrete lit by the sky by day, a grid of windows, many lit at night
+                vec2 cell = vec2(floor((hp.x + hp.z) / 3.2), floor(hp.y / 3.4));
+                float win = step(0.18, fract((hp.x + hp.z) / 3.2)) * step(0.3, fract(hp.y / 3.4));
+                float lit = step(hh(cell + 0.37), 0.55) * win;
+                refl = vec3(0.30, 0.29, 0.27) * (0.15 + 0.85 * uDay) * (1.0 - 0.35 * win) + vec3(1.0, 0.72, 0.42) * 2.6 * lit * uCityRefl;
+                break;
+              }
+            }
+          }
+          vec3 cf = mix(murk, refl, fr);
+          // street lamps and headlights shimmer on the water (bright lights reflect strongly even at a steep angle)
+          for (int i = 0; i < 16; i++) {
+            vec4 lp = uLamps[i];
+            if (lp.w < 0.5) continue;
+            vec3 Lv = lp.xyz - vW; float dl = length(Lv);
+            cf += vec3(1.0, 0.68, 0.36) * glitter(Vf, Nf, Lv / dl, 0.0) * 0.012 / (1.0 + dl * 0.04);
+          }
+          float carFoam = 0.0;
+          for (int i = 0; i < 70; i++) {
+            vec4 cr = uCars[i];
+            if (cr.w < 0.5) continue;
+            vec2 dlt = p - cr.xy;
+            if (dot(dlt, dlt) > 100.0) continue;
+            if (dlt.y > 0.0) dlt.y *= 0.45;   // the foam trails off downstream, like a wake
+            float cs = cos(cr.z), sn = sin(cr.z);
+            vec2 loc = vec2(cs * dlt.x - sn * dlt.y, sn * dlt.x + cs * dlt.y);   // into the car's frame (front is -z)
+            float ell = length(loc / vec2(1.15, 2.7));
+            carFoam = max(carFoam, 0.55 * smoothstep(1.6, 1.0, ell) * smoothstep(0.9, 1.0, ell));
+            if (cr.w > 1.5) {   // headlights: just ahead of the bonnet, at the waterline
+              vec3 hl = vec3(cr.x - sn * 2.6, uLevel + 0.25, cr.y - cs * 2.6) - vW; float dh2 = length(hl);
+              cf += vec3(1.0, 0.92, 0.75) * glitter(Vf, Nf, hl / dh2, 0.0) * 0.008 / (1.0 + dh2 * 0.08);
+            }
+          }
+          // foam: a band along every wall / trunk / post that still sticks out of the water, wakes trailing
+          // downstream behind them, rings round the floating cars; broken up and carried by the current
+          vec2 muv = (p - uMapMin) / uMapSize;
+          float band = 0.0, wake = 0.0;
+          if (muv.x > 0.0 && muv.y > 0.0 && muv.x < 1.0 && muv.y < 1.0) {
+            vec4 m = texture2D(uMap, muv);
+            band = (1.0 - smoothstep(0.15, 2.0, m.r * 12.75)) * step(uLevel + 0.4, m.g * 255.0);
+            for (int k = 1; k <= 4; k++) {
+              vec4 mu = texture2D(uMap, (p - flowDir * (1.6 * float(k)) + swirl * 0.08 - uMapMin) / uMapSize);
+              wake = max(wake, (1.0 - smoothstep(0.0, 1.4, mu.r * 12.75)) * step(uLevel + 0.4, mu.g * 255.0) * (1.0 - float(k) * 0.2));
+            }
+          }
+          float foamAmt = clamp(band + wake * 0.7 + carFoam, 0.0, 1.0);
+          float breakup = smoothstep(0.45, 0.7, fbm2(q * 0.9) * 0.7 + vn(q * 3.1) * 0.3 + foamAmt * 0.12);
+          vec3 foamCol = vec3(0.85, 0.84, 0.80) * (0.08 + 0.92 * uDay) + vec3(0.25, 0.17, 0.09) * uCityRefl;
+          cf = mix(cf, foamCol, foamAmt * breakup * 0.9);
+          c = mix(c, cf, flood);
+        }
         float d = length(vW - cameraPosition);
         float fog = 1.0 - exp(-d * uFogDensity);
         c = mix(c, uFogColor, fog);
