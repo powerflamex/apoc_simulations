@@ -9,7 +9,7 @@ import { SKY_COMMON } from './sky.js';
 import { rng, smooth, clamp, lerp, DEG } from './util.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
-import { ROOF_Y, V_FLOAT } from './timeline.js';
+import { ROOF_Y, V_FLOAT, gFrac } from './timeline.js';
 
 export const CAM_BASE = new THREE.Vector3(0, ROOF_Y + 1.7, 0);
 const DECK_Z0 = -14, DECK_Z1 = 16, DECK_X = 18;        // our tower's roof
@@ -441,9 +441,26 @@ export function makeWorld(scene, skyUniforms) {
   addD('lie', -5.4, -6.0, Math.PI); addD('lie', 1.4, -6.0, Math.PI); addD('sit', -7.0, -5.8, Math.PI, { phone: true }); addD('sit', 3.0, -5.8, Math.PI);
   addD('rail', -7.5, DECK_Z0 + 0.7, Math.PI + 0.05, { phone: true }); addD('rail', -8.3, DECK_Z0 + 0.65, Math.PI - 0.1); addD('rail', 5.0, DECK_Z0 + 0.7, Math.PI + 0.1, { phone: true }); addD('rail', 6.2, DECK_Z0 + 0.7, Math.PI - 0.05);
   addD('rail', -12.2, DECK_Z0 + 0.7, Math.PI - 0.15); addD('rail', 7.8, DECK_Z0 + 0.8, Math.PI + 0.2, { phone: true });
-  addD('walk', -10.6, -2, 0, { span: 9, speed: 0.55 }); addD('walk', 9.4, -4, 0, { span: 7, speed: 0.45 });
+  // walkers do laps of a narrow loop on clear deck (outside the side loungers and their parasols)
+  addD('walk', -14.4, -2, 0, { span: 9, speed: 0.55 }); addD('walk', 9.4, -4, 0, { span: 7, speed: 0.45 });
   addD('stand', 4.6, -3.8, 2.2); addD('stand', 5.3, -4.6, -1.0); addD('stand', -7.8, -3.2, -2.0);
   const deckCrowd = makeCrowd(scene, D.length, plainMat(0xffffff, 0.8), { castShadow: true });
+  // walking cadence slows as you get lighter (long floating steps); the gait phase is its running total
+  const WT0 = -4, WDT = 1 / 120, WN = Math.round((72 - WT0) / WDT) + 1, walkTab = new Float64Array(WN);
+  for (let k = 1; k < WN; k++) { const tv = WT0 + (k - 0.5) * WDT; walkTab[k] = walkTab[k - 1] + 5.2 * (1 - 0.5 * clamp(1 - gFrac(tv))) * WDT; }
+  const walkPhase = (v) => { const f = clamp((v - WT0) / WDT, 0, WN - 1.001), k = Math.floor(f); return lerp(walkTab[k], walkTab[k + 1], f - k); };
+  // low-gravity jumps for the people standing on the deck: they start together when the caption says so
+  const JUMP_T0 = 39.2, JUMP_LAST = V_FLOAT - 2.5, JUMP_GROUND = 0.3;
+  function jump(p, v) {   // -> { y, crouch, armsUp, tuck }
+    const t0 = JUMP_T0 + (p.hop / 6.283) * 0.45, P = 2.3 + (p.hop / 6.283) * 0.4;
+    if (v < t0) return null;
+    const c0 = t0 + Math.floor((v - t0) / P) * P;
+    if (c0 > JUMP_LAST) return null;
+    const f = (v - c0) / P;
+    if (f < JUMP_GROUND) { const c = Math.sin(Math.PI * f / JUMP_GROUND); return { y: -0.16 * c, crouch: c, armsUp: -0.45 * c, tuck: 0.2 * c }; }
+    const x = (f - JUMP_GROUND) / (1 - JUMP_GROUND), H = 0.45 + 0.55 * smooth(JUMP_T0, 49, c0);
+    return { y: H * 4 * x * (1 - x), crouch: 0, armsUp: 1.35 * smooth(0, 0.2, x) * (1 - smooth(0.7, 1, x)), tuck: 0.14 * Math.sin(Math.PI * x) };
+  }
   const swim = [0x1d3557, 0xe63946, 0x2a9d8f, 0xf4a261, 0x000000, 0xffb703, 0x8338ec, 0xff006e];
   { const RD = rng(515); D.forEach((p, i) => {
     const skin = SKIN[Math.floor(RD() * SKIN.length)];
@@ -615,21 +632,34 @@ export function makeWorld(scene, skyUniforms) {
     crowd.commit();
 
     // --- people on the deck ---
-    const hopAmp = Math.pow(light, 1.6) * 1.4 * smooth(32, 46, v);       // slow, high bounces as gravity fades
     D.forEach((p, i) => {
       const dt = v - p.liftT, up = liftDisp(dt, 0.55, 0.22), r = dt > 0 ? dt * dt * 0.18 : 0;
       const flail = dt > 0 ? smooth(0, 1.2, dt) : 0;
-      const hopPeriod = 1.4 + 3.0 * light;
-      const hop = Math.max(0, Math.sin(v * Math.PI * 2 / hopPeriod + p.hop)) * hopAmp * (p.kind === 'pool' ? 0.25 : 1) * (p.kind === 'lie' || p.kind === 'sit' ? 0.15 : 1);
-      let x = p.x, z = p.z, y = ROOF_Y, yaw = p.yaw, pitch = 0, sit = 0, walk = 0, stride = 0, armL = 0, armR = 0, look = 0;
-      if (p.kind === 'pool') { y = WATER_Y - POOL_DEPTH + 0.1 + Math.sin(v * 1.2 + p.hop) * 0.03; armL = 0.3; armR = 0.25; }
+      let x = p.x, z = p.z, y = ROOF_Y, yaw = p.yaw, pitch = 0, sit = 0, walk = 0, stride = 0, armL = 0, armR = 0, look = 0, hop = 0;
+      if (p.kind === 'pool') { y = WATER_Y - POOL_DEPTH + 0.1 + Math.sin(v * 1.2 + p.hop) * (0.03 + 0.1 * light * smooth(JUMP_T0, 47, v)); armL = 0.3; armR = 0.25; }
       else if (p.kind === 'lie') { y = ROOF_Y + 0.47; pitch = -1.3; z -= 0.95; }   // feet at the far end, back on the backrest
       else if (p.kind === 'sit') { y = ROOF_Y + 0.5; sit = 1; armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.9 : 0; }
       else if (p.kind === 'rail') { armR = p.phone ? 1.0 : 0; armL = p.phone ? 0.95 : 0; look = 0.15; }
-      else if (p.kind === 'walk') { const u = (v * p.speed) % (p.span * 2); const fw = u < p.span; z = p.z - (fw ? u : p.span * 2 - u); yaw = fw ? 0 : Math.PI; walk = v * 5.2 + p.hop; stride = 1 - 0.6 * light; }
+      else if (p.kind === 'walk') {
+        // laps of a stadium loop: down one side, a tight U-turn, back up the other (no turning on the spot)
+        const rr = 0.6, lap = 2 * p.span + 2 * Math.PI * rr, d = (v * p.speed) % lap;
+        if (d < p.span) { z = p.z - d; yaw = 0; }
+        else if (d < p.span + Math.PI * rr) { const a = (d - p.span) / rr; x = p.x + rr - rr * Math.cos(a); z = p.z - p.span - rr * Math.sin(a); yaw = -a; }
+        else if (d < 2 * p.span + Math.PI * rr) { x = p.x + 2 * rr; z = p.z - p.span + (d - p.span - Math.PI * rr); yaw = -Math.PI; }
+        else { const a = (d - 2 * p.span - Math.PI * rr) / rr; x = p.x + rr + rr * Math.cos(a); z = p.z + rr * Math.sin(a); yaw = -Math.PI - a; }
+        walk = walkPhase(v) + p.hop; stride = 1 - 0.3 * light;
+        hop = Math.abs(Math.sin(walk)) * (0.05 + 0.5 * Math.pow(light, 1.3) * smooth(30, 40, v));   // every step a long, floaty bound
+      }
+      if (p.kind === 'stand' || p.kind === 'rail') {
+        const point = 1.1 * smooth(44, 47, v) * (i % 2);
+        const jp = jump(p, v);
+        if (jp) {
+          hop = jp.y; sit = jp.tuck; pitch += 0.25 * jp.crouch;
+          if (!p.phone) { armL = jp.armsUp; armR = Math.max(jp.armsUp, point); }
+        } else armR = Math.max(armR, point);
+      }
       // everyone looks up as the sky races, and points when things start floating
       if (p.kind !== 'lie') look = Math.max(look, 0.35 * smooth(8, 14, v) * (p.kind === 'pool' ? 0.6 : 1));
-      if (p.kind === 'stand' || p.kind === 'rail') { armR = Math.max(armR, 1.1 * smooth(44, 47, v) * (i % 2)); }
       deckCrowd.pose(i, {
         x: x + (dt > 0 ? p.spin.x * up * 0.25 : 0), y: y + hop + up, z: z + (dt > 0 ? p.spin.z * up * 0.2 : 0),
         yaw: yaw + p.spin.y * r, s: p.h, walk: walk + (flail ? v * 4 : 0), stride: stride + flail * 1.1, sit: sit * (1 - flail * 0.7),
