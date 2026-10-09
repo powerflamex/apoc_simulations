@@ -101,7 +101,7 @@ Cover: `asteroid/out/asteroid_v4_cover.png`
 ## Day 5. Earth spins 17 times faster — `earth-spins/out/earth-spins_v4_1080x1920_60fps_tiktok.mp4`
 
 **YouTube title (82 chars)**
-What if Earth spun 17 times faster? You'd float away in 50 hours 🌍 #whatif #space
+What if Earth spun 17 times faster? You'd float away in 49 hours 🌍 #whatif #space
 
 **YouTube description**
 Right now the ground at the equator carries you east at 1,037 mph. Spin Earth faster and every day gets shorter.

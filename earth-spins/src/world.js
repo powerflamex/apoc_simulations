@@ -27,6 +27,12 @@ const tmpC = new THREE.Color();
 
 // the coast to our left: land west of this line (x < coastX(z)) for z beyond the waterfront
 const coastX = (z) => -Math.tan(13 * DEG) * Math.abs(z) - 40;
+// distance driven by time v when traffic brakes smoothly to a stop between a and b (speed 1 before a, 0 after b)
+function easeStop(v, a, b) {
+  if (v <= a) return v;
+  const w = b - a, x = Math.min((v - a) / w, 1);
+  return a + w * (x - (x * x * x - 0.5 * x * x * x * x));
+}
 // displacement for things that float off: a gentle start, then faster and faster
 function liftDisp(dt, a, j) {
   if (dt <= 0) return 0;
@@ -379,16 +385,39 @@ export function makeWorld(scene, skyUniforms) {
   for (const m of [poleMesh, bulbMesh]) { m.frustumCulled = false; scene.add(m); }
 
   // ---------- cars ----------
+  // Each lane is a loop that starts and ends out of sight: from under our own tower down the avenue, round the
+  // corner at the waterfront and off along the shore road (the lanes on the left come the other way). Everyone
+  // in a lane drives at the lane's speed with a gap to the car ahead, so nobody passes through anybody.
   const CAR_N = 70;
+  const LANES = [-9, -3.2, 3.2, 9], LANE_SPEED = [11, 12.5, 12, 10.5];
+  const Z_IN = 8, Z_TURN = -166, SHORE_RUN = 260;
+  const laneR = (lane) => (Math.abs(lane) > 6 ? 4 : 7);                  // corner radius: curb lane tight, inner lane wide
+  const laneLen = (lane) => Z_IN - Z_TURN + (Math.PI / 2) * laneR(lane) + SHORE_RUN;
+  // position and heading at distance u along an outbound lane (lane > 0, driving away from us, turning right)
+  function routeOut(lane, u, out) {
+    const r = laneR(lane), a = Z_IN - Z_TURN, b = a + (Math.PI / 2) * r;
+    if (u < a) { out.x = lane; out.z = Z_IN - u; out.yaw = 0; }
+    else if (u < b) { const th = (u - a) / r; out.x = lane + r - r * Math.cos(th); out.z = Z_TURN - r * Math.sin(th); out.yaw = -th; }
+    else { out.x = lane + r + (u - b); out.z = Z_TURN - r; out.yaw = -Math.PI / 2; }
+    return out;
+  }
+  // inbound lanes (lane < 0) are the mirror image, driven the other way
+  function route(lane, u, out) {
+    if (lane > 0) return routeOut(lane, u, out);
+    routeOut(-lane, laneLen(lane) - u, out);
+    out.x = -out.x; out.yaw = Math.PI + out.yaw;
+    return out;
+  }
   const cars = [];
+  const perLane = LANES.map((_, k) => Math.floor(CAR_N / 4) + (k < CAR_N % 4 ? 1 : 0));
   for (let i = 0; i < CAR_N; i++) {
-    const lane = [-9, -3.2, 3.2, 9][i % 4];
-    cars.push({ lane, dir: lane > 0 ? -1 : 1, z0: R() * 150, speed: 9 + R() * 6, liftT: V_FLOAT + 0.4 + R() * 4, spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(1.6), bob: R() * 6,
+    const k = i % 4, lane = LANES[k], j = Math.floor(i / 4), slot = laneLen(lane) / perLane[k];
+    cars.push({ lane, speed: LANE_SPEED[k], u0: (j + R() * 0.55) * slot, liftT: V_FLOAT + 0.4 + R() * 4, spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(1.6), bob: R() * 6,
       color: [0xb8b8b8, 0x1e1e22, 0xe0ddd5, 0x8a1c1c, 0x1d3557, 0xd9a400, 0x2f4f3f, 0x6d6d73, 0xf2f2f2][Math.floor(R() * 9)] });
   }
+  const carAt = { x: 0, z: 0, yaw: 0 };
   const fleet = makeFleet(scene, CAR_N, { plainMat, glowMat, shadowy });
   { const RK = rng(77); cars.forEach((c, i) => { const taxi = RK() < 0.25; fleet.color(i, taxi ? 0x1f6fd1 : c.color, taxi ? 0 : [0, 1, 2, 0, 3, 2, 1][Math.floor(RK() * 7)]); }); }
-  const ROAD_Z0 = -18, ROAD_LEN = 150;
 
   // ---------- people in the streets (they head inside as the water comes up) ----------
   const PEOPLE_N = 240;
@@ -556,17 +585,18 @@ export function makeWorld(scene, skyUniforms) {
     world.beacons.instanceMatrix.needsUpdate = true;
 
     // --- traffic: busy until the water reaches the avenue, then the cars float in the flood, then lift off ---
-    const drive = Math.min(v, 21) * 2.2;
+    // drivers brake gently as the water comes up the road (19.0-20.6 s); the flood then lifts the cars little by little
+    const drive = 2.2 * easeStop(v, 19.0, 20.6);
+    const afloat = smooth(1.4, 2.8, level);
     cars.forEach((c, i) => {
-      const u = (c.z0 + c.speed * drive) % ROAD_LEN;
-      const z = c.dir < 0 ? ROAD_Z0 - u : ROAD_Z0 - ROAD_LEN + u;
-      const floatY = level > 1.6 ? level - 1.05 + Math.sin(v * 1.3 + c.bob) * 0.15 : 1.0;
+      const L = laneLen(c.lane), u = (((c.u0 + c.speed * drive) % L) + L) % L;
+      route(c.lane, u, carAt);
+      const floatY = Math.max(1.0, level - 1.05 + Math.sin(v * 1.3 + c.bob) * 0.15 * afloat);
       const dt = v - c.liftT, up = liftDisp(dt, 0.6, 0.35), r = dt > 0 ? dt * dt * 0.25 : 0;
-      const yaw = (c.dir < 0 ? 0 : Math.PI) + (level > 1.6 ? Math.sin(v * 0.3 + c.bob) * 0.6 : 0);
-      dummy.position.set(c.lane + (level > 1.6 ? Math.sin(v * 0.2 + c.bob) * 2 : 0), Math.max(1.0, floatY) + up, z);
-      dummy.rotation.set(c.spin.x * r + (level > 1.6 ? Math.sin(v + c.bob) * 0.05 : 0), yaw + c.spin.y * r, c.spin.z * r);
-      const endFade = Math.min(clamp(u / 3), clamp((ROAD_LEN - u) / 3));
-      dummy.scale.setScalar(v > 21 ? 1 : Math.max(endFade, 0.0001));
+      const yaw = carAt.yaw + Math.sin(v * 0.3 + c.bob) * 0.4 * afloat;
+      dummy.position.set(carAt.x + Math.sin(v * 0.2 + c.bob) * 1.0 * afloat, floatY + up, carAt.z + Math.cos(v * 0.17 + c.bob * 1.3) * 1.0 * afloat);
+      dummy.rotation.set(c.spin.x * r + Math.sin(v + c.bob) * 0.05 * afloat, yaw + c.spin.y * r, c.spin.z * r);
+      dummy.scale.setScalar(carAt.z > -20 ? 0.0001 : 1);   // under our own tower: never in view (and kept out of the roof when they lift)
       dummy.updateMatrix();
       fleet.set(i, dummy.matrix, city > 0.2 || level > 1.6);
     });

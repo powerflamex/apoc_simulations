@@ -39,7 +39,8 @@ export const dayHours = (v) => (v <= 0 ? 24 : dayLen(v));
 export const spinK = (v) => 24 / dayHours(v);
 
 // ---- the Sun's hour angle (degrees): how fast it crosses the sky on screen ----
-const OMEGA = [[-3, 7], [0, 7], [2, 20], [5, 36], [12, 48], [22, 62], [32, 85], [40, 115], [46, 138], [49, 80], [51.5, 18], [V_FLOAT, 1.2], [70, 1.0]];
+// (the Sun slows down around 21-23 s so the sunrise over the flood takes about 0.7 s instead of a blink)
+const OMEGA = [[-3, 7], [0, 7], [2, 20], [5, 36], [12, 48], [20.6, 58], [21.4, 24], [23.0, 24], [24.2, 66], [32, 85], [40, 115], [46, 138], [49, 80], [51.5, 18], [V_FLOAT, 1.2], [70, 1.0]];
 const H0 = 80;                 // frame 0: golden hour, the Sun 10° up in the west
 const H_FLOAT = 70;            // and it ends up low and golden for the float (the loop lands on the same light)
 const DV = 1 / 240, V0 = -4, V1 = 72;
@@ -155,9 +156,11 @@ export function state(v) {
   s.skySpeed = (hourAngle(v + 0.02) - hourAngle(v - 0.02)) / 0.04 * Math.PI / 180;
   s.hours = storyHours(v);
   const sunUp = s.sun[1];
-  s.day = smooth(-0.1, 0.12, sunUp);              // 0 deep night .. 1 full day
+  // (wide ranges: in the fast time-lapse a sunrise or sunset takes about half a second instead of a blink;
+  // full day is reached by 10° up, so frame 0's golden hour looks the same)
+  s.day = smooth(-0.3, 0.17, sunUp);              // 0 deep night .. 1 full day
   s.twilight = Math.exp(-Math.pow(sunUp / 0.09, 2)); // golden/blue hour around sunrise and sunset
-  s.cityLights = 1 - smooth(-0.05, 0.06, sunUp);   // windows switch on block by block as it gets dark
+  s.cityLights = 1 - smooth(-0.14, 0.1, sunUp);   // windows switch on block by block as it gets dark
   s.sea = seaLevel(v);
   s.float = smooth(V_FLOAT - 9, V_FLOAT, v);       // loose things drifting
   s.lift = Math.max(0, v - V_FLOAT);               // seconds since you weigh nothing
