@@ -78,4 +78,4 @@ Use this for every new video and every rework:
 - YouTube description: the key facts in a few short lines, a question to get comments, then hashtags.
 - TikTok caption: longer, fact-first, ends with a question, then hashtags.
 - Only claim what the video shows (same numbers as the captions/counters in `timeline.js`).
-- The owner posts one video a day, YouTube first and TikTok a day or two later.
+- The owner posts one video a day, the same video on YouTube and TikTok on the same day (since 2026-10-09).

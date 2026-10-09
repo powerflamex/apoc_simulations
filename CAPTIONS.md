@@ -4,7 +4,7 @@ Rules (also in CLAUDE.md):
 - **YouTube Shorts title: max 100 characters** (YouTube's limit; count emoji as 2 to be safe). Hook first, 1-2 hashtags at the end.
 - **YouTube description:** the key facts in a few short lines, a question to get comments, then hashtags.
 - **TikTok caption:** longer, fact-first, ends with a question, then hashtags.
-- Post on YouTube first and on TikTok a day or two later. One video a day.
+- One video a day, posted on YouTube and TikTok the same day.
 
 ## Day 1. Earth stops orbiting the Sun — `earth-falls/out/earth-falls_v4_1080x1920_60fps_tiktok.mp4`
 
@@ -123,7 +123,7 @@ You're in Singapore, right on the equator, where the ground carries you east at 
 Cover: `earth-spins/out/earth-spins_v4_cover.png`
 
 ## Posting plan
-- One a day on YouTube: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. Each one goes on TikTok a day or two after YouTube.
+- One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
 - In YouTube Studio, check "Viewed vs. swiped away" for each Short: it shows whether the opening hooked people. For the two
   reposts, also compare "stayed to watch" against the originals (34% / 45%).
