@@ -1,7 +1,7 @@
 # Apocalypse "what if" sims
 
 Vertical (1080x1920, 60 fps) TikTok/YouTube Shorts videos, one self-contained Three.js project per folder:
-`asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`. See README.md for how each project is built.
+`asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`. See README.md for how each project is built.
 
 ## The owner wants to be hands-off
 
@@ -57,6 +57,9 @@ Use this for every new video and every rework:
   separate video clock (`storyTime()`: cold open + time-lapse); its captions are timed on the video clock.
   `earth-spins` runs entirely on the video clock (`STORY_START = 0`): the Sun's hour angle is laid out per video second
   (`OMEGA`), story hours and the countdown follow from it, and the spin (day length) is keyed separately.
+  `speed-doubles` also runs on the video clock: `storyT(v)` is real time in the city and a time-lapse in space (`RATE`;
+  the counter shows a TIME-LAPSE badge), speed = 8 mph x 2^(T/2). It has three scenes (`city.js`, `space.js`, `solar.js`)
+  that `main.js` switches between; `textures/` holds NASA's public-domain Earth maps.
 - `crowd.js` and `cars.js` are the same file in every project: edit one, copy to the others.
 - Rendering speed: `render.mjs` runs two Chromes on alternate 10 s segments, encodes H.264 on the GPU's video
   encoder when Chrome has one (it falls back to the CPU by itself and logs `encoder: ...`), and `render-v4.sh`

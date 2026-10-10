@@ -122,6 +122,33 @@ You're in Singapore, right on the equator, where the ground carries you east at 
 
 Cover: `earth-spins/out/earth-spins_v4_cover.png`
 
+## Day 6. Your speed doubles every 2 seconds — `speed-doubles/out/speed-doubles_v4_1080x1920_60fps_tiktok.mp4`
+
+**Sound:** in both apps tap **Add sound**, pick "Charlie's Inferno" (That Handsome Devil) and start it at **2:50**; turn the
+video's own sound down (or off). Don't mix the song into the file: YouTube blocks Shorts over 1 minute that carry a claim.
+
+**YouTube title (87 chars)**
+What if your speed doubled every 2 seconds? Light speed in 53 seconds ⚡ #whatif #space
+
+**YouTube description**
+You start running down 42nd Street in New York at sunset, and your speed doubles every 2 seconds.
+
+13 seconds: you break the sound barrier and every window behind you shatters.
+22 seconds: 17,500 mph, orbital speed.
+53 seconds: light speed, 7.5 laps of Earth every second.
+And you don't stop. Earth can't take it, so you run around the Sun, then the whole solar system.
+
+Where should you run next? 👇
+
+#whatif #space #physics #science #simulation #lightspeed
+
+**TikTok**
+POV: your speed doubles every 2 seconds. You start running down 42nd Street at sunset… 13 seconds in you break the sound barrier and every window behind you shatters. At 22 seconds you hit orbital speed, at 53 seconds light speed: 7.5 laps of Earth every second. And you still don't stop. Where should you run next? 👇
+
+#whatif #huss #space #physics #science #simulation #pov #lightspeed #fyp
+
+Cover: `speed-doubles/out/speed-doubles_v4_cover.png`
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
