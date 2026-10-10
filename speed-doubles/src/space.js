@@ -188,7 +188,7 @@ export function makeSpace() {
   space.lapOf = lapOf;
 
   // the head of the streak: a hot glowing point
-  const headMat = new THREE.SpriteMaterial({ color: 0xffe2b0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: true });
+  const headMat = new THREE.SpriteMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false });
   {
     const c = document.createElement('canvas'); c.width = c.height = 128;
     const g = c.getContext('2d');
@@ -198,7 +198,9 @@ export function makeSpace() {
     headMat.map = new THREE.CanvasTexture(c);
   }
   const head = new THREE.Sprite(headMat);
-  scene.add(head);
+  const headHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: headMat.map, color: 0xff8a3a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, opacity: 0.9 }));
+  head.renderOrder = headHalo.renderOrder = 20;
+  scene.add(headHalo, head);
   space.glowTex = headMat.map;
 
   // ---------- the break-up: glowing chunks flying apart, a shell of hot gas ----------
@@ -307,7 +309,7 @@ export function makeSpace() {
     let n = 0;
     const heat = smooth(V_LIGHT + 3, V_BOOM, v);
     rings.uniforms.uColor.value.setRGB(1.0, lerp(0.82, 0.62, heat), lerp(0.62, 0.36, heat));
-    rings.uniforms.uWidth.value = lerp(2.4, 3.6, smooth(V_ORBIT, V_LIGHT, v)) * (gone ? 0.8 : 1);
+    rings.uniforms.uWidth.value = lerp(4.5, 3.6, smooth(V_ORBIT + 6, V_LIGHT, v)) * (gone ? 0.8 : 1);
     rings.uniforms.uGain.value = lerp(1.4, 2.0, heat) * (1 + 0.6 * U.uGlow.value) * (gone ? 0.35 : 1);
     // the path drawn on screen: at least everything since New York (up to one lap), more once laps blur together
     const Ltrail = Math.max(W, Math.min(L, 1), 0.004);
@@ -329,17 +331,25 @@ export function makeSpace() {
       const [a, b] = bases[Math.min(k0, bases.length - 1)];
       const phi = (L - k0) * Math.PI * 2;
       head.position.copy(a).multiplyScalar(Math.cos(phi)).addScaledVector(b, Math.sin(phi)).multiplyScalar(1.006);
-      const hs = lerp(0.1, 0.12, smooth(V_ORBIT, V_LIGHT, v)) * (1 + U.uGlow.value);
+      // you: a white-hot core in an orange glow, big enough to spot at a glance (never hidden by the depth test;
+      // just switched off when you're round the back of the planet)
+      const hs = lerp(0.075, 0.06, smooth(V_ORBIT + 6, V_LIGHT, v)) * (1 + U.uGlow.value) * (1 + 0.06 * Math.sin(v * 31));
       head.scale.setScalar(hs);
-      head.visible = true;
+      headHalo.scale.setScalar(hs * 3.6);
+      headHalo.position.copy(head.position);
       space.head = head.position;
+      space.headVisible = true;
     }
 
     // camera: above your path a third of the way across America, looking at the planet's centre with west pointing up
     // the (tall) screen: you start at New York near the bottom and run up the frame; tilted a little to the north so
     // the full lap shows as an oval. It pulls back as the laps speed up and drifts slowly round.
     const back = keys([[V_ORBIT, 2.55], [V_ORBIT + 6, 2.75], [V_LIGHT - 1, 3.2], [V_LIGHT + 6, 3.05], [V_BOOM - 0.4, 2.95], [V_BOOM + 1.5, 6.5], [V_SUN, 8]], v, true);
-    const P35 = NYC.clone().multiplyScalar(Math.cos(35 * DEG)).addScaledVector(WEST, Math.sin(35 * DEG));
+    // at first the camera rides along just ahead of you, so you stay low in the frame under the "YOU" marker;
+    // it settles 35 degrees west of New York as the laps take over
+    const phiDeg = Math.min(L, 1) * 360;
+    const eyeAng = (26 + 9 * (1 - Math.exp(-phiDeg / 9))) * DEG;
+    const P35 = NYC.clone().multiplyScalar(Math.cos(eyeAng)).addScaledVector(WEST, Math.sin(eyeAng));
     const eye = P35.clone().addScaledVector(NORTH, keys([[V_ORBIT, 0.12], [V_LIGHT - 2, 0.42], [V_BOOM, 0.5]], v)).normalize();
     eye.applyAxisAngle(NORTH, (v - V_ORBIT) * 0.01);
     camera.position.copy(eye).multiplyScalar(back);
@@ -352,6 +362,11 @@ export function makeSpace() {
     camera.fov = 48;
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
+    // round the back of the planet? then you're hidden
+    const toCam = camera.position.clone().sub(head.position);
+    const facing = head.position.dot(toCam) > 0 || toCam.length() < 0.1;
+    head.visible = headHalo.visible = facing && !gone;
+    space.youAlpha = facing ? smooth(V_ORBIT + 0.5, V_ORBIT + 1.0, v) * (1 - smooth(28.3, 28.9, v)) : 0;
   };
   return space;
 }

@@ -9,7 +9,7 @@ import { makeCity } from './city.js';
 import { makeSpace } from './space.js';
 import { makeSolar } from './solar.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, V_GO, V_SOUND, V_ORBIT, V_LIGHT, V_BOOM, TofMph, storyT, RIVER_Z1 } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, V_GO, V_SOUND, V_ORBIT, V_LIGHT, V_BOOM, V_AIR, V_SUN, TofMph, storyT, RIVER_Z1 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -124,6 +124,17 @@ const finish = new ShaderPass({
 composer.addPass(finish);
 
 // ---------- story -> picture ----------
+// the "YOU" marker: a label and a short line pointing down at you (when you're seen from outside)
+const youEl = document.getElementById('you');
+const ndc = new THREE.Vector3();
+function placeYou(pos, camera, alpha) {
+  if (!pos || alpha <= 0.001) { youEl.style.opacity = '0'; return; }
+  ndc.copy(pos).project(camera);
+  const x = (ndc.x + 1) / 2 * W, y = (1 - ndc.y) / 2 * H;
+  if (ndc.z > 1 || x < 60 || x > W - 60 || y < 160 || y > H - 40) { youEl.style.opacity = '0'; return; }
+  youEl.style.opacity = alpha.toFixed(3);
+  youEl.style.transform = `translate(${(x - 120).toFixed(1)}px, ${(y - 128).toFixed(1)}px)`;
+}
 const fogC = new THREE.Color(0xc88a5c);
 let stridePh = 0, lastV = null;
 function strideAt(v) {   // arm-pump phase (cycles), integrated over video time
@@ -161,6 +172,16 @@ function update(v, cover = -1) {
       wobble(v * 17, 6) * shake * 0.6 + Math.sin(cyc * Math.PI * 0.5) * 0.4 * DEG * run * (1 - speedK),
     );
     cam.fov = lerp(50, 74, smooth(TofMph(8), TofMph(1200), T)) + 6 * s.heat;
+    if (s.aerial) {
+      // outside: chasing you from behind and above, pulling back and rising as you speed up toward the sunset
+      const a = clamp((v - V_AIR) / (V_ORBIT - V_AIR));
+      const back = Math.exp(lerp(Math.log(16), Math.log(2600), Math.pow(a, 0.85)));
+      const up = back * 0.38, side = back * 0.16;
+      cam.position.set(side, 1.2 + up, -s.dist + back);
+      const sh = 0.002 + 0.004 * s.heat;
+      cam.rotation.set(-1.5 * DEG + wobble(v * 21, 3) * sh, Math.atan2(side, back) + wobble(v * 17, 5) * sh, wobble(v * 13, 6) * sh * 0.5);
+      cam.fov = 60;
+    }
     cam.updateProjectionMatrix();
     cam.updateMatrixWorld();
 
@@ -179,10 +200,18 @@ function update(v, cover = -1) {
     sky.uniforms.uPx.value = (2 * Math.tan((cam.fov * DEG) / 2)) / RH;
     sky.uniforms.uCloudOff.value.set(0.3 + v * 0.002, 0.1);
     city.frame(v, s, cam);
+    const you = city.runner(v, s, s.aerial, cam);
+    placeYou(you, cam, s.aerial ? smooth(V_AIR + 0.25, V_AIR + 0.6, v) * (1 - smooth(22.3, 22.9, v)) : 0);
     city.water.uniforms.uFog.value.copy(fogC);
     city.water.uniforms.uFogD.value = street.fog.density;
     street.fog.color.copy(fogC);
     street.fog.density = 0.00016;
+    city.hemi.intensity = 1.05;
+    if (s.aerial) {   // dusk from above: less haze, a darker land so the towns' lights and the fireball stand out
+      street.fog.color.setRGB(0.5, 0.36, 0.3);
+      street.fog.density = 0.00006;
+      city.hemi.intensity = 0.55;
+    }
 
     blur = (0.06 * smooth(TofMph(60), TofMph(500), T) + 0.03 * smooth(TofMph(500), TofMph(3000), T)) * (1 - 0.6 * s.heat);
     blur *= 1 - 0.5 * Math.sin(Math.PI * clamp((lb - 0.05) / 0.9, 0, 1)) * 0;   // (looking back: same radial streaks, now converging)
@@ -190,13 +219,17 @@ function update(v, cover = -1) {
     heat = s.heat;
     exposure = 0.95;
     bloomS = 0.32 + 0.3 * heat;
+    sky.uniforms.uHalo.value = s.aerial ? 0.3 : 1;
+    if (s.aerial) { blur = 0.01; heat = 0; bloomS = 0.22; exposure = 0.8; }
   } else if (s.scene === 'earth') {
     scene = space.scene; camera = space.camera;
     space.frame(v, s);
+    placeYou(space.head, space.camera, space.youAlpha);
     exposure = 1.0; bloomS = 0.6 - 0.35 * smooth(V_LIGHT + 8, V_BOOM + 1, v);
   } else {
     scene = solar.scene; camera = solar.camera;
     solar.frame(v, s);
+    placeYou(solar.head, solar.camera, smooth(V_SUN + 0.4, V_SUN + 0.9, v) * (1 - smooth(V_SUN + 4.6, V_SUN + 5.3, v)));
     exposure = 1.0; bloomS = 0.75;
   }
 

@@ -181,7 +181,7 @@ export function makeCity(scene) {
   }
   for (let i = 0; i < 2600; i++) {
     const x = (R() < 0.5 ? -1 : 1) * (14 + Math.pow(R(), 1.5) * 900), z = RIVER_Z1 - 200 - R() * 26000;
-    if (Math.abs(x) < 120 && z > RIVER_Z1 - 3000) continue;
+    if (Math.abs(x) < 150) continue;   // a clear strip along your path (the camera flies low over it)
     const w = 8 + R() * 18;
     addB(x - w / 2, x + w / 2, z - w / 2, z + w / 2, 6 + Math.pow(R(), 2) * 22);
   }
@@ -545,11 +545,13 @@ export function makeCity(scene) {
   }
 
   // ---------- New Jersey and beyond: a ground that streams past ----------
+  const runU = { value: new THREE.Vector4(0, 0, 0, 0) };   // where you are (x, z), your Mach number, how hot you glow
   {
     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 });
     mat.onBeforeCompile = (sh) => {
       sh.vertexShader = 'varying vec3 vNW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n vNW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-      sh.fragmentShader = 'varying vec3 vNW;\n float hn(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }\n float vnn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hn(i), hn(i+vec2(1,0)), f.x), mix(hn(i+vec2(0,1)), hn(i+vec2(1,1)), f.x), f.y); }\n' +
+      sh.uniforms.uRun = runU;
+      sh.fragmentShader = 'varying vec3 vNW;\n uniform vec4 uRun;\n float hn(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }\n float vnn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hn(i), hn(i+vec2(1,0)), f.x), mix(hn(i+vec2(0,1)), hn(i+vec2(1,1)), f.x), f.y); }\n' +
         sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
         {
           vec2 p = vNW.xz;
@@ -563,13 +565,100 @@ export function makeCity(scene) {
           c = mix(c, vec3(0.12, 0.12, 0.13), street);
           float town = smoothstep(0.35, 0.6, vnn(p * 0.0007));
           c = mix(mix(vec3(0.22, 0.24, 0.12), vec3(0.3, 0.26, 0.16), vnn(p * 0.003)), c, max(town, 1.0 - smoothstep(2000.0, 6000.0, -p.y + ${RIVER_Z1.toFixed(1)})));
+          // behind you: a churned-up dust trail along your path
+          float dz = p.y - uRun.y;
+          float dust = dz > 0.0 ? exp(-pow((p.x - uRun.x) / (10.0 + dz * 0.05), 2.0)) * exp(-dz / 9000.0) * step(0.5, uRun.w) : 0.0;
+          c = mix(c, vec3(0.42, 0.33, 0.26), dust * 0.7);
           diffuseColor.rgb = c;
+        }`).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        {
+          vec2 p = vNW.xz;
+          float d = length(p - uRun.xy);
+          float glow = uRun.w;
+          // dusk: the towns' street lights coming on (dots at the street corners, a soft glow where they're too small to see)
+          {
+            vec2 q = p / 70.0; vec2 f = fract(q); vec2 fwq = fwidth(q);
+            float town = smoothstep(0.35, 0.6, vnn(p * 0.0007));
+            float corner = length(min(f, 1.0 - f));
+            float dotL = (1.0 - smoothstep(0.015, 0.03 + length(fwq), corner)) * step(0.35, hn(floor(q) + 3.1));
+            float far = smoothstep(0.08, 0.35, length(fwq));
+            float lights = mix(dotL * 2.4, 0.06, far) * town;
+            totalEmissiveRadiance += vec3(1.0, 0.72, 0.4) * lights;
+          }
+          // the fireball lights up the land around it
+          totalEmissiveRadiance += vec3(1.0, 0.5, 0.2) * glow * 1.4 / (1.0 + pow(d / (25.0 + 60.0 * glow), 2.0));
+          // the shock wave: a V spreading behind you across the ground (Mach cone), dust lit gold by the sunset
+          float dz = p.y - uRun.y;
+          if (dz > 0.0 && uRun.z > 1.05) {
+            float w = dz / sqrt(uRun.z * uRun.z - 1.0);
+            float shock = exp(-pow((abs(p.x - uRun.x) - w) / (5.0 + dz * 0.02), 2.0)) * exp(-dz / 7000.0);
+            totalEmissiveRadiance += vec3(1.0, 0.72, 0.45) * shock * 0.35 * step(0.5, glow);
+          }
         }`);
     };
     const g = new THREE.Mesh(new THREE.PlaneGeometry(60000, 120000).rotateX(-Math.PI / 2).translate(0, -0.05, RIVER_Z1 - 60000), mat);
     g.receiveShadow = true; g.frustumCulled = false;
     scene.add(g);
   }
+
+  // ---------- you, seen from outside: a fireball with a plasma tail ----------
+  const fire = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d');
+    const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.18, 'rgba(255,240,210,0.95)'); gr.addColorStop(0.45, 'rgba(255,150,60,0.35)'); gr.addColorStop(1, 'rgba(255,90,30,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(c);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xff8a40, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.8 }));
+    const tailU = { uHeat: { value: 0 } };
+    const tail = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, 0.5), new THREE.ShaderMaterial({
+      uniforms: tailU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      vertexShader: /* glsl */ `varying vec2 vUv;
+        #include <common>
+        #include <logdepthbuf_pars_vertex>
+        void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          #include <logdepthbuf_vertex>
+        }`,
+      fragmentShader: /* glsl */ `uniform float uHeat; varying vec2 vUv;
+        #include <common>
+        #include <logdepthbuf_pars_fragment>
+        void main(){
+          #include <logdepthbuf_fragment>
+          float t = 1.0 - vUv.y;              // 0 at you, 1 at the far end of the tail
+          float x = (vUv.x - 0.5) * 2.0;
+          float wdt = mix(0.35, 1.0, t);       // the tail widens behind you
+          float across = exp(-x * x / (wdt * wdt) * 3.0);
+          float along = pow(1.0 - t, 1.6);
+          vec3 c = mix(vec3(1.0, 0.95, 0.85), mix(vec3(1.0, 0.5, 0.15), vec3(0.8, 0.15, 0.05), t), smoothstep(0.0, 0.5, t));
+          gl_FragColor = vec4(c * across * along * (0.6 + 1.6 * uHeat), 1.0);
+        }`,
+    }));
+    for (const m of [tail, halo, core]) { m.frustumCulled = false; m.renderOrder = 10; scene.add(m); m.visible = false; }
+    return { core, halo, tail, tailU };
+  })();
+  // place the fireball at your position; k: 0 hidden (first person) .. 1 seen from outside
+  city.runner = (v, s, k, cam) => {
+    const z = -s.dist, mph = s.mph, ms = mph * 0.44704;
+    const heat = s.heat;
+    const vis = k > 0.001;
+    for (const m of [fire.core, fire.halo, fire.tail]) m.visible = vis;
+    runU.value.set(0, z, s.mach, vis ? 0.4 + 0.6 * heat : 0);
+    if (!vis) return null;
+    const flick = 1 + 0.08 * Math.sin(v * 37) + 0.05 * Math.sin(v * 59 + 1);
+    const size = (3 + 70 * heat) * flick;
+    fire.core.position.set(0, 1.2 + size * 0.15, z);
+    fire.core.scale.setScalar(size);
+    fire.halo.position.copy(fire.core.position);
+    fire.halo.scale.setScalar(size * 3.2);
+    const len = Math.min(0.16 * ms, 1400), wid = 4 + 80 * heat;
+    fire.tail.position.set(0, 1.2 + size * 0.15, z);
+    const dx = cam.position.x - 0, dy = cam.position.y - fire.tail.position.y;
+    fire.tail.rotation.set(0, 0, Math.atan2(-dx, dy));
+    fire.tail.scale.set(wid, 1, len);
+    fire.tailU.uHeat.value = heat;
+    return fire.core.position;
+  };
 
   // ---------- lights ----------
   const sun = new THREE.DirectionalLight(0xffb070, 3.4);
@@ -592,7 +681,7 @@ export function makeCity(scene) {
     const cz = cam.position.z, cx = cam.position.x;
     sun.position.set(cx + city.sunDir.x * 1300, city.sunDir.y * 1300, cz + city.sunDir.z * 1300 - 200);
     sun.target.position.set(cx, 0, cz - 200);
-    sun.castShadow = s.scene === 'street' && cam.position.z > RIVER_Z1 - 3000;
+    sun.castShadow = s.scene === 'street' && cam.position.z > RIVER_Z1 - 3000 && cam.position.y < 40;
 
     // cars: queued traffic inches forward; after the shock: a jolt, and their hazard lights start flashing (alarms)
     cars.forEach((c, i) => {

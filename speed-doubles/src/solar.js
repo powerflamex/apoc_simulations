@@ -143,8 +143,10 @@ export function makeSolar(glowTex) {
       }
     }
   }
-  const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffe2b0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffe2b0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false }));
+  head.renderOrder = 20;
   scene.add(head);
+  solar.head = head.position;
 
   const tmp = new THREE.Vector3();
   solar.frame = (v, s) => {
@@ -174,7 +176,7 @@ export function makeSolar(glowTex) {
       const [a, b, r] = bases[Math.min(k0, bases.length - 1)];
       const phi = (L - k0) * Math.PI * 2;
       head.position.copy(a).multiplyScalar(Math.cos(phi) * r).addScaledVector(b, Math.sin(phi) * r);
-      head.scale.setScalar(lerp(0.09, 0.4, smooth(V_SUN, V_BALL, v)));
+      head.scale.setScalar(lerp(0.16, 0.4, smooth(V_SUN, V_BALL, v)));
     }
     // camera: near where Earth was, looking at the Sun; it pulls back as the path widens, and rises above it all
     const dist = keys([[V_SUN, 2.3], [V_SUN + 2.5, 2.6], [V_SUN + 5.5, 7.5], [V_SUN + 7.5, 14], [V_BALL, 17], [T_SWITCH, 12.5], [VIDEO_DURATION + 1, 12]], v, true);

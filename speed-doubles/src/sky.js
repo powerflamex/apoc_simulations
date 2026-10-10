@@ -5,6 +5,7 @@ import * as THREE from 'three';
 export const SKY_COMMON = /* glsl */ `
 uniform vec3 uSunDir;
 uniform float uWhite;
+uniform float uHalo;
 vec3 atmosphere(vec3 v) {
   float e = v.y;
   float h = clamp(e, 0.0, 1.0);
@@ -16,7 +17,9 @@ vec3 atmosphere(vec3 v) {
   vec3 hor = mix(vec3(0.62, 0.52, 0.62), vec3(1.0, 0.66, 0.34), pow(side, 2.0));
   vec3 c = mix(hor, top, pow(smoothstep(0.0, 0.6, h), 0.55));
   // the glow round the low Sun
-  c += vec3(1.0, 0.55, 0.22) * (pow(max(cs, 0.0), 8.0) * 0.55 + pow(max(cs, 0.0), 60.0) * 0.9 + pow(max(cs, 0.0), 900.0) * 2.5);
+  c += vec3(1.0, 0.55, 0.22) * (pow(max(cs, 0.0), 8.0) * 0.55 * uHalo + pow(max(cs, 0.0), 60.0) * 0.9 * uHalo + pow(max(cs, 0.0), 900.0) * 2.5);
+  // higher up (seen from the air) the dusk sky overhead is a deeper blue
+  c = mix(c, c * vec3(0.55, 0.62, 0.85), (1.0 - uHalo) * smoothstep(0.02, 0.4, e));
   // below the horizon (seen across the river): haze
   if (e < 0.0) c = mix(c, vec3(0.42, 0.3, 0.26), smoothstep(0.0, -0.05, e));
   c = mix(c, vec3(1.0, 0.98, 0.95), uWhite);
@@ -79,7 +82,7 @@ void main() {
 
 export function makeSky() {
   const uniforms = {
-    uPx: { value: 0.0006 }, uSunDir: { value: new THREE.Vector3(0, 0.03, -1).normalize() }, uWhite: { value: 0 },
+    uPx: { value: 0.0006 }, uSunDir: { value: new THREE.Vector3(0, 0.03, -1).normalize() }, uWhite: { value: 0 }, uHalo: { value: 1 },
     uCloudOff: { value: new THREE.Vector2(0.3, 0.1) },
   };
   const mat = new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, side: THREE.BackSide, depthWrite: false, depthTest: false });

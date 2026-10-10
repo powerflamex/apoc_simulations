@@ -54,6 +54,7 @@ export const distAt = (v) => distAtT(storyT(v));
 export const V_SOUND = vAtT(TofMph(SOUND_MPH));     // ~15.2 s: the sonic boom
 export const V_ORBIT = vAtT(TofMph(ORBIT_MPH));     // ~24.2 s: orbital speed -> white -> space
 export const V_LIGHT = vAtT(TofMph(C_MPH));         // ~36 s: light speed
+export const V_AIR = V_SOUND + 3.75;              // ~18.9 s: cut from looking back to outside: you, a fireball over New Jersey
 export const V_BOOM = 49.4;                         // Earth breaks apart
 export const V_SUN = 51.0;                          // cut to the solar system
 export const V_BALL = 62.0;                         // the paths wrap the solar system in light
@@ -77,9 +78,9 @@ export const CAPTIONS = [
   [5.9, 8.6, "You just passed Usain Bolt. And every cab on 42nd Street."],
   [8.9, 11.5, 'The wind hits you like a hurricane.'],
   [11.8, 14.6, 'Faster than a Formula 1 car. Times Square is a blur.'],
-  [V_SOUND + 0.05, V_SOUND + 2.1, 'Boom. You just broke the sound barrier.'],
-  [V_SOUND + 2.3, V_SOUND + 4.4, 'Every window behind you shatters.'],
-  [V_SOUND + 4.7, 23.6, 'The air in front of you is crushed white-hot.'],
+  [V_SOUND + 0.05, V_SOUND + 2.0, 'Boom. You just broke the sound barrier.'],
+  [V_SOUND + 2.15, V_AIR - 0.05, 'Every window behind you shatters.'],
+  [V_AIR + 0.35, 23.5, 'The air around you is crushed white-hot.'],
   [V_ORBIT + 0.5, V_ORBIT + 3.4, 'Orbital speed. From space you are a streak of fire.'],
   [V_ORBIT + 3.8, V_ORBIT + 6.8, 'One lap of Earth used to take 85 minutes. Then seconds.'],
   [V_LIGHT - 2.9, V_LIGHT + 0.1, 'Light speed: 7.5 laps of Earth every second.'],
@@ -173,7 +174,8 @@ export function state(v) {
   );
   s.flashColor = '#fffaf2';
   s.heat = smooth(TofMph(SOUND_MPH * 4), TofMph(ORBIT_MPH * 0.95), s.T);    // the air glowing in front of you
-  s.lookBack = smooth(V_SOUND + 0.35, V_SOUND + 0.95, v) * (1 - smooth(V_SOUND + 3.5, V_SOUND + 4.1, v));   // you look over your shoulder at the boom
+  s.lookBack = smooth(V_SOUND + 0.35, V_SOUND + 0.95, v);
+  s.aerial = v >= V_AIR ? 1 : 0;                   // from here the camera is outside, chasing you
   s.title = 1 - smooth(3.0, 3.9, v);
   s.endcard = 0; s.endText = 0; s.fadeOut = 0;
   return s;

@@ -45,6 +45,10 @@
   #cover .w { font: italic 500 200px/1 'Cormorant', serif; color: #f1c978; margin: 14px 0 4px; }
   #cover .q { font: 600 88px/1.05 'Cormorant', serif; }
 
+  #you { position: absolute; left: 0; top: 0; width: 240px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
+  #you .t { font: 700 38px 'Cormorant', serif; letter-spacing: .32em; padding-left: .32em; }
+  #you .ln { width: 3px; height: 62px; margin: 4px auto 0; background: rgba(255, 246, 236, .92); }
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
   #endcard { position: absolute; inset: 0; background: #000; opacity: 0; display: flex;
     flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -77,6 +81,7 @@
     <div class="w">doubled</div>
     <div class="q">every 2 seconds?</div>
   </div>
+  <div id="you" class="serif"><div class="t">YOU</div><div class="ln"></div></div>
   <div id="flash"></div>
   <div id="endcard" class="serif">
     <div class="t">What if your speed doubled every 2 seconds?</div>
