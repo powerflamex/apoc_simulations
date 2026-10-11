@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1080">
-<script>if (new URLSearchParams(location.search).has('wide')) document.documentElement.classList.add('wide');</script>
+<script>if (new URLSearchParams(location.search).has('wide')) document.documentElement.classList.add('wide'); if (new URLSearchParams(location.search).has('clean')) document.documentElement.classList.add('clean');</script>
 <title>Earth Spins Faster</title>
 <style>
   @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
@@ -22,6 +22,8 @@
   .wide #counter { left: 80px; top: 700px; }
   .wide #caption { left: 290px; right: 290px; top: 862px; font-size: 64px; }
   .wide #title { left: 300px; right: 300px; top: 330px; }
+  /* ?clean=1: no title, counter or captions (montage shots for the long-form intro) */
+  .clean #counter, .clean #caption, .clean #title, .clean #cover, .clean #you { display: none !important; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 

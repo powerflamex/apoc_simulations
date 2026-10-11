@@ -53,5 +53,13 @@ Each part ~70-90 s of video at ~0.75x story speed (slower pacing; ~30% more time
 - [x] `longform/render-parts.sh` (all parts, or just named ones) + `longform/join.sh` (intro card, "#N" + name
       over each part with outlined text, 0.8 s cross-fades, outro card, x264 CRF 18). v1 rendered 2026-10-11:
       `longform/out/7-ways-the-world-ends_1920x1080.mp4`, 7:03, 630 MB. Parts ~4-7 min each; the join ~15 min.
-- [ ] Not done (owner didn't ask yet): slower pacing (`?pace`), intro montage of the climaxes, voiceover.
+- [x] Intro/outro (2026-10-11): `?clean=1` (no text) montage clips -> `longform/cards.mjs` (text in Cormorant via
+      headless Chrome) + `longform/cards.sh` (intro: 7 climaxes 1 s each with booms + title over the #1 shot; outro:
+      stars, "Which one scares you most?", the 7 shots as thumbnails, subscribe). Thumbnails: `longform/thumbs.mjs`.
+      v2: 7:11, 647 MB. Posting: Sundays 1 PM ET.
+- [ ] Not done (owner didn't ask yet): slower pacing (`?pace`), voiceover.
 - Fixing one part later: `bash longform/render-parts.sh <project>` then `bash longform/join.sh` (no full re-render).
+- Clips for the intro: `node render.mjs --wide --clean --no-audio --start T --end T+1.25 --out ../longform/clips/N.mp4`
+  (1 asteroid 58.6, 2 earth-spins 55.5, 3 sun-vanishes 52, 4 earth-falls 47, 5 black-hole 40, 6 speed-doubles 45,
+  7 electrons 31.5, 8 electrons 26 for the outro stars), then `node longform/cards.mjs && bash longform/cards.sh`.
+- Keep the PC awake during long renders (the first join stalled overnight when it slept).
