@@ -149,6 +149,31 @@ POV: your speed doubles every 2 seconds. You start running down 42nd Street at s
 
 Cover: `speed-doubles/out/speed-doubles_v4_cover.png`
 
+## Day 7. Every electron disappears — `electrons/out/electrons_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (81 chars)**
+What if every electron disappeared? Your coin = 7,500 nukes ⚛️ #whatif #physics
+
+**YouTube description**
+Noon at Shibuya Crossing in Tokyo. Then every electron on Earth vanishes.
+
+No electrons, no electricity: every screen dies at once.
+Nothing scatters sunlight, so the sky turns black at noon and light passes straight through everything.
+Every atom is now pure positive charge, and positive charges push each other apart.
+The coin in your pocket holds as much energy as 7,500 of the biggest nukes ever built. Your body, as much as the Sun puts out in 7 minutes.
+Earth bursts apart at almost the speed of light. 1.3 seconds later it hits the Moon, 8 minutes later the Sun.
+
+What should disappear next? 👇
+
+#whatif #physics #science #space #simulation #electrons
+
+**TikTok**
+POV: you're at Shibuya Crossing at noon when every electron on Earth vanishes. Every screen in Tokyo dies, the sky turns black at noon and light passes straight through everything, even the people around you. Every atom is now pure positive charge, and positive charges repel: the coin in your pocket holds 7,500 of the biggest nukes ever built. Earth bursts apart at almost the speed of light, hits the Moon 1.3 seconds later and the Sun 8 minutes later. What should disappear next? 👇
+
+#whatif #physics #science #space #simulation #pov #electrons #fyp
+
+Cover: `electrons/out/electrons_v4_cover.png`
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
