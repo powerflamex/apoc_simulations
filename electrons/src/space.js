@@ -147,6 +147,41 @@ export function makeEarthScene(glowTex) {
   const moonBurst = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), shellMat(0xbcd6ff));
   moonBurst.position.copy(moon.position);
   scene.add(moonBurst);
+  // Earth's fragments: thousands of glowing chunks thrown outward as it bursts
+  const frag = (() => {
+    const R = rng(21), n = 6000, dir = new Float32Array(n * 3), spd = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const d = new THREE.Vector3(R() * 2 - 1, R() * 2 - 1, R() * 2 - 1).normalize(); dir.set([d.x, d.y, d.z], i * 3); spd[i] = 0.5 + Math.pow(R(), 2) * 2.5; }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('aDir', new THREE.BufferAttribute(dir, 3));
+    g.setAttribute('aSpd', new THREE.BufferAttribute(spd, 1));
+    const u = { uT: { value: -1 } };
+    const pts = new THREE.Points(g, new THREE.ShaderMaterial({
+      uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */ `attribute vec3 aDir; attribute float aSpd; uniform float uT; varying float vA;
+        #include <common>
+        #include <logdepthbuf_pars_vertex>
+        void main(){
+          float t = max(uT, 0.0);
+          vec3 p = aDir * (0.95 + aSpd * t * 1.4 + aSpd * t * t * 1.2);
+          vec4 mv = viewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
+          gl_PointSize = clamp(26.0 / max(-mv.z, 0.1), 2.5, 9.0) * step(0.0, uT);
+          vA = exp(-t * 0.35) * step(0.0, uT);
+          #include <logdepthbuf_vertex>
+        }`,
+      fragmentShader: /* glsl */ `varying float vA;
+        #include <common>
+        #include <logdepthbuf_pars_fragment>
+        void main(){
+          #include <logdepthbuf_fragment>
+          float d = length(gl_PointCoord - 0.5); if (d > 0.5 || vA <= 0.0) discard;
+          gl_FragColor = vec4(vec3(0.75, 0.85, 1.0) * vA * (1.0 - 2.0 * d) * 3.0, 1.0);
+        }`,
+    }));
+    pts.frustumCulled = false;
+    return { pts, u };
+  })();
+  scene.add(frag.pts);
   // the blast: a shell of light racing out from Earth
   const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), shellMat(0xd8e6ff));
   scene.add(shell);
@@ -159,14 +194,15 @@ export function makeEarthScene(glowTex) {
     const r = 1 + C * tau / RE;                 // the blast front, in Earth radii
     U.uTime.value = v;
     U.uBurn.value = smooth(V_SPACE, V_SPACE + 2.6, v);
-    const solid = 1 - smooth(V_SPACE + 2.2, V_SPACE + 3.0, v);
-    earth.visible = atmo.visible = solid > 0.01;
-    earth.scale.setScalar(1 + 0.04 * U.uBurn.value);
+    const BURST = V_SPACE + 2.0;                 // the moment it comes apart
+    earth.visible = atmo.visible = v < BURST + 0.15;
+    earth.scale.setScalar(1 + 0.04 * U.uBurn.value + 0.22 * smooth(BURST - 0.3, BURST + 0.25, v));
+    frag.u.uT.value = v >= BURST ? v - BURST : -1;
     shell.visible = v > V_SPACE + 0.3;
     shell.scale.setScalar(Math.max(r, 1.02));
     shell.material.uniforms.uT.value = v;
     const shellA = smooth(V_SPACE + 0.3, V_SPACE + 1.2, v) * (0.6 + 0.4 / Math.sqrt(r)) * 0.45;
-    core.scale.setScalar(Math.min(r, 3) * 0.6 * smooth(V_SPACE + 2, V_SPACE + 3.5, v));
+    core.scale.setScalar(Math.min(r, 3) * 0.6 * smooth(V_SPACE + 2.6, V_SPACE + 3.8, v));
     // the Moon: hit when the front reaches it, flares, and bursts
     const hit = smooth(V_MOON - 0.08, V_MOON + 0.1, v);
     moon.material.uniforms.uHit.value = hit;
@@ -176,7 +212,7 @@ export function makeEarthScene(glowTex) {
     moonBurst.material.uniforms.uT.value = v;
     moonBurst.material.uniforms.uA.value = Math.exp(-(v - V_MOON) * 0.8) * 1.2;
     // camera: close to Earth over the Pacific (Tokyo's side), then pulling back as the blast heads for the Moon
-    const back = keys([[V_SPACE, 3.0], [V_SPACE + 2.4, 3.8], [V_SPACE + 3.4, 11], [V_MOON - 0.8, 95], [V_SOLAR, 120]], v, true);
+    const back = keys([[V_SPACE, 3.0], [V_SPACE + 2.0, 3.4], [V_SPACE + 3.0, 3.6], [V_SPACE + 4.2, 14], [V_MOON - 0.8, 95], [V_SOLAR, 120]], v, true);
     const eye = TOKYO.clone().multiplyScalar(0.7).addScaledVector(MOON_DIR, 0.25).addScaledVector(new THREE.Vector3(0, 1, 0), 0.25).normalize();
     const lookT = smooth(V_SPACE + 3.5, V_MOON - 1, v);
     camera.position.copy(eye).multiplyScalar(back).addScaledVector(MOON_DIR, 25 * lookT);

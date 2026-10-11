@@ -308,12 +308,20 @@ export function makeTokyo(scene) {
       P.push({ kind: walk ? 'walk' : 'wait', x, z, alongX, d, speed: 1.0 + R() * 0.5, yaw: R() * 6.28, h: 0.9 + R() * 0.17, ph: R() * 6.28, phone: R() < 0.3 });
     }
   }
-  // nobody walks into the camera in the first 2.2 s (it stands at about (17.5, 15) -> (15.3, 13.6))
+  // up close nobody walks straight at the camera (they'd balloon in size as they come at the lens): within 9 m of
+  // where it stands (15.3, 13.6) in the first 2.2 s, only people crossing sideways stay, and none closer than 3 m
+  const CAMP = { x: 15.3, z: 13.6 };
   for (let i = P.length - 1; i >= 0; i--) {
     for (let t = 0; t <= 2.2; t += 0.1) {
       const at = personAt(P[i], t);
-      const cx = lerp(17.5, 15.3, t / 2.2), cz = lerp(15, 13.6, t / 2.2);
-      if (Math.hypot(at.x - cx, at.z - cz) < 2.6) { P.splice(i, 1); break; }
+      const dx = at.x - CAMP.x, dz = at.z - CAMP.z, d = Math.hypot(dx, dz);
+      if (d < 3) { P.splice(i, 1); break; }
+      if (d < 9 && P[i].kind !== 'wait') {
+        const a2 = personAt(P[i], t + 0.1);
+        const mx = a2.x - at.x, mz = a2.z - at.z, m = Math.hypot(mx, mz) || 1;
+        const toward = -(dx * mx + dz * mz) / (d * m);   // 1 = straight at the camera
+        if (toward > 0.55) { P.splice(i, 1); break; }
+      }
     }
   }
   const crowd = makeCrowd(scene, P.length, plainMat(0xffffff, 0.8), { castShadow: true });
