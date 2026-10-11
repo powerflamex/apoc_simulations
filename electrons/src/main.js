@@ -14,7 +14,9 @@ import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+// ?wide=1: a 1920x1080 version for the long-form compilation (same story, wider frame)
+const WIDE = new URLSearchParams(location.search).has('wide');
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -86,9 +88,9 @@ composer.addPass(finish);
 // (yaw: 90 = west, 165 = toward the Sun in the south; pitch + = up)
 // after the electrons vanish: a look up at the black sky, a push forward through the frozen see-through crowd,
 // a turn in the middle of the crossing as the sparks rise, then up and away above it as everything burns white
-const CAM_X = [[-1, 17.5], [V_EVENT, 15.3], [4.8, 15.0], [8.2, 1.0], [14.6, -5.0], [V_WHITE, -6.0]];
+const CAM_X = [[-1, 15.3], [V_EVENT, 15.3], [4.8, 15.0], [8.2, 1.0], [14.6, -5.0], [V_WHITE, -6.0]];
 const CAM_Y = [[-1, 1.68], [V_EVENT, 1.68], [4.8, 2.05], [14.6, 2.05], [V_WHITE, 70]];
-const CAM_Z = [[-1, 15.0], [V_EVENT, 13.6], [4.8, 13.4], [8.2, 9.0], [14.6, 4.0], [V_WHITE, 2.0]];
+const CAM_Z = [[-1, 13.6], [V_EVENT, 13.6], [4.8, 13.4], [8.2, 9.0], [14.6, 4.0], [V_WHITE, 2.0]];
 const YAW = [[-1, 98], [V_EVENT, 97], [3.4, 112], [4.8, 86], [8.2, 80], [11.0, 120], [14.6, 150], [V_WHITE, 160]];
 const PITCH = [[-1, 3], [V_EVENT, 3], [3.4, 26], [4.6, 2], [8.2, 0], [11.0, 6], [14.6, -4], [16.4, -50], [V_WHITE, -62]];
 
@@ -97,10 +99,11 @@ function update(v, cover = -1) {
   if (cover >= 0) s.flash = Math.max(s.flash, cover);
   let scene = street, camera = cam, exposure = 1.0, bloomS = 0.3;
   if (s.scene === 'street') {
-    const walk = 1 - smooth(V_EVENT - 0.3, V_EVENT + 0.2, v);
+    const walk = 0;   // standing still at the curb before it happens
     cam.position.set(keys(CAM_X, v), keys(CAM_Y, v) + Math.abs(Math.sin(v * Math.PI * 1.9)) * 0.04 * walk + wobble(v * 0.3, 2) * 0.02, keys(CAM_Z, v));
     cam.rotation.set(keys(PITCH, v) * DEG + wobble(v * 0.6, 3) * 0.25 * DEG, keys(YAW, v) * DEG + wobble(v * 0.5, 4) * 0.3 * DEG, wobble(v * 0.4, 5) * 0.2 * DEG);
     cam.fov = 58;
+    if (WIDE) cam.fov = 2 * Math.atan(Math.tan(cam.fov * DEG / 2) * 0.62) / DEG;   // same scene, a wider and shorter frame
     cam.updateProjectionMatrix();
     cam.updateMatrixWorld();
     sky.mesh.position.copy(cam.position);
@@ -113,10 +116,12 @@ function update(v, cover = -1) {
   } else if (s.scene === 'earth') {
     scene = earth.scene; camera = earth.camera;
     earth.frame(v);
+    widen(earth.camera);
     bloomS = 0.3;
   } else {
     scene = solar.scene; camera = solar.camera;
     solar.frame(v);
+    widen(solar.camera);
     bloomS = 0.4;
   }
   renderPass.scene = scene;
@@ -129,6 +134,18 @@ function update(v, cover = -1) {
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
   overlay(v, s, v);
   return s;
+}
+
+
+// wide mode for the space cameras: right shape, and the same wider/shorter view as the street (without compounding
+// when a scene doesn't reset its own FOV every frame)
+function widen(camera) {
+  if (!WIDE) return;
+  camera.aspect = W / H;
+  if (camera.userData.set !== camera.fov) camera.userData.f0 = camera.fov;
+  camera.fov = 2 * Math.atan(Math.tan(camera.userData.f0 * DEG / 2) * 0.62) / DEG;
+  camera.userData.set = camera.fov;
+  camera.updateProjectionMatrix();
 }
 
 let comp = null;
