@@ -48,6 +48,10 @@ Each part ~70-90 s of video at ~0.75x story speed (slower pacing; ~30% more time
 ## Progress (branch `longform`)
 - [x] `asteroid/`: `?wide=1` / `node render.mjs --wide` -> 1920x1080 (main.js W/H + FOV x0.62 tangent, compose.js,
       index.html `.wide` layout, render.mjs viewport/encoder/clip/URL). Checked stills at 0, 8, 20, 45 s: works.
-- [ ] Same wide mode for the other 6 projects (copy the asteroid edits; check each scene's key moments).
-- [ ] `?pace=0.75` (story slowed) + matching soundtrack; skip the loop tail for parts.
-- [ ] Chapter cards, intro montage, outro; join with ffmpeg xfade/acrossfade; final 30 fps x264 encode.
+- [x] Wide mode for all 7 (space cameras via `widen()`, sun-vanishes lake reflection + frost aspect, speed-doubles
+      ring widths). Bigger wide captions (64 px). Parts end at T_SWITCH (inside the cover, no loop tail).
+- [x] `longform/render-parts.sh` (all parts, or just named ones) + `longform/join.sh` (intro card, "#N" + name
+      over each part with outlined text, 0.8 s cross-fades, outro card, x264 CRF 18). v1 rendered 2026-10-11:
+      `longform/out/7-ways-the-world-ends_1920x1080.mp4`, 7:03, 630 MB. Parts ~4-7 min each; the join ~15 min.
+- [ ] Not done (owner didn't ask yet): slower pacing (`?pace`), intro montage of the climaxes, voiceover.
+- Fixing one part later: `bash longform/render-parts.sh <project>` then `bash longform/join.sh` (no full re-render).

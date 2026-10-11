@@ -12,13 +12,13 @@ parts=(parts/0[1-7]_*.mp4)
 XF=0.8   # cross-fade seconds
 inputs=() ; filt="" ; i=0
 # intro card (4 s, black) and outro card (5 s)
-filt+="color=c=black:s=1920x1080:r=60:d=4,drawtext=fontfile='$FONTB':text='7 ways the world could end':fontsize=96:fontcolor=0xf4efe6:x=(w-tw)/2:y=(h-th)/2-40:alpha='min(1,t/0.6)',drawtext=fontfile='$FONT':text='from bad to total annihilation':fontsize=44:fontcolor=0xd8cfc0:x=(w-tw)/2:y=(h)/2+60:alpha='min(1,max(0,(t-0.8)/0.6))',format=yuv420p[intro];"
+filt+="color=c=black:s=1920x1080:r=60:d=4,drawtext=fontfile='$FONTB':text='7 ways the world could end':fontsize=96:fontcolor=0xf4efe6:x=(w-tw)/2:y=(h-th)/2-40:alpha='min(1,t/0.6)',drawtext=fontfile='$FONT':text='from bad to total annihilation':fontsize=48:fontcolor=0xe8dfd0:x=(w-tw)/2:y=(h)/2+60:alpha='min(1,max(0,(t-0.8)/0.6))',format=yuv420p[intro];"
 filt+="anullsrc=r=48000:cl=stereo,atrim=0:4[introa];"
 for p in "${parts[@]}"; do
   inputs+=(-i "$p")
   k=$((8 - i - 1)); num=$((7 - i))
   # "#N" badge + the part's name for its first 4 s
-  filt+="[$i:v]fps=60,format=yuv420p,drawtext=fontfile='$FONTB':text='#$num':fontsize=150:fontcolor=0xf1c978:x=(w-tw)/2:y=90:alpha='if(lt(t,3.4),min(1,t/0.4),max(0,(4-t)/0.6))',drawtext=fontfile='$FONT':text='${names[$((i + 1))]}':fontsize=46:fontcolor=0xf4efe6:x=(w-tw)/2:y=260:alpha='if(lt(t,3.4),min(1,t/0.4),max(0,(4-t)/0.6))'[v$i];"
+  filt+="[$i:v]fps=60,format=yuv420p,drawtext=fontfile='$FONTB':text='#$num':fontsize=150:fontcolor=0xf1c978:borderw=4:bordercolor=black@0.55:shadowcolor=black@0.5:shadowx=0:shadowy=4:x=(w-tw)/2:y=90:alpha='if(lt(t,3.4),min(1,t/0.4),max(0,(4-t)/0.6))',drawtext=fontfile='$FONT':text='${names[$((i + 1))]}':fontsize=50:fontcolor=0xf4efe6:borderw=3:bordercolor=black@0.55:shadowcolor=black@0.5:shadowx=0:shadowy=3:x=(w-tw)/2:y=260:alpha='if(lt(t,3.4),min(1,t/0.4),max(0,(4-t)/0.6))'[v$i];"
   filt+="[$i:a]aresample=48000,aformat=channel_layouts=stereo[a$i];"
   i=$((i + 1))
 done
