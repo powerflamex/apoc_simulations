@@ -44,3 +44,10 @@ Each part ~70-90 s of video at ~0.75x story speed (slower pacing; ~30% more time
 - Code: the `?wide` and `?pace` flags once (copy to all 7 projects), then camera/overlay checks per sim.
 - Rendering: ~5 min per part at 30 fps, ~40 min total, unattended.
 - Before starting: watch the older parts (asteroid, black hole, sun) in full and note anything that needs fixing.
+
+## Progress (branch `longform`)
+- [x] `asteroid/`: `?wide=1` / `node render.mjs --wide` -> 1920x1080 (main.js W/H + FOV x0.62 tangent, compose.js,
+      index.html `.wide` layout, render.mjs viewport/encoder/clip/URL). Checked stills at 0, 8, 20, 45 s: works.
+- [ ] Same wide mode for the other 6 projects (copy the asteroid edits; check each scene's key moments).
+- [ ] `?pace=0.75` (story slowed) + matching soundtrack; skip the loop tail for parts.
+- [ ] Chapter cards, intro montage, outro; join with ffmpeg xfade/acrossfade; final 30 fps x264 encode.

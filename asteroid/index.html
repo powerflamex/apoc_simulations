@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1080">
+<script>if (new URLSearchParams(location.search).has('wide')) document.documentElement.classList.add('wide');</script>
 <title>Asteroid Impact</title>
 <style>
   @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
@@ -16,6 +17,11 @@
   #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000;
     transform-origin: 0 0; }
   #stage canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+  /* wide (16:9) layout for the long-form video: counter bottom-left, captions low and centred */
+  .wide #stage, .wide #stage canvas { width: 1920px; height: 1080px; }
+  .wide #counter { left: 80px; top: 700px; }
+  .wide #caption { left: 420px; right: 420px; top: 930px; font-size: 48px; }
+  .wide #title { left: 300px; right: 300px; top: 330px; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 
