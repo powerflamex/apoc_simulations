@@ -12,7 +12,9 @@ import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+// ?wide=1: a 1920x1080 version for the long-form compilation (same story, wider frame)
+const WIDE = new URLSearchParams(location.search).has('wide');
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -114,6 +116,7 @@ function update(v, cover = -1) {
     wobble(v * 0.37, 6) * 0.1 * DEG + roll,
   );
   camera.fov = 62;
+  if (WIDE) camera.fov = 2 * Math.atan(Math.tan(camera.fov * DEG / 2) * 0.62) / DEG;   // same scene, a wider and shorter frame
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 

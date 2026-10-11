@@ -854,7 +854,8 @@ export function makeWorld(scene) {
   // ---------- the lake (planar reflection + ice) ----------
   const lake = makeLake();
   scene.add(lake.mesh);
-  const reflRT = new THREE.WebGLRenderTarget(540, 960, { type: THREE.HalfFloatType });
+  const WIDE = new URLSearchParams(location.search).has('wide');
+  const reflRT = new THREE.WebGLRenderTarget(WIDE ? 960 : 540, WIDE ? 540 : 960, { type: THREE.HalfFloatType });
   const mirrorCam = new THREE.PerspectiveCamera();
   const clip = [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.05)];
   lake.uniforms.uRefl.value = reflRT.texture;
@@ -997,7 +998,7 @@ function makeSnow(R) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(p0, 3));
   geo.setAttribute('aPrm', new THREE.BufferAttribute(prm, 3));
-  const uniforms = { uTime: { value: 0 }, uAmount: { value: 0 }, uScale: { value: 1920 / (2 * Math.tan(31 * DEG)) }, uTop: { value: CAM_BASE.y + 40 } };
+  const uniforms = { uTime: { value: 0 }, uAmount: { value: 0 }, uScale: { value: (new URLSearchParams(location.search).has('wide') ? 1080 : 1920) / (2 * Math.tan(31 * DEG)) }, uTop: { value: CAM_BASE.y + 40 } };
   const mat = pointsMaterial(`uniform float uTime; uniform float uAmount; uniform float uScale; uniform float uTop; attribute vec3 aPrm; varying float vA;
     void main(){
       if (uAmount <= 0.0) { gl_Position = vec4(2.0,2.0,2.0,1.0); gl_PointSize = 0.0; vA = 0.0; return; }
@@ -1032,7 +1033,7 @@ function makeLake() {
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setIndex(idx);
   const uniforms = {
-    uTime: G.uTime, uRefl: { value: null }, uRes: { value: new THREE.Vector2(1080, 1920) },
+    uTime: G.uTime, uRefl: { value: null }, uRes: { value: new URLSearchParams(location.search).has('wide') ? new THREE.Vector2(1920, 1080) : new THREE.Vector2(1080, 1920) },
     uDay: { value: 1 }, uCity: { value: 0 }, uSunDir: { value: new THREE.Vector3() },
     uWaves: { value: 1 }, uIceR: { value: -100 }, uIce: { value: 0 },
     uFogColor: { value: new THREE.Color() }, uFogDensity: { value: 0.0001 },

@@ -49,7 +49,9 @@ const FORMAT = has('png') ? 'png' : 'jpeg';
 const QUALITY = Number(arg('quality', 100));
 const PRESET = arg('preset', DRAFT ? 'veryfast' : 'medium');
 const SEG_SECONDS = Number(arg('seg', 10));
-const OUT = arg('out', path.join(ROOT, 'out', DRAFT ? `${NAME}_draft.mp4` : `${NAME}_1080x1920_60fps.mp4`));
+const WIDE = has('wide');               // 1920x1080 for the long-form compilation
+const VW = WIDE ? 1920 : 1080, VH = WIDE ? 1080 : 1920;
+const OUT = arg('out', path.join(ROOT, 'out', DRAFT ? `${NAME}_draft.mp4` : `${NAME}_${VW}x${VH}_60fps.mp4`));
 const CHROME = arg('chrome', [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -69,13 +71,13 @@ async function launch() {
       '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
       '--hide-scrollbars', '--mute-audio',
     ],
-    defaultViewport: { width: 1080, height: 1920, deviceScaleFactor: 1 },
+    defaultViewport: { width: VW, height: VH, deviceScaleFactor: 1 },
     protocolTimeout: 0,
   });
   const page = await browser.newPage();
   page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('404')) console.log('[page]', m.text()); });
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-  await page.goto(`http://127.0.0.1:${PORT}/?render=1${has('grain') ? '&grain=1' : ''}${COVER ? '&cover=1' : ''}`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${PORT}/?render=1${has('grain') ? '&grain=1' : ''}${COVER ? '&cover=1' : ''}${WIDE ? '&wide=1' : ''}`, { waitUntil: 'load' });
   await page.waitForFunction('window.__ready === true || window.__error', { timeout: 300000 });
   const err = await page.evaluate('window.__error');
   if (err) throw new Error(err);
@@ -92,8 +94,8 @@ async function launch() {
         fr.readAsDataURL(new Blob(parts));
       });
       window.__seg = {
-        async start(fps, bitrate, hw) {
-          const base = { codec: 'avc1.640033', width: 1080, height: 1920, bitrate, framerate: fps,
+        async start(fps, bitrate, hw, w = 1080, h = 1920) {
+          const base = { codec: 'avc1.640033', width: w, height: h, bitrate, framerate: fps,
             avc: { format: 'annexb' }, latencyMode: 'quality', bitrateMode: 'variable' };
           let cfg = null;
           for (const acc of hw ? ['prefer-hardware', 'prefer-software'] : ['prefer-software']) {
@@ -132,12 +134,12 @@ async function launch() {
     await page.evaluate((tt) => window.renderFrame(tt), t);
     const { data } = await cdp.send('Page.captureScreenshot', {
       format, ...(format === 'jpeg' ? { quality: QUALITY } : {}), optimizeForSpeed: true, fromSurface: true,
-      clip: { x: 0, y: 0, width: 1080, height: 1920, scale: SCALE },
+      clip: { x: 0, y: 0, width: VW, height: VH, scale: SCALE },
     });
     return Buffer.from(data, 'base64');
   };
   const seg = {
-    start: (fps, bitrate) => page.evaluate((f, b, h) => window.__seg.start(f, b, h), fps, bitrate, USE_HW),
+    start: (fps, bitrate) => page.evaluate((f, b, h, w, ht) => window.__seg.start(f, b, h, w, ht), fps, bitrate, USE_HW, VW, VH),
     frames: async (i0, n) => Buffer.from(await page.evaluate((a, b, c, d) => window.__seg.frames(a, b, c, d), i0, n, START, FPS), 'base64'),
     end: async () => Buffer.from(await page.evaluate(() => window.__seg.end()), 'base64'),
   };

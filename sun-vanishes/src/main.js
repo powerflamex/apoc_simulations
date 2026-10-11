@@ -12,7 +12,9 @@ import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+// ?wide=1: a 1920x1080 version for the long-form compilation (same story, wider frame)
+const WIDE = new URLSearchParams(location.search).has('wide');
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -58,7 +60,7 @@ const finish = new ShaderPass({
     float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++){ s += a * vn(p); p = p * 2.07 + 3.1; a *= 0.5; } return s; }
     void main() {
       vec2 c = vUv - 0.5;
-      vec2 asp = vec2(1.0, 1920.0 / 1080.0);
+      vec2 asp = vec2(1.0, ${H.toFixed(1)} / ${W.toFixed(1)});
       // frost: grows in from the edges along crystal-like noise
       vec2 fp = vUv * asp * 9.0;
       float crystal = fbm(fp) * 0.6 + fbm(fp * 3.7 + 9.0) * 0.4;
@@ -176,6 +178,7 @@ function update(t, cover = -1) {
     wobble(t * 0.37, 6) * 0.1 * DEG,
   );
   camera.fov = 62;
+  if (WIDE) camera.fov = 2 * Math.atan(Math.tan(camera.fov * DEG / 2) * 0.62) / DEG;   // same scene, a wider and shorter frame
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 

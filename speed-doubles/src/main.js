@@ -14,7 +14,9 @@ import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+// ?wide=1: a 1920x1080 version for the long-form compilation (same story, wider frame)
+const WIDE = new URLSearchParams(location.search).has('wide');
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -93,7 +95,7 @@ const finish = new ShaderPass({
     float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
     void main() {
       vec2 d = vUv - uCenter;
-      vec2 da = d * vec2(1.0, 1920.0 / 1080.0);
+      vec2 da = d * vec2(1.0, ${H.toFixed(1)} / ${W.toFixed(1)});
       float r = length(da);
       // speed: a zoom blur that streaks everything away from where you're heading (stronger toward the edges)
       vec3 col = vec3(0.0);
@@ -172,6 +174,7 @@ function update(v, cover = -1) {
       wobble(v * 17, 6) * shake * 0.6 + Math.sin(cyc * Math.PI * 0.5) * 0.4 * DEG * run * (1 - speedK),
     );
     cam.fov = lerp(50, 74, smooth(TofMph(8), TofMph(1200), T)) + 6 * s.heat;
+    if (WIDE) cam.fov = 2 * Math.atan(Math.tan(cam.fov * DEG / 2) * 0.62) / DEG;   // same scene, a wider and shorter frame
     if (s.aerial) {
       // outside: chasing you from behind and above, pulling back and rising as you speed up toward the sunset
       const a = clamp((v - V_AIR) / (V_ORBIT - V_AIR));
@@ -224,11 +227,13 @@ function update(v, cover = -1) {
   } else if (s.scene === 'earth') {
     scene = space.scene; camera = space.camera;
     space.frame(v, s);
+    widen(space.camera);
     placeYou(space.head, space.camera, space.youAlpha);
     exposure = 1.0; bloomS = 0.6 - 0.35 * smooth(V_LIGHT + 8, V_BOOM + 1, v);
   } else {
     scene = solar.scene; camera = solar.camera;
     solar.frame(v, s);
+    widen(solar.camera);
     placeYou(solar.head, solar.camera, smooth(V_SUN + 0.4, V_SUN + 0.9, v) * (1 - smooth(V_SUN + 4.6, V_SUN + 5.3, v)));
     exposure = 1.0; bloomS = 0.75;
   }
@@ -248,6 +253,18 @@ function update(v, cover = -1) {
 
   overlay(v, s, v);
   return s;
+}
+
+
+// wide mode for the space cameras: right shape, and the same wider/shorter view as the street (without compounding
+// when a scene doesn't reset its own FOV every frame)
+function widen(camera) {
+  if (!WIDE) return;
+  camera.aspect = W / H;
+  if (camera.userData.set !== camera.fov) camera.userData.f0 = camera.fov;
+  camera.fov = 2 * Math.atan(Math.tan(camera.userData.f0 * DEG / 2) * 0.62) / DEG;
+  camera.userData.set = camera.fov;
+  camera.updateProjectionMatrix();
 }
 
 let comp = null;

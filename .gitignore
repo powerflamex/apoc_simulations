@@ -7,3 +7,5 @@ stills/
 *.wav
 *.log
 .segments/
+longform/parts/
+longform/out/

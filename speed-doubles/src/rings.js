@@ -22,7 +22,7 @@ export function makeRings(MAX = 512, SEGS = 192) {
   base.instanceCount = 0;
 
   const uniforms = {
-    uData: { value: tex }, uMax: { value: MAX }, uRes: { value: new THREE.Vector2(1080, 1920) },
+    uData: { value: tex }, uMax: { value: MAX }, uRes: { value: new URLSearchParams(location.search).has('wide') ? new THREE.Vector2(1920, 1080) : new THREE.Vector2(1080, 1920) },
     uWidth: { value: 3.0 }, uColor: { value: new THREE.Color(1.0, 0.82, 0.6) }, uGain: { value: 1.0 }, uHeadGlow: { value: 1.0 },
   };
   const mat = new THREE.ShaderMaterial({
