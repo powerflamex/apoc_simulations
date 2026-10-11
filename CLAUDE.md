@@ -26,6 +26,8 @@ How the owner likes to work:
 - When describing a video plan, lay it out in the order a viewer sees it, from 0:00 to the end, then the loop.
 - Downloaded competitor videos stay private: keep them in the scratchpad, never in the repo.
 
+Stats history, posting routine and other things learned: `research/learned.md`. Long-form plan: `longform/PLAN.md`.
+
 ## What makes these videos work (from `research/` and the owner's own stats)
 
 Use this for every new video and every rework:
