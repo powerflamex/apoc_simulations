@@ -6,7 +6,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeTokyo } from './tokyo.js';
-import { makeEarthScene, makeSolarScene } from './space.js';
+import { makeEarthScene } from './space.js';
+import { makeSolarScene } from './solar.js';
 import { makeOverlay } from './overlay.js';
 import { state, VIDEO_DURATION, LOOP, V_EVENT, V_REPEL, V_WHITE, V_SPACE } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
@@ -83,10 +84,13 @@ composer.addPass(finish);
 
 // camera on the street: at the curb on the station side, looking west across the scramble
 // (yaw: 90 = west, 165 = toward the Sun in the south; pitch + = up)
-const CAM_X = [[-1, 17.5], [V_EVENT, 15.3], [8.6, 12.5], [15.8, 9.5], [V_WHITE, 4.0]];
-const CAM_Z = [[-1, 15.0], [V_EVENT, 13.6], [8.6, 11.6], [15.8, 9.0], [V_WHITE, 4.0]];
-const YAW = [[-1, 98], [V_EVENT, 97], [7.6, 100], [9.6, 150], [11.4, 160], [12.6, 125], [14.0, 98], [16.4, 96], [V_WHITE, 104]];
-const PITCH = [[-1, 3], [V_EVENT, 3], [7.6, 4], [9.6, 32], [11.4, 36], [12.6, 0], [13.6, -16], [15.2, -14], [16.6, 2], [V_WHITE, 6]];
+// after the electrons vanish: a look up at the black sky, a push forward through the frozen see-through crowd,
+// a turn in the middle of the crossing as the sparks rise, then up and away above it as everything burns white
+const CAM_X = [[-1, 17.5], [V_EVENT, 15.3], [4.8, 15.0], [8.2, 1.0], [14.6, -5.0], [V_WHITE, -6.0]];
+const CAM_Y = [[-1, 1.68], [V_EVENT, 1.68], [4.8, 2.05], [14.6, 2.05], [V_WHITE, 70]];
+const CAM_Z = [[-1, 15.0], [V_EVENT, 13.6], [4.8, 13.4], [8.2, 9.0], [14.6, 4.0], [V_WHITE, 2.0]];
+const YAW = [[-1, 98], [V_EVENT, 97], [3.4, 112], [4.8, 86], [8.2, 80], [11.0, 120], [14.6, 150], [V_WHITE, 160]];
+const PITCH = [[-1, 3], [V_EVENT, 3], [3.4, 26], [4.6, 2], [8.2, 0], [11.0, 6], [14.6, -4], [16.4, -50], [V_WHITE, -62]];
 
 function update(v, cover = -1) {
   const s = state(v);
@@ -94,7 +98,7 @@ function update(v, cover = -1) {
   let scene = street, camera = cam, exposure = 1.0, bloomS = 0.3;
   if (s.scene === 'street') {
     const walk = 1 - smooth(V_EVENT - 0.3, V_EVENT + 0.2, v);
-    cam.position.set(keys(CAM_X, v), 1.68 + Math.abs(Math.sin(v * Math.PI * 1.9)) * 0.04 * walk + wobble(v * 0.3, 2) * 0.02, keys(CAM_Z, v));
+    cam.position.set(keys(CAM_X, v), keys(CAM_Y, v) + Math.abs(Math.sin(v * Math.PI * 1.9)) * 0.04 * walk + wobble(v * 0.3, 2) * 0.02, keys(CAM_Z, v));
     cam.rotation.set(keys(PITCH, v) * DEG + wobble(v * 0.6, 3) * 0.25 * DEG, keys(YAW, v) * DEG + wobble(v * 0.5, 4) * 0.3 * DEG, wobble(v * 0.4, 5) * 0.2 * DEG);
     cam.fov = 58;
     cam.updateProjectionMatrix();
@@ -109,11 +113,11 @@ function update(v, cover = -1) {
   } else if (s.scene === 'earth') {
     scene = earth.scene; camera = earth.camera;
     earth.frame(v);
-    bloomS = 0.6;
+    bloomS = 0.3;
   } else {
     scene = solar.scene; camera = solar.camera;
     solar.frame(v);
-    bloomS = 0.6;
+    bloomS = 0.4;
   }
   renderPass.scene = scene;
   renderPass.camera = camera;

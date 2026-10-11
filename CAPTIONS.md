@@ -161,14 +161,14 @@ No electrons, no electricity: every screen dies at once.
 Nothing scatters sunlight, so the sky turns black at noon and light passes straight through everything.
 Every atom is now pure positive charge, and positive charges push each other apart.
 The coin in your pocket holds as much energy as 7,500 of the biggest nukes ever built. Your body, as much as the Sun puts out in 7 minutes.
-Earth bursts apart at almost the speed of light. 1.3 seconds later it hits the Moon, 8 minutes later the Sun.
+Earth bursts apart at almost the speed of light. 1.3 seconds later it hits the Moon. 8 minutes later the Sun explodes too, then Jupiter (42 minutes), Saturn (73 minutes) and Neptune (4 hours).
 
 What should disappear next? 👇
 
 #whatif #physics #science #space #simulation #electrons
 
 **TikTok**
-POV: you're at Shibuya Crossing at noon when every electron on Earth vanishes. Every screen in Tokyo dies, the sky turns black at noon and light passes straight through everything, even the people around you. Every atom is now pure positive charge, and positive charges repel: the coin in your pocket holds 7,500 of the biggest nukes ever built. Earth bursts apart at almost the speed of light, hits the Moon 1.3 seconds later and the Sun 8 minutes later. What should disappear next? 👇
+POV: you're at Shibuya Crossing at noon when every electron on Earth vanishes. Every screen in Tokyo dies, the sky turns black at noon and light passes straight through everything, even the people around you. Every atom is now pure positive charge, and positive charges repel: the coin in your pocket holds 7,500 of the biggest nukes ever built. Earth bursts apart at almost the speed of light, hits the Moon 1.3 seconds later, and 8 minutes later the Sun explodes too. Then Jupiter, Saturn, Neptune. What should disappear next? 👇
 
 #whatif #physics #science #space #simulation #pov #electrons #fyp
 

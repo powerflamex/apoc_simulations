@@ -22,7 +22,7 @@ const VSHADE = /* glsl */ `varying vec3 vN; varying vec3 vW;
     #include <logdepthbuf_vertex>
   }`;
 
-function starField(n, seed) {
+export function starField(n, seed) {
   const R = rng(seed), pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
     const d = new THREE.Vector3(R() * 2 - 1, R() * 2 - 1, R() * 2 - 1).normalize().multiplyScalar(4000);
@@ -39,7 +39,7 @@ function starField(n, seed) {
 }
 
 // a shell of light: bright rim, crackling surface, see-through middle
-function shellMat(color) {
+export function shellMat(color) {
   return new THREE.ShaderMaterial({
     uniforms: { uT: { value: 0 }, uA: { value: 1 }, uColor: { value: new THREE.Color(color) } },
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
@@ -102,8 +102,8 @@ export function makeEarthScene(glowTex) {
         // no electrons: no city lights. It glows from within, cracking white-blue, then is all light
         float cr = fbm(n * 7.0 + uTime * 0.4);
         float glow = smoothstep(0.75 - uBurn * 0.9, 0.95 - uBurn * 0.5, cr) * smoothstep(0.0, 0.3, uBurn);
-        vec3 hot = mix(vec3(0.55, 0.7, 1.0), vec3(1.0), smoothstep(0.4, 1.0, uBurn)) * (1.5 + 6.0 * uBurn);
-        col = mix(col, hot, clamp(glow + smoothstep(0.55, 1.0, uBurn), 0.0, 1.0));
+        vec3 hot = mix(vec3(0.35, 0.55, 1.0), vec3(0.6, 0.75, 1.0), smoothstep(0.4, 1.0, uBurn)) * (0.6 + 0.4 * uBurn);
+        col = mix(col, hot, clamp(glow + 0.6 * smoothstep(0.6, 1.0, uBurn), 0.0, 1.0));
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -136,7 +136,7 @@ export function makeEarthScene(glowTex) {
         vec3 n = normalize(vN);
         float m = fbm(n * 3.0) * 0.6 + fbm(n * 14.0) * 0.4;
         vec3 c = mix(vec3(0.35), vec3(0.75), smoothstep(0.35, 0.65, m)) * (0.03 + max(dot(n, uSun), 0.0));
-        c = mix(c, vec3(0.7, 0.85, 1.0) * 6.0, uHit);
+        c = mix(c, vec3(0.7, 0.85, 1.0) * 2.0, uHit);
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -158,15 +158,15 @@ export function makeEarthScene(glowTex) {
     const tau = tauAt(v);
     const r = 1 + C * tau / RE;                 // the blast front, in Earth radii
     U.uTime.value = v;
-    U.uBurn.value = smooth(V_SPACE, V_SPACE + 3.2, v);
-    const solid = 1 - smooth(V_SPACE + 2.6, V_SPACE + 3.6, v);
+    U.uBurn.value = smooth(V_SPACE, V_SPACE + 2.6, v);
+    const solid = 1 - smooth(V_SPACE + 2.2, V_SPACE + 3.0, v);
     earth.visible = atmo.visible = solid > 0.01;
     earth.scale.setScalar(1 + 0.04 * U.uBurn.value);
     shell.visible = v > V_SPACE + 0.3;
     shell.scale.setScalar(Math.max(r, 1.02));
     shell.material.uniforms.uT.value = v;
-    shell.material.uniforms.uA.value = smooth(V_SPACE + 0.3, V_SPACE + 1.2, v) * (0.6 + 0.4 / Math.sqrt(r));
-    core.scale.setScalar(Math.min(r, 4) * 1.4 * smooth(V_SPACE + 2, V_SPACE + 3.5, v));
+    const shellA = smooth(V_SPACE + 0.3, V_SPACE + 1.2, v) * (0.6 + 0.4 / Math.sqrt(r)) * 0.45;
+    core.scale.setScalar(Math.min(r, 3) * 0.6 * smooth(V_SPACE + 2, V_SPACE + 3.5, v));
     // the Moon: hit when the front reaches it, flares, and bursts
     const hit = smooth(V_MOON - 0.08, V_MOON + 0.1, v);
     moon.material.uniforms.uHit.value = hit;
@@ -174,9 +174,9 @@ export function makeEarthScene(glowTex) {
     moonBurst.visible = v > V_MOON;
     moonBurst.scale.setScalar(0.3 + (v - V_MOON) * 2.5);
     moonBurst.material.uniforms.uT.value = v;
-    moonBurst.material.uniforms.uA.value = Math.exp(-(v - V_MOON) * 0.8) * 2;
+    moonBurst.material.uniforms.uA.value = Math.exp(-(v - V_MOON) * 0.8) * 1.2;
     // camera: close to Earth over the Pacific (Tokyo's side), then pulling back as the blast heads for the Moon
-    const back = keys([[V_SPACE, 3.0], [V_SPACE + 3, 3.6], [V_SPACE + 4.2, 9], [V_MOON - 1, 95], [V_SOLAR, 120]], v, true);
+    const back = keys([[V_SPACE, 3.0], [V_SPACE + 2.4, 3.8], [V_SPACE + 3.4, 11], [V_MOON - 0.8, 95], [V_SOLAR, 120]], v, true);
     const eye = TOKYO.clone().multiplyScalar(0.7).addScaledVector(MOON_DIR, 0.25).addScaledVector(new THREE.Vector3(0, 1, 0), 0.25).normalize();
     const lookT = smooth(V_SPACE + 3.5, V_MOON - 1, v);
     camera.position.copy(eye).multiplyScalar(back).addScaledVector(MOON_DIR, 25 * lookT);
@@ -184,82 +184,9 @@ export function makeEarthScene(glowTex) {
     camera.up.set(0, 1, 0);
     camera.lookAt(target);
     camera.updateMatrixWorld();
+    // the blast front fades as it sweeps over the camera (no full-screen flash)
+    shell.material.uniforms.uA.value = shellA * smooth(0.3, 1.5, Math.abs(camera.position.length() - r));
   };
   return E;
 }
 
-// ---------------- the solar system ----------------
-export const rv = (au) => Math.pow(au, 0.55);   // squeezed distance on screen
-export function makeSolarScene(glowTex) {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, 1080 / 1920, 0.005, 20000);
-  const S = { scene, camera };
-  scene.add(starField(8000, 12));
-  const sun = new THREE.Mesh(new THREE.SphereGeometry(0.09, 64, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 3.6, 2.0) }));
-  scene.add(sun);
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffc070, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-  halo.scale.setScalar(0.6);
-  scene.add(halo);
-  scene.add(new THREE.PointLight(0xfff0dd, 3.0, 0, 0), new THREE.AmbientLight(0x202838, 0.35));
-  // Earth's spot (where the blast starts): (1, 0, 0). Planets placed so that their (squeezed) distance from there
-  // matches the light-travel times in the captions: Jupiter ~43 min, Neptune ~4 h.
-  const EARTH = new THREE.Vector3(1, 0, 0);
-  const PL = [
-    { au: 0.39, r: 0.014, c: 0x9a8f86, ang: 2.4 }, { au: 0.72, r: 0.024, c: 0xe3c58e, ang: 3.9 }, { au: 1.52, r: 0.02, c: 0xc0603a, ang: 1.0 },
-    { au: 5.2, r: 0.07, c: 0xd2b48c, ang: 78 * DEG, ring: false, name: 'jupiter' }, { au: 9.54, r: 0.058, c: 0xe2cf9c, ang: 4.6, ring: true },
-    { au: 19.2, r: 0.042, c: 0x9fd6dc, ang: 2.2 }, { au: 30.1, r: 0.042, c: 0x4f73d6, ang: -77 * DEG, name: 'neptune' },
-  ];
-  const orbitMat = new THREE.LineBasicMaterial({ color: 0x5a6f99, transparent: true, opacity: 0.45 });
-  const planets = PL.map((p) => {
-    const rr = rv(p.au);
-    const pts = []; for (let k = 0; k <= 256; k++) { const a = k / 256 * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * rr, 0, -Math.sin(a) * rr)); }
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), orbitMat));
-    const m = new THREE.Mesh(new THREE.SphereGeometry(p.r, 32, 16), new THREE.MeshStandardMaterial({ color: p.c, roughness: 0.9 }));
-    m.position.set(Math.cos(p.ang) * rr, 0, -Math.sin(p.ang) * rr);
-    if (p.ring) { const ring = new THREE.Mesh(new THREE.RingGeometry(p.r * 1.4, p.r * 2.3, 64), new THREE.MeshBasicMaterial({ color: 0xcdb98a, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })); ring.rotation.x = -Math.PI / 2 + 0.45; m.add(ring); }
-    scene.add(m);
-    const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xcfe0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
-    flare.position.copy(m.position); scene.add(flare);
-    return { ...p, mesh: m, flare, dist: m.position.distanceTo(EARTH) };
-  });
-  { const pts = []; for (let k = 0; k <= 256; k++) { const a = k / 256 * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))); } scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), orbitMat)); }
-  // the blast front from Earth's spot, and the Sun's own blast once it's hit
-  const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), shellMat(0xd8e6ff));
-  shell.position.copy(EARTH);
-  scene.add(shell);
-  const sunBurst = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), shellMat(0xffc27a));
-  scene.add(sunBurst);
-  const front = (v) => rv(C * tauAt(v) / AU);       // squeezed radius of the blast front
-
-  S.frame = (v) => {
-    const r = front(v);
-    shell.scale.setScalar(Math.max(r, 0.02));
-    shell.material.uniforms.uT.value = v;
-    shell.material.uniforms.uA.value = 0.9 + 0.3 * smooth(V_SUNHIT, T_SWITCH, v);
-    // the Sun flares and blows apart when the front arrives
-    const sh = smooth(V_SUNHIT - 0.1, V_SUNHIT + 0.1, v);
-    sun.scale.setScalar(1 + sh * 2.5);
-    sun.visible = v < V_SUNHIT + 0.5;
-    halo.scale.setScalar(0.6 + sh * 2.2 * Math.exp(-Math.max(0, v - V_SUNHIT) * 1.5));
-    sunBurst.visible = v > V_SUNHIT;
-    sunBurst.scale.setScalar(0.1 + Math.max(0, v - V_SUNHIT) * 0.6);
-    sunBurst.material.uniforms.uT.value = v;
-    sunBurst.material.uniforms.uA.value = 1.4 * Math.exp(-Math.max(0, v - V_SUNHIT) * 0.4);
-    // planets flare as the front passes them
-    for (const p of planets) {
-      const reached = r >= p.dist;
-      p.mesh.visible = !reached || r < p.dist + 0.25;
-      const f = clamp((r - p.dist) / 0.3);
-      p.flare.material.opacity = reached ? (1 - f) * 1.2 : 0;
-      p.flare.scale.setScalar(0.25 + f * 0.6);
-    }
-    // camera: above the plane of the planets, pulling back as the blast grows; rising toward the end
-    const dist = keys([[V_SOLAR, 5.2], [V_SUNHIT, 6.5], [50.6, 15], [56, 30], [T_SWITCH, 40], [VIDEO_DURATION + 1, 40]], v, true);
-    const elev = keys([[V_SOLAR, 22], [V_SUNHIT, 26], [T_SWITCH, 38]], v) * DEG;
-    const az = -0.35 + (v - V_SOLAR) * 0.02;
-    camera.position.set(Math.cos(az) * Math.cos(elev) * dist, Math.sin(elev) * dist, -Math.sin(az) * Math.cos(elev) * dist);
-    camera.lookAt(0.4 * (1 - smooth(V_SUNHIT, 56, v)), 0, 0);
-    camera.updateMatrixWorld();
-  };
-  return S;
-}

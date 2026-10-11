@@ -11,19 +11,30 @@ import { smooth, keys, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
 export const V_EVENT = 2.0;             // the electrons vanish
-export const V_REPEL = 19.3;            // atoms start pushing apart (sparks, swelling)
-export const V_WHITE = 30.4;            // the street burns white
-export const V_SPACE = 31.4;            // cut to Earth from space
-export const V_MOON = 37.8;             // the blast reaches the Moon (1.28 s)
-export const V_SOLAR = 39.4;            // pull back to the solar system
-export const V_SUNHIT = 44.6;           // ...reaches the Sun (8 min 19 s)
-export const T_SWITCH = 62.0;           // full white; the loop point sits in it
+export const V_REPEL = 8.2;             // atoms start pushing apart (sparks, swelling)
+export const V_WHITE = 18.0;            // the street burns white
+export const V_SPACE = 19.0;            // cut to Earth from space
+export const V_MOON = 24.6;             // the blast reaches the Moon (1.28 s)
+export const V_SOLAR = 27.2;            // the solar system
+export const V_SUNHIT = 31.0;           // ...reaches the Sun (8 min 19 s)
+export const V_JUP = 35.6;              // Jupiter (5.09 AU away: 42 min)
+export const V_SAT = 38.8;              // Saturn (8.8 AU: 73 min)
+export const V_NEP = 42.4;              // Neptune (29.9 AU: 4 h 9 min)
+export const T_SWITCH = 48.0;           // full white; the loop point sits in it
 export const LOOP = 0.9;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
+// where the planets are (real AU from the Sun, angle round the Sun; Earth at angle 0) and how far each is from Earth
+export const PLANETS = [
+  { name: 'mercury', au: 0.39, ang: 2.4 }, { name: 'venus', au: 0.72, ang: 3.9 }, { name: 'mars', au: 1.52, ang: 1.0 },
+  { name: 'jupiter', au: 5.2, ang: 78 }, { name: 'saturn', au: 9.54, ang: 40 }, { name: 'uranus', au: 19.2, ang: 2.2 }, { name: 'neptune', au: 30.1, ang: -77 },
+].map((p) => ({ ...p, ang: Math.abs(p.ang) > 7 ? p.ang * Math.PI / 180 : p.ang, fromEarth: Math.sqrt(p.au * p.au + 1 - 2 * p.au * Math.cos(Math.abs(p.ang) > 7 ? p.ang * Math.PI / 180 : p.ang)) }));
+const LT = (au) => au * 1.496e11 / 299792458;   // light time (s)
+const pl = (n) => PLANETS.find((p) => p.name === n);
 
 // time since the electrons vanished (seconds), as a smooth curve in log space through these keys
-const TAU = [[V_EVENT, 1e-11], [V_EVENT + 0.6, 4e-10], [V_REPEL, 1.4e-8], [V_WHITE, 3.2e-8], [V_SPACE, 0.0004], [V_SPACE + 4, 0.03],
-  [V_MOON, 1.28], [V_SOLAR, 20], [V_SUNHIT, 499], [50.6, 2580], [56.0, 14400], [T_SWITCH, 60000], [80, 2e6]];
+const TAU = [[V_EVENT, 1e-11], [V_EVENT + 0.6, 4e-10], [V_REPEL, 6e-9], [V_WHITE, 3.2e-8], [V_SPACE, 0.0004], [V_SPACE + 3, 0.03],
+  [V_MOON, 1.28], [V_SOLAR, 20], [V_SUNHIT, LT(1)], [V_JUP, LT(pl('jupiter').fromEarth)], [V_SAT, LT(pl('saturn').fromEarth)],
+  [V_NEP, LT(pl('neptune').fromEarth)], [T_SWITCH, 40000], [80, 2e6]];
 function logCurve(pts) {   // monotone cubic (Fritsch-Carlson) in log space
   const x = pts.map((p) => p[0]), y = pts.map((p) => Math.log(p[1])), n = pts.length;
   const d = x.slice(1).map((xi, i) => (y[i + 1] - y[i]) / (xi - x[i]));
@@ -43,21 +54,19 @@ export const tauAt = (v) => (v < V_EVENT ? v - V_EVENT : tauC(v));
 export const rateAt = (v) => (v < V_EVENT ? 1 : (tauC(v + 0.01) - tauC(v - 0.01)) / 0.02);
 
 export const CAPTIONS = [
-  [V_EVENT + 0.15, 4.7, 'Every electron on Earth just vanished.'],
-  [5.0, 8.3, 'No electrons, no electricity. Every screen in Tokyo dies.'],
-  [8.6, 11.9, 'Nothing scatters sunlight now. The sky goes black at noon.'],
-  [12.2, 15.5, 'Light passes straight through everything. Even the people around you.'],
-  [15.8, 19.0, 'Every atom is now pure positive charge.'],
-  [V_REPEL, 22.6, 'And positive charges push each other apart.'],
-  [22.9, 26.6, 'The coin in your pocket now holds 7,500 of the biggest nukes ever built.'],
-  [26.9, V_WHITE, 'Your body: as much energy as the Sun puts out in 7 minutes.'],
-  [V_SPACE + 0.4, 35.6, 'Earth bursts apart at almost the speed of light.'],
-  [36.0, 39.2, '1.3 seconds later, it hits the Moon.'],
-  [V_SOLAR + 0.4, 44.3, '8 minutes later, it reaches the Sun.'],
-  [V_SUNHIT + 0.3, 48.4, 'The Sun is torn apart too.'],
-  [48.8, 53.4, '43 minutes: Jupiter. 4 hours: Neptune.'],
-  [53.8, 58.6, 'All because of one missing particle.'],
-  [58.9, T_SWITCH - 0.6, 'What should disappear next?'],
+  [V_EVENT + 0.15, 4.8, 'Every electron on Earth just vanished.'],
+  [5.0, 8.0, 'Light passes straight through everything. Even people.'],
+  [V_REPEL, 11.0, 'Every atom is now pure positive charge. And they repel.'],
+  [11.3, 14.6, 'The coin in your pocket now holds 7,500 of the biggest nukes ever built.'],
+  [14.9, V_WHITE - 0.1, 'Your body: as much energy as the Sun puts out in 7 minutes.'],
+  [V_SPACE + 0.4, 23.3, 'Earth bursts apart at almost the speed of light.'],
+  [23.6, V_SOLAR - 0.2, '1.3 seconds later, it hits the Moon.'],
+  [V_SOLAR + 0.3, V_SUNHIT - 0.1, '8 minutes later, the Sun.'],
+  [V_SUNHIT + 0.2, V_JUP - 0.3, 'The Sun explodes too.'],
+  [V_JUP - 0.1, V_SAT - 0.3, '42 minutes: Jupiter.'],
+  [V_SAT - 0.1, V_NEP - 0.3, '73 minutes: Saturn.'],
+  [V_NEP - 0.1, 45.0, '4 hours: Neptune. Nothing is left.'],
+  [45.2, T_SWITCH - 0.5, 'What should disappear next?'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {
@@ -93,8 +102,10 @@ function note(v, t) {
   if (v < V_SPACE + 4) return 'EARTH: COMING APART';
   if (v < V_MOON) return 'THE BLAST: ON ITS WAY TO THE MOON';
   if (v < V_SUNHIT) return v < V_SOLAR ? 'THE MOON: GONE' : 'THE BLAST: ON ITS WAY TO THE SUN';
-  if (v < 50.6) return 'THE SUN: GONE';
-  return 'THE BLAST: CROSSING THE SOLAR SYSTEM';
+  if (v < V_JUP) return 'THE SUN: GONE';
+  if (v < V_SAT) return 'JUPITER: GONE';
+  if (v < V_NEP) return 'SATURN: GONE';
+  return 'THE SOLAR SYSTEM: GONE';
 }
 export const COUNTERS = [
   {
@@ -117,8 +128,7 @@ export function state(v) {
   s.repel = smooth(V_REPEL, V_WHITE, v);                           // sparks, swelling, glowing brighter
   s.flash = Math.max(
     smooth(V_EVENT - 0.02, V_EVENT, v) * (1 - smooth(V_EVENT, V_EVENT + 0.25, v)) * 0.6,   // the instant they vanish
-    smooth(V_WHITE - 1.2, V_WHITE, v) * (1 - smooth(V_SPACE - 0.05, V_SPACE + 0.6, v)),     // the street burns white
-    smooth(V_SUNHIT - 0.05, V_SUNHIT + 0.1, v) * (1 - smooth(V_SUNHIT + 0.15, V_SUNHIT + 0.9, v)) * 0.5,
+    smooth(V_WHITE - 1.0, V_WHITE, v) * (1 - smooth(V_SPACE - 0.05, V_SPACE + 0.5, v)),     // the street burns white
     smooth(T_SWITCH - 2.4, T_SWITCH, v),
   );
   s.flashColor = '#f7f9ff';

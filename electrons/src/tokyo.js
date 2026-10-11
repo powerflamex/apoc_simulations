@@ -308,6 +308,14 @@ export function makeTokyo(scene) {
       P.push({ kind: walk ? 'walk' : 'wait', x, z, alongX, d, speed: 1.0 + R() * 0.5, yaw: R() * 6.28, h: 0.9 + R() * 0.17, ph: R() * 6.28, phone: R() < 0.3 });
     }
   }
+  // nobody walks into the camera in the first 2.2 s (it stands at about (17.5, 15) -> (15.3, 13.6))
+  for (let i = P.length - 1; i >= 0; i--) {
+    for (let t = 0; t <= 2.2; t += 0.1) {
+      const at = personAt(P[i], t);
+      const cx = lerp(17.5, 15.3, t / 2.2), cz = lerp(15, 13.6, t / 2.2);
+      if (Math.hypot(at.x - cx, at.z - cz) < 2.6) { P.splice(i, 1); break; }
+    }
+  }
   const crowd = makeCrowd(scene, P.length, plainMat(0xffffff, 0.8), { castShadow: true });
   {
     const RP = rng(77);
@@ -424,9 +432,27 @@ export function makeTokyo(scene) {
     XR.uTime.value = v;
     T.sparkU.uK.value = s.repel;
     T.sparks.visible = s.repel > 0.001;
-    // people
+    // people: where each would be, then nudged apart so nobody walks through anybody (a few relaxation passes
+    // over a coarse grid; a pure function of the positions, so it's the same every time this frame is drawn)
+    const pos = P.map((p) => personAt(p, t));
+    for (let it = 0; it < 3; it++) {
+      const grid = new Map();
+      pos.forEach((a, i) => { const k = `${Math.floor(a.x / 0.8)},${Math.floor(a.z / 0.8)}`; (grid.get(k) || grid.set(k, []).get(k)).push(i); });
+      pos.forEach((a, i) => {
+        const gx = Math.floor(a.x / 0.8), gz = Math.floor(a.z / 0.8);
+        for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+          const cell = grid.get(`${gx + dx},${gz + dz}`);
+          if (!cell) continue;
+          for (const j of cell) {
+            if (j <= i) continue;
+            const b = pos[j], ex = b.x - a.x, ez = b.z - a.z, d = Math.hypot(ex, ez);
+            if (d < 0.62 && d > 1e-6) { const push = (0.62 - d) * 0.5; a.x -= ex / d * push; a.z -= ez / d * push; b.x += ex / d * push; b.z += ez / d * push; }
+          }
+        }
+      });
+    }
     P.forEach((p, i) => {
-      const at = personAt(p, t);
+      const at = pos[i];
       const moving = p.kind !== 'wait' && !(p.kind === 'cross' && (p.u0 + p.speed * t >= p.len));
       const walk = moving ? t * 5.5 * p.speed + p.ph : 0;
       crowd.pose(i, { x: at.x, y: Math.abs(at.x) > RX && Math.abs(at.z) > RZ ? 0.15 : 0, z: at.z,
