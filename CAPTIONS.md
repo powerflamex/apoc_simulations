@@ -176,8 +176,8 @@ Cover: `electrons/out/electrons_v4_cover.png`
 
 ## Day 8. The Moon falls to Earth — `moon-falls/out/moon-falls_v4_1080x1920_60fps_tiktok.mp4`
 
-**YouTube title (71 chars)**
-What if the Moon fell to Earth? It hits at 22,000 mph 🌕 #whatif #space
+**YouTube title (96 chars)**
+What if the Moon fell to Earth? Each hit = a million times every nuke on Earth 🌕 #whatif #space
 
 **YouTube description**
 The Moon has stopped orbiting and is falling straight at Earth. It's 20,000 miles away and already looks 12 times bigger than it should.
