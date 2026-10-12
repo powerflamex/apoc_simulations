@@ -1,7 +1,7 @@
 // Procedural soundtrack for "What if every woman disappeared?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
 // Shibuya at noon: a big crowd talking, the crossing's bird-chirp signal, traffic idling. At V_EVENT half the voices
-// stop at once, a soft low thump, and everything the women carried clatters to the street. Then horns, the crunch of
+// stop at once, a soft low thump, and everything the women carried clatters to the street. Then horns, the dull thud of
 // each driverless car bumping into the one ahead (traffic.js), confused voices. Time speeds up: a rush of air,
 // crickets on the first night, then wind and birds over the decades, a slow swell into the white, which turns back
 // into the crossing at the start (the video loops).
@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH } from './src/timeline.js';
 import { BUMPS } from './src/traffic.js';
-import { ITEMS } from './src/people.js';
+import { ITEMS, CAM0 } from './src/people.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000, TAU = Math.PI * 2;
@@ -38,7 +38,8 @@ export function makeSoundtrack(outFile) {
   const white = () => R0() * 2 - 1;
   // events
   const clatter = ITEMS.map((it) => ({ t: V_EVENT + Math.sqrt(2 * it.y0 / 9.8), g: it.kind === 0 ? 0.5 : it.kind === 1 ? 0.35 : 0.6, f: it.kind === 1 ? 3500 : 1600 + R0() * 1200, pan: R0() * 1.6 - 0.8 }));
-  const bumps = BUMPS.map((b) => ({ t: V_EVENT + b.tau, g: b.g, pan: R0() * 1.4 - 0.7 }));
+  // (a car nudging the one ahead at walking pace: a dull, distant thud, quieter the farther away it is)
+  const bumps = BUMPS.map((b) => ({ t: V_EVENT + b.tau, g: b.g / (1 + (Math.hypot(b.x - CAM0.x, b.z - CAM0.z) / 20) ** 2), pan: R0() * 1.4 - 0.7, lp: new OnePole(90), lp2: new OnePole(70) }));
   const horns = [];
   for (let t = V_EVENT + 1.2; t < V_RISE + 1.5; t += 0.5 + R0() * 1.4) horns.push({ t, d: 0.3 + R0() * 0.9, f: 360 + R0() * 160, g: 0.3 + R0() * 0.5, pan: R0() * 1.6 - 0.8 });
   const birds = [];
@@ -104,13 +105,12 @@ export function makeSoundtrack(outFile) {
         l += x * (1 - h.pan * 0.5); r += x * (1 + h.pan * 0.5); wet += x * 0.6;
       }
     }
-    // the bumps: a dull thud and a crunch of plastic
+    // the bumps: a dull thud (no crackle)
     for (const b of bumps) {
       const d = v - b.t;
-      if (d > -0.005 && d < 0.6) {
-        const th = bumpLP.run(white()) * 2.4 * b.g * Math.exp(-Math.max(d, 0) * 14);
-        const cr = crunchF.run(white() * (R0() < 0.15 ? 3 : 1), 1500, 0.5).bp * 0.4 * b.g * Math.exp(-Math.max(d, 0) * 9);
-        l += (th + cr) * (1 - b.pan * 0.5); r += (th + cr) * (1 + b.pan * 0.5); wet += cr * 0.5;
+      if (d > -0.01 && d < 0.6) {
+        const th = b.lp2.run(b.lp.run(white())) * 4.0 * b.g * Math.exp(-Math.max(d, 0) * 12) * smooth(-0.01, 0.015, d);
+        l += th * (1 - b.pan * 0.4); r += th * (1 + b.pan * 0.4); wet += th * 0.3;
       }
     }
     // time speeding up: a rush of air
