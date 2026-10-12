@@ -80,6 +80,7 @@ export const ITEMS = [];   // what each woman was carrying (it drops when she va
       // keep clear of the camera (nobody right at the lens, nobody walking straight at it from close by)
       const cx = q.x - CAM0.x, cz = q.z - CAM0.z, cd = Math.hypot(cx, cz);
       if (cd < 2.6) return true;
+      if (cd < 7.5 && q.z - CAM0.z > -1.5 && q.x - CAM0.x < 1.5) return true;   // (nobody right beside the camera on the side it turns to)
       if (cd < 10 && q.moving && -(cx * p.dx + cz * p.dz) / cd > 0.5) return true;
       // keep off the roads where the cars wait (only the crossing and the sidewalks are for walking)
       if (Math.abs(q.x) > RX + CW + 0.4 && Math.abs(q.z) < RZ - 0.3) return true;

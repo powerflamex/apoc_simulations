@@ -33,10 +33,25 @@ export const CARS = [];
 const creep = (t) => (t <= 0 ? 0 : t < RAMP ? CREEP * t * t / (2 * RAMP) : CREEP * (t - RAMP / 2));
 // (the front car of a lane rolls out into the crossing and slowly comes to a stop)
 const free = (c, t) => (c.ahead < 0 ? c.roll * (1 - Math.exp(-creep(t - c.delay) / c.roll)) : creep(t - c.delay));
+// one car arriving at speed behind the queue on the north approach (the lane nearest you): its driver vanishes 40 m
+// short of the queue, nobody brakes, and it slams into the last car at ~45 km/h, shoving it forward and slewing round
+const RLANE = CARS.map((c, i) => i).filter((i) => CARS[i].axis === 'z' && CARS[i].sgn === 1 && CARS[i].lane === 2.6);
+export const RACER = { last: RLANE.reduce((a, i) => (CARS[i].along0 > CARS[a].along0 ? i : a), RLANE[0]), tau: 3.2, speed: 12.5, len: 4.6, kind: 0 };
+CARS[RACER.last].driverless = false;   // (the car it hits has a man at the wheel: it stays put)
+const ease = (x) => { x = clamp(x, 0, 1); return 1 - (1 - x) ** 3; };
+export const crashPush = (tau) => 1.4 * ease((tau - RACER.tau) / 0.4);   // how far the hit car is shoved
+export function racerPose(tau) {
+  const c = CARS[RACER.last], aHit = c.along0 + (c.len + RACER.len) / 2;   // (the car it hits is driven by a man: it hasn't moved)
+  const along = tau < RACER.tau ? aHit + RACER.speed * (RACER.tau - tau) : aHit - crashPush(tau);
+  const k = ease((tau - RACER.tau) / 0.5);
+  const p = carPose(RACER.last, along);
+  const side = 0.7 * k;   // it slews toward the kerb
+  return { x: p.x + (c.axis === 'z' ? side : 0), z: p.z + (c.axis === 'x' ? side : 0), yaw: p.yaw + 0.38 * k, hit: tau >= RACER.tau ? 1 : 0 };
+}
 // where every car is (distance from the middle of the crossing along its road) tau seconds after the vanishing
 export function carsAlong(tau, out = new Float32Array(CARS.length)) {
   CARS.forEach((c, i) => {
-    let a = c.along0 - (c.driverless ? free(c, tau) : 0);
+    let a = c.along0 - (c.driverless ? free(c, tau) : 0) - (i === RACER.last ? crashPush(tau) : 0);
     if (c.ahead >= 0) { const b = CARS[c.ahead]; a = Math.max(a, out[c.ahead] + (b.len + c.len) / 2 + 0.12); }
     out[i] = a;
   });

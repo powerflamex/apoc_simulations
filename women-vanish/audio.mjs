@@ -8,8 +8,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH } from './src/timeline.js';
-import { BUMPS } from './src/traffic.js';
+import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH, V_WARD, V_CLASS, V_BACK } from './src/timeline.js';
+import { BUMPS, RACER } from './src/traffic.js';
+import { B, FALL, fallSpan, FALL109 } from './src/blocks.js';
 import { ITEMS, CAM0 } from './src/people.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -37,19 +38,28 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(77);
   const white = () => R0() * 2 - 1;
   // events
-  const clatter = ITEMS.map((it) => ({ t: V_EVENT + Math.sqrt(2 * it.y0 / 9.8), g: it.kind === 0 ? 0.5 : it.kind === 1 ? 0.35 : 0.6, f: it.kind === 1 ? 3500 : 1600 + R0() * 1200, pan: R0() * 1.6 - 0.8 }));
+  // what the women carried landing on the street: a soft thud for a bag, a quiet tap for a phone; only the ones near
+  // you are heard (quieter with distance), each with its own filter
+  const clatter = ITEMS.map((it) => { const d = Math.hypot(it.x - CAM0.x, it.z - CAM0.z); return { t: V_EVENT + Math.sqrt(2 * it.y0 / 9.8), g: (it.kind === 0 ? 1 : 0.5) / (1 + (d / 7) ** 2), f: it.kind === 0 ? 240 + R0() * 120 : 1500 + R0() * 500, dec: it.kind === 0 ? 30 : 55, pan: R0() * 1.6 - 0.8, F: new SVF() }; }).filter((c) => c.g > 0.03);
   // (a car nudging the one ahead at walking pace: a dull, distant thud, quieter the farther away it is)
   const bumps = BUMPS.map((b) => ({ t: V_EVENT + b.tau, g: b.g / (1 + (Math.hypot(b.x - CAM0.x, b.z - CAM0.z) / 20) ** 2), pan: R0() * 1.4 - 0.7, lp: new OnePole(90), lp2: new OnePole(70) }));
   const horns = [];
   for (let t = V_EVENT + 1.2; t < V_RISE + 1.5; t += 0.5 + R0() * 1.4) horns.push({ t, d: 0.3 + R0() * 0.9, f: 360 + R0() * 160, g: 0.3 + R0() * 0.5, pan: R0() * 1.6 - 0.8 });
+  const crashT = V_EVENT + RACER.tau;
+  const sirens = [6.5, 9.4, 11.8, 19.2, 21.4].map((t, k) => ({ t, d: 3 + R0() * 2.5, g: 0.6 + R0() * 0.4, pan: R0() * 1.6 - 0.8, p: 0, lp: new OnePole(1400) }));
+  // buildings coming down that you can see: a deep rumble, louder for the big ones
+  const falls = FALL.map((f, i) => (f && f.big !== undefined ? { t: f.v, d: fallSpan(f) + 2.5, g: Math.min(1, B[i].h / 90) * 0.8 + 0.2, lp: new OnePole(90), lp2: new OnePole(60) } : null)).filter(Boolean);
+  falls.push({ t: FALL109, d: 4, g: 0.7, lp: new OnePole(90), lp2: new OnePole(60) });
   const birds = [];
   for (let t = 24; t < T_SWITCH; t += 0.25 + R0() * 1.1) birds.push({ t, n: 1 + Math.floor(R0() * 4), f: 2800 + R0() * 2200, pan: R0() * 1.6 - 0.8, g: 0.4 + R0() * 0.6 });
 
   const voiceF = Array.from({ length: 10 }, () => new SVF()), voiceE = Array.from({ length: 10 }, () => new OnePole(4));
   const trafLP = new OnePole(120), trafLP2 = new OnePole(90), clatF = new SVF(), bumpLP = new OnePole(110), crunchF = new SVF(), hornLP = new OnePole(1800);
   const windF = new SVF(), windLP = new OnePole(0.4), rushF = new SVF(), padLP = new OnePole(600), thumpLP = new OnePole(80), cricketE = new OnePole(30);
+  const crashLP = new OnePole(160), crashLP2 = new OnePole(110), crashF = new SVF(), alarmLP = new OnePole(2200), fireLP = new OnePole(150), fireLP2 = new OnePole(100), humLP = new OnePole(140);
+  const kidF = [new SVF(), new SVF()], kidE = [new OnePole(4), new OnePole(4)];
   const revL = new Reverb(1), revR = new Reverb(2);
-  const ph = new Float64Array(16);
+  const ph = new Float64Array(24);
 
   let s = state(-LOOP);
   for (let n = -N0; n < N; n++) {
@@ -94,7 +104,7 @@ export function makeSoundtrack(outFile) {
     // bags and phones hitting the street
     for (const c of clatter) {
       const d = v - c.t;
-      if (d > 0 && d < 0.12) { const x = clatF.run(white(), c.f, 0.3).bp * c.g * 0.25 * Math.exp(-d * 45); l += x * (1 - c.pan * 0.6); r += x * (1 + c.pan * 0.6); wet += x * 0.4; }
+      if (d > 0 && d < 0.18) { const x = c.F.run(white(), c.f, 0.7).bp * c.g * 0.11 * Math.exp(-d * c.dec) * smooth(0, 0.004, d); l += x * (1 - c.pan * 0.6); r += x * (1 + c.pan * 0.6); wet += x * 0.4; }
     }
     // car horns
     for (const h of horns) {
@@ -139,6 +149,63 @@ export function makeSoundtrack(outFile) {
       if (d > 0 && d < b.n * 0.14) {
         const dd = d % 0.14;
         if (dd < 0.09) { const f = b.f * (1 + 0.25 * Math.sin(dd / 0.09 * Math.PI)); ph[6] += f / SR; const x = Math.sin(TAU * ph[6]) * 0.02 * b.g * Math.sin(Math.PI * dd / 0.09) * smooth(22, 30, v); l += x * (1 - b.pan * 0.6); r += x * (1 + b.pan * 0.6); wet += x * 0.6; }
+      }
+    }
+    // the crash behind the queue: a heavy, dull impact and a crunch of metal (no high crackle)
+    {
+      const d = v - crashT;
+      if (d > -0.01 && d < 1.6) {
+        ph[16] += (50 + 35 * Math.exp(-Math.max(d, 0) * 8)) / SR;
+        const on = smooth(-0.01, 0.004, d);
+        const thump = Math.sin(TAU * ph[16]) * 0.5 * Math.exp(-Math.max(d, 0) * 6) * on;
+        const body = crashLP2.run(crashLP.run(white())) * 3.0 * Math.exp(-Math.max(d, 0) * 5) * on;
+        const metal = crashF.run(white(), 650 + 250 * Math.sin(d * 37), 0.4).bp * 0.16 * Math.exp(-Math.max(d, 0) * 7) * on;
+        const x = (thump + body + metal) * street;
+        l += x * 1.15; r += x * 0.8; wet += (body + metal) * 0.5 * street;
+      }
+    }
+    // the hit car's alarm: a two-tone wail, on and on (until we rise above it)
+    {
+      const d = v - crashT - 0.4;
+      if (d > 0) {
+        const f = Math.floor(d / 0.42) % 2 ? 860 : 1120;
+        ph[17] += f / SR;
+        const x = alarmLP.run(sq(ph[17])) * 0.016 * smooth(0, 0.05, d) * (1 - smooth(V_RISE, V_RISE + 3, v));
+        l += x * 1.1; r += x * 0.7; wet += x * 0.5;
+      }
+    }
+    // ambulances far off across the city
+    for (const sr of sirens) {
+      const d = v - sr.t;
+      if (d > 0 && d < sr.d) { const f = Math.floor(d / 0.65) % 2 ? 770 : 960; sr.p += f / SR; const x = sr.lp.run(Math.sin(TAU * sr.p)) * 0.012 * sr.g * Math.sin(Math.PI * d / sr.d); l += x * (1 - sr.pan * 0.6); r += x * (1 + sr.pan * 0.6); wet += x * 0.9; }
+    }
+    // the fires on the first night: a low roar
+    { const k = smooth(V_BACK, V_BACK + 0.8, v) * (1 - smooth(23.5, 25.5, v)); if (k > 0) { const x = fireLP2.run(fireLP.run(white())) * 1.3 * k; l += x; r += x * 0.9; wet += x * 0.3; } }
+    // buildings coming down: a deep rumble
+    for (const c of falls) {
+      const d = v - c.t;
+      if (d > -0.01 && d < c.d) { const x = c.lp2.run(c.lp.run(white())) * 3.4 * c.g * smooth(-0.01, 0.2, d) * (1 - smooth(c.d * 0.35, c.d, d)); l += x; r += x * 0.95; wet += x * 0.4; }
+    }
+    // inside: the city drops away (hard cut); a ward, then a classroom
+    {
+      const ins = smooth(V_WARD - 0.012, V_WARD + 0.012, v) * (1 - smooth(V_BACK - 0.012, V_BACK + 0.012, v));
+      l *= 1 - ins; r *= 1 - ins; wet *= 1 - ins;
+      const wW = smooth(V_WARD - 0.012, V_WARD + 0.012, v) * (1 - smooth(V_CLASS - 0.012, V_CLASS + 0.012, v));
+      const wC = smooth(V_CLASS - 0.012, V_CLASS + 0.012, v) * (1 - smooth(V_BACK - 0.012, V_BACK + 0.012, v));
+      const hum = humLP.run(white()) * 0.3;
+      if (wW > 0) {   // the ward: air-con hum, heart monitors beeping, an alarm from an empty bed
+        let x = hum;
+        for (const [rate, off, f, g, k] of [[1.25, 0, 1000, 0.03, 18], [1.05, 0.4, 1180, 0.02, 19]]) { const tb = (v * rate + off) % 1; if (tb < 0.07) { ph[k] += f / SR; x += Math.sin(TAU * ph[k]) * g * Math.sin(Math.PI * tb / 0.07); } }
+        const ta = v % 1.25; let al = 0;
+        for (const [o, f] of [[0, 880], [0.22, 660], [0.44, 880]]) { const dd = ta - o; if (dd > 0 && dd < 0.16) { ph[20] += f / SR; al += Math.sin(TAU * ph[20]) * 0.024 * Math.sin(Math.PI * dd / 0.16); } }
+        l += (x + al * 0.7) * wW; r += (x + al * 1.2) * wW; wet += (x - hum + al) * wW * 0.6;
+      }
+      if (wC > 0) {   // the classroom: a quiet hum, a few boys murmuring, the school chime
+        let x = hum * 0.6;
+        for (let k = 0; k < 2; k++) { const a = kidE[k].run(Math.max(0, Math.sin(v * (1.7 + k * 0.9) + k) * 0.7 + 0.1)); x += kidF[k].run(white(), 800 + k * 250 + 120 * Math.sin(v * 1.9 + k), 0.3).bp * a * 0.03; }
+        const NOTES = [659.3, 523.3, 587.3, 392.0];
+        NOTES.forEach((f, k) => { const d = v - (V_CLASS + 0.15 + k * 0.62); if (d > 0 && d < 2.5) { ph[21] += f / SR; ph[22] += 2.0 * f / SR; ph[23] += 3.01 * f / SR; const env = Math.exp(-d * 1.6) * smooth(0, 0.01, d); x += (Math.sin(TAU * ph[21]) + 0.4 * Math.sin(TAU * ph[22]) + 0.15 * Math.sin(TAU * ph[23])) * 0.05 * env; } });
+        l += x * wC; r += x * wC; wet += x * wC * 0.7;
       }
     }
     // a low, slow chord under the time-lapse, swelling into the white

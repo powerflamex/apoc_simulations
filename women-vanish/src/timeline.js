@@ -81,22 +81,25 @@ export function sunDir(v) {
 }
 export const nightAt = (v) => smooth(17.6, 19.0, v) * (1 - smooth(22.6, 24.2, v));   // first night (video seconds)
 
+// cutaways inside, in the first hours: a hospital ward, then a primary school classroom
+export const V_WARD = 12.6, V_CLASS = 15.6, V_BACK = 18.6;
 export const CAPTIONS = [
-  [V_EVENT + 0.2, 5.4, 'Every woman and girl on Earth just vanished.'],
-  [5.7, 9.0, 'Their cars roll on with nobody at the wheel.'],
-  [9.3, 12.6, 'Half of humanity. Gone in an instant.'],
-  [12.9, 16.2, '9 in 10 nurses are gone. Hospitals go quiet.'],
-  [16.5, 19.8, '2 in 3 primary school teachers. Gone.'],
-  [20.1, 23.4, 'About 360,000 babies are born every day.'],
-  [23.7, 27.0, 'From today: none. Ever again.'],
-  [27.3, 30.6, 'The youngest people left are newborn boys.'],
-  [30.9, 34.4, 'Cities empty out as the men grow old.'],
-  [34.7, 37.7, 'Nature starts taking the streets back.'],
+  [V_EVENT + 0.2, 5.0, 'Every woman and girl on Earth just vanished.'],
+  [5.5, 9.0, 'Their cars keep going with nobody at the wheel.'],
+  [9.3, 12.3, 'Half of humanity. Gone in an instant.'],
+  [V_WARD + 0.2, V_CLASS - 0.2, '9 in 10 nurses are gone. Hospitals can’t cope.'],
+  [V_CLASS + 0.2, V_BACK - 0.2, '2 in 3 primary school teachers. Half of every class.'],
+  [V_BACK + 0.2, 21.6, 'Stoves left on at lunch. Fires spread across Tokyo.'],
+  [21.9, 24.8, 'About 360,000 babies are born every day. Now: none.'],
+  [25.1, 28.1, 'Half the workforce, gone overnight. Everything stops.'],
+  [28.4, 31.2, 'The youngest people left are newborn boys.'],
+  [31.5, 34.4, 'Cities empty out as the men grow old.'],
+  [34.7, 37.6, 'With nobody to fix them, buildings start to crumble.'],
   [37.8, 41.2, 'Year 2076: the youngest people alive are 50.'],
   [42.7, 45.3, 'Year 2126: the youngest are 100.'],
   [46.4, 49.8, 'Year 2143: the last human on Earth dies.'],
-  [50.2, 54.2, 'Earth goes on without us.'],
-  [54.6, 60.5, 'Who would you miss first?'],
+  [50.6, 55.6, 'Within 200 years, even the towers come down.'],
+  [56.0, 60.5, 'Who would you miss first?'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {
@@ -139,7 +142,8 @@ export function state(v) {
   s.gone = v >= V_EVENT ? 1 : 0;
   s.sun = sunDir(v);
   s.night = nightAt(v);
-  s.power = 1 - smooth(26.5, 28.5, v);                       // the grid fails after a couple of weeks
+  s.inside = v >= V_WARD && v < V_CLASS ? 'ward' : v >= V_CLASS && v < V_BACK ? 'class' : '';
+  s.power = 1 - smooth(25.2, 26.4, v);                       // the grid fails within weeks
   s.green = 1 - Math.exp(-s.years / 22);                      // the city going green
   s.decay = smooth(0.3, 30, s.years);                         // dust, grime, rust
   s.leave = smooth(V_RISE + 0.5, 19.0, v);                    // the men leave the crossing

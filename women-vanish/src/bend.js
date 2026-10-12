@@ -13,7 +13,8 @@ export const G = {
   uSunDir: { value: new THREE.Vector3(0, 0.03, -1).normalize() },   // windows reflect the low Sun
   uShatter: { value: 0 },     // (unused here)
   uGreen: { value: 0 },       // (women-vanish) the city going green over the decades: ivy up the walls, moss on the roofs
-  uPower: { value: 1 },       // (women-vanish) 0 once the grid has failed: no window lights
+  uPower: { value: 1 },
+  uDecay: { value: 0 },       // (women-vanish) years of neglect: windows break one by one       // (women-vanish) 0 once the grid has failed: no window lights
 };
 
 export const BEND_GLSL = /* glsl */ `
@@ -34,7 +35,7 @@ vec3 bendWorld(vec3 p) {
 
 const FACADE_PARS = /* glsl */ `
 uniform float uTime; uniform float uLightsOut; uniform float uCity; uniform vec3 uSunDir; uniform float uGreen; uniform float uPower;
-varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;
+varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying vec2 vDmg; uniform float uDecay;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) {
   vec2 s = smoothstep(a - w, a + w, f) * (1.0 - smoothstep(b - w, b + w, f));
@@ -127,13 +128,17 @@ const FACADE = /* glsl */ `
     float ivyTop = vSc.y * uGreen * uGreen * (0.2 + 0.8 * h21(vec2(seed, face + 3.0)));
     float ivy = step(y, ivyTop * (0.55 + 0.9 * h21(floor(vec2(u / 2.3, y / 3.1)) + seed * 0.37))) * step(0.02, uGreen);
     base = mix(base, vec3(0.1, 0.19, 0.07) * (0.75 + 0.5 * h21(floor(vec2(u / 0.9, y / 0.9)) + seed)), ivy * 0.94);
+    // neglect: windows broken out (dark holes), one by one over the years; fire: soot-black walls
+    float broken = step(h21(cell * 1.31 + vec2(seed * 7.0, face)), uDecay * 0.85) * win * ok;
+    base = mix(base, vec3(0.015), broken * mix(0.92, 0.55, far));
+    base *= 1.0 - 0.78 * vDmg.y * (0.75 + 0.25 * h21(floor(vec2(u / 3.0, y / 2.0)) + seed));
     diffuseColor.rgb = base;
     // lights
     float onFrac = style == 0.0 ? 0.55 : (style == 1.0 ? 0.62 : 0.5);
     float lit = step(r, onFrac + 0.2 * (hD - 0.5));
     // each building (and each window in it) has its own moment to switch on as dusk falls, and off at dawn
     float when = 0.15 + 0.6 * h21(vec2(seed, 11.0)) + 0.25 * r2;
-    float power = step(when, uCity) * uPower * (1.0 - ivy);
+    float power = step(when, uCity) * uPower * (1.0 - ivy) * (1.0 - broken) * (1.0 - step(0.2, vDmg.x + vDmg.y));
     vec3 warm = mix(vec3(1.0, 0.72, 0.42), vec3(1.0, 0.88, 0.7), r2);
     if (style > 0.5) warm = mix(vec3(0.85, 0.92, 1.0), vec3(1.0, 0.95, 0.85), r2);
     else if (r2 > 0.86) warm = vec3(0.65, 0.8, 1.0);
@@ -145,7 +150,11 @@ const FACADE = /* glsl */ `
     float shopLit = step(0.3, rs) * power * (style == 2.0 ? 0.7 : 1.0);
     e += mix(pane * 1.1, shop * 0.12, far) * shopLit;
     totalEmissiveRadiance += e * warm + fascia * shopLit * fasciaC * 0.6 * detail;
-    totalEmissiveRadiance += reflE * win * detail * (1.0 - lit * power * 0.5) * (1.0 - 0.7 * uGreen);
+    totalEmissiveRadiance += reflE * win * detail * (1.0 - lit * power * 0.5) * (1.0 - 0.7 * uGreen) * (1.0 - broken) * (1.0 - vDmg.y);
+    // burning: flames in many of the windows, flickering
+    float burnCell = step(h21(cell * 0.73 + vec2(seed, 2.0)), 0.55) * ok;
+    float flick = 0.6 + 0.4 * sin(uTime * (6.0 + 7.0 * r) + r2 * 40.0);
+    totalEmissiveRadiance += vec3(1.0, 0.36, 0.07) * vDmg.x * burnCell * flick * mix(win * 3.2, 1.1, far);
   } else if (vObjN.y > 0.5) {
     // roofs: moss and weeds spreading in patches
     float m = step(h21(floor(vWPre.xz / 6.0)), uGreen * 1.25) * (0.7 + 0.3 * h21(floor(vWPre.xz / 1.5)));
@@ -158,12 +167,12 @@ export function patch(material, { windows = false } = {}) {
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, {
       uCurl: G.uCurl, uCurlOrigin: G.uCurlOrigin, uCurlDir: G.uCurlDir,
-      uTime: G.uTime, uLightsOut: G.uLightsOut, uCity: G.uCity, uSunDir: G.uSunDir, uGreen: G.uGreen, uPower: G.uPower,
+      uTime: G.uTime, uLightsOut: G.uLightsOut, uCity: G.uCity, uSunDir: G.uSunDir, uGreen: G.uGreen, uPower: G.uPower, uDecay: G.uDecay,
     });
     shader.vertexShader =
       BEND_GLSL +
       `varying vec3 vWPre; varying vec3 vObjN;\n` +
-      (windows ? `attribute float aSeed; attribute float aGround; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;\n` : '') +
+      (windows ? `attribute float aSeed; attribute float aGround; attribute vec2 aDamage; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying vec2 vDmg;\n` : '') +
       shader.vertexShader.replace(
         '#include <project_vertex>',
         /* glsl */ `
@@ -174,7 +183,7 @@ export function patch(material, { windows = false } = {}) {
         wp = modelMatrix * wp;
         vWPre = wp.xyz;
         vObjN = normal;
-        ${windows ? `vSeed = aSeed; vGround = aGround; vLoc = transformed;
+        ${windows ? `vSeed = aSeed; vGround = aGround; vDmg = aDamage; vLoc = transformed;
         #ifdef USE_INSTANCING
           vSc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
         #else
@@ -193,6 +202,6 @@ export function patch(material, { windows = false } = {}) {
       shader.fragmentShader = `varying vec3 vWPre; varying vec3 vObjN;\n` + shader.fragmentShader;
     }
   };
-  material.customProgramCacheKey = () => (windows ? 'bend-win5' : 'bend');
+  material.customProgramCacheKey = () => (windows ? 'bend-win6' : 'bend');
   return material;
 }
