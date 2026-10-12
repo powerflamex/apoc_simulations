@@ -46,14 +46,15 @@ export const moonMiles = (v) => rOfLeft(hoursLeft(v) * 3600) / MI;
 export const moonSpeedMph = (v) => { const r = moonMiles(v) * MI; return Math.sqrt(2 * GM * (1 / r - 1 / R0)) / 0.44704; };
 export const MOON_R_MI = 1079.6;
 
-// the pieces that fall (moon.js draws them, audio.mjs plays their whistles and booms): which rock of the rubble
-// cloud drops out (`chunk`, an index into moon.js's rocks), when it leaves, how long it falls, how far away it lands
+// the pieces that fall (moon.js draws them and picks which rocks of the cloud they are; audio.mjs plays their whistles
+// and booms): when each leaves the cloud, how long it falls, how far away it lands, and how far it veers sideways
 export const METEORS = (() => {
   const R = rng(4242), out = [];
   for (let i = 0; i < 70; i++) {
     const t0 = i < 3 ? V_METEORS - 0.4 + i * 0.6 : V_METEORS + Math.pow(R(), 0.9) * (V_IMPACT - V_METEORS - 4.5);
     const near = R() < 0.25;   // some come down close: huge on screen
-    out.push({ chunk: 6 + i * 3, t0, dur: 2.4 + R() * 1.4, near, dist: near ? 2500 + R() * 3000 : 6000 + R() * 14000, size: near ? 1.6 + R() * 0.8 : 0.8 + R() * 1.2 });
+    const veer = R() < 0.4 ? (R() < 0.5 ? -1 : 1) * (0.12 + R() * 0.16) : (R() - 0.5) * 0.15;   // some fly off to the side
+    out.push({ t0, dur: 2.4 + R() * 1.4, near, dist: near ? 2500 + R() * 3000 : 6000 + R() * 14000, size: near ? 1.6 + R() * 0.8 : 0.8 + R() * 1.2, veer });
   }
   return out;
 })();

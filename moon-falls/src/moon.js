@@ -133,7 +133,14 @@ export function makeMoon(scene, glowTex) {
 
   // ---------- meteors: pieces burning in, streaking down to the horizon ----------
   const MET = METEORS;
-  const metOf = new Map(MET.map((m, i) => [m.chunk, i]));
+  // which rocks fall: the bigger ones along the bottom and front of the cloud (where you can see them), the lowest
+  // first, so every meteor is a rock you could already see in the rubble before it dropped out
+  const cand = chunk.map((c, i) => { const p = c.p.clone().addScaledVector(c.v, 1.3); return { i, score: p.dot(T2) + 0.5 * p.dot(dir) - 4 * c.s }; })
+    .filter((x) => x.i >= 6).sort((a, b) => a.score - b.score);
+  const chunkOf = [];
+  MET.map((m, i) => i).sort((a, b) => MET[a].t0 - MET[b].t0).forEach((mi, n) => { chunkOf[mi] = cand[n].i; });
+  const metOf = new Map(chunkOf.map((ci, mi) => [ci, mi]));
+  const K_END = Math.sqrt(1.45);   // (k where the end of the trail has followed the rock into the ground)
   const MOON_YAW = Math.atan2(-dir.x, -dir.z);
   const streakU = { uTime: { value: 0 } };
   const streakGeo = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);   // y = 0 at the head (the rock), y = 1 at the end of the trail
@@ -212,21 +219,23 @@ export function makeMoon(scene, glowTex) {
     const hide = (i) => { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); heads.setMatrixAt(i, dummy.matrix); };
     MET.forEach((m, i) => {
       const k = (v - m.t0) / m.dur;
-      const c = chunk[m.chunk];
+      const c = chunk[chunkOf[i]];
       const start = center.clone().addScaledVector(tmp.copy(c.p).addScaledVector(c.v, sepAt(m.t0)), Rc);   // where it was in the cloud
       // it lands roughly under where it left the cloud (pulled a little toward the middle of the view)
-      const yaw = MOON_YAW + (Math.atan2(-(start.x - cam.position.x), -(start.z - cam.position.z)) - MOON_YAW) * 0.7;
+      const yaw = MOON_YAW + (Math.atan2(-(start.x - cam.position.x), -(start.z - cam.position.z)) - MOON_YAW) * 0.7 + m.veer;
       const end = cam.position.clone().add(new THREE.Vector3(-Math.sin(yaw) * m.dist, 0, -Math.cos(yaw) * m.dist)).setY(0);
       mOn[i] = k > 0 && k < 1 ? 1 : k >= 1 ? 2 : 0;
-      if (mOn[i] !== 1) hide(i);
+      if (k <= 0 || k >= K_END) hide(i);
       else {
         const e = k * k;                              // slow as it drops out, speeding up as it falls
-        const head = mHead[i].copy(start).lerp(end, e);
-        const h = smooth(0.1, 0.45, k);               // burning in: the rock glows and grows a trail
+        // the path: straight down to where it lands, bowed outward for the ones that veer off (curving away from the cloud)
+        const head = mHead[i].copy(start).lerp(end, Math.min(e, 1)).addScaledVector(T1, -Math.sign(m.veer) * Math.min(Math.abs(m.veer), 0.6) * Rc * 0.8 * Math.sin(Math.PI * Math.min(e, 1)));
+        const h = smooth(0.0, 0.4, k) * (1 - smooth(1, K_END, k));   // burning in: it glows and grows a trail; after it lands the trail runs into the ground and fades
         mHeat[i] = h;
         const r = Math.min(Rc * c.s, head.distanceTo(cam.position) * 0.06);   // (close ones capped so they don't fill the screen)
         mR[i] = r;
-        const back = start.clone().lerp(end, Math.max(0, e - 0.45));   // the trail reaches back toward the cloud
+        const eb = Math.max(0, Math.min(e - 0.45, 1));
+        const back = start.clone().lerp(end, eb).addScaledVector(T1, -Math.sign(m.veer) * Math.min(Math.abs(m.veer), 0.6) * Rc * 0.8 * Math.sin(Math.PI * eb));   // the trail reaches back toward the cloud
         const len = head.distanceTo(back);
         if (len > 5 && h > 0.001) {
           dummy.position.copy(head);
@@ -238,7 +247,8 @@ export function makeMoon(scene, glowTex) {
           dummy.scale.set(r * 2.6 * h * Math.min(m.size, 1.6), len, 1);
           dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix);
         } else { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); }
-        dummy.position.copy(head); dummy.quaternion.copy(cam.quaternion); dummy.scale.setScalar(r * (2 + 6 * h) * h); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
+        const burst = k > 1 ? 1 - smooth(1, K_END, k) : 0;   // the moment it hits: a bright pop at the ground
+        dummy.position.copy(head); dummy.quaternion.copy(cam.quaternion); dummy.scale.setScalar(r * ((2 + 6 * h) * h + 10 * burst)); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
       }
       const f = v - (m.t0 + m.dur);
       // the landing: a big flash, then a fire that keeps burning on the horizon
@@ -255,8 +265,9 @@ export function makeMoon(scene, glowTex) {
         let hot = 0;
         if (mi !== undefined && mOn[mi] === 2) dummy.scale.setScalar(0);   // it already fell
         else if (mi !== undefined && mOn[mi] === 1) {                       // falling right now
-          dummy.position.copy(mHead[mi]); dummy.scale.setScalar(mR[mi]); hot = mHeat[mi];
+          dummy.position.copy(mHead[mi]); dummy.scale.setScalar(mR[mi]); hot = 0.5 + 0.5 * mHeat[mi];
         } else {
+          if (mi !== undefined) hot = 0.5 * smooth(MET[mi].t0 - 1.5, MET[mi].t0, v);   // it starts glowing in the cloud before it drops out
           const fall = i === 0 ? smooth(V_IMPACT - 8, V_IMPACT, v) : 0;   // the biggest piece leaves the cloud and comes down
           tmp.copy(c.p).addScaledVector(c.v, sep);
           dummy.position.copy(center).addScaledVector(tmp, Rc);
