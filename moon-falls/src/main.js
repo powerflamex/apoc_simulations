@@ -7,8 +7,9 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld, CAM_BASE } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, hourAngle, storyHours, VIDEO_DURATION, LOOP, V_FLOAT, ROOF_Y, V_BREAK, V_METEORS, V_IMPACT } from './timeline.js';
+import { state, hourAngle, storyHours, VIDEO_DURATION, LOOP, V_FLOAT, ROOF_Y, V_BREAK, V_METEORS, V_IMPACT, hitShake } from './timeline.js';
 import { makeMoon } from './moon.js';
+import { makeImpacts } from './impacts.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
@@ -47,6 +48,7 @@ const glowTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 const moon = makeMoon(scene, glowTex);
+const impacts = makeImpacts(scene, glowTex);
 const overlay = makeOverlay();
 
 // post: MSAA scene target -> bloom -> tone map -> vignette + title band
@@ -117,17 +119,18 @@ function update(v, cover = -1) {
   );
   // you watch the Moon over the bay, walk to the front rail to look down at the sea flooding the streets, look
   // back up as the Moon breaks apart, then watch the pieces rain down on the horizon
-  const yaw = keys([[-1, 10], [2.6, 9], [3.6, 7], [5.6, 4], [10.2, 3], [11.8, 9], [V_METEORS, 9], [36, 6], [V_IMPACT, 5], [62, 5]], v) * DEG;
-  const pitch = keys([[-1, 10], [2.6, 10], [3.6, 2], [4.6, -10], [6.0, -26], [8.5, -30], [10.2, -24], [11.8, 16], [V_BREAK + 2, 26], [19, 24], [V_METEORS + 1.5, 12], [36, 8], [V_IMPACT, 5], [62, 7]], v) * DEG;
+  // (then turns left to the towers across the water as they're hit, and back to the bay for the last ones)
+  const yaw = keys([[-1, 10], [2.6, 9], [3.6, 7], [5.6, 4], [10.2, 3], [11.8, 9], [V_METEORS, 9], [28, 8], [37, 6], [43.5, 8], [45.3, 15], [50.6, 15], [52.2, 7], [V_IMPACT - 3, 6], [V_IMPACT, 5], [80, 5]], v) * DEG;
+  const pitch = keys([[-1, 10], [2.6, 10], [3.6, 2], [4.6, -10], [6.0, -26], [8.5, -30], [10.2, -24], [11.8, 16], [V_BREAK + 2, 26], [19, 24], [V_METEORS + 1.5, 12], [29, 9], [37, 6], [44, 4], [50.6, 4], [53, 7], [V_IMPACT, 5], [80, 7]], v) * DEG;
   // the ground shaking (earthquakes), harder after the break, violent at the impact
-  const qk = s.quake * 0.35 + Math.max(0, Math.exp(-Math.max(0, v - V_IMPACT - 0.4) * 0.8)) * smooth(V_IMPACT + 0.2, V_IMPACT + 0.6, v) * 2.2;
+  const qk = s.quake * 0.35 + hitShake(v) + Math.max(0, Math.exp(-Math.max(0, v - V_IMPACT - 0.4) * 0.8)) * smooth(V_IMPACT + 0.2, V_IMPACT + 0.6, v) * 2.2;
   const roll = (Math.sin(v * Math.PI * 0.95) * 0.6 * walking + wobble(v * 13, 7) * qk) * DEG;
   camera.rotation.set(
     pitch + wobble(v * 0.5, 4) * 0.12 * DEG + wobble(v * 17, 8) * qk * DEG,
     yaw + wobble(v * 0.42, 5) * 0.18 * DEG + wobble(v * 15, 9) * qk * 0.7 * DEG,
     wobble(v * 0.37, 6) * 0.1 * DEG + roll,
   );
-  camera.fov = keys([[-1, 46], [2.5, 48], [3.6, 62], [10.2, 62], [11.8, 52], [V_METEORS, 58], [62, 62]], v);   // a longer lens on the Moon
+  camera.fov = keys([[-1, 46], [2.5, 48], [3.6, 62], [10.2, 62], [11.8, 52], [V_METEORS, 58], [80, 62]], v);   // a longer lens on the Moon
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 
@@ -155,9 +158,10 @@ function update(v, cover = -1) {
 
   world.frame(v, s, ctx);
   moon.frame(v, s, camera);
+  impacts.frame(v, s, camera);
 
   // exposure: a phone brightening the night (night mode) and holding the sunset
-  renderer.toneMappingExposure = (lerp(1.9, 0.82, smooth(0, 1, s.day)) + 0.1 * s.twilight) * (1 - 0.2 * (1 - smooth(0.05, 0.35, ctx.sunDir.y)) * s.day);
+  renderer.toneMappingExposure = (lerp(1.9, 0.82, smooth(0, 1, s.day)) + 0.1 * s.twilight) * (1 - 0.2 * (1 - smooth(0.05, 0.35, ctx.sunDir.y)) * s.day) * (1 + 0.3 * impacts.flash);   // each hit's flash
   bloom.strength = 0.26 + 0.22 * (1 - s.day);
   bloom.threshold = 1.2;
   bloom.radius = 0.28;

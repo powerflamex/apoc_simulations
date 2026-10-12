@@ -9,7 +9,7 @@ import { SKY_COMMON } from './sky.js';
 import { rng, smooth, clamp, lerp, DEG } from './util.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
-import { ROOF_Y, V_FLOAT, gFrac } from './timeline.js';
+import { ROOF_Y, V_FLOAT, gFrac, METEORS } from './timeline.js';
 
 export const CAM_BASE = new THREE.Vector3(0, ROOF_Y + 1.7, 0);
 const DECK_Z0 = -14, DECK_Z1 = 16, DECK_X = 18;        // our tower's roof
@@ -267,7 +267,7 @@ export function makeWorld(scene, skyUniforms) {
     const col = new THREE.Color(glassPal[Math.floor(R() * glassPal.length)]).multiplyScalar(0.75 + R() * 0.7).getHex();
     addB(x, z, w, w * (0.7 + R() * 0.5), h, { row: 4, color: col });
     if (R() < 0.6) { const k = 0.55 + R() * 0.25; addB(x + (R() - 0.5) * w * 0.2, z, w * k, w * k, h + 12 + R() * 40, { row: 4, color: col }); }   // a setback tier
-    if (R() < 0.35) towerSpires.push([x, h + 50, z]);
+    if (R() < 0.35) towerSpires.push([x, h + 50, z, B.length - 1]);
   }
   for (let i = 0; i < 260; i++) {
     const x = -200 - R() * 2200, z = -220 - R() * 1600;
@@ -287,6 +287,21 @@ export function makeWorld(scene, skyUniforms) {
   B.forEach((b, i) => (seedAttr[i] = b.seed));
   bGeo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seedAttr, 1));
   bGeo.setAttribute('aGround', new THREE.InstancedBufferAttribute(groundAttr, 1));
+  // (moon-falls) damage from the falling pieces: buildings near a hit catch fire (windows out, flames inside); the
+  // closest towers come down into their own footprint. ruinAt: when the blast reaches each building, and whether it falls
+  const ruinAttr = new THREE.InstancedBufferAttribute(new Float32Array(B.length), 1);
+  bGeo.setAttribute('aRuin', ruinAttr);
+  const sinkArr = new Float32Array(B.length);
+  const ruinAt = B.map((b) => {
+    let t = Infinity, fall = false;
+    for (const m of METEORS) {
+      if (m.kind !== 'tower' && m.kind !== 'near') continue;
+      const d = Math.hypot(b.x - m.x, b.z - m.z), reach = m.kind === 'tower' ? 320 : 700;
+      if (d < reach && m.land + d / 900 < t) { t = m.land + d / 900; fall = m.kind === 'tower' && d < 190; }
+    }
+    return { t, fall };
+  });
+  const ruined = B.map((b, i) => i).filter((i) => ruinAt[i].t < Infinity);
   const bMesh = new THREE.InstancedMesh(bGeo, buildingMat, B.length);
   bMesh.frustumCulled = false;
   B.forEach((b, i) => {
@@ -301,6 +316,7 @@ export function makeWorld(scene, skyUniforms) {
     towerSpires.forEach(([x, y, z], i) => { dummy.position.set(x, y - 50, z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); sp.setMatrixAt(i, dummy.matrix); });
     sp.frustumCulled = false;
     scene.add(sp);
+    world._spires = { mesh: sp, list: towerSpires };
   }
   // rooftop details on the nearer blocks + red aviation lights on the tall ones
   {
@@ -308,14 +324,14 @@ export function makeWorld(scene, skyUniforms) {
     const caps = [], tanks = [], acs = [], masts = [];
     B.forEach((b) => {
       caps.push([b.x, b.h, b.z, b.w + 0.3, b.row >= 3 ? 0.9 : 1.1, b.d + 0.3]);
-      if (b.row > 2) { if (b.h > 90) masts.push([b.x, b.h, b.z]); return; }
+      if (b.row > 2) { if (b.h > 90) masts.push([b.x, b.h, b.z, B.indexOf(b)]); return; }
       const spots = 1 + Math.floor(RA() * 3);
       for (let k = 0; k < spots; k++) {
         const ox = (RA() - 0.5) * b.w * 0.7, oz = (RA() - 0.5) * b.d * 0.7;
         if (RA() < 0.3) tanks.push([b.x + ox, b.h, b.z + oz]);
         else acs.push([b.x + ox, b.h, b.z + oz, 1.6 + RA() * 2.5, 1.0 + RA() * 1.4, 1.4 + RA() * 2.4]);
       }
-      if (b.h > 55) masts.push([b.x, b.h, b.z]);
+      if (b.h > 55) masts.push([b.x, b.h, b.z, B.indexOf(b)]);
     });
     const capGeo = mergeGeometries([
       new THREE.BoxGeometry(1, 1, 0.025).translate(0, 0.5, 0.4875), new THREE.BoxGeometry(1, 1, 0.025).translate(0, 0.5, -0.4875),
@@ -335,6 +351,7 @@ export function makeWorld(scene, skyUniforms) {
     acMesh.count = acs.length;
     acs.forEach(([x, y, z, w, h, d], i) => { dummy.position.set(x, y, z); dummy.scale.set(w, h, d); dummy.updateMatrix(); acMesh.setMatrixAt(i, dummy.matrix); });
     for (const m of [capMesh, tankMesh, acMesh]) { m.frustumCulled = false; scene.add(m); }
+    world._caps = { mesh: capMesh, list: caps };
     world.beacons = new THREE.InstancedMesh(new THREE.SphereGeometry(0.9, 8, 6), glowMat(new THREE.Color(9, 0.5, 0.35)), Math.max(masts.length, 1));
     world.beacons.count = masts.length;
     world.beaconPos = masts;
@@ -344,11 +361,14 @@ export function makeWorld(scene, skyUniforms) {
 
   // ---------- distant islands on the horizon ----------
   {
-    const hillMat = plainMat(0x22302c, 1.0, { flatShading: true });
+    world.hills = [];
     const hills = [[-5200, -9800, 1500, 210], [-3100, -11500, 1900, 260], [-800, -13000, 1400, 150], [2600, -10500, 1700, 190], [4800, -8200, 1100, 120], [-6400, -7400, 900, 90]];
     for (const [x, z, r, h] of hills) {
-      const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 11, 1).scale(1, 1, 0.45), hillMat);
-      m.position.set(x, h / 2 - 12, z);
+      const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 11, 1).scale(1, 1, 0.45).translate(0, h / 2, 0), plainMat(0x22302c, 1.0, { flatShading: true, emissive: 0xff5a14, emissiveIntensity: 0 }));
+      m.position.set(x, -12, z);
+      // (moon-falls) a hit on or next to it blasts it down to a glowing stump
+      const hit = METEORS.filter((q) => q.kind === 'hill' && Math.hypot(q.x - x, q.z - z) < r * 1.2).map((q) => q.land);
+      world.hills.push({ m, t: hit.length ? Math.min(...hit) : Infinity });
       m.rotation.y = R() * 3;
       m.frustumCulled = false;
       scene.add(m);
@@ -541,6 +561,25 @@ export function makeWorld(scene, skyUniforms) {
 
   // ---------- per-frame ----------
   world.frame = (v, s, ctx) => {
+    // --- damage: burning, collapsing towers; blasted islands ---
+    if (ruined.length) {
+      for (const i of ruined) {
+        const r = ruinAt[i], b = B[i];
+        ruinAttr.setX(i, smooth(r.t, r.t + 0.6, v));
+        const sink = r.fall ? b.h * 0.88 * Math.pow(smooth(r.t + 0.5, r.t + 5.0, v), 1.5) : 0;
+        sinkArr[i] = sink;
+        dummy.position.set(b.x, -sink, b.z); dummy.rotation.set(0, 0, sink / b.h * 0.08 * (b.seed - 0.5)); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix(); bMesh.setMatrixAt(i, dummy.matrix);
+        const [cx, cy, cz, cw, ch, cd] = world._caps.list[i];
+        dummy.position.set(cx, cy - sink, cz); dummy.rotation.set(0, 0, 0); dummy.scale.set(cw, ch, cd); dummy.updateMatrix(); world._caps.mesh.setMatrixAt(i, dummy.matrix);
+      }
+      world._spires.list.forEach(([x, y, z, bi], k) => { dummy.position.set(x, y - 50 - sinkArr[bi], z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); world._spires.mesh.setMatrixAt(k, dummy.matrix); });
+      ruinAttr.needsUpdate = bMesh.instanceMatrix.needsUpdate = world._caps.mesh.instanceMatrix.needsUpdate = world._spires.mesh.instanceMatrix.needsUpdate = true;
+    }
+    for (const hl of world.hills) {
+      const k = smooth(hl.t, hl.t + 2.5, v);
+      hl.m.scale.set(1 + 0.25 * k, 1 - 0.7 * k, 1 + 0.25 * k);
+      hl.m.material.emissiveIntensity = k * (0.5 + 0.3 * Math.sin(v * 3 + hl.m.position.x));
+    }
     G.uTime.value = v;
     G.uCity.value = s.cityLights;
     const level = s.sea;
@@ -597,9 +636,9 @@ export function makeWorld(scene, skyUniforms) {
       bulbMesh.setMatrixAt(i, dummy.matrix);
     });
     poleMesh.instanceMatrix.needsUpdate = bulbMesh.instanceMatrix.needsUpdate = true;
-    world.beaconPos.forEach(([x, y, z], i) => {
-      const on = Math.sin(v * 2.6 + i * 1.7) > -0.2 && night > 0.3;
-      dummy.position.set(x, y + 3, z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(on ? 1 : 0.0001); dummy.updateMatrix();
+    world.beaconPos.forEach(([x, y, z, bi], i) => {
+      const on = Math.sin(v * 2.6 + i * 1.7) > -0.2 && night > 0.3 && !(ruinAttr.getX(bi) > 0.3);
+      dummy.position.set(x, y + 3 - sinkArr[bi], z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(on ? 1 : 0.0001); dummy.updateMatrix();
       world.beacons.setMatrixAt(i, dummy.matrix);
     });
     world.beacons.instanceMatrix.needsUpdate = true;

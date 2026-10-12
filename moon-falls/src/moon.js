@@ -7,7 +7,7 @@ import { smooth, clamp, lerp, rng } from './util.js';
 import { MOON_DIR, V_BREAK, V_METEORS, V_IMPACT, T_SWITCH, METEORS } from './timeline.js';
 
 const D = 30000;   // drawing distance of the Moon (m); its radius is scaled to the right angular size
-const NOISE = /* glsl */ `
+export const NOISE = /* glsl */ `
   float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
   float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
     return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -29,8 +29,17 @@ const NOISE = /* glsl */ `
     }
     return c;
   }
+  float moonAlb(vec3 p) {
+    float mare = smoothstep(0.42, 0.62, fbm(p * 1.6 + 2.0));
+    return mix(0.62, 0.32, mare) * (0.85 + 0.3 * fbm(p * 9.0)) + craters(p) * 0.18;
+  }
+  float moonCrack(vec3 p, float t, float k) {
+    float rid = 1.0 - abs(fbm(p * 3.2 + vec3(0.0, t * 0.02, 0.0)) * 2.0 - 1.0);
+    float rid2 = 1.0 - abs(fbm(p * 7.5 + 5.0) * 2.0 - 1.0);
+    return smoothstep(0.93 - 0.12 * k, 0.985, max(rid, rid2 * 0.97)) * k;
+  }
 `;
-const LOGV = /* glsl */ `
+export const LOGV = /* glsl */ `
   #include <common>
   #include <logdepthbuf_pars_vertex>
 `;
@@ -52,14 +61,11 @@ export function makeMoon(scene, glowTex) {
       void main(){
         #include <logdepthbuf_fragment>
         vec3 n = normalize(vN), p = normalize(vObj);
-        float mare = smoothstep(0.42, 0.62, fbm(p * 1.6 + 2.0));
-        float alb = mix(0.62, 0.32, mare) * (0.85 + 0.3 * fbm(p * 9.0)) + craters(p) * 0.18;
+        float alb = moonAlb(p);
         float lit = max(dot(n, uSun), 0.0);
         vec3 col = vec3(0.98, 0.96, 0.92) * alb * (0.03 + 1.6 * lit);
         // the cracks: a web of glowing lines that widens and brightens as Earth's tides pull it apart
-        float rid = 1.0 - abs(fbm(p * 3.2 + vec3(0.0, uTime * 0.02, 0.0)) * 2.0 - 1.0);
-        float rid2 = 1.0 - abs(fbm(p * 7.5 + 5.0) * 2.0 - 1.0);
-        float cr = smoothstep(0.93 - 0.12 * uCrack, 0.985, max(rid, rid2 * 0.97)) * uCrack;
+        float cr = moonCrack(p, uTime, uCrack);
         col = col * (1.0 - cr * 0.6) + vec3(1.0, 0.45, 0.12) * cr * (0.7 + 1.1 * uCrack);
         gl_FragColor = vec4(col, uFade);
         #include <tonemapping_fragment>
@@ -78,16 +84,28 @@ export function makeMoon(scene, glowTex) {
   const chunk = [];
   const T1 = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();   // along the horizon
   const T2 = new THREE.Vector3().crossVectors(T1, dir).normalize();
+  const piece = (p, sz, flat = 1, q0 = null) => chunk.push({
+    p, s: sz, flat, q0,
+    // drift: mostly spread along the horizon (the rubble smears into a band), a little up/down and toward us
+    v: new THREE.Vector3().addScaledVector(T1, (p.dot(T1) + (R() - 0.5) * 0.5) * 1.2).addScaledVector(T2, (p.dot(T2) + (R() - 0.5) * 0.3) * 0.4),
+    spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), sp: (R() - 0.5) * 1.2, ph: R() * 6.28,
+  });
   for (let i = 0; i < N; i++) {
     let p; do { p = new THREE.Vector3(R() * 2 - 1, R() * 2 - 1, R() * 2 - 1); } while (p.lengthSq() > 1);
-    const big = i < 6;
-    chunk.push({
-      p, s: big ? 0.3 + R() * 0.12 : 0.07 + Math.pow(R(), 2.5) * 0.2,
-      // drift: mostly spread along the horizon (the rubble smears into a band), a little up/down and toward us
-      v: new THREE.Vector3().addScaledVector(T1, (p.dot(T1) + (R() - 0.5) * 0.5) * 1.2).addScaledVector(T2, (p.dot(T2) + (R() - 0.5) * 0.3) * 0.4),
-      spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), sp: (R() - 0.5) * 1.2, ph: R() * 6.28,
-    });
+    const sz = i < 6 ? 0.3 + R() * 0.12 : 0.07 + Math.pow(R(), 2.5) * 0.2;
+    if (p.length() + sz * 1.1 > 0.88) p.setLength(Math.max(0.02, 0.88 - sz * 1.1));   // (inside the skin, not poking out of the outline)
+    piece(p, sz);
   }
+  // a skin of plates over the side facing us: at the moment it breaks, the pieces cover the whole face
+  for (let i = 0; i < 230; i++) {
+    let p; do { p = new THREE.Vector3(R() * 2 - 1, R() * 2 - 1, R() * 2 - 1); } while (p.lengthSq() > 1 || p.lengthSq() < 0.05 || p.dot(dir) > 0.2 * p.length());
+    p.setLength(0.9 + R() * 0.03);
+    // turned so its flat side lies along the surface, then a random twist about the surface direction
+    const q0 = new THREE.Quaternion().setFromAxisAngle(p.clone().normalize(), R() * 6.28).multiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), p.clone().normalize()));
+    piece(p, 0.15 + R() * 0.07, 0.42, q0);
+    chunk[chunk.length - 1].v.add(new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(1.1));   // (they scatter, not one expanding shell)
+  }
+  const NT = chunk.length;
   chunk[0].p.set(0.1, -0.2, 0.15); chunk[0].s = 0.42; chunk[0].v.set(0, 0, 0);   // the biggest piece (it falls on us)
   // a lumpy rock: a finely divided sphere pushed in and out by smooth noise (no spiky single vertices)
   const rockGeo = new THREE.IcosahedronGeometry(1, 4);
@@ -97,14 +115,24 @@ export function makeMoon(scene, glowTex) {
     for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); const k = 0.82 + 0.32 * lump(v.x, v.y, v.z); v.multiplyScalar(k); v.y *= 0.8; pos.setXYZ(i, v.x, v.y, v.z); }
     rockGeo.computeVertexNormals();
   }
-  const heat = new THREE.InstancedBufferAttribute(new Float32Array(N), 1);
+  const heat = new THREE.InstancedBufferAttribute(new Float32Array(NT), 1);
   rockGeo.setAttribute('aHeat', heat);
+  // where each piece sat inside the Moon (in Moon radii) and how it was turned at the break: the shader uses it to
+  // paint each piece with the patch of the Moon's face it came from
+  const homeA = new Float32Array(NT * 3), q0A = new Float32Array(NT * 4), sA = new Float32Array(NT), flA = new Float32Array(NT);
+  chunk.forEach((c, i) => { if (!c.q0) c.q0 = new THREE.Quaternion().setFromAxisAngle(c.spin, c.ph); homeA.set([c.p.x, c.p.y, c.p.z], i * 3); q0A.set([c.q0.x, c.q0.y, c.q0.z, c.q0.w], i * 4); sA[i] = c.s; flA[i] = c.flat; });
+  rockGeo.setAttribute('aFlat', new THREE.InstancedBufferAttribute(flA, 1));
+  rockGeo.setAttribute('aHome', new THREE.InstancedBufferAttribute(homeA, 3));
+  rockGeo.setAttribute('aQ0', new THREE.InstancedBufferAttribute(q0A, 4));
+  rockGeo.setAttribute('aS', new THREE.InstancedBufferAttribute(sA, 1));
+  const moonRotT = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.3, V_BREAK * 0.002, 0.2))).transpose();
   const rockSun = dir.clone().multiplyScalar(-0.35).add(new THREE.Vector3(0.9, 0.35, 0.1)).normalize();   // light from the side: crescent-lit rocks
-  const CU = { uSun: { value: rockSun }, uHot: { value: 0 } };
+  const CU = { uSun: { value: rockSun }, uHot: { value: 0 }, uMoonSun: { value: sunDir }, uMoonRotT: { value: moonRotT }, uLook: { value: 1 }, uInner: { value: 0 }, uTime: { value: 0 } };
   const rocks = new THREE.InstancedMesh(rockGeo, new THREE.ShaderMaterial({
     uniforms: CU,
-    vertexShader: `attribute float aHeat; varying float vHeat; varying vec3 vN; varying vec3 vObj;\n${LOGV}\nvoid main(){ vHeat = aHeat; vObj = position; vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);\n#include <logdepthbuf_vertex>\n}`,
-    fragmentShader: /* glsl */ `uniform vec3 uSun; uniform float uHot; varying float vHeat; varying vec3 vN; varying vec3 vObj;
+    vertexShader: `attribute float aHeat; attribute vec3 aHome; attribute vec4 aQ0; attribute float aS; attribute float aFlat; varying float vHeat; varying vec3 vN; varying vec3 vObj; varying vec3 vM; varying vec3 vW;\n${LOGV}\nvoid main(){ vHeat = aHeat; vW = (modelMatrix * instanceMatrix * vec4(position, 1.0)).xyz; vObj = position; vec3 pf = position * vec3(1.0, aFlat, 1.0); vM = aHome + (pf + 2.0 * cross(aQ0.xyz, cross(aQ0.xyz, pf) + aQ0.w * pf)) * aS; vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);\n#include <logdepthbuf_vertex>\n}`,
+    fragmentShader: /* glsl */ `uniform vec3 uSun; uniform float uHot; uniform vec3 uMoonSun; uniform mat3 uMoonRotT; uniform float uLook; uniform float uInner; uniform float uTime;
+      varying float vHeat; varying vec3 vN; varying vec3 vObj; varying vec3 vM; varying vec3 vW;
       #include <common>
       #include <logdepthbuf_pars_fragment>
       ${NOISE}
@@ -120,14 +148,32 @@ export function makeMoon(scene, glowTex) {
         col += vec3(1.0, 0.42, 0.1) * hot * 1.3;
         col += vec3(0.9, 0.35, 0.1) * 0.06 * uHot * (1.0 - max(dot(n, uSun), 0.0));
         // a piece falling through the air: red-hot, brightest along its cracks
+        // just after the break: the outside of each piece is still the Moon's face (the same craters and seas, lit like the
+        // Moon), the broken inside glows molten; over the next seconds the pieces turn into dark tumbling rubble
+        float L = length(vM);
+        float surf = smoothstep(0.88, 0.93, L);
+        if (uLook > 0.001) {
+          vec3 mp = uMoonRotT * (vM / max(L, 1e-4));
+          vec3 nn = normalize(mix(n, normalize(vM), surf * (0.35 + 0.65 * uLook)));
+          vec3 face = vec3(0.98, 0.96, 0.92) * moonAlb(mp) * (0.03 + 1.35 * max(dot(nn, uMoonSun), 0.0));
+          float cr = moonCrack(mp, uTime, 1.0);
+          face = face * (1.0 - cr * 0.6) + vec3(1.0, 0.45, 0.12) * cr * 1.8;
+          col = mix(col, face, surf * uLook);
+        }
+        col += vec3(1.0, 0.38, 0.08) * (1.0 - surf) * uInner * (0.5 + 0.9 * fbm(vObj * 4.0 + 2.0));
+        // each slab's edges: dark where the rock turns away, with a molten seam that cools after the break
+        float edge = 1.0 - smoothstep(0.1, 0.5, abs(dot(n, normalize(cameraPosition - vW))));
+        col = col * (1.0 - 0.7 * edge) + vec3(1.0, 0.36, 0.07) * edge * uInner * 0.9;
         col = mix(col, vec3(1.0, 0.32, 0.06) * (1.0 + 1.2 * fbm(vObj * 5.0)), vHeat * 0.92) + vec3(1.0, 0.8, 0.45) * smoothstep(0.93, 0.99, rid) * vHeat * 1.5;
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
-  }), N);
+  }), NT);
   rocks.frustumCulled = false; rocks.renderOrder = -4;
   scene.add(rocks);
+  const breakGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xff7a2a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+  scene.add(breakGlow);
   const dust = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb070, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
   scene.add(dust);
 
@@ -141,7 +187,7 @@ export function makeMoon(scene, glowTex) {
   MET.map((m, i) => i).sort((a, b) => MET[a].t0 - MET[b].t0).forEach((mi, n) => { chunkOf[mi] = cand[n].i; });
   const metOf = new Map(chunkOf.map((ci, mi) => [ci, mi]));
   const K_END = Math.sqrt(1.45);   // (k where the end of the trail has followed the rock into the ground)
-  const MOON_YAW = Math.atan2(-dir.x, -dir.z);
+  const ENDS = MET.map((m) => new THREE.Vector3(m.x, 0, m.z));   // where each one lands
   const streakU = { uTime: { value: 0 } };
   const streakGeo = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);   // y = 0 at the head (the rock), y = 1 at the end of the trail
   const streakMat = new THREE.ShaderMaterial({
@@ -162,12 +208,9 @@ export function makeMoon(scene, glowTex) {
   const streaks = new THREE.InstancedMesh(streakGeo, streakMat, MET.length);
   streaks.frustumCulled = false;
   scene.add(streaks);
-  const heads = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffe2b8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), MET.length);
+  const heads = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffe2b8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }), MET.length);
   heads.frustumCulled = false;
   scene.add(heads);
-  const flashes = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffa860, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), MET.length);
-  flashes.frustumCulled = false;
-  scene.add(flashes);
 
   // ---------- the biggest piece and the wall of fire ----------
   const IMPACT = new THREE.Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(-1).multiplyScalar(14000);   // on the horizon under the Moon
@@ -206,13 +249,13 @@ export function makeMoon(scene, glowTex) {
     const R0 = D * Math.tan(ang);
     U.uCrack.value = s.crack; U.uTime.value = v;
     // the Moon itself: whole until the break, then it falls to pieces over ~2 s
-    U.uFade.value = 1 - smooth(V_BREAK + 0.3, V_BREAK + 2.2, v);
+    U.uFade.value = 1 - smooth(V_BREAK + 0.05, V_BREAK + 0.35, v);
     moon.visible = U.uFade.value > 0.002;
     moon.position.copy(center); moon.scale.setScalar(R0);
     moon.rotation.set(0.3, v * 0.002, 0.2);
     halo.position.copy(center); halo.scale.setScalar(R0 * (5.5 + 2 * s.crack)); halo.material.opacity = 0.55 * (0.5 + 0.5 * U.uFade.value);
     // the rubble: chunks appear as the Moon fades, then drift apart (the cloud keeps growing as it comes closer)
-    const br = s.breakup, show = v > V_BREAK + 0.2;
+    const br = s.breakup, show = v > V_BREAK;
     const Rc = Math.min(R0, D * Math.tan(0.11));   // the rubble cloud's size (capped)
     // meteors: rocks that drop out of the cloud, heat up, and streak down to the horizon (a fire where each one lands)
     streakU.uTime.value = v;
@@ -221,21 +264,18 @@ export function makeMoon(scene, glowTex) {
       const k = (v - m.t0) / m.dur;
       const c = chunk[chunkOf[i]];
       const start = center.clone().addScaledVector(tmp.copy(c.p).addScaledVector(c.v, sepAt(m.t0)), Rc);   // where it was in the cloud
-      // it lands roughly under where it left the cloud (pulled a little toward the middle of the view)
-      const yaw = MOON_YAW + (Math.atan2(-(start.x - cam.position.x), -(start.z - cam.position.z)) - MOON_YAW) * 0.7 + m.veer;
-      const end = cam.position.clone().add(new THREE.Vector3(-Math.sin(yaw) * m.dist, 0, -Math.cos(yaw) * m.dist)).setY(0);
+      const end = ENDS[i];
       mOn[i] = k > 0 && k < 1 ? 1 : k >= 1 ? 2 : 0;
       if (k <= 0 || k >= K_END) hide(i);
       else {
         const e = k * k;                              // slow as it drops out, speeding up as it falls
-        // the path: straight down to where it lands, bowed outward for the ones that veer off (curving away from the cloud)
-        const head = mHead[i].copy(start).lerp(end, Math.min(e, 1)).addScaledVector(T1, -Math.sign(m.veer) * Math.min(Math.abs(m.veer), 0.6) * Rc * 0.8 * Math.sin(Math.PI * Math.min(e, 1)));
+        const head = mHead[i].copy(start).lerp(end, Math.min(e, 1));   // (they fan out from the cloud toward where each one lands)
         const h = smooth(0.0, 0.4, k) * (1 - smooth(1, K_END, k));   // burning in: it glows and grows a trail; after it lands the trail runs into the ground and fades
         mHeat[i] = h;
         const r = Math.min(Rc * c.s, head.distanceTo(cam.position) * 0.06);   // (close ones capped so they don't fill the screen)
         mR[i] = r;
         const eb = Math.max(0, Math.min(e - 0.45, 1));
-        const back = start.clone().lerp(end, eb).addScaledVector(T1, -Math.sign(m.veer) * Math.min(Math.abs(m.veer), 0.6) * Rc * 0.8 * Math.sin(Math.PI * eb));   // the trail reaches back toward the cloud
+        const back = start.clone().lerp(end, eb);   // the trail reaches back toward the cloud
         const len = head.distanceTo(back);
         if (len > 5 && h > 0.001) {
           dummy.position.copy(head);
@@ -250,32 +290,34 @@ export function makeMoon(scene, glowTex) {
         const burst = k > 1 ? 1 - smooth(1, K_END, k) : 0;   // the moment it hits: a bright pop at the ground
         dummy.position.copy(head); dummy.quaternion.copy(cam.quaternion); dummy.scale.setScalar(r * ((2 + 6 * h) * h + 10 * burst)); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
       }
-      const f = v - (m.t0 + m.dur);
-      // the landing: a big flash, then a fire that keeps burning on the horizon
-      if (f > 0) { const sz = m.dist * 0.16 * m.size * ((0.5 + f) * Math.exp(-f * 1.2) + 0.35 * Math.min(f, 1)); dummy.position.copy(end).setY(sz * 0.18); dummy.quaternion.copy(cam.quaternion); dummy.scale.set(sz * 1.5, sz * 0.6, 1); }
-      else dummy.scale.setScalar(0);
-      dummy.updateMatrix(); flashes.setMatrixAt(i, dummy.matrix);
+      // (what happens when it lands: impacts.js)
     });
     rocks.visible = show;
     CU.uHot.value = show ? 1 - smooth(V_BREAK + 4, V_BREAK + 20, v) * 0.6 : 0;
+    CU.uLook.value = 1 - smooth(V_BREAK + 1.5, V_BREAK + 8, v);   // the Moon's face on the pieces, fading into rubble
+    CU.uInner.value = 1.6 * Math.exp(-Math.max(0, v - V_BREAK) * 0.35) * (1 - smooth(V_BREAK + 4, V_BREAK + 9, v)) * (show ? 1 : 0);   // the molten inside, cooling
+    CU.uTime.value = v;
+    { const t = v - V_BREAK; breakGlow.position.copy(center); breakGlow.scale.setScalar(R0 * (3 + 3 * smooth(0, 3, t))); breakGlow.material.opacity = t > -0.4 ? 0.45 * smooth(-0.4, 0.05, t) * Math.exp(-Math.max(0, t) * 0.9) : 0; }
     if (show) {
       const sep = sepAt(v);
+      const thick = smooth(V_BREAK + 5, V_BREAK + 11, v);   // the thin plates of the Moon's crust tumble into chunky rocks
       chunk.forEach((c, i) => {
         const mi = metOf.get(i);
         let hot = 0;
         if (mi !== undefined && mOn[mi] === 2) dummy.scale.setScalar(0);   // it already fell
         else if (mi !== undefined && mOn[mi] === 1) {                       // falling right now
-          dummy.position.copy(mHead[mi]); dummy.scale.setScalar(mR[mi]); hot = 0.5 + 0.5 * mHeat[mi];
+          dummy.position.copy(mHead[mi]); dummy.scale.set(mR[mi], mR[mi] * (c.flat + (1 - c.flat) * thick), mR[mi]); hot = 0.5 + 0.5 * mHeat[mi];
         } else {
           if (mi !== undefined) hot = 0.5 * smooth(MET[mi].t0 - 1.5, MET[mi].t0, v);   // it starts glowing in the cloud before it drops out
           const fall = i === 0 ? smooth(V_IMPACT - 8, V_IMPACT, v) : 0;   // the biggest piece leaves the cloud and comes down
+          if (fall > 0) hot = 0.25 + 0.7 * smooth(0, 0.5, fall);   // ...red-hot as it tears through the air
           tmp.copy(c.p).addScaledVector(c.v, sep);
           dummy.position.copy(center).addScaledVector(tmp, Rc);
           if (fall > 0) dummy.position.lerp(IMPACT.clone().setY(Rc * c.s * 0.5), fall * fall);
           const sz = Rc * c.s * (i === 0 ? 1 + fall * 0.8 : 1);
-          dummy.scale.setScalar(sz * smooth(V_BREAK + 0.2, V_BREAK + 1.6, v));
+          dummy.scale.set(sz, sz * (c.flat + (1 - c.flat) * thick), sz);
         }
-        q.setFromAxisAngle(c.spin, c.ph + (v - V_BREAK) * c.sp * (0.1 + hot * 0.8));
+        q.setFromAxisAngle(c.spin, (v - V_BREAK) * c.sp * (0.1 + hot * 0.8)).multiply(c.q0);
         dummy.quaternion.copy(q);
         dummy.updateMatrix();
         rocks.setMatrixAt(i, dummy.matrix);
@@ -284,7 +326,7 @@ export function makeMoon(scene, glowTex) {
       rocks.instanceMatrix.needsUpdate = true; heat.needsUpdate = true;
     }
     dust.position.copy(center); dust.scale.setScalar(Rc * (2 + 6 * br)); dust.material.opacity = 0.35 * smooth(V_BREAK, V_BREAK + 3, v) * (1 - smooth(V_BREAK + 6, V_BREAK + 16, v));
-    streaks.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = flashes.instanceMatrix.needsUpdate = true;
+    streaks.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = true;
     // the impact: a white flash, then a dome of fire rising and spreading toward us
     const it = v - V_IMPACT;
     fire.visible = it > 0;

@@ -33,8 +33,10 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(384);
   const white = () => R0() * 2 - 1;
   // the falling pieces (same schedule as moon.js): a whistle once it starts burning in, a boom when it lands
-  const booms = METEORS.map((m) => ({ t: m.t0 + m.dur, g: m.near ? 0.55 + R0() * 0.3 : 0.2 + R0() * 0.35, pan: R0() * 1.6 - 0.8 }));
-  const whistles = METEORS.map((m, i) => ({ t: m.t0 + m.dur * 0.3, end: m.t0 + m.dur, f0: 1400 + R0() * 1200, pan: booms[i].pan }));
+  // (the closer the hit, the louder; the shockwave arrives as a second, longer rumble that shakes everything)
+  const booms = METEORS.flatMap((m) => [{ t: m.land, g: m.g * (0.85 + R0() * 0.3), pan: m.pan, k: 2.2 },
+    ...(m.amp > 0.3 ? [{ t: m.arrive, g: m.g * 0.8, pan: m.pan * 0.5, k: 0.9 }] : [])]);
+  const whistles = METEORS.map((m) => ({ t: m.t0 + m.dur * 0.3, end: m.land, f0: 1400 + R0() * 1200, pan: m.pan }));
 
   const crowdF = Array.from({ length: 5 }, () => new SVF()), crowdE = Array.from({ length: 5 }, () => new OnePole(3));
   const lapLP = new OnePole(900), cityLP = new OnePole(180), cityLP2 = new OnePole(120), padLP = new OnePole(500), humLP = new OnePole(200);
@@ -96,8 +98,8 @@ export function makeSoundtrack(outFile) {
     }
     for (const b of booms) {
       const dt = v - b.t;
-      if (dt > -0.01 && dt < 2.5) {
-        const x = boomLP2.run(boomLP.run(white())) * 6 * b.g * Math.exp(-Math.max(dt, 0) * 2.2) * smooth(-0.01, 0.03, dt);
+      if (dt > -0.01 && dt < 5) {
+        const x = boomLP2.run(boomLP.run(white())) * 6 * b.g * Math.exp(-Math.max(dt, 0) * b.k) * smooth(-0.01, 0.03, dt);
         l += x * (1 - b.pan * 0.4); r += x * (1 + b.pan * 0.4); wet += x * 0.6;
       }
     }

@@ -30,7 +30,7 @@ vec3 bendWorld(vec3 p) {
 
 const FACADE_PARS = /* glsl */ `
 uniform float uTime; uniform float uLightsOut; uniform float uCity;
-varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;
+varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying float vRuin;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) {
   vec2 s = smoothstep(a - w, a + w, f) * (1.0 - smoothstep(b - w, b + w, f));
@@ -114,7 +114,7 @@ const FACADE = /* glsl */ `
     float lit = step(r, onFrac + 0.2 * (hD - 0.5));
     // each building (and each window in it) has its own moment to switch on as dusk falls, and off at dawn
     float when = 0.15 + 0.6 * h21(vec2(seed, 11.0)) + 0.25 * r2;
-    float power = step(when, uCity);
+    float power = step(when, uCity) * (1.0 - step(0.3, vRuin));   // (a building hit by the blast goes dark)
     vec3 warm = mix(vec3(1.0, 0.72, 0.42), vec3(1.0, 0.88, 0.7), r2);
     if (style > 0.5) warm = mix(vec3(0.85, 0.92, 1.0), vec3(1.0, 0.95, 0.85), r2);
     else if (r2 > 0.86) warm = vec3(0.65, 0.8, 1.0);
@@ -126,6 +126,11 @@ const FACADE = /* glsl */ `
     float shopLit = step(0.3, rs) * power * (style == 2.0 ? 0.7 : 1.0);
     e += mix(pane * 1.1, shop * 0.12, far) * shopLit;
     totalEmissiveRadiance += e * warm + fascia * shopLit * fasciaC * 0.6 * detail;
+    // ...and burns: flames in many of its windows, flickering
+    float burnCell = step(h21(cell * 0.73 + vec2(seed, 2.0)), 0.5) * ok;
+    float flick = 0.65 + 0.35 * sin(uTime * (5.0 + 6.0 * r) + r2 * 40.0);
+    totalEmissiveRadiance += vec3(1.0, 0.36, 0.07) * vRuin * burnCell * flick * mix(win * 2.6, 0.9, far);
+    diffuseColor.rgb *= 1.0 - 0.6 * vRuin;
   }
 `;
 
@@ -139,7 +144,7 @@ export function patch(material, { windows = false } = {}) {
     shader.vertexShader =
       BEND_GLSL +
       `varying vec3 vWPre; varying vec3 vObjN;\n` +
-      (windows ? `attribute float aSeed; attribute float aGround; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround;\n` : '') +
+      (windows ? `attribute float aSeed; attribute float aGround; attribute float aRuin; varying float vSeed; varying vec3 vLoc; varying vec3 vSc; varying float vGround; varying float vRuin;\n` : '') +
       shader.vertexShader.replace(
         '#include <project_vertex>',
         /* glsl */ `
@@ -150,7 +155,7 @@ export function patch(material, { windows = false } = {}) {
         wp = modelMatrix * wp;
         vWPre = wp.xyz;
         vObjN = normal;
-        ${windows ? `vSeed = aSeed; vGround = aGround; vLoc = transformed;
+        ${windows ? `vSeed = aSeed; vGround = aGround; vRuin = aRuin; vLoc = transformed;
         #ifdef USE_INSTANCING
           vSc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
         #else

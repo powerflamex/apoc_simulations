@@ -184,14 +184,15 @@ The Moon has stopped orbiting and is falling straight at Earth. It's 20,000 mile
 
 Its pull drags the ocean into the streets and floods the city, while earthquakes shake every tower.
 At 11,500 miles, Earth's gravity tears the Moon apart into a cloud of rubble.
-Pieces the size of countries rain down at 22,000 mph, each impact more than every nuke on Earth combined. The biggest is 500 miles wide.
+Pieces the size of countries rain down at 22,000 mph, each one hitting a million times harder than all the nukes on Earth.
+They land closer and closer: the islands across the bay, the bay itself, the towers across the water, then half a mile away. The biggest is 500 miles wide.
 
 Would you rather be on the side facing the Moon, or the other side of the planet? 👇
 
 #whatif #moon #space #science #physics #simulation
 
 **TikTok**
-POV: the Moon stopped orbiting and it's falling at Earth. It's 20,000 miles away and already 12 times bigger than it should be. Its pull drags the ocean into the streets, earthquakes shake every tower, and at 11,500 miles Earth's gravity tears it apart. Then the pieces start to fall, every one hitting at 22,000 mph with more energy than every nuke on Earth combined. Where would you hide? 👇
+POV: the Moon stopped orbiting and it's falling at Earth. It's 20,000 miles away and already 12 times bigger than it should be. Its pull drags the ocean into the streets, earthquakes shake every tower, and at 11,500 miles Earth's gravity tears it apart. Then the pieces start to fall, every one hitting at 22,000 mph, a million times harder than all the nukes on Earth. First the islands across the bay are blown apart, then the bay boils, the towers across the water come down, and the next one lands half a mile from you. And the biggest piece, 500 miles wide, is still coming. Where would you hide? 👇
 
 #whatif #moon #space #science #physics #simulation #pov #fyp
 
