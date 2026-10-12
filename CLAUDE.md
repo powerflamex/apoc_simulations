@@ -1,7 +1,8 @@
 # Apocalypse "what if" sims
 
 Vertical (1080x1920, 60 fps) TikTok/YouTube Shorts videos, one self-contained Three.js project per folder:
-`asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`, `electrons/`, `moon-falls/`. See README.md for how each project is built.
+`asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`, `electrons/`, `moon-falls/`,
+`women-vanish/`. See README.md for how each project is built.
 
 ## The owner wants to be hands-off
 

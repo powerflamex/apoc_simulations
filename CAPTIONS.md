@@ -198,6 +198,30 @@ POV: the Moon stopped orbiting and it's falling at Earth. It's 20,000 miles away
 
 Cover: `moon-falls/out/moon-falls_v4_cover.png`
 
+## Day 9. Every woman disappears — `women-vanish/out/women-vanish_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (80 chars)**
+What if every woman disappeared? The last human dies in 2143 😳 #whatif #science
+
+**YouTube description**
+Noon at Shibuya Crossing, Tokyo. In one instant, every woman and girl on Earth vanishes: 4 billion people, half of humanity.
+
+Their bags and phones drop to the street. Their cars roll on with nobody at the wheel.
+9 in 10 nurses are gone. 2 in 3 primary school teachers.
+About 360,000 babies are born every day. From that moment: none.
+The youngest people left are newborn boys. In 2126 they turn 100, and around 2143 the last human on Earth dies.
+
+Who would you miss first? 👇
+
+#whatif #science #humanity #tokyo #shibuya #simulation
+
+**TikTok**
+POV: you're at Shibuya Crossing at noon when every woman and girl on Earth vanishes at once. 4 billion people, half of humanity, gone mid-step. Their bags and phones hit the street, their cars creep on with nobody at the wheel. 9 in 10 nurses and 2 in 3 primary school teachers are gone. About 360,000 babies are born every day, and from that moment, none ever again. The youngest people left are the boys born that morning. The cities empty, nature takes the streets back, and around 2143 the last human on Earth dies. Who would you miss first? 👇
+
+#whatif #science #humanity #tokyo #shibuya #simulation #pov #fyp
+
+Cover: `women-vanish/out/women-vanish_v4_cover.png`
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
