@@ -82,6 +82,6 @@ Use this for every new video and every rework:
 - YouTube Shorts title: **max 100 characters** (YouTube's limit; count emoji as 2 to be safe). Hook first,
   1-2 hashtags at the end. Write the count next to it.
 - YouTube description: the key facts in a few short lines, a question to get comments, then hashtags.
-- TikTok caption: longer, fact-first, ends with a question, then hashtags.
 - Only claim what the video shows (same numbers as the captions/counters in `timeline.js`).
-- The owner posts one video a day, the same video on YouTube and TikTok on the same day (since 2026-10-09).
+- The owner posts one Short a day on YouTube only (stopped TikTok on 2026-10-12): give only the YouTube title and
+  description, no TikTok caption. (The `_tiktok.mp4` name is just the upload copy; it's the file for YouTube.)

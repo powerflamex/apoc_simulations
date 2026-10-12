@@ -19,14 +19,14 @@
   electrons (Oct 11, under a day) 53,926.
 
 ## Posting
-- One video a day, the same video on YouTube and TikTok the same day (since 2026-10-09), around 10 AM.
-- YouTube title max 100 characters (count emoji as 2). TikTok caption up to 4,000. Always give both.
-- Songs: add them in the apps (TikTok "Add sound", YouTube Shorts song picker), never mixed into the file:
+- One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
+- YouTube title max 100 characters (count emoji as 2), plus a short description.
+- Songs: add them in the apps (the YouTube Shorts song picker), never mixed into the file:
   YouTube blocks Shorts over 1 minute that carry a copyright claim. The speed-doubles video uses "Charlie's
   Inferno" (That Handsome Devil) from 2:50.
 
 - Topics that attract gender-war comments (e.g. women-vanish): before posting, turn on YouTube "hold potentially
-  inappropriate comments for review" and TikTok "filter offensive comments", and pin a comment that steers to the question.
+  inappropriate comments for review", and pin a comment that steers to the question.
 - Long-form: weekly, Sundays 1 PM ET (the first one, "7 ways the world could end", went up Oct 11).
 
 ## How the owner likes to work
