@@ -174,6 +174,29 @@ POV: you're at Shibuya Crossing at noon when every electron on Earth vanishes. E
 
 Cover: `electrons/out/electrons_v4_cover.png`
 
+## Day 8. The Moon falls to Earth — `moon-falls/out/moon-falls_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (71 chars)**
+What if the Moon fell to Earth? It hits at 22,000 mph 🌕 #whatif #space
+
+**YouTube description**
+The Moon has stopped orbiting and is falling straight at Earth. It's 20,000 miles away and already looks 12 times bigger than it should.
+
+Its pull drags the ocean into the streets and floods the city, while earthquakes shake every tower.
+At 11,500 miles, Earth's gravity tears the Moon apart into a cloud of rubble.
+Pieces the size of countries rain down at 22,000 mph, each impact more than every nuke on Earth combined. The biggest is 500 miles wide.
+
+Would you rather be on the side facing the Moon, or the other side of the planet? 👇
+
+#whatif #moon #space #science #physics #simulation
+
+**TikTok**
+POV: the Moon stopped orbiting and it's falling at Earth. It's 20,000 miles away and already 12 times bigger than it should be. Its pull drags the ocean into the streets, earthquakes shake every tower, and at 11,500 miles Earth's gravity tears it apart. Then the pieces start to fall, every one hitting at 22,000 mph with more energy than every nuke on Earth combined. Where would you hide? 👇
+
+#whatif #moon #space #science #physics #simulation #pov #fyp
+
+Cover: `moon-falls/out/moon-falls_v4_cover.png`
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
