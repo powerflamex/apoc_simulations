@@ -4,7 +4,7 @@
 // GM of Earth + Moon). Its pull drags the sea up and floods the city; at ~11,400 miles (the Roche limit, fluid
 // estimate ~18,400 km) Earth's gravity tears it apart; the pieces rain down at ~22,000 mph; the biggest one hits
 // the horizon and a wall of fire fills the screen with white, which clears onto the first frame (the video loops).
-import { smooth, keys, clamp } from './util.js';
+import { smooth, keys, clamp, rng } from './util.js';
 
 export const STORY_START = 0;           // everything here runs on the video clock
 export const V_BREAK = 13.0;            // the Moon starts coming apart
@@ -45,6 +45,18 @@ export const hoursLeft = (v) => Math.max(0, leftC(v) - OFF);
 export const moonMiles = (v) => rOfLeft(hoursLeft(v) * 3600) / MI;
 export const moonSpeedMph = (v) => { const r = moonMiles(v) * MI; return Math.sqrt(2 * GM * (1 / r - 1 / R0)) / 0.44704; };
 export const MOON_R_MI = 1079.6;
+
+// the pieces that fall (moon.js draws them, audio.mjs plays their whistles and booms): which rock of the rubble
+// cloud drops out (`chunk`, an index into moon.js's rocks), when it leaves, how long it falls, how far away it lands
+export const METEORS = (() => {
+  const R = rng(4242), out = [];
+  for (let i = 0; i < 70; i++) {
+    const t0 = i < 3 ? V_METEORS - 0.4 + i * 0.6 : V_METEORS + Math.pow(R(), 0.9) * (V_IMPACT - V_METEORS - 4.5);
+    const near = R() < 0.25;   // some come down close: huge on screen
+    out.push({ chunk: 6 + i * 3, t0, dur: 2.4 + R() * 1.4, near, dist: near ? 2500 + R() * 3000 : 6000 + R() * 14000, size: near ? 1.6 + R() * 0.8 : 0.8 + R() * 1.2 });
+  }
+  return out;
+})();
 
 // sea level (m above today's): the Moon's pull drags the ocean up and Earth turns us into the bulge
 export const seaLevel = (v) => keys([[1.5, 0], [4.5, 1.6], [8, 9], [12, 18], [20, 26], [33, 33], [V_IMPACT, 38], [62, 40]], v);

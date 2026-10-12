@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, V_BREAK, V_METEORS, V_IMPACT, T_SWITCH } from './src/timeline.js';
+import { state, VIDEO_DURATION, LOOP, V_BREAK, V_METEORS, V_IMPACT, T_SWITCH, METEORS } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000, TAU = Math.PI * 2;
@@ -32,10 +32,9 @@ export function makeSoundtrack(outFile) {
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(384);
   const white = () => R0() * 2 - 1;
-  // meteor landings (same timing scheme as moon.js: seeded the same way would be fragile, so just spread booms)
-  const booms = [];
-  for (let t = V_METEORS + 1.2; t < V_IMPACT - 0.6; t += 0.45 + R0() * 1.1) booms.push({ t, g: 0.25 + R0() * 0.5, pan: R0() * 1.6 - 0.8 });
-  const whistles = booms.map((b) => ({ t: b.t - (1.0 + R0() * 1.2), d: 0, end: b.t, f0: 1400 + R0() * 1200, pan: b.pan }));
+  // the falling pieces (same schedule as moon.js): a whistle once it starts burning in, a boom when it lands
+  const booms = METEORS.map((m) => ({ t: m.t0 + m.dur, g: m.near ? 0.55 + R0() * 0.3 : 0.2 + R0() * 0.35, pan: R0() * 1.6 - 0.8 }));
+  const whistles = METEORS.map((m, i) => ({ t: m.t0 + m.dur * 0.3, end: m.t0 + m.dur, f0: 1400 + R0() * 1200, pan: booms[i].pan }));
 
   const crowdF = Array.from({ length: 5 }, () => new SVF()), crowdE = Array.from({ length: 5 }, () => new OnePole(3));
   const lapLP = new OnePole(900), cityLP = new OnePole(180), cityLP2 = new OnePole(120), padLP = new OnePole(500), humLP = new OnePole(200);

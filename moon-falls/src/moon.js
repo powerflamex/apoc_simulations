@@ -4,7 +4,7 @@
 // coming down over the sea: a wall of fire. Drawn as far-away meshes (no fog), placed along the Moon's direction.
 import * as THREE from 'three';
 import { smooth, clamp, lerp, rng } from './util.js';
-import { MOON_DIR, V_BREAK, V_METEORS, V_IMPACT, T_SWITCH } from './timeline.js';
+import { MOON_DIR, V_BREAK, V_METEORS, V_IMPACT, T_SWITCH, METEORS } from './timeline.js';
 
 const D = 30000;   // drawing distance of the Moon (m); its radius is scaled to the right angular size
 const NOISE = /* glsl */ `
@@ -97,12 +97,14 @@ export function makeMoon(scene, glowTex) {
     for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); const k = 0.82 + 0.32 * lump(v.x, v.y, v.z); v.multiplyScalar(k); v.y *= 0.8; pos.setXYZ(i, v.x, v.y, v.z); }
     rockGeo.computeVertexNormals();
   }
+  const heat = new THREE.InstancedBufferAttribute(new Float32Array(N), 1);
+  rockGeo.setAttribute('aHeat', heat);
   const rockSun = dir.clone().multiplyScalar(-0.35).add(new THREE.Vector3(0.9, 0.35, 0.1)).normalize();   // light from the side: crescent-lit rocks
   const CU = { uSun: { value: rockSun }, uHot: { value: 0 } };
   const rocks = new THREE.InstancedMesh(rockGeo, new THREE.ShaderMaterial({
     uniforms: CU,
-    vertexShader: `varying vec3 vN; varying vec3 vObj;\n${LOGV}\nvoid main(){ vObj = position; vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);\n#include <logdepthbuf_vertex>\n}`,
-    fragmentShader: /* glsl */ `uniform vec3 uSun; uniform float uHot; varying vec3 vN; varying vec3 vObj;
+    vertexShader: `attribute float aHeat; varying float vHeat; varying vec3 vN; varying vec3 vObj;\n${LOGV}\nvoid main(){ vHeat = aHeat; vObj = position; vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);\n#include <logdepthbuf_vertex>\n}`,
+    fragmentShader: /* glsl */ `uniform vec3 uSun; uniform float uHot; varying float vHeat; varying vec3 vN; varying vec3 vObj;
       #include <common>
       #include <logdepthbuf_pars_fragment>
       ${NOISE}
@@ -117,6 +119,8 @@ export function makeMoon(scene, glowTex) {
         float hot = smoothstep(0.955, 0.995, rid) * uHot;
         col += vec3(1.0, 0.42, 0.1) * hot * 1.3;
         col += vec3(0.9, 0.35, 0.1) * 0.06 * uHot * (1.0 - max(dot(n, uSun), 0.0));
+        // a piece falling through the air: red-hot, brightest along its cracks
+        col = mix(col, vec3(1.0, 0.32, 0.06) * (1.0 + 1.2 * fbm(vObj * 5.0)), vHeat * 0.92) + vec3(1.0, 0.8, 0.45) * smoothstep(0.93, 0.99, rid) * vHeat * 1.5;
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -128,14 +132,11 @@ export function makeMoon(scene, glowTex) {
   scene.add(dust);
 
   // ---------- meteors: pieces burning in, streaking down to the horizon ----------
-  const MET = [];
-  for (let i = 0; i < 70; i++) {
-    const az = (R() - 0.5) * 1.9, t0 = V_METEORS + Math.pow(R(), 0.9) * (V_IMPACT - V_METEORS - 1.5);
-    const near = R() < 0.25;   // some come down close: huge on screen
-    MET.push({ az, t0, dur: 1.6 + R() * 1.4, dist: near ? 2500 + R() * 3000 : 6000 + R() * 14000, size: near ? 1.6 + R() * 0.8 : 0.8 + R() * 1.2, sideways: (R() - 0.5) * 0.25 });
-  }
+  const MET = METEORS;
+  const metOf = new Map(MET.map((m, i) => [m.chunk, i]));
+  const MOON_YAW = Math.atan2(-dir.x, -dir.z);
   const streakU = { uTime: { value: 0 } };
-  const streakGeo = new THREE.PlaneGeometry(1, 1).translate(0, -0.5, 0);
+  const streakGeo = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);   // y = 0 at the head (the rock), y = 1 at the end of the trail
   const streakMat = new THREE.ShaderMaterial({
     uniforms: streakU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     vertexShader: `varying vec2 vUv;\n${LOGV}\nvoid main(){ vUv = uv; gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);\n#include <logdepthbuf_vertex>\n}`,
@@ -189,6 +190,9 @@ export function makeMoon(scene, glowTex) {
   scene.add(impactFlash);
 
   const dummy = new THREE.Object3D(), tmp = new THREE.Vector3(), q = new THREE.Quaternion();
+  // how far the rubble has spread at time t (in Moon radii)
+  const sepAt = (t) => smooth(V_BREAK, V_BREAK + 9, t) * 1.3 + Math.max(0, t - V_BREAK - 9) * 0.06;
+  const mHead = MET.map(() => new THREE.Vector3()), mR = new Float32Array(MET.length), mHeat = new Float32Array(MET.length), mOn = new Uint8Array(MET.length);
   M.frame = (v, s, cam) => {
     const ang = s.moonAng;                         // angular radius (rad)
     const center = cam.position.clone().addScaledVector(dir, D);
@@ -203,47 +207,38 @@ export function makeMoon(scene, glowTex) {
     // the rubble: chunks appear as the Moon fades, then drift apart (the cloud keeps growing as it comes closer)
     const br = s.breakup, show = v > V_BREAK + 0.2;
     const Rc = Math.min(R0, D * Math.tan(0.11));   // the rubble cloud's size (capped)
-    rocks.visible = show;
-    CU.uHot.value = show ? 1 - smooth(V_BREAK + 4, V_BREAK + 20, v) * 0.6 : 0;
-    if (show) {
-      const sep = br * 1.3 + Math.max(0, v - V_BREAK - 9) * 0.06;
-      chunk.forEach((c, i) => {
-        const fall = i === 0 ? smooth(V_IMPACT - 8, V_IMPACT, v) : 0;   // the biggest piece leaves the cloud and comes down
-        tmp.copy(c.p).addScaledVector(c.v, sep);
-        dummy.position.copy(center).addScaledVector(tmp, Rc);
-        if (fall > 0) dummy.position.lerp(IMPACT.clone().setY(Rc * c.s * 0.5), fall * fall);
-        const sz = Rc * c.s * (i === 0 ? 1 + fall * 0.8 : 1);
-        dummy.scale.setScalar(sz * smooth(V_BREAK + 0.2, V_BREAK + 1.6, v));
-        q.setFromAxisAngle(c.spin, c.ph + (v - V_BREAK) * c.sp * 0.1);
-        dummy.quaternion.copy(q);
-        dummy.updateMatrix();
-        rocks.setMatrixAt(i, dummy.matrix);
-      });
-      rocks.instanceMatrix.needsUpdate = true;
-    }
-    dust.position.copy(center); dust.scale.setScalar(Rc * (2 + 6 * br)); dust.material.opacity = 0.35 * smooth(V_BREAK, V_BREAK + 3, v) * (1 - smooth(V_BREAK + 6, V_BREAK + 16, v));
-    // meteors: from the rubble cloud down to the horizon, glowing streaks, a flash where each one lands
+    // meteors: rocks that drop out of the cloud, heat up, and streak down to the horizon (a fire where each one lands)
     streakU.uTime.value = v;
+    const hide = (i) => { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); heads.setMatrixAt(i, dummy.matrix); };
     MET.forEach((m, i) => {
       const k = (v - m.t0) / m.dur;
-      const start = center.clone().addScaledVector(T1, Math.sin(m.az) * Rc * 3).addScaledVector(T2, -Rc * 0.4);
-      const end = cam.position.clone().add(new THREE.Vector3(Math.sin(-m.az * 0.6 + 0.17) * -m.dist, 0, -Math.cos(-m.az * 0.6 + 0.17) * m.dist)).setY(0);
-      if (k < 0 || k > 1) { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); heads.setMatrixAt(i, dummy.matrix); }
+      const c = chunk[m.chunk];
+      const start = center.clone().addScaledVector(tmp.copy(c.p).addScaledVector(c.v, sepAt(m.t0)), Rc);   // where it was in the cloud
+      // it lands roughly under where it left the cloud (pulled a little toward the middle of the view)
+      const yaw = MOON_YAW + (Math.atan2(-(start.x - cam.position.x), -(start.z - cam.position.z)) - MOON_YAW) * 0.7;
+      const end = cam.position.clone().add(new THREE.Vector3(-Math.sin(yaw) * m.dist, 0, -Math.cos(yaw) * m.dist)).setY(0);
+      mOn[i] = k > 0 && k < 1 ? 1 : k >= 1 ? 2 : 0;
+      if (mOn[i] !== 1) hide(i);
       else {
-        const e = k * k;                              // speeding up as it falls
-        const head = start.clone().lerp(end, e);
-        const back = start.clone().lerp(end, Math.max(0, e - 0.35));
+        const e = k * k;                              // slow as it drops out, speeding up as it falls
+        const head = mHead[i].copy(start).lerp(end, e);
+        const h = smooth(0.1, 0.45, k);               // burning in: the rock glows and grows a trail
+        mHeat[i] = h;
+        const r = Math.min(Rc * c.s, head.distanceTo(cam.position) * 0.06);   // (close ones capped so they don't fill the screen)
+        mR[i] = r;
+        const back = start.clone().lerp(end, Math.max(0, e - 0.45));   // the trail reaches back toward the cloud
         const len = head.distanceTo(back);
-        if (!(len > 5)) { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); heads.setMatrixAt(i, dummy.matrix); flashes.setMatrixAt(i, dummy.matrix); return; }
-        dummy.position.copy(back);
-        const up = back.clone().sub(head).normalize();
-        const toCam = cam.position.clone().sub(back).normalize();
-        const side = new THREE.Vector3().crossVectors(up, toCam).normalize();
-        const fwd = new THREE.Vector3().crossVectors(side, up);
-        dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side, up.clone().negate(), fwd));
-        dummy.scale.set(Math.min(len * 0.1, 2600) * m.size, len, 1);
-        dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix);
-        dummy.position.copy(head); dummy.quaternion.copy(cam.quaternion); dummy.scale.setScalar(Math.min(len * 0.32, 7000) * m.size); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
+        if (len > 5 && h > 0.001) {
+          dummy.position.copy(head);
+          const up = back.clone().sub(head).normalize();
+          const toCam = cam.position.clone().sub(back).normalize();
+          const side = new THREE.Vector3().crossVectors(up, toCam).normalize();
+          const fwd = new THREE.Vector3().crossVectors(side, up);
+          dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side, up, fwd));
+          dummy.scale.set(r * 2.6 * h * Math.min(m.size, 1.6), len, 1);
+          dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix);
+        } else { dummy.scale.setScalar(0); dummy.updateMatrix(); streaks.setMatrixAt(i, dummy.matrix); }
+        dummy.position.copy(head); dummy.quaternion.copy(cam.quaternion); dummy.scale.setScalar(r * (2 + 6 * h) * h); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
       }
       const f = v - (m.t0 + m.dur);
       // the landing: a big flash, then a fire that keeps burning on the horizon
@@ -251,6 +246,33 @@ export function makeMoon(scene, glowTex) {
       else dummy.scale.setScalar(0);
       dummy.updateMatrix(); flashes.setMatrixAt(i, dummy.matrix);
     });
+    rocks.visible = show;
+    CU.uHot.value = show ? 1 - smooth(V_BREAK + 4, V_BREAK + 20, v) * 0.6 : 0;
+    if (show) {
+      const sep = sepAt(v);
+      chunk.forEach((c, i) => {
+        const mi = metOf.get(i);
+        let hot = 0;
+        if (mi !== undefined && mOn[mi] === 2) dummy.scale.setScalar(0);   // it already fell
+        else if (mi !== undefined && mOn[mi] === 1) {                       // falling right now
+          dummy.position.copy(mHead[mi]); dummy.scale.setScalar(mR[mi]); hot = mHeat[mi];
+        } else {
+          const fall = i === 0 ? smooth(V_IMPACT - 8, V_IMPACT, v) : 0;   // the biggest piece leaves the cloud and comes down
+          tmp.copy(c.p).addScaledVector(c.v, sep);
+          dummy.position.copy(center).addScaledVector(tmp, Rc);
+          if (fall > 0) dummy.position.lerp(IMPACT.clone().setY(Rc * c.s * 0.5), fall * fall);
+          const sz = Rc * c.s * (i === 0 ? 1 + fall * 0.8 : 1);
+          dummy.scale.setScalar(sz * smooth(V_BREAK + 0.2, V_BREAK + 1.6, v));
+        }
+        q.setFromAxisAngle(c.spin, c.ph + (v - V_BREAK) * c.sp * (0.1 + hot * 0.8));
+        dummy.quaternion.copy(q);
+        dummy.updateMatrix();
+        rocks.setMatrixAt(i, dummy.matrix);
+        heat.setX(i, hot);
+      });
+      rocks.instanceMatrix.needsUpdate = true; heat.needsUpdate = true;
+    }
+    dust.position.copy(center); dust.scale.setScalar(Rc * (2 + 6 * br)); dust.material.opacity = 0.35 * smooth(V_BREAK, V_BREAK + 3, v) * (1 - smooth(V_BREAK + 6, V_BREAK + 16, v));
     streaks.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = flashes.instanceMatrix.needsUpdate = true;
     // the impact: a white flash, then a dome of fire rising and spreading toward us
     const it = v - V_IMPACT;
