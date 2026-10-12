@@ -155,6 +155,55 @@ Cover: `speed-doubles/out/speed-doubles_v4_cover.png`
 What if every electron disappeared? Your coin = 7,500 nukes ⚛️ #whatif #physics
 
 **YouTube description**
+Noon at Shibuya Crossing in Tokyo. Then every electron on Earth vanishes.
+
+No electrons, no electricity: every screen dies at once.
+Nothing scatters sunlight, so the sky turns black at noon and light passes straight through everything.
+Every atom is now pure positive charge, and positive charges push each other apart.
+The coin in your pocket holds as much energy as 7,500 of the biggest nukes ever built. Your body, as much as the Sun puts out in 7 minutes.
+Earth bursts apart at almost the speed of light. 1.3 seconds later it hits the Moon. 8 minutes later the Sun explodes too, then Jupiter (42 minutes), Saturn (73 minutes) and Neptune (4 hours).
+
+What should disappear next? 👇
+
+#whatif #physics #science #space #simulation #electrons
+
+**TikTok**
+POV: you're at Shibuya Crossing at noon when every electron on Earth vanishes. Every screen in Tokyo dies, the sky turns black at noon and light passes straight through everything, even the people around you. Every atom is now pure positive charge, and positive charges repel: the coin in your pocket holds 7,500 of the biggest nukes ever built. Earth bursts apart at almost the speed of light, hits the Moon 1.3 seconds later, and 8 minutes later the Sun explodes too. Then Jupiter, Saturn, Neptune. What should disappear next? 👇
+
+#whatif #physics #science #space #simulation #pov #electrons #fyp
+
+Cover: `electrons/out/electrons_v4_cover.png`
+
+## Day 8. The Moon falls to Earth — `moon-falls/out/moon-falls_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (96 chars)**
+What if the Moon fell to Earth? Each hit = a million times every nuke on Earth 🌕 #whatif #space
+
+**YouTube description**
+The Moon has stopped orbiting and is falling straight at Earth. It's 20,000 miles away and already looks 12 times bigger than it should.
+
+Its pull drags the ocean into the streets and floods the city, while earthquakes shake every tower.
+At 11,500 miles, Earth's gravity tears the Moon apart into a cloud of rubble.
+Pieces the size of countries rain down at 22,000 mph, each one hitting a million times harder than all the nukes on Earth.
+They land closer and closer: the islands across the bay, the bay itself, the towers across the water, then half a mile away. The biggest is 500 miles wide.
+
+Would you rather be on the side facing the Moon, or the other side of the planet? 👇
+
+#whatif #moon #space #science #physics #simulation
+
+**TikTok**
+POV: the Moon stopped orbiting and it's falling at Earth. It's 20,000 miles away and already 12 times bigger than it should be. Its pull drags the ocean into the streets, earthquakes shake every tower, and at 11,500 miles Earth's gravity tears it apart. Then the pieces start to fall, every one hitting at 22,000 mph, a million times harder than all the nukes on Earth. First the islands across the bay are blown apart, then the bay boils, the towers across the water come down, and the next one lands half a mile from you. And the biggest piece, 500 miles wide, is still coming. Where would you hide? 👇
+
+#whatif #moon #space #science #physics #simulation #pov #fyp
+
+Cover: `moon-falls/out/moon-falls_v4_cover.png`
+
+## Day 9. Every woman disappears — `women-vanish/out/women-vanish_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (80 chars)**
+What if every woman disappeared? The last human dies in 2143 😳 #whatif #science
+
+**YouTube description**
 Noon at Shibuya Crossing, Tokyo. In one instant, every woman and girl on Earth vanishes: 4 billion people, half of humanity.
 
 Their bags and phones drop to the street. Cars with nobody at the wheel crash into the traffic.
