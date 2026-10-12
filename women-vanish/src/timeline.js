@@ -33,10 +33,14 @@ function logCurve(pts) {   // monotone cubic through (v, log(tau + 1))
   };
 }
 const lapse = logCurve([[V_RISE, 8], [12.5, 600], [15.5, 3 * HOUR], [18.0, 6.3 * HOUR], [19.5, 7.6 * HOUR], [22.5, 17.4 * HOUR], [24.5, 19.5 * HOUR],
-  [28.0, 30 * DAY], [31.0, YR], [34.5, 15 * YR], [37.6, 47 * YR], [41.2, 53 * YR], [42.6, 97 * YR], [45.3, 103 * YR], [46.6, 116 * YR], [49.8, 119 * YR], [55.0, 200 * YR], [64.0, 400 * YR]]);
+  [28.0, 30 * DAY], [31.0, YR], [34.5, 15 * YR], [37.6, 47 * YR], [41.2, 53 * YR], [42.6, 97 * YR], [45.3, 103 * YR], [45.95, 117.4 * YR], [51.05, 120 * YR], [55.0, 200 * YR], [64.0, 400 * YR]]);
 // (the years slow down around the captions that name them, so the counter shows the same year)
-// real time (s) since the vanishing: real time until V_RISE, then a time-lapse
-export const tauAt = (v) => (v < V_RISE ? v - V_EVENT : lapse(v));
+// the last man: a few seconds at normal speed in 2143, on a bench at the crossing where it began
+export const V_LAST0 = 46.0, V_DEATH = 48.6, V_LAST1 = 51.0;
+export const LAST_BENCH = { x: 26.2, z: 24.2, yaw: -0.75 * Math.PI };   // (he faces south-west, out over the crossing)
+const HOLD = 117.75 * YR;
+// real time (s) since the vanishing: real time until V_RISE, then a time-lapse (held still for the last man)
+export const tauAt = (v) => (v < V_RISE ? v - V_EVENT : v >= V_LAST0 && v < V_LAST1 ? HOLD + (v - V_LAST0) : lapse(v));
 export const rateAt = (v) => (v < V_RISE ? 1 : (tauAt(v + 0.01) - tauAt(v - 0.01)) / 0.02);
 export const yearsAt = (v) => Math.max(0, tauAt(v)) / YR;
 export const hourOfDay = (v) => 12 + Math.max(0, tauAt(v)) / HOUR;   // (day 1 only)
@@ -56,6 +60,7 @@ const POP_T = [];   // population every quarter year for 130 years
 export const WORLD_BEFORE = 8.27e9;
 export const menLeft = (yrs) => { const x = clamp(yrs * 4, 0, POP_T.length - 1), i = Math.floor(x), f = x - i; const p = POP_T[i] + ((POP_T[Math.min(i + 1, POP_T.length - 1)] ?? 0) - POP_T[i]) * f; return p < 1 ? 0 : p; };
 export function peopleOnEarth(v) {
+  if (v >= V_LAST0 && v < V_LAST1) return v < V_DEATH ? 1 : 0;   // (him)
   if (v < V_EVENT) return WORLD_BEFORE + (v - V_EVENT) * 2.3;   // (births minus deaths: +2.3 a second)
   const after = menLeft(yearsAt(v));
   const k = smooth(V_EVENT, V_EVENT + 1.6, v);                    // the counter plunges
@@ -97,8 +102,9 @@ export const CAPTIONS = [
   [34.7, 37.6, 'With nobody to fix them, buildings start to crumble.'],
   [37.8, 41.2, 'Year 2076: the youngest people alive are 50.'],
   [42.7, 45.3, 'Year 2126: the youngest are 100.'],
-  [46.4, 49.8, 'Year 2143: the last human on Earth dies.'],
-  [50.6, 55.6, 'Within 200 years, even the towers come down.'],
+  [V_LAST0 + 0.2, V_DEATH - 0.1, 'Year 2143. One person is left on Earth.'],
+  [V_DEATH + 0.4, V_LAST1 - 0.1, 'The last human dies.'],
+  [V_LAST1 + 0.3, 55.6, 'Within 200 years, even the towers come down.'],
   [56.0, 60.5, 'Who would you miss first?'],
 ];
 export function captionAt(v) {
@@ -142,6 +148,7 @@ export function state(v) {
   s.gone = v >= V_EVENT ? 1 : 0;
   s.sun = sunDir(v);
   s.night = nightAt(v);
+  s.last = v >= V_LAST0 && v < V_LAST1 ? 1 : 0;
   s.inside = v >= V_WARD && v < V_CLASS ? 'ward' : v >= V_CLASS && v < V_BACK ? 'class' : '';
   s.power = 1 - smooth(25.2, 26.4, v);                       // the grid fails within weeks
   s.green = 1 - Math.exp(-s.years / 22);                      // the city going green

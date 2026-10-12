@@ -8,7 +8,7 @@ import { makeSky } from './sky.js';
 import { makeShibuya } from './shibuya.js';
 import { makeInteriors } from './interiors.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH, V_WARD, V_CLASS, V_BACK } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH, V_WARD, V_CLASS, V_BACK, V_LAST0, V_DEATH, V_LAST1, LAST_BENCH } from './timeline.js';
 import { CAM0 } from './people.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
@@ -96,6 +96,19 @@ function placeCamera(v) {
   cam.updateMatrixWorld();
 }
 
+// the last man: from behind his right shoulder, the overgrown crossing in front of him, pushing in slowly
+function lastCamera(v) {
+  const k = smooth(V_LAST0, V_LAST1, v), fx = Math.sin(LAST_BENCH.yaw), fz = Math.cos(LAST_BENCH.yaw), rx = -fz, rz = fx;
+  const back = lerp(4.6, 2.0, k), side = lerp(1.9, 1.1, k);
+  cam.position.set(LAST_BENCH.x - fx * back + rx * side, lerp(2.15, 1.75, k), LAST_BENCH.z - fz * back + rz * side);
+  const lead = lerp(1.4, 0.5, k);   // (aimed a little past him: you see what he's looking at)
+  const tgt = new THREE.Vector3(LAST_BENCH.x + fx * lead, lerp(1.05, 0.95, k), LAST_BENCH.z + fz * lead);
+  const d = tgt.sub(cam.position);
+  cam.rotation.set(Math.atan2(d.y, Math.hypot(d.x, d.z)) + wobble(v * 0.4, 7) * 0.15 * DEG, Math.atan2(-d.x, -d.z) + wobble(v * 0.35, 8) * 0.2 * DEG, 0);
+  cam.fov = 50;
+  cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+}
+
 // the cutaways inside: a slow push down the ward; a slow push from the back of the classroom
 function insideCamera(v, s) {
   if (s.inside === 'ward') {
@@ -128,7 +141,7 @@ function update(v, cover = -1) {
     return s;
   }
   renderPass.scene = scene; renderPass.camera = cam;
-  placeCamera(v);
+  if (s.last) lastCamera(v); else placeCamera(v);
   sky.mesh.position.copy(cam.position);
   sky.uniforms.uPx.value = (2 * Math.tan((cam.fov * DEG) / 2)) / RH;
   sky.uniforms.uSunDir.value.fromArray(s.sun);

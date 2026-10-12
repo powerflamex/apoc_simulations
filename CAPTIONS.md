@@ -161,14 +161,14 @@ Their bags and phones drop to the street. Cars with nobody at the wheel crash in
 9 in 10 nurses are gone. 2 in 3 primary school teachers, and half of every class.
 Stoves left on at lunch set the city on fire. Half the workforce is gone, and everything stops.
 About 360,000 babies are born every day. From that moment: none.
-The men grow old, the buildings crumble, and around 2143 the last human on Earth dies. Within 200 years even the towers come down.
+The men grow old, the buildings crumble, and around 2143 the last man alive sits down on a bench at the crossing and dies. Within 200 years even the towers come down.
 
 Who would you miss first? 👇
 
 #whatif #science #humanity #tokyo #shibuya #simulation
 
 **TikTok**
-POV: you're at Shibuya Crossing at noon when every woman and girl on Earth vanishes at once. 4 billion people, half of humanity, gone mid-step. Their bags hit the street and a car with nobody at the wheel slams into the traffic. In hospitals, 9 in 10 nurses are gone; in schools, 2 in 3 teachers and half of every class. Stoves left on at lunch set Tokyo on fire, the power fails, and about 360,000 babies a day become zero, forever. The men grow old, the city goes green and crumbles, and around 2143 the last human on Earth dies. Who would you miss first? 👇
+POV: you're at Shibuya Crossing at noon when every woman and girl on Earth vanishes at once. 4 billion people, half of humanity, gone mid-step. Their bags hit the street and a car with nobody at the wheel slams into the traffic. In hospitals, 9 in 10 nurses are gone; in schools, 2 in 3 teachers and half of every class. Stoves left on at lunch set Tokyo on fire, the power fails, and about 360,000 babies a day become zero, forever. The men grow old, the city goes green and crumbles, and around 2143 the last human on Earth dies alone on a bench at the same crossing. Who would you miss first? 👇
 
 #whatif #science #humanity #tokyo #shibuya #simulation #pov #fyp
 

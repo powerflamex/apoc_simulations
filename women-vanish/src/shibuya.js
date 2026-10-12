@@ -9,7 +9,7 @@ import { patch, G } from './bend.js';
 import { rng, smooth, clamp, lerp, DEG } from './util.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd } from './crowd.js';
-import { V_EVENT, V_RISE } from './timeline.js';
+import { V_EVENT, V_RISE, V_LAST0, V_DEATH, V_LAST1, LAST_BENCH } from './timeline.js';
 import { RX, RZ, CW, CARS, carsAlong, carPose, RACER, racerPose } from './traffic.js';
 import { B, QF, SQ, L109, insideB, FIRES, FALL, fallSpan, SHOWCASE, FALL109 } from './blocks.js';
 import { makeSmoke } from './smoke.js';
@@ -253,6 +253,7 @@ export function makeShibuya(scene) {
   for (let n = 0; n < 6000 && bushes.length < 1700; n++) {
     const r = 6 + Math.pow(RG(), 0.7) * 150, a = RG() * 6.283, x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (insideB(x, z)) continue;
+    if (Math.hypot(x - LAST_BENCH.x, z - LAST_BENCH.z) < 8.5) continue;   // (clear round the last man's bench)
     bushes.push({ x, z, s: 0.35 + Math.pow(RG(), 2) * 1.6, b: Math.pow(RG(), 0.8) * 0.85, yaw: RG() * 6.28, c: RG() });
   }
   const bushMesh = shadowy(new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1).scale(1, 0.7, 1).translate(0, 0.45, 0), plainMat(0xffffff, 0.95, { flatShading: true }), bushes.length));
@@ -262,6 +263,7 @@ export function makeShibuya(scene) {
   for (let n = 0; n < 3000 && trees.length < 130; n++) {
     const r = 8 + Math.pow(RG(), 0.8) * 140, a = RG() * 6.283, x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (insideB(x, z, 2.5)) continue;
+    if (Math.hypot(x - LAST_BENCH.x, z - LAST_BENCH.z) < 11) continue;
     if (Math.abs(x) < RX - 2 && Math.abs(z) < RZ - 2 && RG() < 0.8) continue;   // (the crossing itself stays mostly open: you still see the stripes)
     trees.push({ x, z, h: 5 + RG() * 7, b: 0.35 + RG() * 0.55, c: RG(), yaw: RG() * 6.28 });
   }
@@ -280,6 +282,19 @@ export function makeShibuya(scene) {
   // ---------- fires on the first afternoon and night: a glow on the roof, smoke pouring off ----------
   const fireGlow = FIRES.map(() => { const o = new THREE.Sprite(new THREE.SpriteMaterial({ map: S.glowTex, color: 0xff7a2a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0 })); scene.add(o); return o; });
   const smoke = makeSmoke(scene);
+  // ---------- the last man: an old man alone on a mossy bench at the corner where it began ----------
+  const lastMan = makeCrowd(scene, 1, plainMat(0xffffff, 0.85), { castShadow: true });
+  lastMan.color(0, 0x6b6258, 0x3a3836, 0xdcb494, 0xe4e2de, true);   // grey cardigan, white hair
+  const bench = new THREE.Group();
+  {
+    const wood = plainMat(0x5d6a48, 0.95), iron = plainMat(0x2e3030, 0.6);
+    const add = (m, w, h, d, x, y, z, rx = 0) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.x = rx; o.castShadow = o.receiveShadow = true; bench.add(o); };
+    add(wood, 1.7, 0.05, 0.42, 0, 0.45, 0.02); add(wood, 1.7, 0.22, 0.04, 0, 0.62, -0.2, -0.15);
+    for (const x of [-0.75, 0.75]) { add(iron, 0.05, 0.45, 0.4, x, 0.22, 0); add(iron, 0.05, 0.3, 0.04, x, 0.6, -0.2, -0.15); }
+    add(plainMat(0x4a3628, 0.7), 0.03, 0.92, 0.03, 0.55, 0.45, 0.32, 0.22);   // his cane, leaning
+  }
+  bench.position.set(LAST_BENCH.x, 0.15, LAST_BENCH.z); bench.rotation.y = LAST_BENCH.yaw;
+  scene.add(bench);
   // ---------- lights ----------
   const sun = new THREE.DirectionalLight(0xfff2e0, 3.2);
   sun.castShadow = true;
@@ -410,6 +425,14 @@ export function makeShibuya(scene) {
       S.screenMesh.instanceMatrix.needsUpdate = S.signMesh.instanceMatrix.needsUpdate = true;
     }
     smoke.end();
+    // the last man: looking out over the crossing, then his head drops and he slumps; still after that
+    bench.visible = v >= V_LAST0 - 0.01 && v < V_LAST1 + 0.01;
+    if (bench.visible) {
+      const d = smooth(V_DEATH, V_DEATH + 1.6, v), breathe = (1 - d) * Math.sin((v - V_LAST0) * 2.2) * 0.012;
+      lastMan.pose(0, { x: LAST_BENCH.x, y: 0.17, z: LAST_BENCH.z, yaw: LAST_BENCH.yaw + 0.12 * (1 - d), s: 0.94, sit: 1,
+        pitch: 0.1 + breathe + 0.38 * d, roll: -0.28 * d, look: lerp(lerp(0.32, 0.05, smooth(V_LAST0 + 0.5, V_DEATH - 0.4, v)), -1.15, d), armR: 0.32 * (1 - d), armL: 0.12 * (1 - d) });
+    } else lastMan.pose(0, { x: 0, y: 0, z: 0, visible: false });
+    lastMan.commit();
 
     // people: the women until they vanish; the men stop, look around, and leave during the time-lapse
     PEOPLE.forEach((p, i) => {

@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH, V_WARD, V_CLASS, V_BACK } from './src/timeline.js';
+import { state, VIDEO_DURATION, LOOP, V_EVENT, V_RISE, V_SUNUP, T_SWITCH, V_WARD, V_CLASS, V_BACK, V_LAST0, V_DEATH, V_LAST1 } from './src/timeline.js';
 import { BUMPS, RACER } from './src/traffic.js';
 import { B, FALL, fallSpan, FALL109 } from './src/blocks.js';
 import { ITEMS, CAM0 } from './src/people.js';
@@ -58,6 +58,10 @@ export function makeSoundtrack(outFile) {
   const windF = new SVF(), windLP = new OnePole(0.4), rushF = new SVF(), padLP = new OnePole(600), thumpLP = new OnePole(80), cricketE = new OnePole(30);
   const crashLP = new OnePole(160), crashLP2 = new OnePole(110), crashF = new SVF(), alarmLP = new OnePole(2200), fireLP = new OnePole(150), fireLP2 = new OnePole(100), humLP = new OnePole(140);
   const kidF = [new SVF(), new SVF()], kidE = [new OnePole(4), new OnePole(4)];
+  const heartLP = new OnePole(70);
+  // the last man's heartbeat: slowing, fainter, the last one just before he slumps
+  const beats = [];
+  for (let t = V_LAST0 + 0.25, gap = 0.95; t < V_DEATH - 0.05; t += gap, gap *= 1.12) beats.push(t);
   const revL = new Reverb(1), revR = new Reverb(2);
   const ph = new Float64Array(24);
 
@@ -208,6 +212,17 @@ export function makeSoundtrack(outFile) {
         l += x * wC; r += x * wC; wet += x * wC * 0.7;
       }
     }
+    // with the last man: everything else drops away to the wind; his heartbeat (lub-dub), then nothing
+    {
+      const quiet = smooth(V_LAST0 - 0.05, V_LAST0 + 0.05, v) * (1 - smooth(V_LAST1 - 0.05, V_LAST1 + 0.6, v));
+      if (quiet > 0) { l *= 1 - 0.75 * quiet; r *= 1 - 0.75 * quiet; wet *= 1 - 0.75 * quiet; }
+      if (quiet > 0) {
+        let h = 0;
+        beats.forEach((t, k) => { const fade = 1 - 0.5 * k / beats.length; for (const [o, g] of [[0, 1], [0.16, 0.65]]) { const d = v - t - o; if (d > 0 && d < 0.18) h += Math.sin(TAU * 52 * d) * Math.exp(-d * 28) * g * fade; } });
+        const x = heartLP.run(h) * 0.55 * quiet;
+        l += x; r += x; wet += x * 0.2;
+      }
+    }
     // a low, slow chord under the time-lapse, swelling into the white
     {
       const k = smooth(V_RISE, 16, v) * (1 - smooth(T_SWITCH, T_SWITCH + 0.3, v));
@@ -215,7 +230,7 @@ export function makeSoundtrack(outFile) {
         let pv = 0;
         [55, 82.4, 110, 164.8, 220].forEach((f, i) => { ph[8 + i] += f * (1 + 0.003 * i) / SR; pv += saw(ph[8 + i]) * [0.5, 0.35, 0.3, 0.2, 0.12][i]; });
         padLP.set(300 + 1600 * smooth(V_SUNUP, T_SWITCH, v));
-        pv = padLP.run(pv) * 0.06 * k * (0.7 + 0.8 * smooth(V_SUNUP - 4, T_SWITCH, v));
+        pv = padLP.run(pv) * 0.06 * k * (0.7 + 0.8 * smooth(V_SUNUP - 4, T_SWITCH, v)) * (1 - smooth(V_LAST0 - 0.3, V_LAST0 + 0.1, v) * (1 - smooth(V_LAST1 - 0.2, V_LAST1 + 1.2, v)));
         l += pv; r += pv; wet += pv * 0.7;
       }
     }
