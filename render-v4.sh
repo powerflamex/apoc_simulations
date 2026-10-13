@@ -15,14 +15,14 @@ clean_old() {
     [ "$f" = "$m" ] || [ "$f" = "${m%.mp4}_tiktok.mp4" ] || { rm -f "$f"; echo "$d: removed old $(basename "$f")"; }
   done
 }
-# The channel watermark (branding/lunarzone_watermark_wide.png) is stamped on the upload copy, top-left in line
-# with the counter. It stays off for the first 3 s (frame 0 is only the question and the number) and fades out
+# The channel watermark (branding/lunarzone_watermark_text.png: small, half see-through text) is stamped on the
+# upload copy, top-left in line with the counter. It stays off for the first 3 s (frame 0 is only the question and the number) and fades out
 # before the loop point (video length minus ~1 s) so the last frame still matches the first.
-WM=branding/lunarzone_watermark_wide.png
+WM=branding/lunarzone_watermark_text.png
 upload_copy() {
   local d=$1 m=$2 t=$SECONDS
   local out=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$m" | awk '{print $1 - 1.0 - 1.8}')
-  nice -n 19 ffmpeg -y -loglevel error -i "$m" -framerate 60 -loop 1 -i "$WM" -filter_complex     "[1:v]scale=330:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.8,fade=in:st=3:d=0.5:alpha=1,fade=out:st=$out:d=1:alpha=1[w];[0:v][w]overlay=74:170:shortest=1[v]"     -map "[v]" -map 0:a -c:v libx264 -threads 4 -preset medium -crf 18 -maxrate 24M -bufsize 48M -pix_fmt yuv420p -profile:v high -level 5.1 -c:a copy -movflags +faststart "${m%.mp4}_tiktok.mp4" \
+  nice -n 19 ffmpeg -y -loglevel error -i "$m" -framerate 60 -loop 1 -i "$WM" -filter_complex     "[1:v]format=rgba,colorchannelmixer=aa=0.5,fade=in:st=3:d=0.5:alpha=1,fade=out:st=$out:d=1:alpha=1[w];[0:v][w]overlay=74:180:shortest=1[v]"     -map "[v]" -map 0:a -c:v libx264 -threads 4 -preset medium -crf 18 -maxrate 24M -bufsize 48M -pix_fmt yuv420p -profile:v high -level 5.1 -c:a copy -movflags +faststart "${m%.mp4}_tiktok.mp4" \
     && echo "$d done: ${m%.mp4}_tiktok.mp4 (upload copy $((SECONDS - t)) s)" && clean_old "$d" "$m" || echo "$d upload copy FAILED"
 }
 # --copy-only: skip the render and just remake the upload copies from the videos already in out/
