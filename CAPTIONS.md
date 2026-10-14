@@ -240,6 +240,8 @@ How far from Yellowstone do you live? 👇
 
 #whatif #yellowstone #volcano #supervolcano #science #simulation
 
+Cover: `yellowstone/out/yellowstone_v4_cover.png` (`node render.mjs --cover 8`)
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
