@@ -223,6 +223,23 @@ POV: you're at Shibuya Crossing at noon when every woman and girl on Earth vanis
 
 Cover: `women-vanish/out/women-vanish_v4_cover.png`
 
+## Day 10. Yellowstone erupts — `yellowstone/out/yellowstone_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (73 chars)**
+What if Yellowstone erupted? You're 60 miles away 😳 #whatif #yellowstone
+
+**YouTube description**
+A lake town 60 miles south of Yellowstone, on a summer afternoon. The supervolcano has just erupted.
+
+The ash shoots 25 miles into the sky, and the cloud spreads 130 miles wide. 4 minutes later, the boom reaches you.
+Day turns to night. Ash falls like snow, but it's tiny bits of rock and glass: 3 feet of it.
+Cars choke on it and stall. Just 4 inches of wet ash can cave in a roof. Power lines snap.
+Then a cloud of red-hot ash comes over the ridge at 300 mph. It's 1,000°F inside, and it boils the lake as it crosses.
+
+How far from Yellowstone do you live? 👇
+
+#whatif #yellowstone #volcano #supervolcano #science #simulation
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
