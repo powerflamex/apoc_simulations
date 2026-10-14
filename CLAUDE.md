@@ -65,8 +65,10 @@ Use this for every new video and every rework:
   that `main.js` switches between; `textures/` holds NASA's public-domain Earth maps.
 - `crowd.js` and `cars.js` are the same file in every project: edit one, copy to the others.
 - Rendering speed: `render.mjs` runs two Chromes on alternate 10 s segments, encodes H.264 on the GPU's video
-  encoder when Chrome has one (it falls back to the CPU by itself and logs `encoder: ...`), and `render-v4.sh`
-  compresses each upload copy in the background while the next video renders. If a render misbehaves, the old
+  encoder when Chrome has one (it falls back to the CPU by itself and logs `encoder: ...`), and makes the upload
+  copy (`--upload`, x264 CRF 18, the channel watermark via `--watermark`) piece by piece on the idle CPU while the
+  GPU draws the next pieces (lowest priority, 4 threads, so the owner's PC stays usable). The GPU (Quadro M620) is
+  at 99% while drawing: a third Chrome does not help. One video takes ~5.5 min in all. If a render misbehaves, the old
   settings are `node render.mjs --workers 1 --software`. `render-v4.sh` prints how long each step took.
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.

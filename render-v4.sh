@@ -2,8 +2,8 @@
 # Re-render the given projects from scratch (v4: action from the first frame, camera moves),
 # then make the upload copies (with the channel watermark).   usage: bash render-v4.sh asteroid sun-vanishes
 # bash render-v4.sh --copy-only asteroid   remakes just the upload copy from the existing video
-# Each upload copy is compressed in the background (lowest priority, 4 of the 8 cores, so the PC stays usable)
-# while the next video renders; then older videos in that
+# The upload copy is compressed on the CPU (lowest priority, 4 of the 8 cores, so the PC stays usable) piece by
+# piece while the GPU renders; then older videos in that
 # project's out/ are deleted (only the new video and its upload copy are kept).
 cd "$(dirname "$0")"
 T0=$SECONDS
@@ -16,9 +16,9 @@ clean_old() {
   done
 }
 # The channel watermark (branding/lunarzone_watermark_text.png: small, half see-through text) is stamped on the
-# upload copy, top-left in line with the counter. It stays off for the first 3 s (frame 0 is only the question and the number) and fades out
+# upload copy, top-left in line with the counter (same settings in render.mjs). It stays off for the first 3 s (frame 0 is only the question and the number) and fades out
 # before the loop point (video length minus ~1 s) so the last frame still matches the first.
-WM=branding/lunarzone_watermark_text.png
+WM="$PWD/branding/lunarzone_watermark_text.png"
 upload_copy() {
   local d=$1 m=$2 t=$SECONDS
   local out=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$m" | awk '{print $1 - 1.0 - 1.8}')
@@ -39,9 +39,10 @@ for d in "$@"; do
   [ -d "$d/node_modules" ] || (cd "$d" && npm install --no-audit --no-fund --loglevel=error) || { echo "$d: npm install FAILED"; continue; }
   rm -rf "$d/out/.segments"
   t=$SECONDS
-  (cd "$d" && node render.mjs --out "out/${name}_1080x1920_60fps.mp4" > out_render_v4.log 2>&1) || { echo "$d FAILED (see $d/out_render_v4.log)"; continue; }
-  echo "$d rendered in $((SECONDS - t)) s ($(grep -m1 '^encoder:' "$d/out_render_v4.log"))"
-  upload_copy "$d" "$d/out/${name}_1080x1920_60fps.mp4" &
+  # render.mjs makes the upload copy itself, piece by piece while it renders (the CPU is idle while the GPU draws)
+  (cd "$d" && node render.mjs --out "out/${name}_1080x1920_60fps.mp4" --upload "out/${name}_1080x1920_60fps_tiktok.mp4"     --watermark "$WM" > out_render_v4.log 2>&1) || { echo "$d FAILED (see $d/out_render_v4.log)"; continue; }
+  echo "$d done in $((SECONDS - t)) s ($(grep -m1 '^encoder:' "$d/out_render_v4.log")): $d/out/${name}_1080x1920_60fps_tiktok.mp4"
+  clean_old "$d" "$d/out/${name}_1080x1920_60fps.mp4"
 done
 wait
 echo "all done in $(((SECONDS - T0) / 60)) min $(((SECONDS - T0) % 60)) s"

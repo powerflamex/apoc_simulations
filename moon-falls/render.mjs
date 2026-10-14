@@ -7,6 +7,9 @@
 //   node render.mjs --grain                 -> keep the film-grain effect (looks worse after TikTok compression)
 //   node render.mjs --screenshot            -> old path: capture page screenshots + x264 (~10x slower)
 //   node render.mjs --workers 1 --software  -> the old, slower settings (one Chrome, H.264 on the CPU)
+//   node render.mjs --upload out/x_tiktok.mp4 [--watermark logo.png]
+//                                           -> also make the upload copy (x264 CRF 18) piece by piece while the
+//                                              later pieces render: the GPU draws, the idle CPU encodes
 // Default path: each frame is composited into one canvas in the page and encoded there with WebCodecs
 // (H.264 High), so only small compressed chunks leave Chrome. Speed: the GPU draws a frame in a few ms but the
 // H.264 encode and the hand-offs take far longer, so two Chromes render alternate segments side by side
@@ -16,6 +19,7 @@
 // if it dies, and simply resumes when re-run.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
@@ -154,9 +158,10 @@ function runOut(cmd, argv) {
   });
 }
 
-function run(cmd, argv) {
+function run(cmd, argv, low = false) {
   return new Promise((res, rej) => {
     const p = spawn(cmd, argv, { stdio: ['ignore', 'inherit', 'inherit'] });
+    if (low) try { os.setPriority(p.pid, os.constants.priority.PRIORITY_LOW); } catch {}   // the PC stays usable
     p.on('close', (c) => (c === 0 ? res() : rej(new Error(`${cmd} exit ${c}`))));
   });
 }
@@ -267,6 +272,33 @@ async function renderSegment(w, seg) {
   }
 }
 
+// ---- upload copy: each finished segment is re-encoded on the CPU (one at a time, lowest priority, 4 cores) while
+// the GPU renders the next ones, then the pieces are joined. Same x264 settings as the old whole-file pass.
+// The watermark is off for the first 3 s and fades out before the loop point (video length minus ~1 s).
+const UPLOAD = arg('upload', null);
+const WATERMARK = arg('watermark', null);
+if (WATERMARK && !fs.existsSync(WATERMARK)) throw new Error(`watermark not found: ${WATERMARK}`);
+const upFile = (seg) => seg.file.replace(/\.mp4$/, '_up.mp4');
+let upChain = Promise.resolve(), upError = null;
+function queueUpload(seg) {
+  if (!UPLOAD || fs.existsSync(upFile(seg))) return;
+  upChain = upChain.then(async () => {
+    if (upError) return;
+    const tmp = upFile(seg) + '.part.mp4';
+    const off = START + seg.f0 / FPS;   // video time of the segment's first frame
+    const wm = WATERMARK ? ['-framerate', String(FPS), '-loop', '1', '-i', WATERMARK, '-filter_complex',
+      `[1:v]setpts=PTS+${off}/TB,format=rgba,colorchannelmixer=aa=0.5,fade=in:st=3:d=0.5:alpha=1,` +
+      `fade=out:st=${END - 2.8}:d=1:alpha=1,setpts=PTS-STARTPTS[w];[0:v][w]overlay=74:180:shortest=1[v]`, '-map', '[v]'] : [];
+    try {
+      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', seg.file, ...wm, '-c:v', 'libx264', '-threads', '4',
+        '-preset', 'medium', '-crf', '18', '-maxrate', '24M', '-bufsize', '48M', '-pix_fmt', 'yuv420p',
+        '-profile:v', 'high', '-level', '5.1', '-r', String(FPS), '-an', tmp], true);
+      fs.renameSync(tmp, upFile(seg));
+    } catch (e) { upError = e; fs.rmSync(tmp, { force: true }); }
+  });
+}
+for (const seg of segs) if (fs.existsSync(seg.file)) queueUpload(seg);
+
 const queue = [...todo];
 async function worker(id) {
   let w = await launch();
@@ -274,7 +306,7 @@ async function worker(id) {
   while (queue.length) {
     const seg = queue.shift();
     for (let attempt = 1; ; attempt++) {
-      try { await renderSegment(w, seg); break; } catch (e) {
+      try { await renderSegment(w, seg); queueUpload(seg); break; } catch (e) {
         console.log(`worker ${id}: segment at frame ${seg.f0} failed (attempt ${attempt}): ${e.message.split('\n')[0]}`);
         if (attempt >= 5) throw e;
         await w.browser.close().catch(() => {});
@@ -305,3 +337,13 @@ if (!NO_AUDIO) {
   fs.unlinkSync(VIDEO_TMP);
 }
 console.log('wrote', OUT);
+if (UPLOAD) {
+  const t1 = performance.now();
+  await upChain;
+  if (upError) throw upError;
+  const upList = path.join(SEG_DIR, 'list_up.txt');
+  fs.writeFileSync(upList, segs.map((s) => `file '${upFile(s).replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));
+  await run('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', upList, '-i', OUT,
+    '-map', '0:v', '-map', '1:a?', '-c', 'copy', '-movflags', '+faststart', UPLOAD]);
+  console.log(`wrote ${UPLOAD} (${((performance.now() - t1) / 1000).toFixed(0)} s after the render)`);
+}
