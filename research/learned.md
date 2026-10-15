@@ -17,6 +17,14 @@
 - YouTube views as of Sun Oct 11 ~9 PM (owner's Studio screenshot): black hole v4 (Oct 7) 1,358,269; speed-doubles
   (Oct 10) 390,266; sun-vanishes (Oct 6) 169,583; asteroid v4 (Oct 8) 153,742; earth-spins (Oct 9) 104,518;
   electrons (Oct 11, under a day) 53,926.
+- Channel export through Oct 13 (owner's Studio CSVs, Oct 14): 4.03M views, +9,846 subs in 10 days. Per video
+  (views / avg view duration of length / subs per 1,000 views): black hole v4 1.91M / 78% / 1.6; speed-doubles 847K /
+  79% / 2.2; asteroid v4 292K / 78% / 2.8; sun-vanishes 269K / 76% / 3.3; earth-spins 181K / 70% / 2.8; moon-falls
+  147K / 71% / 3.0; electrons 119K / 67% / 2.4; earth-falls 102K / 75% / 3.4; women-vanish 80K (1.5 days) / 69% / 1.2;
+  long-form 8.3K / 3:03 avg / 4.3. The two big hits are also the two best-watched (~78-79%). Channel views per day
+  peaked Oct 11 (994K) and are easing (822K, 693K) as the black hole's push fades (461K -> 224K a day).
+- Yellowstone (posted Oct 14 ~10 AM): 34.4K views at ~11 h, 63.6% stayed to watch, avg 0:41 of 1:04 (64%, the lowest
+  so far), +63 subs, still ~2,900 views an hour at 9 PM. Slower start than moon-falls (65K at ~7 h).
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
