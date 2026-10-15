@@ -242,6 +242,26 @@ How far from Yellowstone do you live? 👇
 
 Cover: `yellowstone/out/yellowstone_v4_cover.png` (`node render.mjs --cover 8`)
 
+## Day 11. Gravity doubles every 5 seconds — `gravity-doubles/out/gravity-doubles_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (85 chars)**
+What if gravity doubled every 5 seconds? Earth ends up a black hole 😳 #whatif #space
+
+**YouTube description**
+A riverside plaza at sunset. Then gravity starts doubling every 5 seconds.
+
+2×: you weigh 300 lb. Planes drop out of the sky.
+4×: blood can't reach your brain and you black out. The Ferris wheel folds under its own weight.
+8×: skyscrapers start crushing themselves and the bridge cables snap. 16×: you can't breathe in anymore.
+64×: the clouds fall out of the sky as rain. 512×: solid rock flows like mud. 1,024×: the crushed air glows red-hot.
+At about 6,000×, even atoms can't hold Earth up, and it collapses into a black hole 500 ft wide.
+
+At what number would you be gone? 👇
+
+#whatif #gravity #space #physics #science #simulation
+
+Cover: `gravity-doubles/out/gravity-doubles_v4_cover.png` (`node render.mjs --cover 4`)
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
