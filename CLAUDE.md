@@ -70,6 +70,12 @@ Use this for every new video and every rework:
   GPU draws the next pieces (lowest priority, 4 threads, so the owner's PC stays usable). The GPU (Quadro M620) is
   at 99% while drawing: a third Chrome does not help. One video takes ~5.5 min in all. If a render misbehaves, the old
   settings are `node render.mjs --workers 1 --software`. `render-v4.sh` prints how long each step took.
+  Where the time goes (measured Oct 15): the GPU drawing each frame (JS ~2-6 ms, encoding overlapped). The
+  logarithmic depth buffer that most projects turn on makes the GPU shade every hidden surface: earth-stops switched
+  to a plain depth buffer (camera near plane 0.5 m) and draws 1.5x faster (4.9 -> 3.2 min) with frames that compare
+  visually identical. Use that for new street-scale scenes (compare stills before/after); keep log depth for scenes
+  spanning planets or space (speed-doubles, electrons, earth-falls). After that, the upload copy (x264 medium on 4
+  cores, ~20 s per 5 s of video) is the limit on the whole job (~5.8 min for earth-stops).
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.
 - Post titles and captions for each video are in `CAPTIONS.md`.
