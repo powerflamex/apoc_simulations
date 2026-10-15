@@ -25,6 +25,12 @@
   peaked Oct 11 (994K) and are easing (822K, 693K) as the black hole's push fades (461K -> 224K a day).
 - Yellowstone (posted Oct 14 ~10 AM): 34.4K views at ~11 h, 63.6% stayed to watch, avg 0:41 of 1:04 (64%, the lowest
   so far), +63 subs, still ~2,900 views an hour at 9 PM. Slower start than moon-falls (65K at ~7 h).
+- Views in the first 11 h 12 min (Studio "top recent videos", Oct 14): speed-doubles 119.8K, moon-falls 70.9K,
+  women-vanish 67.3K, electrons 53.8K, yellowstone 34.3K, earth-spins 7.1K, black hole v4 5.1K, earth-falls 646,
+  sun-vanishes 250, asteroid v4 219. Every Short posted after the black hole took off (Oct 9) starts ~10x faster, so
+  the channel's history now buys a big first-day test. The black hole itself had only 5.1K at 11 h and exploded on
+  day 3, so a slow first day doesn't mean a Short is finished. Oct 15 morning: moon-falls 160.8K (~2.9 days),
+  electrons 127.9K (~3.9 days), women-vanish 120.3K (~45 h); all flatten after day 1, the normal Shorts shape.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
