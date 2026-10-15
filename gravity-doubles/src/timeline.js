@@ -48,30 +48,30 @@ export const rockCap = (g) => 7500 / g;
 export const softCap = (g) => (g < 64 ? 6000 / g : 94 * Math.pow(64 / g, 2.2));
 
 export const CAPTIONS = [
-  [2.6, 5.0, '2× gravity. You weigh 300 lb.'],
+  [2.6, 5.0, 'Gravity doubled. You weigh 300 lb.'],
   [5.2, 7.4, 'Planes drop out of the sky.'],
-  [7.6, 10.0, '4×. Blood can’t reach your brain. You black out.'],
+  [7.6, 10.0, 'Blood can’t reach your brain. You black out.'],
   [10.2, 12.4, 'The Ferris wheel folds under its own weight.'],
-  [12.6, 15.0, '8×. Skyscrapers start crushing themselves.'],
+  [12.6, 15.0, 'Skyscrapers start crushing themselves.'],
   [15.2, 17.4, 'The bridge cables snap.'],
-  [17.6, 19.9, '16×. You can’t breathe in anymore.'],
+  [17.6, 19.9, 'You can’t breathe in anymore.'],
   [20.1, 22.4, 'Your heart can’t lift blood this heavy.'],
-  [22.6, 25.0, '32×. Every building in the city comes down.'],
+  [22.6, 25.0, 'Every building in the city comes down.'],
   [25.2, 27.4, 'The dust is too heavy to rise.'],
-  [27.6, 30.0, '64×. The clouds fall out of the sky.'],
+  [27.6, 30.0, 'The clouds fall out of the sky.'],
   [30.2, 32.4, 'They hit the ground as rain.'],
-  [32.6, 35.0, '128×. The air weighs like the sea 4,000 ft down.'],
+  [32.6, 35.0, 'The air weighs like the sea 4,000 ft down.'],
   [35.2, 37.4, 'The rubble is pressed flat.'],
-  [37.6, 40.0, '256×. Your body now weighs 19 tons.'],
-  [40.2, 42.4, 'The fountain is crushed flat.'],
-  [42.6, 45.0, '512×. Solid rock flows like mud.'],
+  [37.6, 40.0, 'Your body now weighs 19 tons.'],
+  [40.2, 42.4, 'Nothing is left taller than a person.'],
+  [42.6, 45.0, 'Solid rock flows like mud.'],
   [45.2, 47.4, 'The whole city sinks into the ground.'],
-  [47.6, 50.0, '1,024×. The crushed air glows red-hot.'],
+  [47.6, 50.0, 'The crushed air glows red-hot.'],
   [50.2, 52.4, 'The ground splits open.'],
-  [52.6, 55.0, '2,048×. The whole planet is being squeezed.'],
+  [52.6, 55.0, 'The whole planet is being squeezed.'],
   [55.2, 57.4, 'And it keeps doubling.'],
-  [57.6, 60.0, '4,096×. The whole planet starts to give.'],
-  [60.2, 62.3, '6,000×. Even atoms can’t hold Earth up.'],
+  [57.6, 60.0, 'The whole planet starts to give.'],
+  [60.2, 62.3, 'At 6,000×, even atoms can’t hold Earth up.'],
   [62.5, 64.6, 'Earth collapses into a black hole 500 ft wide.'],
 ];
 
@@ -105,6 +105,7 @@ export const COUNTERS = [
     fmt: (lb) => `${fmtInt(lb)} lb`,
     value: (v) => WEIGHT_LB * gAt(v),
     unit: (v) => { const g = gAt(v), n = gNote(g); return `GRAVITY ${fmtG(g)}×${n ? ' · ' + n : ''}`; },
+    badge: () => 'EARTH CAVES IN AT 6,000×',   // the finish line the number is racing toward
   },
   {
     from: V_ATOMS, to: T_SWITCH + 2, label: "EARTH'S WIDTH",
@@ -115,6 +116,9 @@ export const COUNTERS = [
 ];
 
 // ---- state ----
+// the doublings: the k-th lands at video time k * DOUBLE - T0
+export const doublingAt = (v) => { const k = Math.floor((v + T0) / DOUBLE + 1e-9); return { k, dt: v - (k * DOUBLE - T0) }; };
+
 export function state(v) {
   const s = { v };
   const g = (s.g = gAt(v));
@@ -140,7 +144,7 @@ export function state(v) {
   s.sink = smooth(vAtG(800), vAtG(2000), v);           // the city sinks into the ground
   s.shrink = smooth(V_ATOMS - 0.4, V_BH + 0.4, v);    // Earth caves in
   s.radius = earthMiles(v) * 1609.34 / 2;            // m
-  s.crane = smooth(V_HEART + 10, vAtG(1200), v);       // after you die the view slowly rises over the plaza
+  s.crane = smooth(V_HEART + 10, vAtG(1100), v);       // after you die the view rises and flies out over the river into the city
   s.pull = smooth(V_ATOMS - 1.2, V_BH + 0.6, v);       // the camera lifts away to show it
   s.dark = smooth(vAtG(500), vAtG(3000), v);             // the sky goes black (the air is a thin hot skin now)
   s.grid = 1 - smooth(V_GRID, V_GRID + 2.2, v);         // city lights (each building also goes dark as it falls)

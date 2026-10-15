@@ -34,7 +34,7 @@ export function makeTerrain(scene, { cx, cz }) {
   const out = {};
   // ---------- ground ----------
   {
-    const geo = polarGrid(9000, 150, 192, cx, cz);
+    const geo = polarGrid(9000, 220, 320, cx, cz);
     const p = geo.attributes.position;
     // the river is a trench (the water sits in it); the walls are separate boxes
     for (let i = 0; i < p.count; i++) {

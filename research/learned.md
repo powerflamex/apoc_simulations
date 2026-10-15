@@ -50,6 +50,19 @@
 - When asked "what do you think" / "is this normal": answer and wait, don't start building.
 - Competitor videos stay in the scratchpad, never in the repo.
 
+## Keeping people watching to the end (from the Oct 14-15 stats; apply to every new video)
+- The two hits (black hole, speed-doubles) kept ~78-79% of the video watched; later Shorts 64-71%. The openings work
+  ("stayed to watch" is the same); the middles lose people. So build every video as ONE rule that gets worse every few
+  seconds, with the biggest moment at the very end (not a big event early followed by aftermath).
+- Put a finish line on screen from frame 0 that the counter races toward (speed-doubles: "light speed in 53 s";
+  gravity-doubles: a red badge "EARTH CAVES IN AT 6,000x" under the counter).
+- Give the escalation a beat: gravity-doubles pops a big gold "4x", "8x"... in the lower middle at each doubling,
+  with a camera jolt and a deep boom in the sound.
+- Never let the middle sit still: if the story leaves "you" (e.g. you die), move the camera somewhere new (gravity-doubles
+  flies out over the river into the burning city).
+- Owner rule (Oct 15): don't reuse an old project's scene without asking him first. Shared building blocks
+  (crowd.js, cars.js, smoke.js, compose/render code) are fine.
+
 ## The owner's feedback on the videos (apply to every new one)
 - **Show it, don't just say it.** If a caption claims something (nurses gone, fires, collapse, "more than every nuke"),
   the picture must show it: cutaways (a hospital ward, a classroom), damage, fires, people. A plain time-lapse of an
@@ -71,4 +84,7 @@
 - Long-form "7 ways the world could end" compilation: see `longform/PLAN.md`.
 - Status Oct 12: moon-falls (Day 8, 66 s) and women-vanish (Day 9, 64 s) are finished, checked and in CAPTIONS.md.
   After these two, no finished Short is left: a new one is needed for the following day.
+- Status Oct 15: gravity-doubles (Day 11) finished, posting Oct 15. Next to build: "What if Earth stopped spinning?"
+  (see the memory note on Lunar's competitor hit; new city, new camera, our frame-0 hook + loop), then oxygen gone for 5 s
+  or a black hole sequel.
 - Proven topics not built yet: a black hole follow-up (e.g. through the Moon); more "X disappears" topics.

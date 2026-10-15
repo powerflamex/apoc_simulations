@@ -8,7 +8,7 @@ import { makeSky } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeRain } from './rain.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, V_FALL, V_ATOMS, V_BH, V_HEART, V_BREATH, V_WHEEL, V_CLOUDS, vAtG } from './timeline.js';
+import { doublingAt, state, VIDEO_DURATION, LOOP, V_FALL, V_ATOMS, V_BH, V_HEART, V_BREATH, V_WHEEL, V_CLOUDS, vAtG } from './timeline.js';
 import { CAM } from './layout.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G, heave } from './bend.js';
@@ -43,6 +43,7 @@ const world = makeWorld(scene);
 const rain = makeRain(scene);
 sky.uniforms.uSunDir.value.copy(world.sunDir);
 const overlay = makeOverlay();
+const stampEl = document.getElementById('stamp');
 
 // post: MSAA scene target -> bloom -> tone map -> the body's view (grey-out, black-out, tunnel), heat shimmer,
 // vignette, bands behind the title and counter
@@ -127,10 +128,13 @@ function update(v, cover = -1) {
   x += wobble(v * 0.6, 1) * 0.02 * (1 - fall);
   // after you die the view slowly rises over the plaza: the whole city being pressed flat
   if (s.crane > 0) {
+    // up off the paving, then out over the river and into the burning, flattening city
     const ce = s.crane * s.crane * (3 - 2 * s.crane);
-    y = lerp(y, 26, ce); z += 14 * ce;
-    pitch = lerp(pitch, -7 * DEG, ce);
-    roll = lerp(roll, 0, ce);
+    const rise = smooth(0, 0.14, s.crane);
+    y = lerp(y, 14 + 18 * ce, rise);   // (clear of the riverside trees before it gets to them)
+    x = lerp(x, 45, ce); z = lerp(z, -430, ce);
+    pitch = lerp(pitch, -9 * DEG, rise);
+    roll = lerp(roll, 0, rise);
   }
   // the ground heaves under you once rock flows
   y += s.flow * heave(x, z, v) * (1 - smooth(0, 0.3, s.crane));
@@ -144,9 +148,13 @@ function update(v, cover = -1) {
     roll = lerp(roll, 0, pull);
     yaw = lerp(yaw, -20 * DEG, pull);
   }
+  // every doubling lands like a blow: the view jolts down and punches in
+  const db = doublingAt(v);
+  const punch = db.k >= 1 ? smooth(0, 0.04, db.dt) * Math.exp(-Math.max(0, db.dt - 0.04) * 6) : 0;
+  pitch -= punch * 0.9 * DEG * (1 - s.pull);
   camera.position.set(x, y, z);
   camera.rotation.set(pitch, yaw, roll);
-  camera.fov = 62;
+  camera.fov = 62 - 2.5 * punch * (1 - s.pull);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 
@@ -215,6 +223,17 @@ function update(v, cover = -1) {
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
   overlay(v, s, v);
+  // the big number at each doubling: pops in, holds, fades
+  {
+    const dbs = doublingAt(v);
+    const a = dbs.k >= 1 && !window.__cover ? smooth(0, 0.06, dbs.dt) * (1 - smooth(1.15, 1.6, dbs.dt)) * (1 - s.flash) : 0;
+    stampEl.style.opacity = a.toFixed(3);
+    if (a > 0) {
+      const t = `${Math.pow(2, dbs.k).toLocaleString('en-US')}×`;
+      if (stampEl.textContent !== t) stampEl.textContent = t;
+      stampEl.style.fontSize = `${(150 * (1 + 0.3 * Math.exp(-dbs.dt * 9))).toFixed(1)}px`;
+    }
+  }
   return s;
 }
 
