@@ -262,6 +262,24 @@ At what number would you be gone? 👇
 
 Cover: `gravity-doubles/out/gravity-doubles_v4_cover.png` (`node render.mjs --cover 4`)
 
+## Day 12. Earth stops spinning — `earth-stops/out/earth-stops_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (98 chars)**
+What if Earth stopped spinning? The wind hits 1,037 mph and then the ocean comes 😳 #whatif #earth
+
+**YouTube description**
+A busy street on the equator at golden hour. Then Earth's spin starts dropping from 1,037 mph to zero.
+
+The ground brakes. The air and the oceans don't: they keep going east at the old speed.
+157 mph: a Cat 5 hurricane. 200 mph: every window bursts and cars tumble down the street.
+300 mph: faster than any wind ever recorded. 500 mph: towers are stripped to their frames.
+536 mph: the wind hits like a nuclear blast. 778 mph: it breaks the sound barrier.
+Then Earth stops, and the ocean arrives at over 1,000 mph.
+
+How long would you last? 👇
+
+#whatif #earth #physics #science #simulation
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).

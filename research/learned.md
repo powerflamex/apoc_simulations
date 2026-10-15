@@ -84,6 +84,7 @@
 - Long-form "7 ways the world could end" compilation: see `longform/PLAN.md`.
 - Status Oct 12: moon-falls (Day 8, 66 s) and women-vanish (Day 9, 64 s) are finished, checked and in CAPTIONS.md.
   After these two, no finished Short is left: a new one is needed for the following day.
+- Status Oct 15 (evening): earth-stops (Day 12, "What if Earth stopped spinning?", 66 s, new equator-avenue scene) finished and in CAPTIONS.md.
 - Status Oct 15: gravity-doubles (Day 11) finished, posting Oct 15. Next to build: "What if Earth stopped spinning?"
   (see the memory note on Lunar's competitor hit; new city, new camera, our frame-0 hook + loop), then oxygen gone for 5 s
   or a black hole sequel.

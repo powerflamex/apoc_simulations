@@ -19,6 +19,17 @@
       "env": {
         "PORT": "5179"
       }
+    },
+    {
+      "name": "earth-stops",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "earth-stops/server.mjs"
+      ],
+      "port": 5181,
+      "env": {
+        "PORT": "5181"
+      }
     }
   ]
 }
