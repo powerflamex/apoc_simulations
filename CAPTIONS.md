@@ -280,6 +280,25 @@ How long would you last? 👇
 
 #whatif #earth #physics #science #simulation
 
+## Day 13. You live 1 trillion years — `trillion-years/out/trillion-years_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (90 chars)**
+What if you lived 1 trillion years? Time speeds up 10x every 3.5 seconds 😳 #whatif #space
+
+**YouTube description**
+You stand at the railing of a seaside promenade at sunset and never age. Time speeds up 10x every 3.5 seconds.
+
+100 years: everyone you've ever met is gone. 1,000 years: you can't read the signs anymore.
+100,000 years: Betelgeuse explodes, a star you can see by day. Ice ages come and go: the sea drops 400 ft.
+100 million years: an asteroid like the dinosaur killer hits.
+1 billion years: the Sun is 10% brighter and the oceans boil away.
+7.6 billion years: the Sun swells to 200 times its size and swallows Earth. It shrinks to a white dwarf.
+100 billion years: every other galaxy has drifted out of sight. 1 trillion years: you're still here.
+
+Which moment would you want to see? 👇
+
+#whatif #space #universe #science #simulation
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).

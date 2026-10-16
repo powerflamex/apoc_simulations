@@ -30,6 +30,17 @@
       "env": {
         "PORT": "5181"
       }
+    },
+    {
+      "name": "trillion-years",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "trillion-years/server.mjs"
+      ],
+      "port": 5182,
+      "env": {
+        "PORT": "5182"
+      }
     }
   ]
 }
