@@ -3,13 +3,20 @@
 // stagger east, a few are already down and sliding. One by one they lose their footing (the ones clinging to a pole
 // or a railing last a little longer), go over toward the east, and are swept down the street toward the camera,
 // tumbling. Walkers' paths are planned up front so nobody walks through anybody.
-import { rng, smooth, clamp, lerp } from './util.js';
+import { rng, smooth, lerp } from './util.js';
 import { AVE, CROSS, BRIDGE, CAM } from './layout.js';
 import { SKIN, HAIR } from './crowd.js';
 import { flight } from './fly.js';
 
 const SHIRT = [0xc0392b, 0x2e86c1, 0xf1c40f, 0x27ae60, 0xe67e22, 0x8e44ad, 0xecf0f1, 0x1c2833, 0xd35400, 0x16a085, 0xf5b7b1, 0x5d6d7e, 0xfad7a0, 0x922b21, 0x1f618d, 0xe8daef, 0xffffff, 0x111111];
 const PANTS = [0x1b2631, 0x2c3e50, 0x34495e, 0x5d4037, 0x212121, 0x7f8c8d, 0x2e4053, 0xd5c4a1, 0x4a6fa5];
+
+// how far a walker has gone: they keep walking until their feet go, slowing as the push grows
+// (pace 0.79 at the first frame, ~0.15 by 12 s), never stopping dead
+const walkDist = (p, v) => {
+  const go = Math.min(v, p.vFall) + 3;
+  return p.speed * (go - 0.035 * go * go);
+};
 
 export const PEOPLE = [];
 export let YOU = null;
@@ -34,8 +41,7 @@ export let YOU = null;
   // the two crosswalks: people crossing north and south
   const paths = [YOU];
   const posAt = (p, v) => {
-    const go = Math.min(v, p.vFall, 0.8) + 3;
-    const d = p.speed * go * (1 - 0.18 * clamp(go / 6));
+    const d = walkDist(p, v);
     return [p.x + Math.sin(p.yaw) * d, p.z + Math.cos(p.yaw) * d];
   };
   const clash = (p) => {
@@ -95,16 +101,16 @@ const ease = (x) => x * x * (3 - 2 * x);
 const fl = {};
 // where person p is and how they hold themselves at video time v (fields for crowd.pose)
 export function personPose(p, v, camZ) {
-  const go = Math.min(v, p.vFall, 0.8) + 3;            // walkers stop within the first second
-  const d = p.speed * go * (1 - 0.18 * clamp(go / 6));
+  const d = walkDist(p, v);                             // walkers keep going, slower and slower
   let x = p.x + Math.sin(p.yaw) * d, z = p.z + Math.cos(p.yaw) * d;
   // the braking ground shoves everyone east: staggering steps
   const shove = 0.12 * Math.max(0, Math.min(v, p.vFall) + 2) * (p.cling ? 0.3 : 1);
   z += shove;
   const o = { x, y: p.y0, z, yaw: p.yaw, s: p.s, walk: 0, stride: 0, sit: 0, pitch: 0, roll: 0, armL: 0, armR: 0, look: 0.05 };
   const up = 1 - smooth(p.vFall - 0.1, p.vFall + 0.4, v);
-  if (p.speed > 0) { o.walk = p.ph + d / 0.75 * Math.PI; o.stride = 0.9 * up * (1 - smooth(0, 0.8, v)); }
-  o.sit = 0.3 * smooth(0.2, 1.4, v + (p.seed - 0.5)) * up;   // crouching low against the push
+  if (p.speed > 0) { o.walk = p.ph + d / 0.75 * Math.PI; o.stride = up * (0.9 - 0.35 * smooth(0, 8, v)); }   // shorter, staggering steps
+  // crouching low against the push (walkers only bend their knees a little)
+  o.sit = (p.speed > 0 ? 0.1 : 0.3) * smooth(0.2, 1.4, v + (p.seed - 0.5)) * up;
   // leaning into the push (toward the west, -z), knees bent, arms out for balance
   const L = (0.22 + 0.12 * Math.sin(v * 3.1 + p.ph)) * up * (p.cling ? 0.6 : 1);
   o.pitch = L * -Math.cos(p.yaw);
