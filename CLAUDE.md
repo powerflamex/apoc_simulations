@@ -16,8 +16,13 @@ After changing any project, without being asked and without stopping to ask:
 2. Check the result in the rendered `_tiktok.mp4`, not just the code: pull frames with ffmpeg at the moments
    you changed (`ffmpeg -ss <sec> -i <video> -frames:v 1 frame.png`), look at them, and for timing problems step
    frame by frame (1/60 s). Fix and re-render if anything is off.
-3. Show the owner the frames you checked and say which video files to upload.
-4. Commit with a clear message (and push the current branch if the repo has a remote).
+3. Make the thumbnail (cover) for every new video, and remake it when a changed video's best moment changes:
+   `node render.mjs --cover <sec>` in the project folder renders that frame with the big title over it to
+   `stills/cover.png`; pick the most striking moment (usually the last third: the giant Sun, the wave), look at it,
+   and copy it to `out/<name>_v4_cover.png`. Note it under the video in `CAPTIONS.md` (`Cover: ...`).
+4. Show the owner the frames you checked and the cover, say which video files to upload, and paste the YouTube
+   title and description into the reply (copy-ready), not just into `CAPTIONS.md`.
+5. Commit with a clear message (and push the current branch if the repo has a remote).
 
 The owner is new to coding: explain in plain words, skip jargon, and never leave them a manual step you could do.
 

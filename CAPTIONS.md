@@ -280,6 +280,8 @@ How long would you last? 👇
 
 #whatif #earth #physics #science #simulation
 
+Cover: `earth-stops/out/earth-stops_v4_cover.png` (`node render.mjs --cover 58`)
+
 ## Day 13. You live 1 trillion years — `trillion-years/out/trillion-years_v4_1080x1920_60fps_tiktok.mp4`
 
 **YouTube title (90 chars)**
@@ -298,6 +300,8 @@ You stand at the railing of a seaside promenade at sunset and never age. Time sp
 Which moment would you want to see? 👇
 
 #whatif #space #universe #science #simulation
+
+Cover: `trillion-years/out/trillion-years_v4_cover.png` (`node render.mjs --cover 57.3`)
 
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
