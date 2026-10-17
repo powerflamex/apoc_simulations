@@ -303,6 +303,28 @@ Which moment would you want to see? 👇
 
 Cover: `trillion-years/out/trillion-years_v4_cover.png` (`node render.mjs --cover 57.3`)
 
+## Day 14. You live to the Big Crunch — `big-crunch/out/big-crunch_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (89 chars)**
+What if you lived to the Big Crunch? Time speeds up 10x every 2 seconds 😳 #whatif #space
+
+**YouTube description**
+You stand at the railing of a seaside promenade at sunset and never age. Time speeds up 10x every 2 seconds.
+
+100 years: everyone you've ever met is gone. 100,000 years: Betelgeuse explodes.
+100 million years: an asteroid like the dinosaur killer hits. 1 billion years: the oceans boil away.
+7.6 billion years: the Sun swells and swallows Earth.
+Then the universe stops growing and starts to fall back in. Every galaxy rushes back toward you and they crash together.
+The whole sky glows red-hot, then hotter than the Sun. Stars boil away. 20 billion years: the Big Crunch.
+
+A 2025 study says the universe could really end like this, about 20 billion years from now.
+
+Would you stay to watch the end? 👇
+
+#whatif #space #universe #bigcrunch #science
+
+Cover: `big-crunch/out/big-crunch_v4_cover.png` (`node render.mjs --cover 50.8`: the galaxies rushing back in)
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).

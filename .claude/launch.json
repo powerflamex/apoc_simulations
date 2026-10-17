@@ -41,6 +41,17 @@
       "env": {
         "PORT": "5182"
       }
+    },
+    {
+      "name": "big-crunch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "big-crunch/server.mjs"
+      ],
+      "port": 5183,
+      "env": {
+        "PORT": "5183"
+      }
     }
   ]
 }

@@ -86,6 +86,10 @@
   After these two, no finished Short is left: a new one is needed for the following day.
 - Status Oct 15 (evening): earth-stops (Day 12, "What if Earth stopped spinning?", 66 s, new equator-avenue scene) finished and in CAPTIONS.md.
 - Status Oct 15 (late): trillion-years (Day 13, "What if you lived 1 trillion years?", 66.6 s, new seaside-promenade scene, time 10x every 3.5 s) finished and in CAPTIONS.md. The owner chose to keep "1 trillion" even though the biggest moment (the Sun swallowing Earth) comes at 58 s, with a quieter space ending after it.
+- earth-stops (Day 12) stats from the owner, Oct 16: 70% stayed to watch, avg view duration 0:44 of 1:07 (66%): the best
+  stayed-to-watch so far (vs ~60-65% for the others). Frame 0 already busy and moving (people walking, the counter racing).
+- Status Oct 16: big-crunch (Day 14, "What if you lived to the Big Crunch?", 65.4 s) built on the trillion-years engine
+  with the owner's OK to reuse the scene (he is watching his weekly usage): Earth part squeezed to 34 s, new space ending.
 - Status Oct 15: gravity-doubles (Day 11) finished, posting Oct 15. Next to build: "What if Earth stopped spinning?"
   (see the memory note on Lunar's competitor hit; new city, new camera, our frame-0 hook + loop), then oxygen gone for 5 s
   or a black hole sequel.
