@@ -207,6 +207,15 @@ export function makeSoundtrack(outFile) {
         const vv = roarF[0].run(wn, 70 + 500 * rk, 0.5).lp + roarF[1].run(wn, 300 + 1500 * rk, 0.7).bp * 0.5 + roarSub.run(white()) * 2.0;
         l += vv * gg; r += vv * gg * 0.97; wet += vv * gg * 0.25;
       }
+      // the squeeze: everything sucked into one point, a rising whoosh and a tone sweeping up
+      const sq = 1 - s.squash;
+      if (sq > 0.001) {
+        const gg = sq * sq * g;
+        ph[42] += (55 + 500 * Math.pow(sq, 3)) / SR;
+        const sw = Math.sin(TAU * ph[42]) * 0.07 + Math.sin(TAU * ph[42] * 1.5) * 0.03;
+        const wh = hissF[0].run(white(), 400 + 3000 * sq * sq, 0.8).bp * 0.12;
+        l += (sw + wh) * gg; r += (sw + wh * 0.9) * gg; wet += (sw + wh) * gg * 0.4;
+      }
       // the end: a bright chord swelling into the white
       const dt = v - (V_CRUNCH - 2.2);
       if (dt > 0) {

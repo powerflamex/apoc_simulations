@@ -17,7 +17,7 @@ const skyFrag = /* glsl */ `
 precision highp float;
 varying vec3 vDir;
 uniform float uGal; uniform float uRed; uniform float uBack; uniform float uMerge; uniform float uNeb; uniform float uNebR;
-uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd;
+uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd; uniform float uSquash; uniform float uSpin;
 float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -39,6 +39,21 @@ vec3 stars(vec3 v, float scale, float thr, float bright) {
 }
 void main() {
   vec3 v = normalize(vDir);
+  // the crunch: the whole sky is squeezed into a ball around the point uFwd, covering the angle PI * uSquash; a view
+  // direction at angle ca inside it shows what was at angle ca / uSquash, twisted around the point (the spin)
+  vec3 P = normalize(uFwd);
+  float ca = acos(clamp(dot(v, P), -1.0, 1.0));
+  vec3 perp = v - P * dot(v, P);
+  perp = length(perp) > 1e-5 ? normalize(perp) : normalize(cross(P, vec3(0.0, 1.0, 0.0)));
+  float Rb = 3.14159 * uSquash;
+  float inside = 1.0;
+  if (uSquash < 0.999) {
+    inside = 1.0 - smoothstep(Rb * 0.97, Rb, ca);
+    float a2 = min(ca / uSquash, 3.14159);
+    float tw = uSpin * (1.0 - ca / max(Rb, 1e-4));
+    vec3 pq = perp * cos(tw) + cross(P, perp) * sin(tw);
+    v = normalize(P * cos(a2) + pq * sin(a2));
+  }
   vec3 c = vec3(0.0015, 0.002, 0.004);
   // our galaxy, merged into one huge elliptical ball of stars: a smooth glow, brightest toward its centre
   vec3 gc = normalize(vec3(-0.5, 0.25, -0.8));
@@ -88,10 +103,23 @@ void main() {
   float boilN = fbm3(v * 5.0 + vec3(uTime * 0.6, uTime * 0.4, 0.0));
   float gw = clamp(length(uBg) * 3.0, 0.0, 1.0);
   c = c * (1.0 - 0.8 * gw) + uBg * (0.1 + 3.2 * boilN * boilN * boilN);
-  // the end: everything falling into one blinding point that swells over the whole sky
-  float ca = acos(clamp(dot(v, uFwd), -1.0, 1.0));
-  float cr = 0.004 + 1.6 * uWhite * uWhite * uWhite;
-  c += vec3(1.0, 0.96, 0.9) * (exp(-ca / cr) * (3.0 + 14.0 * uWhite) + uWhite * uWhite * 2.0) * step(0.001, uWhite);
+  // squeezed: hotter and brighter the smaller it gets; outside it nothing, only streaks of light being dragged in
+  // toward it and a white-hot rim
+  if (uSquash < 0.999) {
+    float k = 1.0 - uSquash;
+    c *= inside * (1.0 + 0.8 * k * k);
+    c = mix(c, vec3(1.0, 0.86, 0.62) * length(c) * 0.6, 0.5 * k * k);
+    vec3 b1 = normalize(cross(P, vec3(0.0, 1.0, 0.0))), b2 = cross(P, b1);
+    float phi = atan(dot(perp, b2), dot(perp, b1));
+    float out_ = ca - Rb;
+    float fall = noise3(vec3(phi * 9.0 + uSpin * 1.5, out_ * 6.0 + uTime * 9.0, 1.7));
+    float streak = pow(fall, 6.0) * 2.0 * exp(-max(out_, 0.0) * 3.0) * step(0.0, out_) * smoothstep(0.0, 0.25, k);
+    vec3 hot = uBg / max(length(uBg), 1e-3);
+    c += mix(hot, vec3(1.0, 0.88, 0.7), k) * streak;
+    c += vec3(1.0, 0.92, 0.75) * exp(-pow((ca - Rb) / (0.015 + 0.04 * uSquash), 2.0)) * (0.5 + 1.2 * k);
+    c += vec3(1.0, 0.97, 0.92) * exp(-ca / (0.004 + 0.02 * uSquash)) * 3.0 * k * k;
+  }
+  c += vec3(uWhite * 8.0);
   gl_FragColor = vec4(c, 1.0);
 }`.replace('void main()', 'float smooth01(float x, float n) { return clamp(n - x, 0.0, 1.0); }\nvoid main()');
 
@@ -100,7 +128,7 @@ export function makeSpace() {
   const u = {
     uGal: { value: 1 }, uRed: { value: 0 }, uBack: { value: 0 }, uMerge: { value: 0 }, uNeb: { value: 0 }, uNebR: { value: 0.2 },
     uWD: { value: new THREE.Vector3(-0.2, 0.3, -1) }, uGlow: { value: 0 }, uTime: { value: 0 },
-    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) },
+    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) }, uSquash: { value: 1 }, uSpin: { value: 0 },
   };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), new THREE.ShaderMaterial({
     uniforms: u, side: THREE.BackSide, depthWrite: false, depthTest: false,
@@ -119,14 +147,21 @@ export function makeSpace() {
   scene.add(key, key.target, fill, rim);
   // you, floating
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
-  const crowd = makeCrowd(scene, 1, mat, { castShadow: false });
+  // (in its own group, so the whole figure can be stretched and dragged into the crunch)
+  const youG = new THREE.Group();
+  youG.matrixAutoUpdate = false;
+  scene.add(youG);
+  const crowd = makeCrowd(youG, 1, mat, { castShadow: false });
   crowd.color(0, ...YOU_COL);
   const YOUP = new THREE.Vector3(0.9, 0.3, -9.0);   // upper right, clear of the counter and captions
+  const youNow = YOUP.clone();                        // where you are now (for the YOU label)
+  const UP = new THREE.Vector3(0, 1, 0), Q = new THREE.Quaternion(), Q0 = new THREE.Quaternion();
+  const PT = new THREE.Vector3(), dir = new THREE.Vector3(), C = new THREE.Vector3(), S = new THREE.Matrix4(), M = new THREE.Matrix4();
   const wdC = new THREE.Color(), bg = new THREE.Color();
   const FIRE = [null, new THREE.Color(1, 0.42, 0.06), new THREE.Color(1, 0.78, 0.25), new THREE.Color(1, 0.94, 0.7)];
   return {
     scene,
-    youPos: YOUP,
+    youPos: youNow,
     frame(v, camera, s) {
       const t = v - V_ENGULF;
       u.uTime.value = v;
@@ -170,9 +205,36 @@ export function makeSpace() {
       // the view: a slow drift, and a growing tremble as everything falls in
       const sh = 0.004 * s.boilStars + 0.002 * s.merge;
       camera.position.set(0, 0, 0);
-      camera.rotation.set(0.02 + Math.sin(v * 0.2) * 0.01 + sh * Math.sin(v * 41), 0.06 + t * 0.004 + sh * Math.sin(v * 33 + 1), sh * 0.5 * Math.sin(v * 27));
+      camera.rotation.set(0.02 + Math.sin(v * 0.2) * 0.01 + sh * Math.sin(v * 41), 0.06 + t * 0.0015 + sh * Math.sin(v * 33 + 1), sh * 0.5 * Math.sin(v * 27));
       // the point everything falls into: a little above the middle of the view, left of you
       u.uFwd.value.set(-0.06, 0.12, -1).normalize().applyEuler(camera.rotation);
+      u.uSquash.value = s.squash;
+      u.uSpin.value = 6.0 * Math.pow(1 - s.squash, 2);
+      // the point in the scene, a bit beyond you; you are dragged toward it, stretched along the pull (up to 4.5x
+      // long) and squeezed thin across it, shrinking to nothing as you reach it
+      PT.copy(u.uFwd.value).multiplyScalar(14);
+      C.set(YOUP.x, YOUP.y + 0.9, YOUP.z);
+      const d = s.drag;
+      dir.copy(PT).sub(C).normalize();
+      const along = 1 + 3.5 * Math.min(1, d * 2), across = Math.max(0.02, (1 - 0.7 * Math.min(1, d * 2)) * (1 - smooth(0.75, 1, d)));
+      // turn head-first toward the point, then stretch along your own height (long and thin, like spaghetti)
+      Q.setFromUnitVectors(UP, dir);
+      Q0.identity().slerp(Q, Math.min(1, d * 3));
+      S.makeScale(across, along, across);
+      const pos = C.clone().lerp(PT, d);
+      M.makeTranslation(pos.x, pos.y, pos.z).multiply(new THREE.Matrix4().makeRotationFromQuaternion(Q0)).multiply(S)
+        .multiply(new THREE.Matrix4().makeTranslation(-C.x, -C.y, -C.z));
+      youG.matrix.copy(M);
+      youG.matrixWorldNeedsUpdate = true;
+      youNow.set(YOUP.x, YOUP.y, YOUP.z).add(pos).sub(C);
+      // the light: the squeezed ball of light, where the point is
+      if (s.squash < 0.999) {
+        const k = 1 - s.squash;
+        key.position.copy(u.uFwd.value).multiplyScalar(50);
+        key.color.lerp(new THREE.Color(1, 0.93, 0.8), k);
+        key.intensity = lerp(key.intensity, 1.4, k);
+        fill.intensity *= 1 - 0.85 * k;
+      }
     },
   };
 }

@@ -132,8 +132,8 @@ function update(v, cover = -1) {
     camera.fov = 58 - 3 * punch;
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
-    renderer.toneMappingExposure = 1.3;
-    bloom.strength = 0.6;
+    renderer.toneMappingExposure = 1.3 * (1 - 0.3 * (1 - s.squash));
+    bloom.strength = 0.6 * (1 - 0.6 * (1 - s.squash));
   } else {
     renderPass.scene = scene;
     // ---------- camera ----------

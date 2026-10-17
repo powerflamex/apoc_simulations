@@ -315,7 +315,8 @@ You stand at the railing of a seaside promenade at sunset and never age. Time sp
 100 million years: an asteroid like the dinosaur killer hits. 1 billion years: the oceans boil away.
 7.6 billion years: the Sun swells and swallows Earth.
 Then the universe stops growing and starts to fall back in. Every galaxy rushes back toward you and they crash together.
-The whole sky glows red-hot, then hotter than the Sun. Stars boil away. 20 billion years: the Big Crunch.
+The whole sky glows red-hot, then hotter than the Sun. Then all of space squeezes into one point, and it drags you in with it.
+20 billion years: the Big Crunch.
 
 A 2025 study says the universe could really end like this, about 20 billion years from now.
 

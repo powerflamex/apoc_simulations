@@ -207,9 +207,9 @@ export const CAPTIONS = [
   [51.4, 53.6, 'Galaxies crash into each other.'],
   [54.6, 56.8, 'Space shrinks. The sky starts to glow.'],
   [57.2, 59.2, 'Red-hot. Then orange. Then yellow.'],
-  [59.5, 61.3, 'The whole sky is hotter than the Sun.'],
-  [61.4, 62.7, 'Stars boil away. Atoms break apart.'],
-  [62.9, 64.2, 'Everything falls into one point.'],
+  [59.4, 60.9, 'The whole sky is hotter than the Sun.'],
+  [61.1, 62.6, 'Then all of space squeezes into one point.'],
+  [62.8, 64.3, 'And it drags you in with it.'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {
@@ -311,7 +311,13 @@ export function state(v) {
     s.skyT = lerp(K[i][1], K[i + 1][1], clamp((v - K[i][0]) / (K[i + 1][0] - K[i][0])));
   }
   s.boilStars = smooth(59.6, 62.0, v);
-  s.white = smooth(62.9, V_CRUNCH + 0.2, v);                          // everything falling into one blinding point
+  // the crunch itself: all of space (the glowing sky, the stars, the white dwarf) squeezed into a shrinking ball
+  // (squash: the share of the sky it still covers, 1 -> a dot), spinning as it falls in; you are stretched long and
+  // thin and dragged in after it (drag 0 -> 1); a short flash as the point vanishes
+  // (shrinking by the same factor every moment: its edge comes into view at ~61.6 s, a dot by 64.2 s)
+  s.squash = Math.exp(-5.8 * clamp((v - 60.6) / 3.6));
+  s.drag = Math.pow(smooth(61.0, 64.0, v), 1.3);
+  s.white = smooth(64.25, V_CRUNCH + 0.1, v);
   s.under = 0;
   s.title = 1 - smooth(3.0, 3.6, v);
   s.you = 1 - smooth(5.6, 6.4, v) + (v > V_ENGULF + 1.4 ? smooth(V_ENGULF + 1.4, V_ENGULF + 2, v) * (1 - smooth(63.2, 63.8, v)) : 0);
