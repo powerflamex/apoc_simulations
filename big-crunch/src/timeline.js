@@ -155,9 +155,10 @@ export const sunAngR = (R) => Math.asin(Math.min(1, R * 0.00465));
 export const V_SUNSET = vOfYears(LEAD / MIN_PER_YEAR);     // 2.7 s: the Sun goes down
 export const V_NOVA = vOfYears(1e5);                       // 21.4 s: Betelgeuse
 export const V_IMPACT = vOfYears(1e8) + 0.3;               // 27.7 s: the asteroid
-export const V_FADE = 64.6;                                // the white-out
-export const T_SWITCH = 65.4;
-export const LOOP = 1.0;                                   // the dark clears onto the first frame
+export const V_BANG = 64.75;                               // the point erupts: a new Big Bang
+export const V_FADE = 65.35;                               // the white-out
+export const T_SWITCH = 65.75;
+export const LOOP = 1.3;                                   // the new universe opens out of the white onto the first frame
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 export const UNDER_COLOR = '#ffffff';
 
@@ -177,7 +178,8 @@ export const BEATS = [
   [48.0, '16 billion years'],
   [52.0, '19 billion years'],
   [V_CRUNCH - 0.6, 'THE BIG CRUNCH', true],
-].map(([v, label, last]) => ({ v, label, last: !!last }));
+  [V_BANG, 'THE BIG BANG', true, 'AND THEN'],
+].map(([v, label, last, top]) => ({ v, label, last: !!last, top: top || 'TIME PASSED' }));
 export function beatAt(v) {
   let b = null, i = -1;
   BEATS.forEach((x, k) => { if (v >= x.v) { b = x; i = k; } });
@@ -245,8 +247,8 @@ export const COUNTERS = [
     fmt: (m) => fmtSpan(m),
     value: (v) => minutesAt(v),
     unit: (v) => (v < V_TURN ? `1 SECOND = ${fmtSpan(rateAt(v), true).toUpperCase()}`
-      : v < V_CRUNCH ? `CRUNCH IN ${fmtSpan(yearsLeft(v) * MIN_PER_YEAR).toUpperCase()}` : 'THE END'),
-    badge: (v) => (v < V_CRUNCH ? 'FINISH LINE: THE BIG CRUNCH' : 'THE BIG CRUNCH'),
+      : v < V_CRUNCH ? `CRUNCH IN ${fmtSpan(yearsLeft(v) * MIN_PER_YEAR).toUpperCase()}` : v < V_BANG ? 'THE END' : 'AND IT ALL STARTS AGAIN'),
+    badge: (v) => (v < V_CRUNCH ? 'FINISH LINE: THE BIG CRUNCH' : v < V_BANG ? 'THE BIG CRUNCH' : 'THE BIG BANG'),
   },
 ];
 
@@ -317,8 +319,13 @@ export function state(v) {
   // (shrinking by the same factor every moment: its edge comes into view at ~61.6 s, a dot by 64.2 s)
   s.squash = Math.exp(-5.8 * clamp((v - 60.6) / 3.6));
   s.drag = Math.pow(smooth(61.0, 64.0, v), 1.3);
-  s.white = smooth(64.25, V_CRUNCH + 0.1, v);
+  // then a breath of near-dark with only the pinpoint left, and it erupts: a new Big Bang, a fireball of white-hot
+  // light bursting out of the point (bang: 0 -> 1 as it grows past the edges of the view), whiting everything out
+  s.dim = v < V_BANG ? smooth(64.25, 64.6, v) : 0;
+  s.bang = clamp((v - V_BANG) / 0.75);
+  s.white = smooth(V_BANG + 0.45, V_FADE + 0.15, v);
   s.under = 0;
+  s.reveal = -1;   // the loop tail: the first frame opens out of the white (see renderFrame)
   s.title = 1 - smooth(3.0, 3.6, v);
   s.you = 1 - smooth(5.6, 6.4, v) + (v > V_ENGULF + 1.4 ? smooth(V_ENGULF + 1.4, V_ENGULF + 2, v) * (1 - smooth(63.2, 63.8, v)) : 0);
   s.endcard = 0; s.endText = 0;

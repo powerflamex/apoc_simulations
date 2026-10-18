@@ -56,10 +56,10 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.35, 0.45,
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.32 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.32 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 }, uReveal: { value: -1 }, uRim: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse; uniform float uVig; uniform float uTitle; uniform float uCounter; uniform float uAb;
+    uniform sampler2D tDiffuse; uniform float uVig; uniform float uTitle; uniform float uCounter; uniform float uAb; uniform float uReveal; uniform float uRim;
     varying vec2 vUv;
     void main() {
       vec2 c = vUv - 0.5;
@@ -71,6 +71,14 @@ const finish = new ShaderPass({
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - 0.69) / 0.1, 2.0));
       col *= 1.0 - uCounter * 0.32 * exp(-pow((vUv.y - 0.53) / 0.065, 2.0)) * smoothstep(0.8, 0.2, vUv.x);
+      // the loop: the new universe opens out of the white from the point where the Big Bang went off (an opening
+      // that races outward, a warm glow at its edge, a fading wash of light inside)
+      if (uReveal > -0.5) {   // (-1 = off; the radius itself starts a little below 0: all white)
+        float r = length((vUv - vec2(0.404, 0.608)) * vec2(0.5625, 1.0));
+        float rim = exp(-pow((r - uReveal) / 0.04, 2.0)) * uRim;
+        col = mix(col, vec3(1.0), 0.65 * uRim) + vec3(1.0, 0.62, 0.3) * rim * 0.9;
+        col = mix(col, vec3(1.0), smoothstep(uReveal - 0.05, uReveal + 0.01, r));
+      }
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
@@ -117,9 +125,10 @@ function skyColors(e, hi, lo) {
     .lerp(tmp.setRGB(1.05, 0.6, 0.3), gold).lerp(tmp.setRGB(0.62, 0.74, 0.92), day);
 }
 
-function update(v, cover = -1) {
+function update(v, cover = -1, reveal = -1) {
   const s = state(v);
   if (cover >= 0) { s.fadeOut = cover; s.flash = 0; }
+  if (reveal >= 0) s.reveal = reveal;
   const b = beatAt(v);
   let punch = 0;
   if (b && !window.__cover && cover < 0) punch = smooth(0, 0.05, b.dt) * Math.exp(-Math.max(0, b.dt - 0.05) * 5);
@@ -211,6 +220,10 @@ function update(v, cover = -1) {
   finish.uniforms.uAb.value = punch * 1.5;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - Math.max(s.flash, s.fadeOut)) * 0.9;
+  // the opening's radius (in screen heights; ~0.72 clears the far corner): fastest at first, like a blast
+  const rv = s.reveal;
+  finish.uniforms.uReveal.value = rv >= 0 && rv < 1 ? 0.95 * (1 - Math.pow(1 - smooth(0, 0.85, rv), 3)) - 0.04 : -1;
+  finish.uniforms.uRim.value = rv >= 0 ? 1 - smooth(0.1, 0.9, rv) : 0;
 
   overlay(v, s, v);
   // "YOU": a label over your head
@@ -232,6 +245,7 @@ function update(v, cover = -1) {
     stampW.style.opacity = a.toFixed(3);
     if (a > 0) {
       if (stampEl.textContent !== b.label) stampEl.textContent = b.label;
+      if (stampW.textContent !== b.top) stampW.textContent = b.top;
       const base = b.label.length > 14 ? 108 : b.label.length > 11 ? 124 : 138;
       stampEl.style.fontSize = `${(base * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
     }
@@ -240,11 +254,11 @@ function update(v, cover = -1) {
 }
 
 let comp = null;
-// t is video time. The last LOOP seconds replay the moments just before the first frame while the dark clears,
-// so the video loops seamlessly.
+// t is video time. The last LOOP seconds replay the moments just before the first frame while they open out of the
+// white (the new Big Bang), so the video loops seamlessly.
 function renderFrame(t) {
   const tail = t - (VIDEO_DURATION - LOOP);
-  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0, LOOP * 0.92, tail));
+  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0.25 * LOOP, LOOP * 0.95, tail), tail / LOOP);
   else update(t);
   composer.render();
   if (comp) comp.paint();

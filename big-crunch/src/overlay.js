@@ -57,12 +57,13 @@ export function makeOverlay() {
       caption.style.opacity = '0';
     }
 
-    title.style.opacity = (s.title || 0).toFixed(3);
+    const rv = s.reveal >= 0;   // the loop's opening: the white is drawn in the picture; the words come back with it
+    title.style.opacity = ((s.title || 0) * (rv ? 1 - s.fadeOut : 1)).toFixed(3);
     title.style.transform = `translateY(${((1 - (s.title || 0)) * (v < 2 ? 18 : -10)).toFixed(2)}px)`;
     title.style.filter = (s.title || 0) < 1 ? `blur(${((1 - (s.title || 0)) * 8).toFixed(2)}px)` : 'none';
 
     flash.style.background = (s.fadeOut || 0) > (s.flash || 0) ? (s.fadeColor || '#000') : (s.flashColor || '#fff');
-    flash.style.opacity = (s.endcard ? 0 : Math.pow(Math.max(s.flash || 0, s.fadeOut || 0), 1.6)).toFixed(3);
+    flash.style.opacity = (s.endcard || rv ? 0 : Math.pow(Math.max(s.flash || 0, s.fadeOut || 0), 1.6)).toFixed(3);
     endcard.style.opacity = String(s.endcard);
     endText.style.opacity = s.endText.toFixed(3);
     endText.style.transform = `translateY(${((1 - s.endText) * 16).toFixed(2)}px)`;

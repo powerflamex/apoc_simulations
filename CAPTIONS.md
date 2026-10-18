@@ -316,7 +316,7 @@ You stand at the railing of a seaside promenade at sunset and never age. Time sp
 7.6 billion years: the Sun swells and swallows Earth.
 Then the universe stops growing and starts to fall back in. Every galaxy rushes back toward you and they crash together.
 The whole sky glows red-hot, then hotter than the Sun. Then all of space squeezes into one point, and it drags you in with it.
-20 billion years: the Big Crunch.
+20 billion years: the Big Crunch. And then a new Big Bang: it all starts again.
 
 A 2025 study says the universe could really end like this, about 20 billion years from now.
 
@@ -325,6 +325,10 @@ Would you stay to watch the end? 👇
 #whatif #space #universe #bigcrunch #science
 
 Cover: `big-crunch/out/big-crunch_v4_cover.png` (`node render.mjs --cover 50.8`: the galaxies rushing back in)
+
+v2 (Oct 18, 67 s): the crunch ends in a new Big Bang: a breath of near-silence on the last pinpoint, then a golden
+fireball bursts out of it ("AND THEN / THE BIG BANG"), whites out, and the opening scene opens out of the white from
+the same point. The upload posted Oct 18 at 10 AM has the old ending (dot, white flash).
 
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.

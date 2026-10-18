@@ -17,7 +17,7 @@ const skyFrag = /* glsl */ `
 precision highp float;
 varying vec3 vDir;
 uniform float uGal; uniform float uRed; uniform float uBack; uniform float uMerge; uniform float uNeb; uniform float uNebR;
-uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd; uniform float uSquash; uniform float uSpin;
+uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd; uniform float uSquash; uniform float uSpin; uniform float uDim; uniform float uBang;
 float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -115,9 +115,32 @@ void main() {
     float fall = noise3(vec3(phi * 9.0 + uSpin * 1.5, out_ * 6.0 + uTime * 9.0, 1.7));
     float streak = pow(fall, 6.0) * 2.0 * exp(-max(out_, 0.0) * 3.0) * step(0.0, out_) * smoothstep(0.0, 0.25, k);
     vec3 hot = uBg / max(length(uBg), 1e-3);
-    c += mix(hot, vec3(1.0, 0.88, 0.7), k) * streak;
-    c += vec3(1.0, 0.92, 0.75) * exp(-pow((ca - Rb) / (0.015 + 0.04 * uSquash), 2.0)) * (0.5 + 1.2 * k);
+    float gone = 1.0 - smoothstep(0.0, 0.04, uBang);   // (the infall's streaks and rim stop at the bang)
+    c += mix(hot, vec3(1.0, 0.88, 0.7), k) * streak * gone;
+    c += vec3(1.0, 0.92, 0.75) * exp(-pow((ca - Rb) / (0.015 + 0.04 * uSquash), 2.0)) * (0.5 + 1.2 * k) * gone;
     c += vec3(1.0, 0.97, 0.92) * exp(-ca / (0.004 + 0.02 * uSquash)) * 3.0 * k * k;
+  }
+  // a breath of near-dark: everything is gone but the pinpoint
+  vec3 pin = vec3(1.0, 0.95, 0.85) * exp(-ca / 0.0035) * 2.5;
+  c = mix(c, pin, uDim);
+  // the new Big Bang: a fireball bursting out of the point, white-hot inside, gold toward its edge and seething, a
+  // bright orange rim, and streaks of light thrown outward ahead of it
+  if (uBang > 0.0) {
+    float Rf = 0.8 * pow(uBang, 0.85) + 0.004;
+    float x = ca / Rf;
+    vec3 d0 = normalize(vDir);
+    float n = fbm3(d0 * 9.0 + vec3(0.0, 0.0, uTime * 3.0));
+    // white-hot core, then gold, then a deep orange skin, all churning
+    float sx = clamp(x + 0.25 * (n - 0.5), 0.0, 1.0);
+    vec3 ball = mix(vec3(1.0, 0.95, 0.84) * 1.7, vec3(1.0, 0.68, 0.24) * 1.3, smoothstep(0.1, 0.55, sx));
+    ball = mix(ball, vec3(1.0, 0.38, 0.08) * 1.4, smoothstep(0.6, 0.98, sx));
+    c = mix(c, ball, 1.0 - smoothstep(0.96, 1.0, x));
+    float edge = ca - Rf;
+    c += vec3(1.0, 0.45, 0.12) * exp(-abs(edge) / 0.012) * 1.6;
+    vec3 e1 = normalize(cross(P, vec3(0.0, 1.0, 0.0))), e2 = cross(P, e1);
+    float phi = atan(dot(perp, e2), dot(perp, e1));
+    float fly = noise3(vec3(phi * 11.0, edge * 5.0 - uTime * 14.0, 4.2));
+    c += vec3(1.0, 0.7, 0.35) * pow(fly, 5.0) * 2.5 * exp(-max(edge, 0.0) * 3.0) * step(0.0, edge);
   }
   c += vec3(uWhite * 8.0);
   gl_FragColor = vec4(c, 1.0);
@@ -128,7 +151,7 @@ export function makeSpace() {
   const u = {
     uGal: { value: 1 }, uRed: { value: 0 }, uBack: { value: 0 }, uMerge: { value: 0 }, uNeb: { value: 0 }, uNebR: { value: 0.2 },
     uWD: { value: new THREE.Vector3(-0.2, 0.3, -1) }, uGlow: { value: 0 }, uTime: { value: 0 },
-    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) }, uSquash: { value: 1 }, uSpin: { value: 0 },
+    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) }, uSquash: { value: 1 }, uSpin: { value: 0 }, uDim: { value: 0 }, uBang: { value: 0 },
   };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), new THREE.ShaderMaterial({
     uniforms: u, side: THREE.BackSide, depthWrite: false, depthTest: false,
@@ -174,6 +197,8 @@ export function makeSpace() {
       u.uMerge.value = s.merge * (1 - s.glow);
       u.uBoil.value = s.boilStars;
       u.uWhite.value = s.white;
+      u.uDim.value = s.dim;
+      u.uBang.value = s.bang;
       // the sky's glow: blackbody colour of its temperature (the colour stops changing once it is white-hot),
       // brightening steeply as it heats
       // (a fire palette rather than the exact blackbody colour, which is a greyish white from ~4,000 K up and doesn't
@@ -203,7 +228,7 @@ export function makeSpace() {
       crowd.pose(0, { x: YOUP.x + Math.sin(v * 0.3) * 0.08, y: YOUP.y + Math.sin(v * 0.4) * 0.06, z: YOUP.z, yaw: Math.PI - 0.5 + a * 0.6, pitch: 0.25 + Math.sin(v * 0.5) * 0.06, roll: 0.15 * Math.sin(a), armL: 0.5 + 0.2 * Math.sin(v * 0.7), armR: 0.6 + 0.2 * Math.sin(v * 0.6 + 1), stride: 0.35, walk: 0.9 });
       crowd.commit();
       // the view: a slow drift, and a growing tremble as everything falls in
-      const sh = 0.004 * s.boilStars + 0.002 * s.merge;
+      const sh = 0.004 * s.boilStars + 0.002 * s.merge + 0.03 * s.bang * Math.pow(1 - s.bang, 2);   // the bang's jolt
       camera.position.set(0, 0, 0);
       camera.rotation.set(0.02 + Math.sin(v * 0.2) * 0.01 + sh * Math.sin(v * 41), 0.06 + t * 0.0015 + sh * Math.sin(v * 33 + 1), sh * 0.5 * Math.sin(v * 27));
       // the point everything falls into: a little above the middle of the view, left of you
@@ -225,6 +250,7 @@ export function makeSpace() {
       M.makeTranslation(pos.x, pos.y, pos.z).multiply(new THREE.Matrix4().makeRotationFromQuaternion(Q0)).multiply(S)
         .multiply(new THREE.Matrix4().makeTranslation(-C.x, -C.y, -C.z));
       youG.matrix.copy(M);
+      youG.visible = d < 0.995 && s.bang <= 0;   // swallowed: nothing of you is left
       youG.matrixWorldNeedsUpdate = true;
       youNow.set(YOUP.x, YOUP.y, YOUP.z).add(pos).sub(C);
       // the light: the squeezed ball of light, where the point is

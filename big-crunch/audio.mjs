@@ -5,12 +5,13 @@
 // smears into one rushing wash. Every 10x lands as a deep soft "whoomp" while a low drone climbs a semitone.
 // A warm chord when everyone you knew is gone; a shimmering swell for Betelgeuse; the sea surging in and out with
 // the ice ages; the asteroid's long rolling boom; the oceans hissing away; the giant Sun's growing roar up to the
-// white-out; then space: a quiet, slowly darkening hum, fading to silence (and back into the seaside: it loops).
+// white-out; then space: a quiet hum, the universe rushing back in, the squeeze into one point, a breath of near
+// silence, and the new Big Bang: a deep soft boom and a bright chord that ring on into the seaside (it loops).
 // No sharp clicks or crackles anywhere: every impact is a soft, low thud.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, BEATS, V_NOVA, V_IMPACT, V_ENGULF, V_CRUNCH, V_TURN, V_FADE, T_SWITCH, V_LOCK, logRate } from './src/timeline.js';
+import { state, VIDEO_DURATION, LOOP, BEATS, V_NOVA, V_IMPACT, V_ENGULF, V_CRUNCH, V_TURN, V_FADE, T_SWITCH, V_LOCK, V_BANG, logRate } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -63,6 +64,7 @@ export function makeSoundtrack(outFile) {
   const N = Math.round(VIDEO_DURATION * SR);
   const N0 = Math.round(LOOP * SR);
   const L = new Float32Array(N), R = new Float32Array(N);
+  const BL = new Float32Array(N), BR = new Float32Array(N);   // the Big Bang, laid over the loop's crossfade
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(777);
   const white = () => R0() * 2 - 1;
@@ -74,7 +76,8 @@ export function makeSoundtrack(outFile) {
   const novaF = [new SVF(), new SVF()], iceF = new SVF(), boomF = new SVF(), rumL = new SVF(), rumR = new SVF(), rumSub = new OnePole(40);
   const hissF = [new SVF(), new SVF()], roarF = [new SVF(), new SVF()], roarSub = new OnePole(55), spaceLP = new OnePole(400);
   const revL = new Reverb(11), revR = new Reverb(12);
-  const ph = new Float64Array(48);
+  const bangF = [new SVF(), new SVF(), new SVF()];
+  const ph = new Float64Array(64);
 
   let s = state(-LOOP), lr = logRate(-LOOP);
   for (let n = -N0; n < N; n++) {
@@ -192,7 +195,8 @@ export function makeSoundtrack(outFile) {
     // --- space: a quiet hum and a soft high shimmer; once the universe falls back in, a rising rush, a deep roar
     // that climbs as the sky heats, and one huge bright swell into the white-out ---
     if (v > V_ENGULF - 0.5) {
-      const g = smooth(V_ENGULF - 0.2, V_ENGULF + 1.2, v) * (1 - smooth(V_FADE - 0.3, T_SWITCH - 0.05, v));
+      // (everything drains into a breath of near silence just before the bang, and is gone after it)
+      const g = smooth(V_ENGULF - 0.2, V_ENGULF + 1.2, v) * (1 - smooth(V_FADE - 0.3, T_SWITCH - 0.05, v)) * (v < V_BANG ? 1 - 0.9 * s.dim : 0);
       const heat = Math.max(s.glow, 0.5 * s.merge);
       let hv = 0;
       [55, 82.4, 110, 164.8].forEach((f, q) => { ph[30 + q] += f * (1 - 0.03 * s.out + 0.12 * s.back) / SR; hv += Math.sin(TAU * ph[30 + q] + 0.3 * Math.sin(v * (0.2 + q * 0.07))) * (q === 0 ? 1 : 0.5); });
@@ -227,8 +231,26 @@ export function makeSoundtrack(outFile) {
     }
     const fade = 1 - smooth(V_FADE - 0.1, T_SWITCH - 0.02, v);
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
-    const outL = (l + dl + rl * 0.8) * fade, outR = (r + dr + rr * 0.8) * fade;
+    const hush = v < V_BANG ? 1 - 0.8 * s.dim : 1;   // the breath before the bang
+    const outL = (l + dl + rl * 0.8) * fade * hush, outR = (r + dr + rr * 0.8) * fade * hush;
     if (n < 0) { PL[n + N0] = outL; PR[n + N0] = outR; } else { L[n] = outL; R[n] = outR; }
+    // --- the new Big Bang: a deep, soft boom (a falling sub tone and a low rumble, no sharp attack), a bright rush of
+    // air sweeping down, and a warm major chord blooming out of it; it rings on through the loop and dies away ---
+    const db = v - V_BANG;
+    if (n >= 0 && db > -0.05 && db < 3.5) {
+      const att = smooth(-0.04, 0.05, db), d = Math.max(db, 0);
+      const end = 1 - smooth(VIDEO_DURATION - 0.6, VIDEO_DURATION - 0.02, v);
+      ph[46] += (24 + 46 * Math.exp(-d * 3)) / SR;
+      const sub = Math.sin(TAU * ph[46]) * Math.exp(-d * 1.4) * 0.55;
+      const rum = bangF[0].run(white(), 150, 0.6).lp * Math.exp(-d * 1.1) * 1.4;
+      const fa = 280 + 2600 * Math.exp(-d * 2.2);
+      const airL = bangF[1].run(white(), fa, 0.9).bp * Math.exp(-d * 1.6) * 0.16, airR = bangF[2].run(white(), fa * 1.08, 0.9).bp * Math.exp(-d * 1.6) * 0.16;
+      let ch = 0;
+      [130.8, 196, 261.6, 329.6, 392].forEach((f, q) => { ph[50 + q] += f / SR; ch += Math.sin(TAU * ph[50 + q]); });
+      ch *= smooth(0, 0.25, d) * Math.exp(-d * 0.9) * 0.035;
+      BL[n] = (sub + rum + airL + ch) * att * end;
+      BR[n] = (sub + rum * 0.97 + airR + ch) * att * end;
+    }
   }
 
   {   // the silence at the end turns into the lead-in to the first frame (the video loops)
@@ -238,6 +260,7 @@ export function makeSoundtrack(outFile) {
       L[a + i] = L[a + i] * wo + PL[i] * wi;
       R[a + i] = R[a + i] * wo + PR[i] * wi;
     }
+    for (let n = 0; n < N; n++) { L[n] += BL[n]; R[n] += BR[n]; }
   }
 
   let peak = 0;
