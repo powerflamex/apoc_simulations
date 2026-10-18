@@ -65,8 +65,8 @@ Frames: first 30 s closely + 16 frames spread over the rest, for 22 videos; top 
   nothing). MZ's newest added a 2 s logo clock.
 - **A calm "normal day" for 20-30 s:** F1 Sun (normal street until 0:35), AA Heavier (same shot for 26 s), BI Snow
   (looking out a window for 30 s), LAB Nuke (nothing until 0:14).
-- **Black or white frame 0:** OTS Ate, BI City, BP Growing open on black; the owner's 7 ways opens on mostly-white
-  flash frames for 8 s.
+- **Black or white frame 0:** OTS Ate, BI City, BP Growing open on black. (Corrected Oct 18: the owner's 7 ways does
+  NOT open on white; see below.)
 - **Hazy white middles:** F1 Sun 1:45-5:00 is almost all white.
 - **Vertical long videos:** WIA switched to 9:16 5-min planet falls: 65-1.8K views each.
 - **Part 2s / sequels:** WIA Universe Part 1 9.9K, Part 2 4.4K.
@@ -82,5 +82,10 @@ Frames: first 30 s closely + 16 frames spread over the rest, for 22 videos; top 
   the clone channels, and YouTube's monetization rules against mass-produced/repetitive content.
 
 ## Owner's 7 ways (30K, 7:11)
-Compilation, not one "you" journey; first 8 s mostly white flash frames; dark thumbnail with no number. The
+Compilation, not one "you" journey; dark thumbnail with no number. Opening, re-checked from the file frame by frame
+(Oct 18; an earlier note here wrongly said "mostly white"): 0-6 s a montage of all 7 climaxes, ~1 s each, with #7..#1
+in the corner (asteroid wave wall, pool bubbles, frozen sea, Sun-fall haze, black hole over the city, lapped Earth,
+electrons); the title fades in only at ~6 s; part #7 starts at ~8 s on a calm countdown and the first white is the
+impact at ~12 s. Weak spots vs the hits: no title or promise line ("In 7 minutes...") on frame 0, clips too short to
+read, several are dark (night, space), no counter until ~8 s. The
 single-escalation format is outperforming compilations by a wide margin.
