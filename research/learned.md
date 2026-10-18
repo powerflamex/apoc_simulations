@@ -80,6 +80,11 @@
   (car bumps, dropped items). Use soft, low thuds and distance falloff, and scan the track for sharp spikes before rendering.
 - A human moment lands well (the last man dying on a bench, counter 1 -> 0, heartbeat stopping).
 
+## Long-form competitors (Oct 18)
+- 9 channels doing "...and couldn't stop?" long videos, almost all started Oct 10-16: see
+  `research/longform_wave_2026-10-18.md`. First video on a topic wins 10-100x over the copies; hits open with a
+  3-6 s flash-forward of the ending, then the title; logo intros and calm 20-30 s openings flop.
+
 ## Ideas in the queue
 - Long-form "7 ways the world could end" compilation: see `longform/PLAN.md`.
 - Status Oct 12: moon-falls (Day 8, 66 s) and women-vanish (Day 9, 64 s) are finished, checked and in CAPTIONS.md.
