@@ -75,9 +75,9 @@ const finish = new ShaderPass({
       // that races outward, a warm glow at its edge, a fading wash of light inside)
       if (uReveal > -0.5) {   // (-1 = off; the radius itself starts a little below 0: all white)
         float r = length((vUv - vec2(0.404, 0.608)) * vec2(0.5625, 1.0));
-        float rim = exp(-pow((r - uReveal) / 0.04, 2.0)) * uRim;
-        col = mix(col, vec3(1.0), 0.65 * uRim) + vec3(1.0, 0.62, 0.3) * rim * 0.9;
-        col = mix(col, vec3(1.0), smoothstep(uReveal - 0.05, uReveal + 0.01, r));
+        float rim = exp(-pow((r - uReveal + 0.08) / 0.12, 2.0)) * uRim;
+        col = mix(col, vec3(1.0), 0.75 * uRim) + vec3(1.0, 0.66, 0.36) * rim * 0.35;
+        col = mix(col, vec3(1.0), smoothstep(uReveal - 0.28, uReveal + 0.02, r));
       }
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -222,8 +222,9 @@ function update(v, cover = -1, reveal = -1) {
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - Math.max(s.flash, s.fadeOut)) * 0.9;
   // the opening's radius (in screen heights; ~0.72 clears the far corner): fastest at first, like a blast
   const rv = s.reveal;
-  finish.uniforms.uReveal.value = rv >= 0 && rv < 1 ? 0.95 * (1 - Math.pow(1 - smooth(0, 0.85, rv), 3)) - 0.04 : -1;
-  finish.uniforms.uRim.value = rv >= 0 ? 1 - smooth(0.1, 0.9, rv) : 0;
+  // (a soft-edged opening that grows gently, then a slowly fading wash of light)
+  finish.uniforms.uReveal.value = rv >= 0 && rv < 1 ? 1.25 * (1 - Math.pow(1 - clamp(rv / 0.85), 2)) - 0.02 : -1;
+  finish.uniforms.uRim.value = rv >= 0 ? 1 - smooth(0.15, 0.97, rv) : 0;
 
   overlay(v, s, v);
   // "YOU": a label over your head
@@ -246,7 +247,7 @@ function update(v, cover = -1, reveal = -1) {
     if (a > 0) {
       if (stampEl.textContent !== b.label) stampEl.textContent = b.label;
       if (stampW.textContent !== b.top) stampW.textContent = b.top;
-      const base = b.label.length > 14 ? 108 : b.label.length > 11 ? 124 : 138;
+      const base = b.label.length > 13 ? 108 : b.label.length > 11 ? 124 : 138;
       stampEl.style.fontSize = `${(base * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
     }
   }
@@ -258,7 +259,7 @@ let comp = null;
 // white (the new Big Bang), so the video loops seamlessly.
 function renderFrame(t) {
   const tail = t - (VIDEO_DURATION - LOOP);
-  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0.25 * LOOP, LOOP * 0.95, tail), tail / LOOP);
+  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0.45 * LOOP, LOOP * 0.97, tail), tail / LOOP);
   else update(t);
   composer.render();
   if (comp) comp.paint();

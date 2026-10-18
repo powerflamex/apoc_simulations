@@ -155,10 +155,10 @@ export const sunAngR = (R) => Math.asin(Math.min(1, R * 0.00465));
 export const V_SUNSET = vOfYears(LEAD / MIN_PER_YEAR);     // 2.7 s: the Sun goes down
 export const V_NOVA = vOfYears(1e5);                       // 21.4 s: Betelgeuse
 export const V_IMPACT = vOfYears(1e8) + 0.3;               // 27.7 s: the asteroid
-export const V_BANG = 64.75;                               // the point erupts: a new Big Bang
-export const V_FADE = 65.35;                               // the white-out
-export const T_SWITCH = 65.75;
-export const LOOP = 1.3;                                   // the new universe opens out of the white onto the first frame
+export const V_BANG = 65.7;                                // after a second of silence the point erupts: a new Big Bang
+export const V_FADE = 66.9;                                // the white-out
+export const T_SWITCH = 67.3;
+export const LOOP = 2.4;                                   // the new universe slowly opens out of the white onto the first frame
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 export const UNDER_COLOR = '#ffffff';
 
@@ -177,7 +177,7 @@ export const BEATS = [
   [38.0, '10 billion years'],
   [48.0, '16 billion years'],
   [52.0, '19 billion years'],
-  [V_CRUNCH - 0.6, 'THE BIG CRUNCH', true],
+  [V_CRUNCH, 'THE BIG CRUNCH', true],
   [V_BANG, 'THE BIG BANG', true, 'AND THEN'],
 ].map(([v, label, last, top]) => ({ v, label, last: !!last, top: top || 'TIME PASSED' }));
 export function beatAt(v) {
@@ -316,14 +316,19 @@ export function state(v) {
   // the crunch itself: all of space (the glowing sky, the stars, the white dwarf) squeezed into a shrinking ball
   // (squash: the share of the sky it still covers, 1 -> a dot), spinning as it falls in; you are stretched long and
   // thin and dragged in after it (drag 0 -> 1); a short flash as the point vanishes
-  // (shrinking by the same factor every moment: its edge comes into view at ~61.6 s, a dot by 64.2 s)
-  s.squash = Math.exp(-5.8 * clamp((v - 60.6) / 3.6));
+  // (shrinking steadily, then snapping shut: still a small ball at 64.2 s, gone at the crunch, 64.6 s)
+  {
+    const u = clamp((v - 60.6) / (V_CRUNCH - 60.6));
+    s.squash = Math.exp(-2.6 * u) * (1 - Math.pow(smooth(0.88, 1.0, u), 0.8));
+  }
   s.drag = Math.pow(smooth(61.0, 64.0, v), 1.3);
   // then a breath of near-dark with only the pinpoint left, and it erupts: a new Big Bang, a fireball of white-hot
   // light bursting out of the point (bang: 0 -> 1 as it grows past the edges of the view), whiting everything out
-  s.dim = v < V_BANG ? smooth(64.25, 64.6, v) : 0;
-  s.bang = clamp((v - V_BANG) / 0.75);
-  s.white = smooth(V_BANG + 0.45, V_FADE + 0.15, v);
+  // (the point snaps shut at the crunch; a second of black with one pinpoint; it swells, and erupts)
+  s.dim = v < V_BANG + 0.08 ? smooth(V_CRUNCH - 0.02, V_CRUNCH + 0.08, v) : 0;   // (held under the fireball's first frames)
+  s.pre = v < V_BANG + 0.08 ? smooth(V_BANG - 0.45, V_BANG, v) : 0;
+  s.bang = clamp((v - V_BANG) / 1.25);
+  s.white = smooth(V_BANG + 0.75, V_FADE + 0.2, v);
   s.under = 0;
   s.reveal = -1;   // the loop tail: the first frame opens out of the white (see renderFrame)
   s.title = 1 - smooth(3.0, 3.6, v);

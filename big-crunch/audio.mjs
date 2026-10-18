@@ -196,7 +196,7 @@ export function makeSoundtrack(outFile) {
     // that climbs as the sky heats, and one huge bright swell into the white-out ---
     if (v > V_ENGULF - 0.5) {
       // (everything drains into a breath of near silence just before the bang, and is gone after it)
-      const g = smooth(V_ENGULF - 0.2, V_ENGULF + 1.2, v) * (1 - smooth(V_FADE - 0.3, T_SWITCH - 0.05, v)) * (v < V_BANG ? 1 - 0.9 * s.dim : 0);
+      const g = smooth(V_ENGULF - 0.2, V_ENGULF + 1.2, v) * (1 - smooth(V_FADE - 0.3, T_SWITCH - 0.05, v)) * (v < V_BANG ? 1 - 0.9 * smooth(V_CRUNCH - 0.05, V_CRUNCH + 0.15, v) : 0);
       const heat = Math.max(s.glow, 0.5 * s.merge);
       let hv = 0;
       [55, 82.4, 110, 164.8].forEach((f, q) => { ph[30 + q] += f * (1 - 0.03 * s.out + 0.12 * s.back) / SR; hv += Math.sin(TAU * ph[30 + q] + 0.3 * Math.sin(v * (0.2 + q * 0.07))) * (q === 0 ? 1 : 0.5); });
@@ -231,12 +231,19 @@ export function makeSoundtrack(outFile) {
     }
     const fade = 1 - smooth(V_FADE - 0.1, T_SWITCH - 0.02, v);
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
-    const hush = v < V_BANG ? 1 - 0.8 * s.dim : 1;   // the breath before the bang
+    const hush = v < V_BANG ? 1 - 0.85 * smooth(V_CRUNCH + 0.2, V_CRUNCH + 0.6, v) : 1;   // the silence before the bang (after the crunch's thud)
     const outL = (l + dl + rl * 0.8) * fade * hush, outR = (r + dr + rr * 0.8) * fade * hush;
     if (n < 0) { PL[n + N0] = outL; PR[n + N0] = outR; } else { L[n] = outL; R[n] = outR; }
     // --- the new Big Bang: a deep, soft boom (a falling sub tone and a low rumble, no sharp attack), a bright rush of
     // air sweeping down, and a warm major chord blooming out of it; it rings on through the loop and dies away ---
     const db = v - V_BANG;
+    // (just before it: a low tone and a breath of air rising out of the silence)
+    if (n >= 0 && db > -0.5 && db < 0.05) {
+      const p = smooth(-0.5, 0, db) * (1 - smooth(0, 0.05, db));
+      ph[56] += (38 + 70 * p * p) / SR;
+      const vv = Math.sin(TAU * ph[56]) * 0.22 * p * p + bangF[2].run(white(), 500 + 2500 * p * p, 0.9).bp * 0.05 * p * p;
+      BL[n] += vv; BR[n] += vv;
+    }
     if (n >= 0 && db > -0.05 && db < 3.5) {
       const att = smooth(-0.04, 0.05, db), d = Math.max(db, 0);
       const end = 1 - smooth(VIDEO_DURATION - 0.6, VIDEO_DURATION - 0.02, v);
@@ -248,13 +255,13 @@ export function makeSoundtrack(outFile) {
       let ch = 0;
       [130.8, 196, 261.6, 329.6, 392].forEach((f, q) => { ph[50 + q] += f / SR; ch += Math.sin(TAU * ph[50 + q]); });
       ch *= smooth(0, 0.25, d) * Math.exp(-d * 0.9) * 0.035;
-      BL[n] = (sub + rum + airL + ch) * att * end;
-      BR[n] = (sub + rum * 0.97 + airR + ch) * att * end;
+      BL[n] += (sub + rum + airL + ch) * att * end;
+      BR[n] += (sub + rum * 0.97 + airR + ch) * att * end;
     }
   }
 
   {   // the silence at the end turns into the lead-in to the first frame (the video loops)
-    const a = N - N0, xf = Math.round(0.5 * SR);
+    const a = N - N0, xf = Math.round(1.2 * SR);
     for (let i = 0; i < N0; i++) {
       const kk = Math.min(1, i / xf), wi = Math.sin(kk * Math.PI / 2), wo = Math.cos(kk * Math.PI / 2);
       L[a + i] = L[a + i] * wo + PL[i] * wi;

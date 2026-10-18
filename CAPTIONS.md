@@ -326,9 +326,9 @@ Would you stay to watch the end? 👇
 
 Cover: `big-crunch/out/big-crunch_v4_cover.png` (`node render.mjs --cover 50.8`: the galaxies rushing back in)
 
-v2 (Oct 18, 67 s): the crunch ends in a new Big Bang: a breath of near-silence on the last pinpoint, then a golden
-fireball bursts out of it ("AND THEN / THE BIG BANG"), whites out, and the opening scene opens out of the white from
-the same point. The upload posted Oct 18 at 10 AM has the old ending (dot, white flash).
+v2 (Oct 18, 70 s): the crunch ends in a new Big Bang: the ball snaps shut ("THE BIG CRUNCH"), a second of silent
+black with one pinpoint, it swells, then a golden fireball bursts out of it ("AND THEN / THE BIG BANG"), whites out,
+and the opening scene slowly opens out of the white from the same point. Replaces the 10 AM Oct 18 upload (old ending).
 
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.

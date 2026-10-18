@@ -17,7 +17,7 @@ const skyFrag = /* glsl */ `
 precision highp float;
 varying vec3 vDir;
 uniform float uGal; uniform float uRed; uniform float uBack; uniform float uMerge; uniform float uNeb; uniform float uNebR;
-uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd; uniform float uSquash; uniform float uSpin; uniform float uDim; uniform float uBang;
+uniform vec3 uWD; uniform float uGlow; uniform float uTime; uniform vec3 uBg; uniform float uBoil; uniform float uWhite; uniform vec3 uFwd; uniform float uSquash; uniform float uSpin; uniform float uDim; uniform float uBang; uniform float uPre;
 float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -121,7 +121,7 @@ void main() {
     c += vec3(1.0, 0.97, 0.92) * exp(-ca / (0.004 + 0.02 * uSquash)) * 3.0 * k * k;
   }
   // a breath of near-dark: everything is gone but the pinpoint
-  vec3 pin = vec3(1.0, 0.95, 0.85) * exp(-ca / 0.0035) * 2.5;
+  vec3 pin = vec3(1.0, 0.95, 0.85) * exp(-ca / (0.0035 * (1.0 + 2.5 * uPre * uPre))) * 2.5 * (1.0 + 2.0 * uPre);
   c = mix(c, pin, uDim);
   // the new Big Bang: a fireball bursting out of the point, white-hot inside, gold toward its edge and seething, a
   // bright orange rim, and streaks of light thrown outward ahead of it
@@ -151,7 +151,7 @@ export function makeSpace() {
   const u = {
     uGal: { value: 1 }, uRed: { value: 0 }, uBack: { value: 0 }, uMerge: { value: 0 }, uNeb: { value: 0 }, uNebR: { value: 0.2 },
     uWD: { value: new THREE.Vector3(-0.2, 0.3, -1) }, uGlow: { value: 0 }, uTime: { value: 0 },
-    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) }, uSquash: { value: 1 }, uSpin: { value: 0 }, uDim: { value: 0 }, uBang: { value: 0 },
+    uBg: { value: new THREE.Vector3() }, uBoil: { value: 0 }, uWhite: { value: 0 }, uFwd: { value: new THREE.Vector3(0, 0, -1) }, uSquash: { value: 1 }, uSpin: { value: 0 }, uDim: { value: 0 }, uBang: { value: 0 }, uPre: { value: 0 },
   };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), new THREE.ShaderMaterial({
     uniforms: u, side: THREE.BackSide, depthWrite: false, depthTest: false,
@@ -199,6 +199,7 @@ export function makeSpace() {
       u.uWhite.value = s.white;
       u.uDim.value = s.dim;
       u.uBang.value = s.bang;
+      u.uPre.value = s.pre;
       // the sky's glow: blackbody colour of its temperature (the colour stops changing once it is white-hot),
       // brightening steeply as it heats
       // (a fire palette rather than the exact blackbody colour, which is a greyish white from ~4,000 K up and doesn't
