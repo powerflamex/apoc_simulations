@@ -2,7 +2,12 @@
 
 One 16:9 video (1920x1080, 30 fps, ~9-10 min) made from the existing sims, ordered from least to most destructive.
 No loops; each part ends on its cover (white / deep water / ice) and fades into a title card over the next part.
-On-screen text only for now (no voiceover); a voice can be added later.
+Voiceover (decided 2026-10-18): the owner will record his own voice for the first few long videos to see if the
+audience likes it, before paying for an ElevenLabs clone of his voice (~30 min of speech/month, ~2 long videos). Claude
+writes the script (~1,400 words for 10 min: why things happen, a promise up front like "In the next 10 minutes, the
+world ends 7 times", a hand-off line at the end of each part, silence over each impact); the owner sends one recording
+of the whole script; Claude cuts it into lines, places them on the timeline and lowers the music under the voice.
+Compare against long videos without a voice by average view duration and comments.
 
 ## Order, as the viewer sees it
 0. **Intro (~15 s):** fast montage of the 7 climaxes (2 s each) + title "7 ways the world could end, from bad to total annihilation".
