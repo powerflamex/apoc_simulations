@@ -1,4 +1,4 @@
-// "What if you lived to the Big Crunch?" — the story as functions of VIDEO time v (seconds).
+// "What if you lived to the end of the universe?" (the Big Crunch) — the story as functions of VIDEO time v (seconds).
 // The same seaside promenade as trillion-years (35° N, looking west over the bay at sunset); you never move, never
 // age. The rule: time speeds up 10x every 2 s. A year has passed at 11.4 s, a billion years at 29.4 s, the red giant
 // Sun swallows Earth at 7.6 billion years (34 s). Then space: the universe keeps expanding for a while, stops, and
