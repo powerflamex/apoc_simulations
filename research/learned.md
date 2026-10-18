@@ -98,4 +98,6 @@
 - Status Oct 15: gravity-doubles (Day 11) finished, posting Oct 15. Next to build: "What if Earth stopped spinning?"
   (see the memory note on Lunar's competitor hit; new city, new camera, our frame-0 hook + loop), then oxygen gone for 5 s
   or a black hole sequel.
+- Status Oct 18: jupiter (Day 15, "What if you stood on Jupiter?", ~70 s) built as a new project from `research/next-jupiter-fall.md`:
+  a spacesuit falling through three cloud decks into the glowing deep; chase camera instead of a street scene.
 - Proven topics not built yet: a black hole follow-up (e.g. through the Moon); more "X disappears" topics.

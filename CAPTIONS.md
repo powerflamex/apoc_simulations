@@ -303,10 +303,10 @@ Which moment would you want to see? 👇
 
 Cover: `trillion-years/out/trillion-years_v4_cover.png` (`node render.mjs --cover 57.3`)
 
-## Day 14. You live to the Big Crunch — `big-crunch/out/big-crunch_v4_1080x1920_60fps_tiktok.mp4`
+## Day 14. You live to the end of the universe (the Big Crunch) — `big-crunch/out/big-crunch_v4_1080x1920_60fps_tiktok.mp4`
 
-**YouTube title (89 chars)**
-What if you lived to the Big Crunch? Time speeds up 10x every 2 seconds 😳 #whatif #space
+**YouTube title (98 chars)**
+What if you lived to the end of the universe? Time speeds up 10x every 2 seconds 😳 #whatif #space
 
 **YouTube description**
 You stand at the railing of a seaside promenade at sunset and never age. Time speeds up 10x every 2 seconds.
@@ -329,6 +329,28 @@ Cover: `big-crunch/out/big-crunch_v4_cover.png` (`node render.mjs --cover 50.8`:
 v2 (Oct 18, 70 s): the crunch ends in a new Big Bang: the ball snaps shut ("THE BIG CRUNCH"), a second of silent
 black with one pinpoint, it swells, then a golden fireball bursts out of it ("AND THEN / THE BIG BANG"), whites out,
 and the opening scene slowly opens out of the white from the same point. Replaces the 10 AM Oct 18 upload (old ending).
+
+v3 (Oct 18): renamed at the owner's request: "What if you lived to the end of the universe?" (on-screen title, cover, YouTube title).
+
+## Day 15. You stand on Jupiter — `jupiter/out/jupiter_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (88 chars)**
+What if you stood on Jupiter? There's no ground, so you sink 20,000 km 😳 #whatif #space
+
+**YouTube description**
+You step onto Jupiter's cloud tops in a spacesuit. There's no ground, so you start sinking.
+
+Gravity is 2.5x Earth's: you weigh 380 lb. 350 mph winds throw you sideways, and a day lasts just 10 hours.
+The white ammonia clouds are −130°C, colder than anywhere on Earth. Below them, brown clouds, then thunderstorms taller than Mount Everest.
+150 km down, in the dark, you pass the spot where NASA's Galileo probe went silent in 1995, 58 minutes after it entered.
+Deeper, the pressure matches the deepest ocean on Earth and the air glows red-hot. Scientists think it may rain diamonds.
+The air thickens into an ocean with no surface. 20,000 km down: liquid metal, hotter than the surface of the Sun.
+
+How deep do you think you'd get? 👇
+
+#whatif #jupiter #space #science #simulation
+
+Cover: `jupiter/out/jupiter_v4_cover.png` (`node render.mjs --cover 56.5`: you falling through the glowing deep, diamonds glinting)
 
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.

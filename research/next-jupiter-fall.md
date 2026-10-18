@@ -1,4 +1,4 @@
-# Next Short: "What if you stood on Jupiter?" (falling in) — approved plan, not built yet
+# Short: "What if you stood on Jupiter?" (falling in) — built Oct 18 as `jupiter/` (Day 15)
 
 Owner picked this on 2026-10-18 (over "What if Jupiter replaced the Moon?"). Build it as a new project folder
 `jupiter/`, all-new scene (no reused street scene). ~70 s, one continuous fall, depth counter racing from frame 0.
