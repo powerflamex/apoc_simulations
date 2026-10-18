@@ -89,3 +89,17 @@ electrons); the title fades in only at ~6 s; part #7 starts at ~8 s on a calm co
 impact at ~12 s. Weak spots vs the hits: no title or promise line ("In 7 minutes...") on frame 0, clips too short to
 read, several are dark (night, space), no counter until ~8 s. The
 single-escalation format is outperforming compilations by a wide margin.
+
+## Topic check, Oct 18 evening (YouTube search, several phrasings each)
+Before calling a topic "free", search YouTube for it in 3-4 phrasings ("...every second", "...kept getting",
+"...couldn't stop", "...doubled"): the notes above only list the 9 channels' bigger videos.
+- **Gravity: taken from every side.** What If (big channel) "Gravity Got 1% Stronger Every Second?" 238K, 9 d, 25 min;
+  Gravitas3D "Earth's Gravity Doubled Every Minute? It Ends as a Black Hole" 10.8K, 3 d; Simulyfe "Gravity Got Stronger
+  and Couldn't Stop?" 4K, 1 d; Minute Zero "You Got Heavier" 113K, 1 d, and "Gravity Got Weaker" 14K at 5 h.
+- Also taken: Earth spun slower (What If Sim + Suit Breach, 6 h), Earth spun faster (WIS 230K + copies), Sun closer
+  (What If Lab 63K, Scout's Theory, Step Into If), black hole closer (Scout's Theory 11K, 2 d), sea rising (Map Tally),
+  floating up (xkcd's What If 1.6M, 7 mo; The Cosmic Witness).
+- **Wind: open.** Only "What if the wind never stopped?" (IfScape3D, 236 views, 4 min) and "...(Hour by Hour)" (The
+  Frontier Of What If, 52 views). Nothing on wind doubling, escalating to the speed of sound or escape velocity.
+- Owner's rule (Oct 18): don't use "...and couldn't stop?" in our titles (it marks a video as one of the clones);
+  use our Shorts' own form, "What if X doubled every N seconds?".
