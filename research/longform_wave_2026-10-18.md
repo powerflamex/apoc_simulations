@@ -103,3 +103,10 @@ Before calling a topic "free", search YouTube for it in 3-4 phrasings ("...every
   Frontier Of What If, 52 views). Nothing on wind doubling, escalating to the speed of sound or escape velocity.
 - Owner's rule (Oct 18): don't use "...and couldn't stop?" in our titles (it marks a video as one of the clones);
   use our Shorts' own form, "What if X doubled every N seconds?".
+- **End of the universe (checked Oct 18):** a huge evergreen topic (melodysheep "Timelapse of the Future" 113M,
+  Infographics "Why It Would Suck To Live Through The End Of The Universe" 7M, Stargaze "How Will the Universe End?
+  (Simulation)" 940K, 7 mo; What If "Universe Stopped Expanding And Started Shrinking" 140K, 2 mo = a 21-min Big
+  Crunch). Closest to our format: Sandbox Mode "What If Earth Witnessed Every Ending of the Universe?" 57K, 2 mo.
+  **Big Rip:** only explainers (What If "Big Rip Happened Tomorrow" 595K, 6 y; PBS Space Time 1.2M, 7 y) and
+  tiny new uploads (2-1,234 views). Nobody has done it as a ground-level "you" sim with a countdown, and none of the
+  9 wave channels has touched it.
