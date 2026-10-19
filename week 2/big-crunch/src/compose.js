@@ -1,7 +1,8 @@
 // Paints the WebGL frame plus the HTML overlay (title, counter, captions, flash, end card) into one
 // 2D canvas. Layout comes straight from the DOM (line breaks, positions, opacity, blur, text-shadow),
 // so the encoded frame matches the preview without screenshots.
-const W = 1080, H = 1920;
+const WIDE = new URLSearchParams(location.search).has('wide');
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 
 export async function makeCompositor(glCanvas, stage) {
   // lining + tabular digits for the counter (canvas can't set font-variant-numeric itself)
@@ -14,7 +15,7 @@ export async function makeCompositor(glCanvas, stage) {
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   canvas.id = 'composite';
-  canvas.style.cssText = 'position:absolute;inset:0;width:1080px;height:1920px;';
+  canvas.style.cssText = `position:absolute;inset:0;width:${W}px;height:${H}px;`;
   glCanvas.after(canvas);
   stage.classList.add('compositing');
   const ctx = canvas.getContext('2d', { alpha: false });

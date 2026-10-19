@@ -1,3 +1,4 @@
+import { WIDE, wideBand } from './wide.js';   // first: it changes how the scene camera frames 16:9
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -12,7 +13,7 @@ import { DEG, lerp, smooth, wobble, keys } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -58,7 +59,7 @@ const finish = new ShaderPass({
     void main() {
       vec2 c = vUv - 0.5;
       vec3 col = texture2D(tDiffuse, vUv).rgb;
-      col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - 0.69) / 0.095, 2.0));
+      col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - ${WIDE ? '0.665' : '0.69'}) / ${WIDE ? '0.17' : '0.095'}, 2.0));
       float v = 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= v;
       col += (h(vUv * 1920.0 + fract(uTime * 7.13) * 100.0) - 0.5) * uGrain;
@@ -128,7 +129,7 @@ function update(t, cover = -1) {
   if (bolt) u.uBoltP.value.set(bolt[1], bolt[2], bolt[3], bolt[4]);
   u.uAsh.value = s.snowFall;
   u.uFlowGlow.value = s.flowOn * (0.25 + 1.5 * s.near);
-  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / H;
+  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / (WIDE ? H * 16 / 9 : H);
 
   world.frame(t, s, ctx);
 

@@ -1,3 +1,4 @@
+import { WIDE, wideBand } from './wide.js';   // first: it changes how the scene camera frames 16:9
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -14,7 +15,7 @@ import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G, heave } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -76,7 +77,7 @@ const finish = new ShaderPass({
       }
       vec3 col = texture2D(tDiffuse, uv).rgb;
       vec2 c = vUv - 0.5;
-      vec2 ca = c * vec2(1.0, 1920.0 / 1080.0);
+      vec2 ca = c * vec2(1.0, ${(H / W).toFixed(4)});
       float r = length(ca);
       // grey-out: the colour drains first, then the edges close in
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
@@ -86,8 +87,8 @@ const finish = new ShaderPass({
       col *= 1.0 - edge * tun;
       col *= 1.0 - uBlack;
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
-      col *= 1.0 - uTitle * 0.42 * exp(-pow((vUv.y - 0.69) / 0.1, 2.0));
-      col *= 1.0 - uCounter * 0.3 * exp(-pow((vUv.y - 0.535) / 0.06, 2.0)) * smoothstep(0.75, 0.2, vUv.x);
+      col *= 1.0 - uTitle * 0.42 * exp(-pow((vUv.y - ${WIDE ? '0.665' : '0.69'}) / ${WIDE ? '0.17' : '0.1'}, 2.0));
+      col *= 1.0 - uCounter * 0.3 * exp(-pow((vUv.y - ${WIDE ? '0.35' : '0.535'}) / ${WIDE ? '0.11' : '0.06'}, 2.0)) * smoothstep(${WIDE ? '0.42' : '0.75'}, ${WIDE ? '0.08' : '0.2'}, vUv.x);
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
@@ -173,7 +174,7 @@ function update(v, cover = -1) {
   // ---------- sky, air, light ----------
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
-  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
+  u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / (WIDE ? RH * 16 / 9 : RH);
   u.uTime.value = v;
   u.uCloudH.value = Math.exp(lerp(Math.log(2200), Math.log(25), s.clouds));
   u.uCloudCov.value = smooth(0.0, 0.5, s.clouds);

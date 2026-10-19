@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1080">
+<script>{ const q = new URLSearchParams(location.search); if (q.has('wide')) document.documentElement.classList.add('wide'); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
 <title>Earth Stops</title>
 <style>
   @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
@@ -16,6 +17,16 @@
   #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000;
     transform-origin: 0 0; }
   #stage canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+
+  /* wide (16:9) layout for the long video: title high, counter lower-left, captions low and centred */
+  .wide #stage, .wide #stage canvas { width: 1920px; height: 1080px; }
+  .wide #title { left: 260px; right: 260px; top: 250px; }
+  .wide #counter { left: 80px; top: 600px; }
+  .wide #caption { left: 330px; right: 330px; top: 905px; font-size: 54px; }
+  .wide #stampw { top: 372px; }
+  .wide #stamp { top: 410px; }
+  /* ?clean=1: no title, counter or captions (montage shots for the long video's intro) */
+  .clean #counter, .clean #caption, .clean #title, .clean #cover, .clean #you, .clean #stamp, .clean #stampw { display: none !important; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 

@@ -352,6 +352,36 @@ How deep do you think you'd get? 👇
 
 Cover: `jupiter/out/jupiter_v4_cover.png` (`node render.mjs --cover 56.5`: you falling through the glowing deep, diamonds glinting)
 
+## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
+
+16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
+title and "In 6 minutes, the whole universe ends." on frame 0 (the first long video showed its title only at 0:06).
+Thumbnail: `longform/out/6-more-ways_thumb_A.jpg` (Moon rubble over the burning city, a giant 6; B is the white ball).
+
+**YouTube title (69 chars)**
+6 More Ways the World Could End, Ranked (#1 Ends the Entire Universe)
+
+**YouTube description**
+6 more ways the world could end, simulated and ranked from bad to the end of everything.
+
+#6 Earth stops spinning: the wind breaks the sound barrier, then the ocean arrives at over 1,000 mph.
+#5 Every woman disappears: no babies are born ever again, and around 2143 the last human dies on a bench in Tokyo.
+#4 Yellowstone erupts: day turns to night, ash falls like snow, and a red-hot ash cloud boils the lake.
+#3 The Moon falls: Earth's gravity tears it apart, and pieces the size of countries hit at 22,000 mph.
+#2 Gravity doubles every 5 seconds: at about 6,000x, Earth collapses into a black hole 500 ft wide.
+#1 The end of the universe: the Sun swallows Earth, every galaxy crashes back together, and all of space squeezes into one point. Then a new Big Bang.
+
+Which one scares you most? 👇
+
+0:00 #6 Earth stops spinning
+1:07 #5 Every woman disappears
+2:09 #4 Yellowstone erupts
+3:11 #3 The Moon falls
+4:15 #2 Gravity doubles
+5:20 #1 The end of the universe
+
+#whatif #simulation #space #science #endoftheworld
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).

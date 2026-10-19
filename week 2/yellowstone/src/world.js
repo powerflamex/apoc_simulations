@@ -3,6 +3,7 @@
 // Everything is a pure function of time so any frame can be rendered independently.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { WIDE } from './wide.js';
 import { G, patch } from './bend.js';
 import { SKY_COMMON } from './sky.js';
 import { rng, smooth, clamp, lerp, DEG } from './util.js';
@@ -926,7 +927,7 @@ export function makeWorld(scene) {
   // ---------- the lake (planar reflection + ice) ----------
   const lake = makeLake();
   scene.add(lake.mesh);
-  const reflRT = new THREE.WebGLRenderTarget(540, 960, { type: THREE.HalfFloatType });
+  const reflRT = new THREE.WebGLRenderTarget(WIDE ? 960 : 540, WIDE ? 540 : 960, { type: THREE.HalfFloatType });
   const mirrorCam = new THREE.PerspectiveCamera();
   const clip = [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.05)];
   lake.uniforms.uRefl.value = reflRT.texture;
@@ -1118,7 +1119,7 @@ function makeLake() {
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setIndex(idx);
   const uniforms = {
-    uTime: G.uTime, uRefl: { value: null }, uRes: { value: new THREE.Vector2(1080, 1920) },
+    uTime: G.uTime, uRefl: { value: null }, uRes: { value: WIDE ? new THREE.Vector2(1920, 1080) : new THREE.Vector2(1080, 1920) },
     uDay: { value: 1 }, uCity: { value: 0 }, uSunDir: { value: new THREE.Vector3() },
     uWaves: { value: 1 }, uIceR: { value: -100 }, uIce: { value: 0 },
     uFogColor: { value: new THREE.Color() }, uFogDensity: { value: 0.0001 },

@@ -49,3 +49,11 @@ Each part ~70-90 s of video at ~0.75x story speed (slower pacing; ~30% more time
 - Code: the `?wide` and `?pace` flags once (copy to all 7 projects), then camera/overlay checks per sim.
 - Rendering: ~5 min per part at 30 fps, ~40 min total, unattended.
 - Before starting: watch the older parts (asteroid, black hole, sun) in full and note anything that needs fixing.
+
+## Second compilation (built Oct 18): "6 more ways the world could end"
+`longform/six/`: the week-2 Shorts (earth-stops, women-vanish, yellowstone, moon-falls, gravity-doubles, big-crunch;
+trillion-years left out because big-crunch already contains it, jupiter because it isn't the world ending).
+Wide mode is now a general patch (`src/wide.js` in each of those sims): the 16:9 picture is a window cut out of a
+virtual 1920x1920 frame at the Short's vertical field of view, so nothing changes size and no camera needed re-framing.
+Steps: `bash longform/six/render-parts.sh` (~26 min), `node longform/six/cards.mjs`, `bash longform/six/cards.sh`,
+`bash longform/six/join.sh` (~23 min, prints the YouTube chapters), `node longform/six/thumbs.mjs`.

@@ -7,3 +7,6 @@ stills/
 *.wav
 *.log
 .segments/
+
+# long-video working files (rendered clips, stills and cards; regenerable)
+longform/six/clips/

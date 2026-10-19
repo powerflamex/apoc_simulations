@@ -1,3 +1,4 @@
+import { WIDE, wideBand } from './wide.js';   // first: it changes how the scene camera frames 16:9
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -14,7 +15,7 @@ import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { G } from './bend.js';
 import { makeCompositor } from './compose.js';
 
-const W = 1080, H = 1920;
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 window.__cover = params.has('cover');
@@ -61,8 +62,8 @@ const finish = new ShaderPass({
       if (any(isnan(col))) col = vec3(0.0);
       vec2 c = vUv - 0.5;
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
-      col *= 1.0 - uTitle * 0.42 * exp(-pow((vUv.y - 0.69) / 0.1, 2.0));
-      col *= 1.0 - uCounter * 0.3 * exp(-pow((vUv.y - 0.535) / 0.06, 2.0)) * smoothstep(0.75, 0.2, vUv.x);
+      col *= 1.0 - uTitle * 0.42 * exp(-pow((vUv.y - ${WIDE ? '0.665' : '0.69'}) / ${WIDE ? '0.17' : '0.1'}, 2.0));
+      col *= 1.0 - uCounter * 0.3 * exp(-pow((vUv.y - ${WIDE ? '0.35' : '0.535'}) / ${WIDE ? '0.11' : '0.06'}, 2.0)) * smoothstep(${WIDE ? '0.42' : '0.75'}, ${WIDE ? '0.08' : '0.2'}, vUv.x);
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
@@ -143,7 +144,7 @@ function update(v, cover = -1) {
   renderPass.scene = scene; renderPass.camera = cam;
   if (s.last) lastCamera(v); else placeCamera(v);
   sky.mesh.position.copy(cam.position);
-  sky.uniforms.uPx.value = (2 * Math.tan((cam.fov * DEG) / 2)) / RH;
+  sky.uniforms.uPx.value = (2 * Math.tan((cam.fov * DEG) / 2)) / (WIDE ? RH * 16 / 9 : RH);
   sky.uniforms.uSunDir.value.fromArray(s.sun);
   sky.uniforms.uBlack.value = s.night;
   sky.uniforms.uGlow.value = s.night * s.power;
