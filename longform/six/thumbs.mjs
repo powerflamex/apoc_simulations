@@ -18,21 +18,17 @@ const css = `
   .t { position: absolute; color: #fff; font-weight: 900; line-height: .92; letter-spacing: -.01em;
        -webkit-text-stroke: 3px #000; paint-order: stroke fill; text-shadow: 0 6px 0 rgba(0,0,0,.55), 0 10px 40px rgba(0,0,0,.8); }
   .y { color: #ffd23f; }
-  .tag { position: absolute; white-space: nowrap; background: #e02424; color: #fff; font-weight: 900; padding: 10px 22px 8px; transform: rotate(-3deg);
-         box-shadow: 0 8px 24px rgba(0,0,0,.6); }
 `;
 const thumbs = {
   // A: Moon rubble raining on the burning city at night, a giant 6
   A: `<div class="bg" style="background-image:url('${img(3)}');background-position:center 40%"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,0) 58%)"></div>
       <div class="t y" style="left:46px;top:40px;font-size:290px">6</div>
-      <div class="t" style="left:46px;top:330px;font-size:84px">MORE WAYS<br>THE WORLD<br><span class="y">ENDS</span></div>
-      <div class="tag" style="right:50px;bottom:60px;font-size:40px">#1 ENDS THE UNIVERSE</div>`,
+      <div class="t" style="left:46px;top:330px;font-size:84px">MORE WAYS<br>THE WORLD<br><span class="y">ENDS</span></div>`,
   // B: the whole universe squeezed into one white ball (the Big Crunch)
   B: `<div class="bg" style="background-image:url('${img(1)}');background-position:center"></div>
       <div class="t" style="left:0;right:0;top:34px;text-align:center;font-size:82px;white-space:nowrap">6 MORE WAYS THE WORLD</div>
-      <div class="t y" style="left:0;right:0;top:590px;text-align:center;font-size:112px">COULD END</div>
-      <div class="tag" style="right:60px;top:150px;font-size:42px">#1 IS EVERYTHING</div>`,
+      <div class="t y" style="left:0;right:0;top:590px;text-align:center;font-size:112px">COULD END</div>`,
 };
 
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--allow-file-access-from-files'], defaultViewport: { width: 1280, height: 720 } });
