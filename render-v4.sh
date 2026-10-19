@@ -27,12 +27,15 @@ upload_copy() {
 }
 # --copy-only: skip the render and just remake the upload copies from the videos already in out/
 COPY_ONLY=; [ "$1" = --copy-only ] && { COPY_ONLY=1; shift; }
-for d in "$@"; do
-  case $d in
+# projects live in week folders ("week 2/earth-stops"); a bare name is looked up there
+find_dir() { local w; [ -d "$1" ] && { echo "$1"; return; }; for w in week*/"$1"; do [ -d "$w" ] && { echo "$w"; return; }; done; echo "$1"; }
+for p in "$@"; do
+  d=$(find_dir "$p")
+  case $(basename "$d") in
     asteroid) name=asteroid_island_v4 ;;
     sun-vanishes) name=sun-vanishes_alpine_v4 ;;
     black-hole) name=black-hole_v4 ;;
-    *) name=${d}_v4 ;;
+    *) name=$(basename "$d")_v4 ;;
   esac
   [ -n "$COPY_ONLY" ] && { upload_copy "$d" "$d/out/${name}_1080x1920_60fps.mp4" & continue; }
   # a new project folder needs its packages once (three.js, the renderer's Chrome driver, the font)

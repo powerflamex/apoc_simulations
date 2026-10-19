@@ -1,8 +1,11 @@
 # Apocalypse "what if" sims
 
-Vertical (1080x1920, 60 fps) TikTok/YouTube Shorts videos, one self-contained Three.js project per folder:
-`asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`, `electrons/`, `moon-falls/`,
-`women-vanish/`, `yellowstone/`, `gravity-doubles/`, `earth-stops/`, `trillion-years/`, `big-crunch/`, `jupiter/`. See README.md for how each project is built.
+Vertical (1080x1920, 60 fps) TikTok/YouTube Shorts videos, one self-contained Three.js project per folder, grouped by
+the week they were posted (the owner's layout, Oct 18):
+`week 1/`: `asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`, `electrons/`;
+`week 2/`: `moon-falls/`, `women-vanish/`, `yellowstone/`, `gravity-doubles/`, `earth-stops/`, `trillion-years/`, `big-crunch/`;
+`week 3/`: `jupiter/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
+folder itself. See README.md for how each project is built.
 
 ## The owner wants to be hands-off
 
