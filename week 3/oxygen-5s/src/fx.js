@@ -57,7 +57,7 @@ export function makeFx(scene, cityB) {
       const px = x + (R() - 0.5) * 200, pz = z + (R() - 0.5) * 200;
       if (waterAt(px, pz)) continue;
       const h = heightAt(px, pz), rel = reliefOf(Math.hypot(px, pz), h);
-      if (rel < 0.35) continue;
+      if (rel < 0.35 || Math.hypot(px, pz) < 900) continue;   // (none right round the summit: it would hide the view)
       MD.push({ x: px, z: pz, h, rel, seed: R() });
     }
   }
@@ -98,8 +98,8 @@ export function makeFx(scene, cityB) {
       // the mountains slumping: dust boiling up off the slopes
       if (s.rock > 0.01) for (const m of MD) {
         const y = m.h - s.sink * m.rel;
-        const r = 40 + 90 * s.rock * (0.5 + m.seed);
-        dust.puff(m.x, y + r * 0.4, m.z, r, 0.22 * s.rock * m.rel, 0.7, 0, m.seed);
+        const r = 30 + 60 * s.rock * (0.5 + m.seed);
+        dust.puff(m.x, y + r * 0.4, m.z, r, 0.1 * s.rock * m.rel, 0.85, 0, m.seed);
       }
       // the city's blocks collapsing: a dust cloud over each as it comes down, spreading after
       if (t > 0) {
@@ -108,7 +108,7 @@ export function makeFx(scene, cityB) {
           const done = clamp(fall / b.h);
           const left = Math.max(b.h - fall, 3);
           const r = 10 + b.w * 0.4 + 25 * done + 10 * t;
-          dust.puff(b.x, b.y + left * 0.8 + r * 0.3, b.z, r, 0.32 * smooth(0, 0.15, done), 0.72, 0, b.seed);
+          dust.puff(b.x, b.y + left * 0.8 + r * 0.3, b.z, r, 0.22 * smooth(0, 0.15, done), 0.85, 0, b.seed);
         }
       }
       // the sea exploding: a wall of fog and seabed rolling in from every shore; on fire at 5.00 s

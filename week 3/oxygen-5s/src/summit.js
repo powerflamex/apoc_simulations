@@ -20,6 +20,7 @@ export const TOURISTS = [];
   while (TOURISTS.length < 72 && guard++ < 5000) {
     const x = TERR.x0 + 1.2 + R() * (TERR.x1 - TERR.x0 - 2.4), z = TERR.z0 + 1.2 + R() * (TERR.z1 - TERR.z0 - 2.4);
     if (Math.abs(x) < 6.2 && Math.abs(z) < 6.2) continue;                 // the pedestal
+    if (Math.hypot(x - 21, z + 5.5) < 4.5) continue;                      // (where you stand for the falling shot)
     if (TOURISTS.some((p) => Math.hypot(p.x - x, p.z - z) < 1.0)) continue;
     const view = x > 18 && R() < 0.7;                                      // at the east railing, looking at the view
     const selfie = !view && R() < 0.35;

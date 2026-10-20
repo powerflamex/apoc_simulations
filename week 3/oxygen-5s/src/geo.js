@@ -58,9 +58,9 @@ export function heightAt(x, z) {
   let h = 4 + 6 * fbm(x * 0.002, z * 0.002);
   // Corcovado: a steep granite tooth, its summit at the origin, a ridge running back west-north-west into the Tijuca forest
   const r = Math.hypot(x, z);
-  let cor = 712 * Math.exp(-Math.pow(r / 760, 1.25));
-  cor = Math.max(cor, SUMMIT - 0.0006 * r * r);                       // the small level top
-  if (r < 34) cor = SUMMIT;
+  // a needle: cliffs drop ~70 m in the first 50 m off the terrace, then the long forested slopes
+  let cor = 712 * Math.exp(-Math.pow(r / 620, 0.9));
+  if (r < 60) cor = SUMMIT + (cor - SUMMIT) * smooth(34, 60, r);
   const ridgeT = clamp((-x * 0.85 - z * 0.5) / 9000, 0, 1);            // along the ridge to the WNW
   const ridgeD = Math.abs(x * 0.5 - z * 0.85) ;                         // across it
   const ridge = (560 + 300 * fbm(x * 0.0007 + 3, z * 0.0007) + 200 * Math.sin(ridgeT * 9)) * Math.exp(-Math.pow(ridgeD / (1500 + 900 * ridgeT), 2)) * smooth(-0.02, 0.15, ridgeT);

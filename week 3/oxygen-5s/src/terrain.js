@@ -44,10 +44,11 @@ function diskGeometry() {
   };
   push(0, 0);
   for (let i = 1; i < radii.length; i++) for (let s = 0; s < S; s++) { const a = (s / S) * Math.PI * 2; push(Math.cos(a) * radii[i], Math.sin(a) * radii[i]); }
-  for (let s = 0; s < S; s++) idx.push(0, 1 + s, 1 + ((s + 1) % S));
+  // (counter-clockwise seen from above, so the ground faces up)
+  for (let s = 0; s < S; s++) idx.push(0, 1 + ((s + 1) % S), 1 + s);
   for (let i = 1; i < radii.length - 1; i++) {
     const a0 = 1 + (i - 1) * S, a1 = 1 + i * S;
-    for (let s = 0; s < S; s++) { const s1 = (s + 1) % S; idx.push(a0 + s, a1 + s, a0 + s1, a0 + s1, a1 + s, a1 + s1); }
+    for (let s = 0; s < S; s++) { const s1 = (s + 1) % S; idx.push(a0 + s, a0 + s1, a1 + s, a0 + s1, a1 + s1, a1 + s); }
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -77,7 +78,7 @@ export function makeTerrain(scene) {
         float n = tf(p * 0.02), n2 = tn(p * 0.4);
         // rainforest: dark, lumpy canopy (tree crowns get lost far off)
         float crowns = mix(tn(p * 0.35) * 0.6 + tn(p * 1.3) * 0.4, 0.5, smoothstep(2.0, 8.0, px));
-        vec3 forest = mix(vec3(0.07, 0.15, 0.05), vec3(0.17, 0.27, 0.09), crowns) * (0.75 + 0.45 * n);
+        vec3 forest = mix(vec3(0.1, 0.22, 0.07), vec3(0.24, 0.38, 0.13), crowns) * (0.75 + 0.45 * n);
         // granite: grey with darker streaks (water stains down the faces)
         vec3 granite = mix(vec3(0.33, 0.32, 0.3), vec3(0.55, 0.53, 0.49), tn(vec2(p.x * 0.03, vWP.y * 0.2)) * 0.6 + n2 * 0.4);
         granite *= 0.75 + 0.35 * tn(vec2(p.x * 0.12 + p.y * 0.05, vWP.y * 0.015));
@@ -117,8 +118,7 @@ export function makeTerrain(scene) {
       #include <logdepthbuf_pars_vertex>
       ${COMMON}
       void main(){ vec3 p = position;
-        // the exploding sea heaves up into a boiling surface
-        p.y += uErupt * (30.0 + 120.0 * tf(p.xz * 0.002 + vec2(uTime * 0.05, 0.0)));
+        // (the sea stays at sea level: lifting it would cover the land too; the wall of fog does the rising)
         vec4 w = modelMatrix * vec4(p, 1.0); vWP = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;
         #include <logdepthbuf_vertex>
       }`,
