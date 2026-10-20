@@ -63,6 +63,28 @@
       "env": {
         "PORT": "5185"
       }
+    },
+    {
+      "name": "big-rip",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "longform/big-rip/server.mjs"
+      ],
+      "port": 5190,
+      "env": {
+        "PORT": "5190"
+      }
+    },
+    {
+      "name": "oxygen-5s",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/oxygen-5s/server.mjs"
+      ],
+      "port": 5186,
+      "env": {
+        "PORT": "5186"
+      }
     }
   ]
 }

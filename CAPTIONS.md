@@ -225,7 +225,7 @@ Cover: `women-vanish/out/women-vanish_v4_cover.png`
 
 ## Day 10. Yellowstone erupts — `yellowstone/out/yellowstone_v4_1080x1920_60fps_tiktok.mp4`
 
-**YouTube title (73 chars)**
+**YouTube title (77 chars)**
 What if Yellowstone erupted? You're 60 miles away 😳 #whatif #yellowstone
 
 **YouTube description**
@@ -375,6 +375,25 @@ Which jump would you stop at? 👇
 Cover: `week 3/jump-doubles/out/jump-doubles_v4_cover.png` (`node render.mjs --cover 43.5`: you floating over the whole Earth, jump 25; the cover title sits low in this one)
 
 v2 (Oct 19): the camera stays on the ground for most of it (held shots of the crossing, `src/shots.js`), flying only for the clouds, space, the whole planet, the Moon and the last jump; every landing has an audible boom (the wind no longer cuts out). Owner: the first cut was too fast and disorienting.
+
+## Day 17 (draft, not rendered yet). Oxygen gone for 5 seconds — `week 3/oxygen-5s/out/oxygen-5s_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (77 chars)**
+What if oxygen disappeared for 5 seconds? Rio falls apart 😳 #whatif #science
+
+**YouTube description**
+Every oxygen atom on Earth vanishes for 5 seconds, except the ones inside living things. You're at Christ the Redeemer, 2,300 ft above Rio. Shown in 12x slow motion.
+
+The air is 21% oxygen: the pressure drops at once and every ear pops.
+Engines need oxygen: the tour helicopter's rotor winds down and it drops.
+Water is 89% oxygen: the sea turns into hydrogen gas, needs 1,200 times the room, and explodes.
+Concrete is about half oxygen: the statue falls apart like sand. Its head reaches its feet in 2.8 seconds.
+Granite is 47% oxygen: Corcovado turns to dust and sinks, with you on it. After 5 seconds you've fallen 340 ft.
+Then the oxygen comes back, straight into all that hydrogen.
+
+Would you rather lose oxygen for 5 seconds or gravity? 👇
+
+#whatif #oxygen #science #simulation
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
