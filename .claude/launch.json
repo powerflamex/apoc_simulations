@@ -52,6 +52,17 @@
       "env": {
         "PORT": "5183"
       }
+    },
+    {
+      "name": "jump-doubles",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/jump-doubles/server.mjs"
+      ],
+      "port": 5185,
+      "env": {
+        "PORT": "5185"
+      }
     }
   ]
 }

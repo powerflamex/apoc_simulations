@@ -352,6 +352,28 @@ How deep do you think you'd get? 👇
 
 Cover: `jupiter/out/jupiter_v4_cover.png` (`node render.mjs --cover 56.5`: you falling through the glowing deep, diamonds glinting)
 
+## Day 16. Every jump twice as high — `week 3/jump-doubles/out/jump-doubles_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (78 chars)**
+What if every jump went twice as high? Jump 31 hits the Moon 🌕 #whatif #space
+
+**YouTube description**
+Every time you jump, you go twice as high as the last time. You can't get hurt. Miami can.
+
+Jump 9: 512 ft. You come down at 124 mph and the road cracks.
+Jump 15: 6 miles. To get that high you leave the ground at 990 mph, faster than sound, and the windows on the street explode.
+Jump 19: you reach space, and come back down as a fireball.
+Jump 28: you hit the ground at 24,000 mph, like a ton of TNT.
+Jump 29: you're in the air for almost 3 days.
+Jump 30: 203,000 miles, almost to the Moon.
+Jump 31 would go 406,000 miles. The Moon is in the way.
+
+Which jump would you stop at? 👇
+
+#whatif #space #simulation #science
+
+Cover: `week 3/jump-doubles/out/jump-doubles_v4_cover.png` (`node render.mjs --cover 48.6`: you on top of a small glowing Earth, jump 27; the cover title sits low in this one)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

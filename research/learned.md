@@ -32,6 +32,12 @@
   day 3, so a slow first day doesn't mean a Short is finished. Oct 15 morning: moon-falls 160.8K (~2.9 days),
   electrons 127.9K (~3.9 days), women-vanish 120.3K (~45 h); all flatten after day 1, the normal Shorts shape.
 
+- Owner, Oct 19: gravity-doubles 70% stayed to watch / 67% average viewed; speed-doubles 62.5% stayed / 78.5% average
+  viewed. Average viewed (retention) is now the number to push. What separates them: speed-doubles has a beat every
+  2 s, changes place three times (street, Earth, solar system), keeps "you" in it to the end and ends on its biggest
+  moment with a finish line on screen; gravity-doubles has 5 s beats, one place, and a slow middle after you die.
+  Best next step: the retention graph in Studio (Analytics > the video > Engagement) shows the exact seconds people leave.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
@@ -100,4 +106,5 @@
   or a black hole sequel.
 - Status Oct 18: jupiter (Day 15, "What if you stood on Jupiter?", ~70 s) built as a new project from `research/next-jupiter-fall.md`:
   a spacesuit falling through three cloud decks into the glowing deep; chase camera instead of a street scene.
+- Status Oct 19: jump-doubles (Day 16, "What if every jump went twice as high?", 63 s) built as a new project (Brickell, Miami at dusk; jump 31 hits the Moon). Built for retention: a beat every ~2.5 s, "JUMP n OF 31" progress on the counter, street -> clouds -> space -> Moon.
 - Proven topics not built yet: a black hole follow-up (e.g. through the Moon); more "X disappears" topics.
