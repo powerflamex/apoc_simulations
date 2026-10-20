@@ -112,7 +112,7 @@ export function makeBlasts(scene, glassFrom) {
           const inside = smooth(rs * 0.6, rs * 1.05, camPos.length());
           shock.visible = inside > 0.01;
           shock.scale.setScalar(Math.max(rs, 0.1));
-          shockU.uA.value = Math.min(0.6, 0.2 + 0.12 * c) * (1 - smooth(0.1, 0.55, age)) * smooth(0, 0.03, age) * inside;
+          shockU.uA.value = Math.min(0.2, 0.05 + 0.03 * c) * (1 - smooth(0.1, 0.45, age)) * smooth(0, 0.03, age) * inside;
         }
         // the dust ring rolling out along the ground
         if (age < 5) {

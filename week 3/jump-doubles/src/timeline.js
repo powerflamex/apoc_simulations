@@ -119,7 +119,7 @@ export const CAPTIONS = [
   cap(13, 'You punch through the clouds.'),
   cap(14, 'You leave the ground at 700 mph.'),
   cap(15, 'Faster than sound. Every window on the street explodes.'),
-  cap(16, 'The sky above you goes dark.'),
+  cap(16, 'Car alarms go off all over the city.'),
   cap(17, 'The shockwave throws cars like toys.'),
   cap(18, 'Higher than any plane can fly.'),
   cap(19, 'You reach space. You come back as a fireball.'),

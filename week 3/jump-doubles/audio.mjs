@@ -15,6 +15,7 @@ import { state, VIDEO_DURATION, LOOP, T_SWITCH, BOUNCES, JUMPS, V_MOON, V_SOUND,
 import { B, CARS } from './src/layout.js';
 import { V_RUN } from './src/people.js';
 import { rng, smooth, clamp } from './src/util.js';
+import { shotAt, groundPos } from './src/shots.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
@@ -72,7 +73,9 @@ export function makeSoundtrack(outFile) {
   const white = () => R0() * 2 - 1;
 
   // ---- scheduled events ----
-  const bounces = BOUNCES.map((b) => ({ ...b, c: Math.cbrt(Math.max(b.Y, 1e-4)), pan: 0 }));
+  // how far the camera is from the crossing when each landing happens: the sound arrives late and quieter
+  const camDist = (v) => { const sh = shotAt(v); if (sh.kind === 'chase' || sh.kind === 'moon') return 15; const p = groundPos(sh, v); return Math.hypot(p[0], p[1], p[2]); };
+  const bounces = BOUNCES.map((b) => { const d = camDist(b.v + 0.05); return { ...b, c: Math.cbrt(Math.max(b.Y, 1e-4)), pan: 0, delay: Math.min(d / 343, 0.4), near: 1 / (1 + d / 220) }; });
   const takeoffs = JUMPS.filter((j) => j.n > 6).map((j) => ({ t: j.t0 + j.dw, n: j.n, mph: j.mph }));
   // rubble pattering down after each landing: soft low taps, more and longer for the big ones
   const taps = [];
@@ -97,9 +100,9 @@ export function makeSoundtrack(outFile) {
   const cityLP = new OnePole(260), cityLP2 = new OnePole(170);
   const crowdF = Array.from({ length: 5 }, () => new SVF()), crowdE = Array.from({ length: 5 }, () => new OnePole(3));
   const gaspF = new SVF(), cryF = [new SVF(), new SVF()];
-  const thumpF = new SVF(), blastF = new SVF(), rumF = [new SVF(), new SVF()], rumSub = new OnePole(45);
+  const thumpF = new SVF(), crunchF = new SVF(), blastF = new SVF(), rumF = [new SVF(), new SVF()], rumSub = new OnePole(45);
   const tapF = new SVF(), whooshF = [new SVF(), new SVF()], boomF = new SVF(), roarF = [new SVF(), new SVF()], roarSub = new OnePole(55);
-  const windF = [new SVF(), new SVF(), new SVF()], windSub = new OnePole(70);
+  const windF = [new SVF(), new SVF(), new SVF()], windSub = new OnePole(70), windE = new OnePole(2.5);
   const glassF = [new SVF(), new SVF()], alarmF = new SVF(), sirenF = new SVF(), fireF = new SVF(), fireSub = new OnePole(60);
   const padLP = new OnePole(500), moonF = new SVF(), moonSub = new OnePole(40);
   const muffL = new OnePole(12000), muffR = new OnePole(12000);
@@ -149,14 +152,23 @@ export function makeSoundtrack(outFile) {
     let rum = 0;
     for (let i = 0; i < bounces.length; i++) {
       const b = bounces[i];
-      const dt = v - b.v;
+      const dt = v - b.v - b.delay;
       if (dt < -0.02 || dt > 7) continue;
       const big = clamp(b.c / 10);
+      // the crack of the hit itself: a short, deep crunch with harmonics a phone speaker can play (soft 8 ms onset)
+      if (dt < 1.2) {
+        const e = env(dt + 0.02, 0.008, 0.09 + 0.08 * big + 0.1 * b.hot) * (0.35 + 0.25 * big + 0.2 * b.hot) * (0.5 + 0.5 * b.near);
+        ph[13] += (95 + 70 * Math.exp(-Math.max(dt, 0) * 14)) / SR;
+        const body = Math.tanh(3 * Math.sin(TAU * ph[13])) * 0.5;
+        const grit = crunchF.run(white(), 700 + 900 * Math.exp(-Math.max(dt, 0) * 10), 0.7).lp * 1.4;
+        const cv = (body + grit) * e;
+        dl += cv; dr += cv; wet += cv * 0.6;
+      }
       if (dt < 6) {
         ph[10 + (i % 3)] += (26 + (40 + 30 * big) * Math.exp(-Math.max(dt, 0) * 7)) / SR;
         const e = env(dt + 0.02, 0.025, 0.25 + 0.5 * big + 0.4 * b.hot) * (1 - smooth(3.5, 6, dt));
         const g = Math.min(0.25 + 0.09 * b.c + 0.3 * b.hot, 1.0);
-        const vv = (Math.sin(TAU * ph[10 + (i % 3)]) * 0.9 + thumpF.run(white(), 120 + 280 * Math.exp(-Math.max(dt, 0) * 9), 0.7).lp * 1.2) * e * g;
+        const vv = (Math.tanh(2.2 * Math.sin(TAU * ph[10 + (i % 3)])) * 0.75 + thumpF.run(white(), 160 + 380 * Math.exp(-Math.max(dt, 0) * 9), 0.7).lp * 1.3) * e * g * (0.55 + 0.45 * b.near);
         dl += vv; dr += vv; wet += vv * 0.5;
         // the blast's body: a burst of low noise
         const bb = blastF.run(white(), 300 + 900 * big * Math.exp(-Math.max(dt, 0) * 4), 0.6).lp * env(dt + 0.02, 0.03, 0.12 + 0.35 * big) * (0.15 + 0.5 * big);
@@ -213,7 +225,8 @@ export function makeSoundtrack(outFile) {
       const yv = altitude(v + 1 / SR);
       const rate = Math.abs(Math.log(1 + yv / 12) - Math.log(1 + yPrev / 12)) * SR;   // how fast the world is rushing by
       yPrev = yv;
-      const lvl = clamp(rate / 12) * air * 0.22 + 0.02 * (1 - life) * air;
+      const sh = shotAt(v), flying = sh.kind === 'chase' ? 1 : 0;
+      const lvl = windE.run(clamp(rate / 12) * air * 0.2 * flying + 0.025 * air);
       if (lvl > 0.001) {
         const wn = white();
         const fc = 380 + 900 * clamp(rate / 20);

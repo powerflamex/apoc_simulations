@@ -21,6 +21,7 @@ import { makeOverlay } from './overlay.js';
 import { state, VIDEO_DURATION, LOOP, BOUNCES, jumpOf, N_LAST, MOON_D, MOON_R, R_E, V_MOON, altitude, mphOf, V_SOUND } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
+import { shotAt, groundPos, trackY } from './shots.js';
 
 const W = 1080, H = 1920;
 const params = new URLSearchParams(location.search);
@@ -139,38 +140,23 @@ const lookOffset = (fov) => Math.atan(YOU_NDC * Math.tan(fov * DEG / 2));
 const AZ = { 6: 5, 7: 5, 8: 5, 9: 5, 10: 5, 11: 90, 12: -90, 13: 180, 14: 5, 15: 5, 16: 90, 17: -90, 18: 180, 19: 5, 20: 5, 21: 180, 22: 90, 23: 5, 24: -90, 25: 180, 26: 90, 27: 5, 28: -90, 29: 180, 30: 5, 31: 5 };
 const D0_KEYS = [[6, 10], [7, 14], [8, 20], [9, 26], [11, 34], [13, 46], [15, 60], [19, 85], [22, 105], [25, 120]];
 const d0At = (x) => { let a = D0_KEYS[0]; for (const k of D0_KEYS) { if (x < k[0]) return lerp(a[1], k[1], smooth(a[0], k[0], x)); a = k; } return a[1]; };
-// street cameras: [from, to, position, how the aim is placed]
-const STREET = [
-  { a: jumpOf(14).t0 + jumpOf(14).d - 0.55, b: jumpOf(15).t0 + 1.05, p: [-5.2, 2.0, 70], kind: 'eye' },
-  { a: jumpOf(19).t0 + jumpOf(19).d - 0.85, b: jumpOf(20).t0 + 0.8, p: [62, 2.6, 4.2], kind: 'eye' },
-  { a: jumpOf(22).t0 + jumpOf(22).d - 0.5, b: jumpOf(23).t0 + 1.6, p: [5, 30, 135], kind: 'drone', aim: [0, 30, -40] },
-];
 const v3 = new THREE.Vector3(), v4 = new THREE.Vector3(), youP = new THREE.Vector3();
 function camAt(v, s) {
   const y = s.y;
   youP.set(0, y + 1.0 - (s.bounce ? s.bounce.depth : 0) * (1 - smooth(0, 3 * (s.bounce ? s.bounce.depth : 0) + 1, y)), 0);
-  const st = STREET.find((c) => v >= c.a && v < c.b);
-  let fov = 62, pos = new THREE.Vector3(), yaw, pitch, mode = 'rig';
-  if (st) {
-    mode = 'street';
-    fov = st.fov || 62;
-    pos.set(...st.p);
-    if (st.aim) {   // a fixed aim (the crossing and the towers round it)
-      v3.set(...st.aim).sub(pos);
-      return { pos, yaw: Math.atan2(-v3.x, -v3.z) + wobble(v * 0.5, 4) * 0.5 * DEG, pitch: Math.atan2(v3.y, Math.hypot(v3.x, v3.z)) + wobble(v * 0.6, 3) * 0.5 * DEG, roll: wobble(v * 0.4, 5) * 0.6 * DEG, fov, mode };
-    }
-    // aim so you sit high in the frame; while you are far up out of sight, aim at the crater (and the sky above it)
-    v3.copy(youP).sub(pos);
-    const dist = Math.hypot(v3.x, v3.z);
-    let elev = Math.atan2(v3.y, dist);
-    const maxEl = (st.kind === "eye" ? 80 : 60) * DEG;
-    const lo = Math.atan2(-pos.y + 2, dist) + lookOffset(fov) - 4 * DEG;
-    pitch = Math.max(Math.min(elev, maxEl) - lookOffset(fov), st.kind === 'balcony' ? -14 * DEG : -8 * DEG);
-    if (elev > maxEl) pitch = maxEl - lookOffset(fov);
-    yaw = Math.atan2(-v3.x, -v3.z);
-    // handheld
-    pitch += wobble(v * 0.6, 3) * 0.6 * DEG; yaw += wobble(v * 0.5, 4) * 0.6 * DEG;
-    return { pos, yaw, pitch, roll: wobble(v * 0.4, 5) * 0.8 * DEG, fov, mode };
+  const shot = shotAt(v);
+  let fov = shot.fov || 62, pos = new THREE.Vector3(), yaw, pitch, mode = shot.kind === 'chase' || shot.kind === 'moon' ? 'rig' : 'street';
+  if (mode === 'street') {
+    // a camera on the ground (or a drone): holds still, drifts a little, a little handheld; it doesn't chase you
+    const k = smooth(shot.a, shot.b, v);
+    pos.set(...groundPos(shot, v));
+    if (shot.track) v3.set(0, trackY(v), 0);
+    else if (shot.kind === 'orbit') v3.set(...shot.aim);
+    else v3.set(...shot.aim.map((x, i) => lerp(x, shot.aim2[i], k)));
+    v3.sub(pos);
+    yaw = Math.atan2(-v3.x, -v3.z) + wobble(v * 0.45, 4) * 0.45 * DEG;
+    pitch = Math.atan2(v3.y, Math.hypot(v3.x, v3.z)) + wobble(v * 0.55, 3) * 0.45 * DEG;
+    return { pos, yaw, pitch, roll: wobble(v * 0.35, 5) * 0.5 * DEG, fov, mode };
   }
   const x = s.n + s.p;
   const D0 = d0At(x);
@@ -198,8 +184,7 @@ function camAt(v, s) {
   pitch = Math.atan2(v3.y, Math.hypot(v3.x, v3.z)) - lookOffset(fov);
   // the last jumps: at the top, swing under you and look up past you at the Moon (closer every time); the last one
   // is all Moon. The lens zooms so the Moon fills a good part of the frame and you stay the same size.
-  let wM = 0;
-  if (s.n >= 29 && s.n < N_LAST) wM = smooth(0.3, 0.42, s.p) * (1 - smooth(0.58, 0.7, s.p));
+  let wM = shot.kind === 'moon' ? 1 : 0;
   if (s.n === N_LAST) wM = smooth(0.0, 0.07, s.p);
   if (wM > 0) {
     const dM = Math.max(MOON_D - y, 1);
@@ -334,7 +319,7 @@ function update(v, cover = -1) {
     v3.set(0, s.y + 0.9, 0).project(camera);
     finish.uniforms.uYou.value.set(v3.x * 0.5 + 0.5, v3.y * 0.5 + 0.5);
   }
-  finish.uniforms.uAb.value = punch * 1.2 + shake * 0.15;
+  finish.uniforms.uAb.value = punch * 0.8 + shake * 0.04;
   finish.uniforms.uFlash.value = Math.min(0.8, flash * (cam.mode === 'street' ? 0.7 : 0.4));
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;

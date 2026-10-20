@@ -372,7 +372,9 @@ Which jump would you stop at? 👇
 
 #whatif #space #simulation #science
 
-Cover: `week 3/jump-doubles/out/jump-doubles_v4_cover.png` (`node render.mjs --cover 48.6`: you on top of a small glowing Earth, jump 27; the cover title sits low in this one)
+Cover: `week 3/jump-doubles/out/jump-doubles_v4_cover.png` (`node render.mjs --cover 43.5`: you floating over the whole Earth, jump 25; the cover title sits low in this one)
+
+v2 (Oct 19): the camera stays on the ground for most of it (held shots of the crossing, `src/shots.js`), flying only for the clouds, space, the whole planet, the Moon and the last jump; every landing has an audible boom (the wind no longer cuts out). Owner: the first cut was too fast and disorienting.
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
