@@ -30,8 +30,8 @@ export const fallOf = (t) => (t > 0 ? 0.5 * G * t * t : 0);  // m fallen after t
 // free fall at first (it has to flow out from under you), then just falls
 export const sinkOf = (t) => (t > 0 ? 0.5 * G * 0.85 * Math.pow(t, 2.0) * smooth(0, 0.6, t) : 0);
 // the sea's explosion: how far its front has come from the water's edge (m) and how tall the wall stands
-export const seaFront = (t) => (t > 0 ? 680 * Math.sqrt(t) : 0);
-export const seaWall = (t) => (t > 0 ? 420 * Math.pow(t, 0.85) : 0);
+export const seaFront = (t) => (t > 0 ? 470 * Math.sqrt(t) : 0);
+export const seaWall = (t) => (t > 0 ? 300 * Math.pow(t, 0.85) : 0);
 
 // ---- captions (video time) ----
 const C = (a, b, text) => [a, b, text];
@@ -97,8 +97,8 @@ export function state(v) {
   s.statue = fallOf(t);                         // how far the top of the statue has fallen (m)
   s.rock = smooth(0.05, 1.2, t);                // the mountain turning to grey powder (colour)
   s.sea = seaFront(t); s.wall = seaWall(t);
-  s.ignite = smooth(5.0, 5.05, t);              // the oxygen is back: the hydrogen burns
-  s.flash = smooth(V5 + 0.02, T_SWITCH - 0.1, v);
+  s.ignite = smooth(5.0, 5.025, t);              // the oxygen is back: the hydrogen burns
+  s.flash = smooth(V5 + 0.45, T_SWITCH - 0.05, v);   // (the fire gets half a second first)
   s.flashColor = '#fff6ea';
   s.title = 1 - smooth(3.0, 3.8, v);
   s.endcard = 0; s.endText = 0; s.fadeOut = 0;

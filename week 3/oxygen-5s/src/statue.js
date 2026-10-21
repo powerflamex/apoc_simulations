@@ -53,20 +53,24 @@ export function makeStatue(scene) {
     Object.assign(sh.uniforms, SU);
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float uFall; varying float vLanded; varying vec3 vLoc;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>
-        vLoc = transformed;
-        // falling sand: each grain drops from its height; the heap at the feet grows with what has landed
+      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+        // falling sand: each grain drops from its height onto a growing heap at the feet (a low cone)
         float H = ${(STATUE.ped + STATUE.h).toFixed(1)};
         float landed = clamp(uFall / H, 0.0, 1.0);
-        float r = length(transformed.xz);
-        float heapR = 6.0 + 9.0 * landed;
-        float heap = H * 0.32 * landed * max(0.0, 1.0 - r / heapR);
-        float y = transformed.y - uFall;
-        float onHeap = step(y, heap);
+        float rr = length(position.xz);
+        float heapR = 8.0 + 12.0 * landed;
+        float heapH = H * 0.2 * landed;
+        float heap = heapH * max(0.0, 1.0 - rr / heapR);
+        float yy = position.y - uFall;
+        float onHeap = step(yy, heap);
+        // the heap's surface faces up and out like a cone
+        vec3 coneN = normalize(vec3(normalize(position.xz + 1e-4).x * heapH / heapR, 1.0, normalize(position.xz + 1e-4).y * heapH / heapR));
+        objectNormal = normalize(mix(objectNormal, coneN, onHeap));`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vLoc = transformed;
         vLanded = onHeap;
-        transformed.y = max(y, heap);
-        // what has landed spreads out over the heap
-        transformed.xz *= 1.0 + onHeap * 0.6 * landed * (1.0 - r / max(heapR, 1.0) * 0.5);`);
+        transformed.y = max(yy, heap);
+        transformed.xz *= 1.0 + onHeap * 0.5 * landed * (1.0 - rr / heapR * 0.5);`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform float uDust; uniform float uTime; varying float vLanded; varying vec3 vLoc;\nfloat sh21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }')
       .replace('#include <color_fragment>', `#include <color_fragment>

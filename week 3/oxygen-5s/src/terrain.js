@@ -77,8 +77,9 @@ export function makeTerrain(scene) {
         float px = max(fwidth(p.x), fwidth(p.y));
         float n = tf(p * 0.02), n2 = tn(p * 0.4);
         // rainforest: dark, lumpy canopy (tree crowns get lost far off)
-        float crowns = mix(tn(p * 0.35) * 0.6 + tn(p * 1.3) * 0.4, 0.5, smoothstep(2.0, 8.0, px));
-        vec3 forest = mix(vec3(0.1, 0.22, 0.07), vec3(0.24, 0.38, 0.13), crowns) * (0.75 + 0.45 * n);
+        float crowns = mix(tn(p * 0.11) * 0.65 + tn(p * 0.45) * 0.35, tn(p * 0.03) * 0.7 + 0.15, smoothstep(3.0, 12.0, px));
+        crowns = crowns * crowns * 1.3;
+        vec3 forest = mix(vec3(0.06, 0.15, 0.05), vec3(0.2, 0.33, 0.11), crowns) * (0.65 + 0.6 * n);
         // granite: grey with darker streaks (water stains down the faces)
         vec3 granite = mix(vec3(0.33, 0.32, 0.3), vec3(0.55, 0.53, 0.49), tn(vec2(p.x * 0.03, vWP.y * 0.2)) * 0.6 + n2 * 0.4);
         granite *= 0.75 + 0.35 * tn(vec2(p.x * 0.12 + p.y * 0.05, vWP.y * 0.015));
@@ -98,7 +99,7 @@ export function makeTerrain(scene) {
         // the powder: once the oxygen is gone, rock and concrete are loose grey-beige dust; it shows first where the
         // ground is moving (the slopes), and the dust settles over everything
         float powder = uDust * (0.35 + 0.65 * vInfo.w) * smoothstep(0.3, 0.7, n + 0.3 * uDust);
-        col = mix(col, vec3(0.62, 0.58, 0.52) * (0.85 + 0.25 * n2), clamp(powder, 0.0, 0.85));
+        col = mix(col, vec3(0.5, 0.47, 0.42) * (0.8 + 0.3 * n2), clamp(powder, 0.0, 0.5));
         // the seabed laid bare where the water was
         col = mix(col, vec3(0.35, 0.33, 0.3), wet);
         diffuseColor.rgb = col;
@@ -203,7 +204,7 @@ export function makeCity(scene) {
         // windows: rows of dark glass (dust after the glass goes)
         vec2 g = vec2((vLoc.x + vLoc.z) * 8.0, hh / 3.1);
         float win = step(0.3, fract(g.x)) * step(0.35, fract(g.y)) * side * step(2.5, hh);
-        vec3 wc = mix(vec3(0.12, 0.16, 0.2), vec3(0.04, 0.04, 0.045), smoothstep(0.0, 0.35, uT));
+        vec3 wc = mix(vec3(0.38, 0.46, 0.56), vec3(0.08, 0.08, 0.085), smoothstep(0.0, 0.35, uT));
         vec3 col = mix(base, wc, win * 0.85);
         if (glass > 0.5) col = mix(vec3(0.25, 0.38, 0.5), wc, smoothstep(0.0, 0.35, uT)) * (0.8 + 0.2 * step(0.1, fract(g.y)));
         col = mix(col, base * 0.6, 1.0 - side);

@@ -10,10 +10,11 @@ import { STATUE } from './statue.js';
 import { fallOf } from './timeline.js';
 import { rng, smooth, clamp } from './util.js';
 
+const OFF = (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('off') || '' : '').split(',');   // debugging: ?off=sea,city,mount,statue,clouds
 export function makeFx(scene, cityB) {
   const clouds = makeSmoke(scene, 400);
   clouds.mat.uniforms.uLight.value.setRGB(1.55, 1.55, 1.6);
-  const dust = makeSmoke(scene, 3200);
+  const dust = makeSmoke(scene, 4600);
 
   // ---------- clouds ----------
   const CL = [];
@@ -32,21 +33,21 @@ export function makeFx(scene, cityB) {
   // ---------- where the sea's explosion starts: points along every shore within ~11 km, and round the Lagoa ----------
   const SH = [];
   {
-    const add = (x, z) => {
+    const add = (x, z, lake = false) => {
       if (Math.hypot(x, z) > 11000) return;
       // which way is land: test a few directions
       let nx = 0, nz = 0;
       for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; if (!waterAt(x + Math.cos(a) * 150, z + Math.sin(a) * 150)) { nx += Math.cos(a); nz += Math.sin(a); } }
       const l = Math.hypot(nx, nz);
       if (l < 0.5) return;
-      SH.push({ x, z, nx: nx / l, nz: nz / l });
+      SH.push({ x, z, nx: nx / l, nz: nz / l, k: lake ? 0.38 : 1 });
     };
     for (let i = 0; i < SEA.length; i++) {
       const [ax, az] = SEA[i], [bx, bz] = SEA[(i + 1) % SEA.length];
       const L = Math.hypot(bx - ax, bz - az), n = Math.ceil(L / 260);
       for (let k = 0; k < n; k++) add(ax + (bx - ax) * (k / n), az + (bz - az) * (k / n));
     }
-    for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2; add(300 + Math.cos(a) * 1060, 2350 + Math.sin(a) * 860); }
+    for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2; add(300 + Math.cos(a) * 1060, 2350 + Math.sin(a) * 860, true); }   // the Lagoa: shallow, a far smaller blast
   }
 
   // ---------- dust sources ----------
@@ -74,58 +75,62 @@ export function makeFx(scene, cityB) {
       for (const sm of [clouds, dust]) { sm.mat.uniforms.uTime.value = t * 3; sm.mat.uniforms.uSun.value.copy(sunDir); }
       clouds.begin(); dust.begin();
       // clouds: gone in the first tenth of a second (the water in them is hydrogen now, and invisible)
-      if (s.clouds > 0.001) for (const c of CL) {
+      if (s.clouds > 0.001 && !OFF.includes('clouds')) for (const c of CL) {
         const k = s.clouds;
         clouds.puff(c.x + c.drift * t * 12, c.y, c.z, c.r * (0.6 + 0.4 * k), 0.55 * k * k, 1.0, 0, c.seed);
       }
       // the statue pouring down: dust streaming off its falling surface and billowing from the heap
       const H = STATUE.ped + STATUE.h, base = STATUE.base - s.sink;
-      if (t > 0) {
+      if (t > 0 && !OFF.includes('statue')) {
         const fall = fallOf(t), landed = clamp(fall / H);
         const R = rng(5);
         for (let k = 0; k < 40; k++) {
           const u = R(), a = R() * 6.28, seed = R();
           const y = base + Math.max(0, H - fall) * u;
           const rr = 3 + 2 * R();
-          const al = 0.25 * smooth(0, 0.6, t) * (0.4 + 0.6 * landed);
+          const al = 0.1 * smooth(0, 0.6, t) * (0.4 + 0.6 * landed);
           dust.puff(Math.cos(a) * rr, y + R() * 2, Math.sin(a) * rr * 0.8, 2.5 + 3 * R() + 4 * landed, al, 0.75, 0, seed);
         }
         for (let k = 0; k < 24; k++) {   // the heap's cloud
-          const a = R() * 6.28, d = R() * (6 + 12 * landed), seed = R();
-          dust.puff(Math.cos(a) * d, base + 2 + R() * 10 * landed, Math.sin(a) * d, 4 + 8 * landed * R(), 0.35 * landed, 0.72, 0, seed);
+          const a = R() * 6.28, d = R() * (5 + 7 * landed), seed = R();
+          dust.puff(Math.cos(a) * d, base + 2 + R() * 8 * landed, Math.sin(a) * d, 3 + 5 * landed * R(), 0.12 * landed * (1 - smooth(3.2, 4.5, t)), 0.78, 0, seed);
         }
       }
       // the mountains slumping: dust boiling up off the slopes
-      if (s.rock > 0.01) for (const m of MD) {
+      if (s.rock > 0.01 && !OFF.includes('mount')) for (const m of MD) {
         const y = m.h - s.sink * m.rel;
         const r = 30 + 60 * s.rock * (0.5 + m.seed);
         dust.puff(m.x, y + r * 0.4, m.z, r, 0.1 * s.rock * m.rel, 0.85, 0, m.seed);
       }
       // the city's blocks collapsing: a dust cloud over each as it comes down, spreading after
-      if (t > 0) {
+      if (t > 0 && !OFF.includes('city')) {
         const fall = fallOf(t);
         for (const b of CD) {
           const done = clamp(fall / b.h);
           const left = Math.max(b.h - fall, 3);
-          const r = 10 + b.w * 0.4 + 25 * done + 10 * t;
-          dust.puff(b.x, b.y + left * 0.8 + r * 0.3, b.z, r, 0.22 * smooth(0, 0.15, done), 0.85, 0, b.seed);
+          const r = 6 + b.w * 0.3 + 18 * done + 4 * t;
+          dust.puff(b.x, b.y + left * 0.8 + r * 0.3, b.z, r, 0.16 * smooth(0.05, 0.4, done), 0.85, 0, b.seed);
         }
       }
       // the sea exploding: a wall of fog and seabed rolling in from every shore; on fire at 5.00 s
-      if (t > 0) {
+      if (t > 0 && !OFF.includes('sea')) {
         const front = s.sea, wall = s.wall;
         const R = rng(17);
+        // a wall: two rows of puffs at the front, stacked to its full height (white on top, grey-brown at the foot)
+        const rad = clamp(wall * 0.16, 50, 240);
+        const layers = Math.max(1, Math.min(6, Math.ceil(wall / (rad * 1.3))));
         for (const p of SH) {
-          for (let k = 0; k < 3; k++) {
-            const back = k * 220;
-            const d = Math.max(0, front - back);
+          const pf = front * p.k, pw = wall * p.k;
+          for (let k = 0; k < 2; k++) {
+            const d = Math.max(0, pf - k * rad * 1.1);
             const x = p.x + p.nx * d, z = p.z + p.nz * d;
-            const g = heightAt(x, z);
-            for (let j = 0; j < 2; j++) {
-              const r = Math.max(60, wall * (0.35 + 0.2 * j)) * (0.8 + 0.4 * R());
-              const y = Math.max(g, 0) + wall * (0.3 + 0.55 * j) * (1 - 0.25 * k);
+            const g = Math.max(heightAt(x, z), 0);
+            for (let j = 0; j < layers; j++) {
+              const u = (j + 0.5) / layers;
+              const r = rad * (0.85 + 0.4 * R()) * (1 + 0.3 * (1 - u));
+              const y = g + pw * u * (1 - 0.15 * k);
               const fire = s.ignite * (1.6 + 0.8 * R());
-              dust.puff(x, y, z, r, 0.55 * smooth(0, 0.25, t) * (1 - 0.25 * k), 0.92 - 0.2 * j * (1 - s.ignite), fire, R());
+              dust.puff(x + (R() - 0.5) * rad, y, z + (R() - 0.5) * rad, r, 0.6 * smooth(0, 0.25, t), 0.62 + 0.36 * u, fire, R());
             }
           }
         }

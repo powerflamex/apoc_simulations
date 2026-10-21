@@ -91,7 +91,7 @@ const finish = new ShaderPass({
       vec2 off = (vUv - 0.5) * uShake * 0.006;
       vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
       col = mix(col, col * col * (3.0 - 2.0 * clamp(col, 0.0, 1.0)), 0.22);
-      col += vec3(1.0, 0.5, 0.15) * uFire * 0.5;
+      col = mix(col, col * vec3(1.15, 0.75, 0.5) + vec3(0.25, 0.08, 0.0), uFire);
       vec2 c = vUv - 0.5;
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - 0.345) / 0.09, 2.0));
@@ -106,11 +106,11 @@ composer.addPass(finish);
 const SUMMIT_Y = STATUE.base;
 const SHOTS = [
   { a: -3, b: 9, pos: [50, 712.5, 7], pos2: [45, 711.5, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
-  { a: 9, b: 17, pos: [31, SUMMIT_Y + 1.65, 1.0], pos2: [31.3, SUMMIT_Y + 1.65, 0.6], aim: [2000, 560, -260], aim2: [2000, 555, -230], fov: 55, attached: true },
-  { a: 17, b: 25, pos: [34, 715, 30], pos2: [31, 713, 28], aim: [0, 724, 0], aim2: [0, 718, 0], fov: 56 },
-  { a: 25, b: 33, pos: [-390, 805, 95], pos2: [-360, 795, 85], aim: [0, 688, 0], aim2: [0, 680, 0], fov: 50 },
-  { a: 33, b: 42, pos: [22, SUMMIT_Y + 1.6, -5], pos2: [20, SUMMIT_Y + 1.6, -6], aim: [0, SUMMIT_Y + 4, 2], aim2: [0, SUMMIT_Y - 2, 2], fov: 62, attached: true },
-  { a: 42, b: 52, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3200, 60, 2400], aim2: [3300, 40, 2500], fov: 56, attached: true },
+  { a: 9, b: 17, pos: [31, SUMMIT_Y + 1.65, 1.0], pos2: [31.3, SUMMIT_Y + 1.65, 0.6], aim: [2000, 540, -420], aim2: [2000, 535, -400], fov: 55, attached: true },
+  { a: 17, b: 25, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
+  { a: 25, b: 33, pos: [-115, 748, 62], pos2: [-105, 742, 56], aim: [0, 705, 0], aim2: [0, 690, 0], fov: 52 },
+  { a: 33, b: 42, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
+  { a: 42, b: 52, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 32, attached: true },
   { a: 52, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.a && v < s.b) || SHOTS[0];
@@ -128,6 +128,7 @@ function update(v, cover = -1) {
   v3.set(...sh.pos.map((x, i) => lerp(x, sh.pos2[i], k)));
   v4.set(...sh.aim.map((x, i) => lerp(x, sh.aim2[i], k)));
   if (sh.attached) { v3.y -= s.sink; if (Math.abs(sh.aim[1] - SUMMIT_Y) < 40) v4.y -= s.sink; }
+  if (sh.aimSink) v4.y -= s.sink;   // a drone that stays put, tilting down after the sinking summit
   // falling: a slow sway as the ground drops away (it all happens in slow motion)
   const fallSway = smooth(1.6, 3.5, t) * (sh.attached ? 1 : 0);
   v4.sub(v3);
@@ -148,7 +149,7 @@ function update(v, cover = -1) {
 
   // ---------- the world ----------
   TU.uTime.value = v; TU.uT.value = t; TU.uSink.value = s.sink; TU.uFall.value = fallOf(t);
-  TU.uDust.value = smooth(0.1, 3.5, t) * 0.9; TU.uErupt.value = smooth(0, 0.35, t); TU.uFire.value = s.ignite;
+  TU.uDust.value = smooth(0.1, 3.5, t) * 0.7; TU.uErupt.value = smooth(0, 0.35, t); TU.uFire.value = s.ignite;
   SU.uFall.value = fallOf(t); SU.uDust.value = smooth(0, 1.0, t); SU.uTime.value = t;
   statue.mesh.position.y = STATUE.base - s.sink;
   summit.frame(v, s, camera);
@@ -161,16 +162,16 @@ function update(v, cover = -1) {
   hemi.intensity = 1.15 * (1 - 0.2 * smooth(1, 4.5, t));
   sky.mesh.position.copy(camera.position);
   sky.uniforms.uDim.value = smooth(0, 0.08, t);
-  sky.uniforms.uDust.value = smooth(0.5, 4.0, t);
+  sky.uniforms.uDust.value = smooth(0.5, 4.0, t) * 0.45;
   sky.uniforms.uFire.value = s.ignite;
   sky.uniforms.uTime.value = v;
   const dustK = smooth(0.4, 4.5, t);
   scene.fog.color.copy(HAZE).lerp(DUSTC, dustK).lerp(FIRE, s.ignite);
-  scene.fog.density = 0.000045 + 0.00008 * dustK;
+  scene.fog.density = 0.000045 + 0.00003 * dustK;
 
   // ---------- post ----------
-  renderer.toneMappingExposure = 1.0 + 0.6 * s.ignite;
-  bloom.strength = 0.3 + 0.5 * s.ignite;
+  renderer.toneMappingExposure = 1.0 + 0.15 * s.ignite;
+  bloom.strength = 0.3 + 0.25 * s.ignite;
   finish.uniforms.uTime.value = v;
   finish.uniforms.uShake.value = jolt * 2 + rumble * 0.3;
   finish.uniforms.uFire.value = s.ignite;

@@ -376,7 +376,7 @@ Cover: `week 3/jump-doubles/out/jump-doubles_v4_cover.png` (`node render.mjs --c
 
 v2 (Oct 19): the camera stays on the ground for most of it (held shots of the crossing, `src/shots.js`), flying only for the clouds, space, the whole planet, the Moon and the last jump; every landing has an audible boom (the wind no longer cuts out). Owner: the first cut was too fast and disorienting.
 
-## Day 17 (draft, not rendered yet). Oxygen gone for 5 seconds — `week 3/oxygen-5s/out/oxygen-5s_v4_1080x1920_60fps_tiktok.mp4`
+## Day 17. Oxygen gone for 5 seconds — `week 3/oxygen-5s/out/oxygen-5s_v4_1080x1920_60fps_tiktok.mp4`
 
 **YouTube title (77 chars)**
 What if oxygen disappeared for 5 seconds? Rio falls apart 😳 #whatif #science
@@ -394,6 +394,8 @@ Then the oxygen comes back, straight into all that hydrogen.
 Would you rather lose oxygen for 5 seconds or gravity? 👇
 
 #whatif #oxygen #science #simulation
+
+Cover: `week 3/oxygen-5s/out/oxygen-5s_v4_cover.png` (`node render.mjs --cover 19.5`: the statue dissolving into dust above the crowd; title low)
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
