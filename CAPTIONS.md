@@ -395,7 +395,9 @@ Would you rather lose oxygen for 5 seconds or gravity? 👇
 
 #whatif #oxygen #science #simulation
 
-Cover: `week 3/oxygen-5s/out/oxygen-5s_v4_cover.png` (`node render.mjs --cover 19.5`: the statue dissolving into dust above the crowd; title low)
+Cover: `week 3/oxygen-5s/out/oxygen-5s_v4_cover.png` (`node render.mjs --cover 21.0`: the statue sinking into its own dust above the crowd; title low)
+
+v2 (Oct 20, 63.4 s): opens on 1.5 s of a normal day with a countdown ("OXYGEN DISAPPEARS IN 1.50 s"), then the moment hits at once: flash, jolt, a shock ring, every cloud bursting away, a shell of dust off the statue, the sky a shade darker.
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
