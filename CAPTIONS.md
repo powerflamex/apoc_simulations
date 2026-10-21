@@ -489,9 +489,11 @@ mixed warm and close; the slip at the end cut. Kept for reference: `_v2-final` (
 "talking through something": the sock and blanket), `_take2`, `_voice-v2`, `_voice-v3`, `big-rip_1920x1080.mp4`.
 
 **YouTube title (68 chars)**
-What If Space Ripped Apart? You'd Have 30 Minutes Left (The Big Rip)
+How the Universe Could End: You'd Have 30 Minutes Left (The Big Rip)
 
 **YouTube description**
+This is one way the whole universe could end.
+
 Space has been stretching since the Big Bang, and for the last 5 billion years it's been speeding up. Nobody knows what's pushing it: scientists call it dark energy. If it never stops speeding up, the stretch beats everything holding the universe together, biggest first.
 
 60 million years before the end: the Milky Way comes apart.
@@ -517,7 +519,7 @@ Which ending of the universe should I simulate next? 👇
 5:39 You
 6:33 What's next?
 
-#whatif #bigrip #space #science #simulation
+#whatif #bigrip #endoftheuniverse #space #science
 
 ## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
 
