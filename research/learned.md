@@ -108,3 +108,4 @@
   a spacesuit falling through three cloud decks into the glowing deep; chase camera instead of a street scene.
 - Status Oct 19: jump-doubles (Day 16, "What if every jump went twice as high?", 63 s) built as a new project (Brickell, Miami at dusk; jump 31 hits the Moon). Built for retention: a beat every ~2.5 s, "JUMP n OF 31" progress on the counter, street -> clouds -> space -> Moon.
 - Proven topics not built yet: a black hole follow-up (e.g. through the Moon); more "X disappears" topics.
+- Status Oct 21: rain-1000-years (Day 18, 62.9 s, Seattle to Everest to an ocean planet) and quake-grows (Day 19, 62.9 s, San Francisco to Earth breaking apart at magnitude 18.4) built as new projects, rendered, checked, captions and covers in CAPTIONS.md. Not posted yet. The rain scene's upload copy took ~16 min the first time (rain noise is hard to compress, and another session was using the PC); 7 min the second time.

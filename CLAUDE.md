@@ -4,7 +4,7 @@ Vertical (1080x1920, 60 fps) TikTok/YouTube Shorts videos, one self-contained Th
 the week they were posted (the owner's layout, Oct 18):
 `week 1/`: `asteroid/`, `black-hole/`, `earth-falls/`, `sun-vanishes/`, `earth-spins/`, `speed-doubles/`, `electrons/`;
 `week 2/`: `moon-falls/`, `women-vanish/`, `yellowstone/`, `gravity-doubles/`, `earth-stops/`, `trillion-years/`, `big-crunch/`;
-`week 3/`: `jupiter/`, `jump-doubles/`, `oxygen-5s/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
+`week 3/`: `jupiter/`, `jump-doubles/`, `oxygen-5s/`, `rain-1000-years/`, `quake-grows/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
 folder itself. See README.md for how each project is built.
 
 ## The owner wants to be hands-off

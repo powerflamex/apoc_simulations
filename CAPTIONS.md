@@ -423,7 +423,7 @@ Where would you go to last the longest? 👇
 
 #whatif #rain #science #simulation
 
-Cover: (after the render)
+Cover: `week 3/rain-1000-years/out/rain-1000-years_v4_cover.png` (`node render.mjs --cover 25.3`: the Space Needle half under, its saucer lit, a boat's searchlight beside it)
 
 ## Day 19. An earthquake that keeps getting stronger — `week 3/quake-grows/out/quake-grows_v4_1080x1920_60fps_tiktok.mp4`
 
@@ -447,7 +447,7 @@ What magnitude would you survive? 👇
 
 #whatif #earthquake #science #simulation
 
-Cover: (after the render)
+Cover: `week 3/quake-grows/out/quake-grows_v4_cover.png` (`node render.mjs --cover 54`: Earth with its crust shattering, glowing seams over the night side)
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
