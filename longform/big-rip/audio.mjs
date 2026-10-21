@@ -4,7 +4,7 @@
 // whoomp at every step, the time-lapse rush while the sky races, a shimmer as the Milky Way unravels, cold wind in
 // the summer snow, TV static and a lost-signal tone, the quake, the air lifting off, Earth splitting (one huge low
 // boom), drifting among the pieces, a heartbeat and a rising tone as you stretch, the white, then the city again.
-// The voice (voice.m4a, cleaned with ffmpeg) is placed line by line from src/voice.js; the bed dips under it.
+// The voice (voice2.m4a, cleaned with ffmpeg) is placed line by line from src/voice.js; the bed dips under it.
 // No sharp clicks anywhere: every impact has a soft onset.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -92,20 +92,20 @@ const CHORDS = [
 ].map(([t, m, g, fc]) => ({ t, f: m.map(N), g, fc }));
 
 function loadVoice() {
-  const src = path.join(ROOT, 'voice.m4a');
+  const src = path.join(ROOT, 'voice2.m4a');
   const raw = path.join(ROOT, 'out', 'voice_clean.f32');
   fs.mkdirSync(path.dirname(raw), { recursive: true });
-  // The phone was under a blanket with a sock over its mic: the recording came out boomy (100-300 Hz ~10 dB too
-  // strong) and dull (little above 5 kHz). So: rumble out, the boom and mud cut, presence and air back, the hiss
-  // down, "s" sounds softened, even levels. (Measured against the raw take, Oct 20.)
-  // (v3: less cut low down, so the voice keeps its warmth and sounds close; firmer compression so it stays upfront)
-  const fx = 'highpass=f=80:p=2,afftdn=nf=-50:nr=6:tn=1,equalizer=f=140:t=q:w=1:g=-3,equalizer=f=270:t=q:w=1:g=-5,' +
-    'equalizer=f=520:t=q:w=1.2:g=-3,equalizer=f=3300:t=q:w=0.9:g=4,treble=g=7:f=7000,deesser=i=0.3,' +
-    'acompressor=threshold=-28dB:ratio=4:attack=8:release=100:makeup=3';
+  // The second take (Oct 21, read along to the video, phone in a blanket tent without the sock): clear on top now,
+  // but soft and raspy (morning voice), so very heavy low down (100-600 Hz 25-37 dB over 1 kHz). So: rumble out,
+  // the boom and mud cut to about where the first take ended up (which he liked: warm and close), a touch of
+  // presence, the hiss down, "s" sounds softened, firm compression so the soft voice stays upfront.
+  const fx = 'highpass=f=90:p=2,afftdn=nf=-52:nr=6:tn=1,equalizer=f=115:t=q:w=1:g=-10,equalizer=f=210:t=q:w=1:g=-10,' +
+    'equalizer=f=400:t=q:w=1.2:g=-7,equalizer=f=3000:t=q:w=1:g=2,deesser=i=0.3,' +
+    'acompressor=threshold=-30dB:ratio=4:attack=8:release=100:makeup=4';
   const tag = raw + '.fx';
-  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== fx) {
+  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== src + fx) {
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-af', fx, '-ac', '1', '-ar', String(SR), '-f', 'f32le', raw]);
-    fs.writeFileSync(tag, fx);
+    fs.writeFileSync(tag, src + fx);
   }
   const b = fs.readFileSync(raw);
   return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length));

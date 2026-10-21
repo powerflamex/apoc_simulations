@@ -1,2 +1,2 @@
 # the owner's raw voice recording stays on this PC only (audio.mjs reads it from here)
-voice.m4a
+voice*.m4a

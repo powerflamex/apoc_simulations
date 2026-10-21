@@ -432,13 +432,15 @@ Which one scares you most? 👇
 
 #whatif #simulation #space #science #endoftheworld
 
-## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080.mp4`
+## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080_take2.mp4`
 
 16:9, 6:55, narrated by the owner (his own voice, one take, Oct 20). Opens on a flash-forward of the city splitting
 with the title and "In seven minutes, space itself is going to rip you apart." on frame 0.
 Thumbnail: `longform/out/big-rip_thumb.png` (Oct 21: the split city at 5:19 with **THE BIG RIP** in big gold letters).
 Upload `big-rip_1920x1080.mp4` (Oct 21): the v3 voice mix (voice up front, music ~14 dB under it) plus a big gold
 **THE BIG RIP** title at 0:05.8-0:11, as he says "This is the Big Rip". Older copies `_voice-v2` / `_voice-v3` have no title card.
+Upload `big-rip_1920x1080_take2.mp4` (Oct 21): same picture as `big-rip_1920x1080.mp4` (with the title), his second take
+(read along to the video, clearer: no sock), each sentence placed where the read-along showed it.
 
 **YouTube title (68 chars)**
 What If Space Ripped Apart? You'd Have 30 Minutes Left (The Big Rip)
@@ -470,6 +472,47 @@ Which ending of the universe should I simulate next? 👇
 6:33 What's next?
 
 #whatif #bigrip #space #science #simulation
+
+## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
+
+16:9, 6:27, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
+the city melting into lava with the title on frame 0. Two numbers on screen: THE BIG CRUNCH IN ... and THE NIGHT SKY
+(its temperature, -270 °C up to 10¹⁹ °C). Oct 21: rendered without the voice (the owner records SCRIPT.md; the voice
+drops in and the timing follows it, then the chapters below get re-timed).
+
+**YouTube title (95 chars)**
+What If the Universe Started Shrinking? The Night Sky Gets Hotter Than the Sun (The Big Crunch)
+
+**YouTube description**
+Right now the universe is growing. But a 2025 study of new dark-energy measurements says it may stop in about 11 billion years and fall back in, ending in a Big Crunch about 20 billion years from now. Imagine Earth were still here, and you could stand on the seafront and watch.
+
+15 billion years left: Andromeda crashes into the Milky Way.
+9 billion years: the universe stops growing. Far galaxies turn from red to blue: they're coming back.
+100 million years: the galaxies crash together. No dark space left in the sky.
+15 million years: the night sky is as warm as a summer evening. 10 million: hotter than boiling water, and the oceans boil away.
+3 million years: the sky glows red. 1 million: the ground melts.
+400,000 years: atoms are torn apart and the universe turns into a fog of fire.
+100,000 years: the sky is hotter than the Sun's surface. The Sun disappears into it.
+The last 3 minutes: every atom's core is smashed apart. Then all of space squeezes into one point.
+
+The end of a crunch is the Big Bang played backwards: the sky's temperature at each moment is how hot the universe was when it was that young. Study: Luu, Qiu & Tye (2025), "The Lifespan of our Universe". Many scientists expect the universe to grow forever instead.
+
+Which ending would you rather live through? 👇
+
+0:00 The Big Crunch
+0:54 Andromeda
+1:34 The universe stops growing
+2:09 The galaxies come back
+2:33 The night gets warm
+3:28 The sky glows
+3:45 The ground melts
+4:05 A fog of fire
+4:30 Hotter than the Sun
+5:01 The last three minutes
+5:45 A new Big Bang
+5:51 What's next?
+
+#whatif #bigcrunch #space #science #simulation
 
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
