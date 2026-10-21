@@ -161,7 +161,7 @@ export const BEATS = [
   { v: SEC.last3, w: 'The last 3 minutes', k: 'A BILLION DEGREES' },
   { v: SEC.quark, w: 'Everything', k: 'A 100,000TH OF A SECOND LEFT' },
   { v: SEC.crunch + 0.15, w: 'The Big Crunch', k: '0 SECONDS' },
-  { v: SEC.bang + 0.9, w: 'The Big Bang', k: 'AND THEN' },
+  { v: SEC.bang + 0.15, w: 'The Big Bang', k: 'AND THEN' },
 ];
 export function beatAt(v) {
   let b = null;
@@ -196,7 +196,8 @@ export function fmtTemp(K) {
   if (Math.abs(c) < 1000) return `${Math.round(c)} °C`;
   if (c < 1e13) return `${fmtInt(c)} °C`;
   // past ten trillion: a power of ten
-  const n = Math.floor(Math.log10(c)), m = c / Math.pow(10, n);
+  let n = Math.floor(Math.log10(c)), m = c / Math.pow(10, n);
+  if (m >= 9.95) { m /= 10; n++; }   // (never "10.0 x 10^n")
   return `${m.toFixed(1)} × 10${String(n).split('').map((d) => SUP[+d]).join('')} °C`;
 }
 export const COUNTERS = [

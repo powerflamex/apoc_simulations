@@ -243,7 +243,7 @@ export function blackbody(T, out = new THREE.Color()) {
 }
 // the glow's colour for a sky temperature: a fire palette (the exact blackbody colour is a greyish white from
 // ~4,000 K up and doesn't read as hot on screen): deep red, orange, yellow, then a hot yellow-white
-const FIRE = [new THREE.Color(1, 0.12, 0.02), new THREE.Color(1, 0.42, 0.06), new THREE.Color(1, 0.78, 0.25), new THREE.Color(1, 0.94, 0.7)];
+const FIRE = [new THREE.Color(1, 0.12, 0.02), new THREE.Color(1, 0.38, 0.05), new THREE.Color(1, 0.6, 0.14), new THREE.Color(1, 0.8, 0.45)];
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 export function fireColor(T, out = new THREE.Color()) {
   if (T < 2800) out.copy(FIRE[0]).lerp(FIRE[1], sm(1300, 2800, T));

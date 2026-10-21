@@ -315,7 +315,7 @@ export function makeSoundtrack(outFile) {
     if (earth && !closing) {
       const k = clamp(0.4 * s.glowI + 0.6 * s.fog + 0.2 * s.lava) * (1 - smooth(SEC.earthGo + 1.5, SEC.space - 0.3, v));
       if (k > 0.001) {
-        const g = Math.pow(k, 1.3) * 0.45;
+        const g = Math.pow(k, 1.3) * 0.18;
         const wn = white();
         const x = roarF[0].run(wn, 80 + 260 * k, 0.5).lp + roarF[1].run(wn, 350 + 700 * k, 0.7).bp * 0.4 + roarSub.run(white()) * 2.2;
         l += x * g; r += x * g * 0.97; wet += x * g * 0.2;

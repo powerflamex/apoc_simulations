@@ -78,7 +78,8 @@ const finish = new ShaderPass({
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.8), c * vec2(1.0, 0.8)) * 2.2;
       // dark bands behind the title and the counters so they always read
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.63) / 0.16, 2.0));
-      col *= 1.0 - uCounter * 0.4 * exp(-pow((vUv.y - 0.17) / 0.11, 2.0));
+      // (behind the two counters only, bottom left and bottom right)
+      col *= 1.0 - uCounter * 0.45 * exp(-pow((vUv.y - 0.16) / 0.11, 2.0)) * max(smoothstep(0.5, 0.12, vUv.x), smoothstep(0.62, 0.92, vUv.x));
       if (uScope > 0.0) col = mix(col, scopeView(vUv, uAspect, uShift, uTime), uScope);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -196,7 +197,7 @@ function update(v, vv = v) {
     camera.near = 0.05; camera.far = 4000;
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
-    renderer.toneMappingExposure = 1.15 * (1 - 0.3 * (1 - s.squash));
+    renderer.toneMappingExposure = 0.75 * (1 - 0.2 * (1 - s.squash));
     bloom.strength = 0.6 * (1 - 0.6 * (1 - s.squash));
     heat = (1 - s.dim) * (1 - s.bang) * 0.8;
   } else {
@@ -227,14 +228,14 @@ function update(v, vv = v) {
     look.sunI = 22; look.sunR = 0.00465; look.sunC = s.sunC;
     look.night = 1 - smooth(-7, 1, e);
     look.lights = (1 - smooth(-3, 9, e)) * s.lights;
-    look.windows = (0.06 + 0.5 * (1 - smooth(-4, 6, e))) * (0.1 + 0.9 * s.lights);
+    look.windows = (0.06 + 0.32 * (1 - smooth(-4, 6, e))) * (0.1 + 0.9 * s.lights);
     skyColors(e, look.skyHi, look.skyLo);
     // the starlight of the crashed galaxies brightens the night
     const starL = 0.7 * s.merge + 0.12 * s.ball;
     look.skyHi.lerp(tmp.setRGB(0.22, 0.27, 0.42), starL * 0.6); look.skyLo.lerp(tmp.setRGB(0.25, 0.28, 0.4), starL * 0.5);
     // the heat: the sky's glow, brightening steeply as it heats
     fireColor(s.K, glowC);
-    const gI = s.glowI * (0.3 + 0.55 * smooth(900, 7000, s.K)) * (1 + 0.4 * s.earthGone);
+    const gI = s.glowI * (0.3 + 0.8 * smooth(900, 7000, s.K)) * (1 + 0.4 * s.earthGone);
     look.skyHi.lerp(tmp.copy(glowC).multiplyScalar(0.7 * gI), s.glowI); look.skyLo.lerp(tmp.copy(glowC).multiplyScalar(gI), s.glowI);
     // steam haze while the bay boils
     look.skyLo.lerp(tmp.setRGB(0.5, 0.5, 0.55), s.steam * 0.3);
@@ -251,7 +252,7 @@ function update(v, vv = v) {
     u.uGC.value.copy(GC); u.uGP.value.copy(GP); u.uMW.value = 1 - s.ball;
     u.uAnd.value.copy(AND); u.uAndA.value.copy(AND_A); u.uAndB.value.copy(AND_B);
     u.uAndR.value = s.andR; u.uCollide.value = s.collide; u.uBall.value = s.ball;
-    u.uBack.value = s.back; u.uMerge.value = s.merge * (1 - 0.85 * s.glowI);
+    u.uBack.value = s.back * (1 - s.glowI); u.uMerge.value = s.merge * (1 - 0.85 * s.glowI);
     u.uGlow.value.set(glowC.r * gI, glowC.g * gI, glowC.b * gI);
     u.uFog.value = Math.max(s.fog, s.earthGone);
     u.uSeethe.value = 1 + 2 * smooth(3000, 9000, s.K);
@@ -277,7 +278,7 @@ function update(v, vv = v) {
   finish.uniforms.uShift.value = s.shift;
   finish.uniforms.uAb.value = punch * 0.5;
   finish.uniforms.uTitle.value = window.__cover ? 1.2 : Math.max(s.title, 0.8 * s.name);
-  finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * (1 - s.scope) * (1 - s.after) * 0.9 * (1 - 0.6 * bright);
+  finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * (1 - s.scope) * (1 - s.after) * (0.9 - 0.2 * bright);
   overlay(v, s, vv);
   return s;
 }

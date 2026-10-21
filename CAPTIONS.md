@@ -402,6 +402,53 @@ v3 (Oct 20, 60.9 s): after the normal day and the moment at the statue, the same
 
 v2 (Oct 20, 63.4 s): opens on 1.5 s of a normal day with a countdown ("OXYGEN DISAPPEARS IN 1.50 s"), then the moment hits at once: flash, jolt, a shock ring, every cloud bursting away, a shell of dust off the statue, the sky a shade darker.
 
+## Day 18. Rain for 1,000 years — `week 3/rain-1000-years/out/rain-1000-years_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (80 chars)**
+What if it rained for 1,000 years? Even Everest goes under 🌧️ #whatif #science
+
+**YouTube description**
+One inch of rain an hour, everywhere on Earth, and it never stops. You're on Pike Street in Seattle. The water rises 2 feet a day.
+
+Day 1: 2 feet. The cars float away.
+Day 3: the water is over your head.
+Day 21: the Public Market sign goes under, and the power goes out.
+Month 10: the Space Needle (605 ft).
+Year 20: Mount Rainier (14,411 ft).
+Year 40: Everest (29,032 ft). There is no land left anywhere.
+Year 449: the ocean is taller than where space begins.
+Year 1,000: the ocean is 138 miles deep, and at the bottom the water is crushed into ice.
+
+Where would you go to last the longest? 👇
+
+#whatif #rain #science #simulation
+
+Cover: (after the render)
+
+## Day 19. An earthquake that keeps getting stronger — `week 3/quake-grows/out/quake-grows_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (92 chars)**
+What if an earthquake kept getting stronger? At 18.4, Earth breaks apart 🌎 #whatif #science
+
+**YouTube description**
+You're on California Street in San Francisco. Every step up the magnitude scale is 32 times more energy, and this earthquake never stops climbing.
+
+Magnitude 7: as strong as the 1989 quake here.
+8: stronger than 1906. The street rolls like waves.
+9.5: the strongest ever recorded (Chile, 1960). The Bay Bridge falls.
+10: never happened on Earth. The street splits open.
+11: the ground shakes harder than gravity, and everything is thrown into the air.
+12: as much energy as the asteroid that killed the dinosaurs.
+14.5: more than the Sun gives off in a second.
+15.2: enough to boil every ocean.
+18.4: more energy than holds Earth together. The planet comes apart.
+
+What magnitude would you survive? 👇
+
+#whatif #earthquake #science #simulation
+
+Cover: (after the render)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
@@ -479,8 +526,10 @@ Which ending of the universe should I simulate next? 👇
 
 16:9, 6:27, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
 the city melting into lava with the title on frame 0. Two numbers on screen: THE BIG CRUNCH IN ... and THE NIGHT SKY
-(its temperature, -270 °C up to 10¹⁹ °C). Oct 21: rendered without the voice (the owner records SCRIPT.md; the voice
-drops in and the timing follows it, then the chapters below get re-timed).
+(its temperature, -270 °C up to 10²⁰ °C). Oct 21: rendered and checked WITHOUT the voice (a draft: don't upload yet).
+The owner records SCRIPT.md; the voice drops in, the timing follows it, the chapters below get re-timed, then upload.
+Thumbnail: `longform/out/big-crunch_thumb.png` (the city melting into lava at 3:58, **THE BIG CRUNCH** in big gold
+letters, like the Big Rip's).
 
 **YouTube title (95 chars)**
 What If the Universe Started Shrinking? The Night Sky Gets Hotter Than the Sun (The Big Crunch)

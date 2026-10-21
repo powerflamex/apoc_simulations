@@ -181,8 +181,8 @@ export function makeSpace() {
   const UP = new THREE.Vector3(0, 1, 0), Q = new THREE.Quaternion(), Q0 = new THREE.Quaternion();
   const PT = new THREE.Vector3(), dir = new THREE.Vector3(), C = new THREE.Vector3(), S = new THREE.Matrix4(), M = new THREE.Matrix4();
   const wdC = new THREE.Color(), bg = new THREE.Color();
-  const WHITE = new THREE.Color(1, 0.9, 0.72);
-  const FIRE = [null, new THREE.Color(1, 0.42, 0.06), new THREE.Color(1, 0.78, 0.25), new THREE.Color(1, 0.94, 0.7)];
+  const WHITE = new THREE.Color(1, 0.82, 0.55);
+  const FIRE = [null, new THREE.Color(1, 0.38, 0.05), new THREE.Color(1, 0.6, 0.14), new THREE.Color(1, 0.8, 0.45)];   // (the same palette as the promenade sky)
   return {
     scene,
     youPos: youNow,
