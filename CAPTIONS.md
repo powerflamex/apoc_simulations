@@ -427,6 +427,43 @@ Which one scares you most? 👇
 
 #whatif #simulation #space #science #endoftheworld
 
+## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080.mp4`
+
+16:9, 6:55, narrated by the owner (his own voice, one take, Oct 20). Opens on a flash-forward of the city splitting
+with the title and "In seven minutes, space itself is going to rip you apart." on frame 0.
+Thumbnail: `longform/out/big-rip_thumb.png`.
+
+**YouTube title (68 chars)**
+What If Space Ripped Apart? You'd Have 30 Minutes Left (The Big Rip)
+
+**YouTube description**
+Space has been stretching since the Big Bang, and for the last 5 billion years it's been speeding up. Nobody knows what's pushing it: scientists call it dark energy. If it never stops speeding up, the stretch beats everything holding the universe together, biggest first.
+
+60 million years before the end: the Milky Way comes apart.
+8 years: Saturn drifts away. 3 years: Jupiter. 6 months: Mars.
+3 months: Earth comes loose from the Sun. Summer turns to snow.
+1 week: the Moon.
+6 hours: the satellites. TV and GPS go dark.
+30 minutes: Earth splits apart.
+One ten-billionth of a billionth of a second: your atoms.
+
+It might be 22 billion years away, and new measurements hint it might never happen. Timeline from Caldwell, Kamionkowski & Weinberg (2003), "Phantom Energy and Cosmic Doomsday".
+
+Which ending of the universe should I simulate next? 👇
+
+0:00 The Big Rip
+0:36 The Milky Way comes apart
+1:16 The stars go out
+1:49 The planets
+2:33 Earth comes loose from the Sun
+3:38 The Moon
+4:23 The satellites
+4:59 Earth splits
+5:39 You
+6:33 What's next?
+
+#whatif #bigrip #space #science #simulation
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
