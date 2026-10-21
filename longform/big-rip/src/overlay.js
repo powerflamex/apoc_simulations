@@ -1,4 +1,4 @@
-// DOM overlay: the opening title, the counter (THE BIG RIP IN ... / NEXT: ...), the big word at each step, the
+// DOM overlay: the opening title, THE BIG RIP, the counter (THE BIG RIP IN ... / NEXT: ...), the big word at each step, the
 // white flash, and the closing lines. compose.js paints all of it into the frame.
 import { COUNTERS, beatAt, SEC } from './timeline.js';
 import { clamp, smooth } from './util.js';
@@ -12,6 +12,7 @@ export function makeOverlay() {
   const counter = document.getElementById('counter');
   const flash = document.getElementById('flash');
   const title = document.getElementById('title');
+  const name = document.getElementById('name');
   const cover = document.getElementById('cover');
   const stamp = document.getElementById('stamp'), stampk = document.getElementById('stampk');
   const closing = document.getElementById('closing');
@@ -27,7 +28,7 @@ export function makeOverlay() {
   return function update(t, s, v) {
     if (window.__cover) {
       cover.style.opacity = '1';
-      for (const el of [counter, title, flash, stamp, stampk, closing]) el.style.opacity = '0';
+      for (const el of [counter, title, name, flash, stamp, stampk, closing]) el.style.opacity = '0';
       return;
     }
     for (const r of rows) {
@@ -45,6 +46,10 @@ export function makeOverlay() {
 
     title.style.opacity = (s.title || 0).toFixed(3);
     title.style.filter = (s.title || 0) < 1 ? `blur(${((1 - (s.title || 0)) * 8).toFixed(2)}px)` : 'none';
+
+    const n = s.name || 0;
+    name.style.opacity = n.toFixed(3);
+    name.style.transform = `scale(${(1 + 0.12 * (1 - smooth(5.5, 6.2, v))).toFixed(4)})`;
 
     // the big word: pops in, holds, fades
     const b = beatAt(t);

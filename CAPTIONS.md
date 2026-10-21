@@ -432,12 +432,13 @@ Which one scares you most? 👇
 
 #whatif #simulation #space #science #endoftheworld
 
-## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080_voice-v3.mp4`
+## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080.mp4`
 
 16:9, 6:55, narrated by the owner (his own voice, one take, Oct 20). Opens on a flash-forward of the city splitting
 with the title and "In seven minutes, space itself is going to rip you apart." on frame 0.
-Thumbnail: `longform/out/big-rip_thumb.png`.
-Upload `_voice-v3` (Oct 20): the voice up front (music ~14 dB under it, firmer compression, warmth kept). Kept: `big-rip_1920x1080.mp4` (first), `_voice-v2` (less boomy, but the voice sat back in the music).
+Thumbnail: `longform/out/big-rip_thumb.png` (Oct 21: the split city at 5:19 with **THE BIG RIP** in big gold letters).
+Upload `big-rip_1920x1080.mp4` (Oct 21): the v3 voice mix (voice up front, music ~14 dB under it) plus a big gold
+**THE BIG RIP** title at 0:05.8-0:11, as he says "This is the Big Rip". Older copies `_voice-v2` / `_voice-v3` have no title card.
 
 **YouTube title (68 chars)**
 What If Space Ripped Apart? You'd Have 30 Minutes Left (The Big Rip)

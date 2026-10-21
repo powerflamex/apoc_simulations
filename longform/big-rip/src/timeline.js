@@ -202,6 +202,7 @@ export function state(v) {
   s.flash = smooth(SEC.rip - 0.3, SEC.rip + 0.4, v) * (1 - smooth(SEC.end + 1, SEC.end + 6, v));
   s.after = v >= SEC.end + 1 ? 1 : 0;                       // the closing shot: the city before all this
   s.fadeOut = smooth(SEC.out - 2.5, SEC.out, v);
-  s.title = 1 - smooth(5.6, 6.6, v);
+  s.title = 1 - smooth(5.0, 5.5, v);
+  s.name = smooth(5.5, 5.9, v) * (1 - smooth(10.5, 11.3, v));   // THE BIG RIP, as the voice says it (5.7 s)
   return s;
 }

@@ -171,7 +171,7 @@ function update(v, vv = v) {
   // the title, the white and the closing follow the video clock (the flash-forward and the closing shot show
   // other moments of the story)
   const sv = vv === v ? s : state(vv);
-  s.title = sv.title; s.flash = sv.flash; s.after = sv.after; s.fadeOut = sv.fadeOut;
+  s.title = sv.title; s.name = sv.name; s.flash = sv.flash; s.after = sv.after; s.fadeOut = sv.fadeOut;
 
   // ---------- camera ----------
   let x = spline(sh.x, v), y = spline(sh.y, v), z = spline(sh.z, v);
@@ -226,7 +226,7 @@ function update(v, vv = v) {
   finish.uniforms.uPhone.value = s.phoneShot;
   finish.uniforms.uGps.value = s.gps;
   finish.uniforms.uAb.value = punch * 1.2 + quake * 0.6;
-  finish.uniforms.uTitle.value = window.__cover ? 1.2 : s.title;
+  finish.uniforms.uTitle.value = window.__cover ? 1.2 : Math.max(s.title, 0.8 * s.name);
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * (1 - s.scope) * (1 - s.phoneShot) * 0.9;
   overlay(v, s, vv);
   return s;

@@ -18,7 +18,7 @@
   html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
   #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
   #stage canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
-  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing { display: none !important; }
+  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing, .clean #name { display: none !important; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 
@@ -43,6 +43,10 @@
   #title .t { font: 600 112px/1.05 'Cormorant', serif; }
   #title .s { font: italic 500 58px/1.1 'Cormorant', serif; color: #f1c978; margin-top: 22px; }
 
+  #name { position: absolute; left: 0; right: 0; top: 330px; text-align: center; opacity: 0;
+    font: 600 200px/1 'Cormorant', serif; letter-spacing: .1em; padding-left: .1em; color: #f1c978;
+    text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
+
   #closing { position: absolute; left: 260px; right: 260px; top: 380px; text-align: center; opacity: 0;
     font: italic 500 72px/1.15 'Cormorant', serif;
     text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
@@ -50,7 +54,7 @@
   #cover { position: absolute; left: 60px; right: 60px; top: 150px; text-align: center; opacity: 0;
     text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
   #cover .k { font: 700 52px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; }
-  #cover .w { font: 500 250px/1 'Cormorant', serif; color: #f1c978; margin: 16px 0 0; font-variant-numeric: lining-nums tabular-nums; }
+  #cover .w { font: 700 260px/1 'Cormorant', serif; color: #f1c978; margin: 16px 0 0; font-variant-numeric: lining-nums tabular-nums; }
 
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
 
@@ -74,10 +78,10 @@
     <div class="t">What if space ripped apart?</div>
     <div class="s">You’d have 30 minutes left.</div>
   </div>
+  <div id="name" class="serif">THE BIG RIP</div>
   <div id="closing" class="serif"></div>
   <div id="cover" class="serif">
-    <div class="k">EARTH SPLITS IN</div>
-    <div class="w">30:00</div>
+    <div class="w">THE BIG RIP</div>
   </div>
   <div id="flash"></div>
 </div>

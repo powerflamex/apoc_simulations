@@ -41,7 +41,8 @@ end gets near) and under it a **NEXT: ...** line with the next thing to go. A bi
 | 5:50-6:40 | Close on your hand in the dark. It stretches; light leaks from inside. The counter shows ever-smaller decimals. **Silence**, then white. | 0.000000... s |
 | 6:40-7:00 | White fading to the opening city (the end returns to the start). Closing line and the question for comments. | |
 
-Thumbnail: a bright frame of the split city with **EARTH SPLITS IN 30:00** as the giant number (counter style).
+Thumbnail: a bright frame of the split city with **THE BIG RIP** in giant gold letters (Oct 21; was EARTH SPLITS IN 30:00).
+At 0:05.8, as he says "This is the Big Rip", the opening title gives way to a big gold **THE BIG RIP** over the city (to 0:11).
 
 ## Narration script (about 570 words, ~4.5 minutes of talking at a slow, dramatic pace; the rest is picture and sound)
 Read it like you're telling a friend something crazy. `/` = a short breath. `[silence]` = stop and wait 3 seconds
