@@ -70,7 +70,7 @@ export function makeSoundtrack(outFile) {
   const ph = new Float64Array(32);
   // the city's buildings coming down far away: a scatter of slow rolling rumbles
   const thunder = [];
-  for (let k = 0; k < 26; k++) thunder.push({ v: 8 + Math.pow(R0(), 0.8) * 46, d: 3 + R0() * 4, g: 0.05 + 0.08 * R0(), pan: R0() * 1.6 - 0.8 });
+  for (let k = 0; k < 26; k++) thunder.push({ v: 9.5 + Math.pow(R0(), 0.8) * 46, d: 3 + R0() * 4, g: 0.05 + 0.08 * R0(), pan: R0() * 1.6 - 0.8 });
 
   let s = state(-LOOP);
   for (let n = -N0; n < N; n++) {

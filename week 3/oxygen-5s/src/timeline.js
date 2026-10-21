@@ -17,10 +17,13 @@ import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
 export const G = 9.81;
-export const V5 = 60;                       // video time when 5.00 s have passed
+// The first 1.5 s are a normal day in real time (a countdown on the counter); at V0 the oxygen goes and the video
+// switches to 12x slow motion for the 5 seconds without it.
+export const V0 = 1.5;                      // video time of the moment
 export const SLOW = 12;
-export const tau = (v) => (5 * (v + 0.36)) / (V5 + 0.36);   // story seconds (0.03 s at frame 0; negative = before)
-export const vOfTau = (t) => (t * (V5 + 0.36)) / 5 - 0.36;
+export const V5 = V0 + 5 * SLOW;            // video time when 5.00 s have passed
+export const tau = (v) => (v < V0 ? v - V0 : (v - V0) / SLOW);   // story seconds (negative = before)
+export const vOfTau = (t) => (t < 0 ? V0 + t : V0 + t * SLOW);
 export const T_SWITCH = V5 + 1.0;           // full white
 export const LOOP = 0.9;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
@@ -36,24 +39,24 @@ export const seaWall = (t) => (t > 0 ? 300 * Math.pow(t, 0.85) : 0);
 // ---- captions (video time) ----
 const C = (a, b, text) => [a, b, text];
 export const CAPTIONS = [
-  C(3.9, 6.6, 'Every oxygen atom is gone. Except the ones in living things.'),
-  C(6.8, 9.0, 'The air is 21% thinner. Every ear pops.'),
-  C(9.2, 11.6, 'Every engine stops. The tour helicopter drops.'),
-  C(11.8, 14.2, 'Water is 89% oxygen. The sea turns into hydrogen gas.'),
-  C(14.4, 16.8, 'It needs 1,200 times the room. The sea explodes.'),
-  C(17.2, 19.6, 'Concrete is half oxygen. The statue starts to crumble.'),
-  C(19.8, 22.2, 'It’s just loose sand now, falling.'),
-  C(22.4, 24.8, 'Its head reaches its feet in 2.8 seconds.'),
-  C(25.2, 27.6, 'Granite is 47% oxygen. The mountain turns to dust.'),
-  C(27.8, 30.2, 'Corcovado is sinking. With you on it.'),
-  C(30.4, 32.8, 'Sugarloaf is crumbling too.'),
-  C(33.2, 35.6, 'Everyone on the mountain is falling.'),
-  C(35.8, 38.2, 'Christ the Redeemer is a pile of dust.'),
-  C(38.4, 40.8, 'There’s nothing left to stand on.'),
-  C(42.2, 44.6, 'Every concrete building in Rio comes down.'),
-  C(44.8, 47.2, 'The exploding sea is crossing the city.'),
-  C(47.4, 49.8, 'It’s coming for the mountain.'),
-  C(50.0, 52.4, 'Nothing made of stone is left standing.'),
+  C(4.0, 8.1, 'Every oxygen atom is gone. Except the ones in living things.'),
+  C(8.3, 10.5, 'The air is 21% thinner. Every ear pops.'),
+  C(10.7, 13.1, 'Every engine stops. The tour helicopter drops.'),
+  C(13.3, 15.7, 'Water is 89% oxygen. The sea turns into hydrogen gas.'),
+  C(15.9, 18.3, 'It needs 1,200 times the room. The sea explodes.'),
+  C(18.7, 21.1, 'Concrete is half oxygen. The statue starts to crumble.'),
+  C(21.3, 23.7, 'It’s just loose sand now, falling.'),
+  C(23.9, 26.3, 'Its head reaches its feet in 2.8 seconds.'),
+  C(26.7, 29.1, 'Granite is 47% oxygen. The mountain turns to dust.'),
+  C(29.3, 31.7, 'Corcovado is sinking. With you on it.'),
+  C(31.9, 34.3, 'Sugarloaf is crumbling too.'),
+  C(34.7, 37.1, 'Everyone on the mountain is falling.'),
+  C(37.3, 39.7, 'Christ the Redeemer is a pile of dust.'),
+  C(39.9, 42.3, 'There’s nothing left to stand on.'),
+  C(43.7, 46.1, 'Every concrete building in Rio comes down.'),
+  C(46.3, 48.7, 'The exploding sea is crossing the city.'),
+  C(48.9, 51.3, 'It’s coming for the mountain.'),
+  C(51.5, 53.9, 'Nothing made of stone is left standing.'),
   C(vOfTau(4.5) - 0.1, vOfTau(4.5) + 2.2, 'Half a second left.'),
   C(vOfTau(4.72), V5 - 0.1, 'Then the oxygen comes back. Into all that hydrogen.'),
 ];
@@ -72,10 +75,13 @@ const FT = 0.3048;
 export const COUNTERS = [
   {
     from: -3, to: T_SWITCH + 2, label: 'WITHOUT OXYGEN',
-    fmt: (t) => `${Math.min(Math.max(t, 0), 5).toFixed(2)} s`,
+    labelFn: (v) => (tau(v) < 0 ? 'OXYGEN DISAPPEARS IN' : 'WITHOUT OXYGEN'),
+    fmt: (t) => `${Math.min(Math.abs(t), 5).toFixed(2)} s`,
     value: (v) => tau(v),
+    allowNegative: true,
     unit: (v) => {
       const t = tau(v), d = sinkOf(t) / FT;
+      if (t < 0) return 'A NORMAL DAY ON CORCOVADO';
       if (t >= 5) return 'OXYGEN IS BACK';
       if (d > 3) return `SLOW MOTION 12× · YOU'VE FALLEN ${Math.round(d)} FT`;
       return 'SLOW MOTION 12×';
@@ -89,8 +95,9 @@ export function state(v) {
   const s = { v };
   const t = (s.t = tau(v));
   s.gone = t > 0 ? 1 : 0;                       // oxygen gone
-  s.clouds = 1 - smooth(0, 0.09, t);            // the clouds vanish
-  s.ears = smooth(0.12, 0.3, t) * (1 - smooth(1.4, 2.4, t));   // people clutching their ears
+  s.clouds = 1 - smooth(0, 0.012, t);           // the clouds vanish at once (they burst away)
+  s.pop = t > 0 ? Math.exp(-(v - V0) / 0.4) : 0;   // the moment itself: a jolt, a shock across the screen, a flash
+  s.ears = smooth(0.04, 0.12, t) * (1 - smooth(1.4, 2.4, t));   // people clutching their ears
   s.muffle = smooth(0.02, 0.1, t);              // your ears after the pop
   s.glass = smooth(0, 0.35, t);                 // windows to dust
   s.sink = sinkOf(t);                           // the summit's drop (m)

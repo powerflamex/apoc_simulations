@@ -26,7 +26,7 @@ export const TOURISTS = [];
     const selfie = !view && R() < 0.35;
     TOURISTS.push({ x, z, seed: R(), view, selfie, film: !selfie && R() < 0.4,
       col: [SHIRTS[Math.floor(R() * SHIRTS.length)], PANTS[Math.floor(R() * PANTS.length)], SKIN[Math.floor(R() * SKIN.length)], HAIR[Math.floor(R() * HAIR.length)]],
-      s: 0.92 + R() * 0.14, react: 0.12 + R() * 0.12, drift: [(R() - 0.5) * 2, R(), (R() - 0.5) * 2], spin: (R() - 0.5) * 1.2 });
+      s: 0.92 + R() * 0.14, react: 0.03 + R() * 0.06, drift: [(R() - 0.5) * 2, R(), (R() - 0.5) * 2], spin: (R() - 0.5) * 1.2 });
   }
 }
 

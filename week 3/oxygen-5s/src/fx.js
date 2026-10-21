@@ -77,7 +77,20 @@ export function makeFx(scene, cityB) {
       // clouds: gone in the first tenth of a second (the water in them is hydrogen now, and invisible)
       if (s.clouds > 0.001 && !OFF.includes('clouds')) for (const c of CL) {
         const k = s.clouds;
-        clouds.puff(c.x + c.drift * t * 12, c.y, c.z, c.r * (0.6 + 0.4 * k), 0.55 * k * k, 1.0, 0, c.seed);
+        // before: drifting; at the moment the water in them turns to hydrogen and they burst outward and are gone
+        clouds.puff(c.x + c.drift * t * 1.0, c.y, c.z, c.r * (1 + 0.9 * (1 - k)), 0.55 * k * k, 1.0, 0, c.seed);
+      }
+      // the moment: the soapstone skin lets go all at once, a shell of dust blows off the whole statue
+      if (s.pop > 0.01) {
+        const R = rng(31), base0 = STATUE.base - s.sink, grow = 1 - s.pop;
+        for (let k = 0; k < 70; k++) {
+          const seed = R();
+          let x, y, z;
+          if (k < 40) { const a = R() * 6.28; x = Math.cos(a) * 3.2; z = Math.sin(a) * 2.2; y = STATUE.ped + R() * STATUE.h * 0.8; }
+          else { const sd = R() < 0.5 ? -1 : 1; x = (R() - 0.5) * 1.5; z = sd * (2.5 + R() * 11); y = STATUE.ped + 21.5 + (R() - 0.5) * 1.5; }
+          const out = 1 + 1.5 * grow;
+          dust.puff(x * out, base0 + y + grow * 2, z * out, 1.5 + 4 * grow, 0.55 * s.pop, 0.85, 0, seed);
+        }
       }
       // the statue pouring down: dust streaming off its falling surface and billowing from the heap
       const H = STATUE.ped + STATUE.h, base = STATUE.base - s.sink;

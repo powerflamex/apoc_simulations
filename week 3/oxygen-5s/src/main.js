@@ -10,7 +10,7 @@ import { makeStatue, SU, STATUE } from './statue.js';
 import { makeSummit } from './summit.js';
 import { makeFx } from './fx.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, V5, fallOf, vOfTau } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, V5, V0, fallOf, vOfTau } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -80,16 +80,23 @@ composer.addPass(new OutputPass());
 const finish = new ShaderPass({
   uniforms: {
     tDiffuse: { value: null }, uTime: { value: 0 }, uVig: { value: 0.3 }, uTitle: { value: 0 }, uCounter: { value: 0 },
-    uMuffle: { value: 0 }, uShake: { value: 0 }, uFire: { value: 0 },
+    uMuffle: { value: 0 }, uShake: { value: 0 }, uFire: { value: 0 }, uPop: { value: 0 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uTime; uniform float uVig; uniform float uTitle; uniform float uCounter;
-    uniform float uMuffle; uniform float uShake; uniform float uFire;
+    uniform float uMuffle; uniform float uShake; uniform float uFire; uniform float uPop;
     varying vec2 vUv;
     void main() {
-      vec2 off = (vUv - 0.5) * uShake * 0.006;
-      vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
+      // the moment the air thins: a ring of distortion races out from the middle of the frame
+      vec2 cc = (vUv - 0.5) * vec2(1.0, 1.7778);
+      float rr = length(cc);
+      float front = (1.0 - uPop) * 1.6;
+      float ring = exp(-pow((rr - front) / 0.08, 2.0)) * uPop;
+      vec2 uv = vUv + normalize(cc + 1e-5) * ring * 0.025 * vec2(1.0, 0.5625);
+      vec2 off = (vUv - 0.5) * (uShake * 0.006 + ring * 0.03);
+      vec3 col = vec3(texture2D(tDiffuse, uv + off).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - off).b);
+      col += vec3(0.9, 0.95, 1.0) * pow(uPop, 3.0) * 0.45 + ring * 0.15;
       col = mix(col, col * col * (3.0 - 2.0 * clamp(col, 0.0, 1.0)), 0.22);
       col = mix(col, col * vec3(1.15, 0.75, 0.5) + vec3(0.25, 0.08, 0.0), uFire);
       vec2 c = vUv - 0.5;
@@ -105,13 +112,13 @@ composer.addPass(finish);
 // attached: the camera is on the summit, so it sinks with it
 const SUMMIT_Y = STATUE.base;
 const SHOTS = [
-  { a: -3, b: 9, pos: [50, 712.5, 7], pos2: [45, 711.5, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
-  { a: 9, b: 17, pos: [31, SUMMIT_Y + 1.65, 1.0], pos2: [31.3, SUMMIT_Y + 1.65, 0.6], aim: [2000, 540, -420], aim2: [2000, 535, -400], fov: 55, attached: true },
-  { a: 17, b: 25, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
-  { a: 25, b: 33, pos: [-115, 748, 62], pos2: [-105, 742, 56], aim: [0, 705, 0], aim2: [0, 690, 0], fov: 52 },
-  { a: 33, b: 42, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
-  { a: 42, b: 52, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 32, attached: true },
-  { a: 52, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
+  { a: -3, b: 10.5, pos: [50, 712.5, 7], pos2: [45, 711.5, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
+  { a: 10.5, b: 18.5, pos: [31, SUMMIT_Y + 1.65, 1.0], pos2: [31.3, SUMMIT_Y + 1.65, 0.6], aim: [2000, 540, -420], aim2: [2000, 535, -400], fov: 55, attached: true },
+  { a: 18.5, b: 26.5, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
+  { a: 26.5, b: 34.5, pos: [-115, 748, 62], pos2: [-105, 742, 56], aim: [0, 705, 0], aim2: [0, 690, 0], fov: 52 },
+  { a: 34.5, b: 43.5, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
+  { a: 43.5, b: 53.5, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 32, attached: true },
+  { a: 53.5, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.a && v < s.b) || SHOTS[0];
 const v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
@@ -137,9 +144,10 @@ function update(v, cover = -1) {
   pitch += (wobble(v * 0.5, 3) * 0.4 + wobble(v * 0.19, 8) * 1.6 * fallSway) * DEG;
   roll += (wobble(v * 0.3, 5) * 0.4 + wobble(v * 0.17, 7) * 3.0 * fallSway) * DEG;
   // the moment the pressure drops (a jolt), and the rumble of the ground going
-  const jolt = Math.exp(-Math.pow((t - 0.02) / 0.03, 2)) * (sh.attached ? 1 : 0.5);
+  const jolt = Math.exp(-Math.pow((v - V0 - 0.06) / 0.14, 2));   // the moment: everything jumps
   const rumble = smooth(0.2, 2.0, t) * (sh.attached ? 1 : 0.35) * (1 - s.flash);
-  pitch += (jolt * 1.2 + wobble(v * 23, 1) * 0.25 * rumble) * DEG;
+  pitch += (jolt * 2.5 * Math.sin((v - V0) * 40) + wobble(v * 23, 1) * 0.25 * rumble) * DEG;
+  roll += jolt * 1.5 * Math.sin((v - V0) * 31) * DEG;
   yaw += wobble(v * 19, 2) * 0.25 * rumble * DEG;
   camera.position.copy(v3);
   camera.rotation.set(pitch, yaw, roll);
@@ -149,7 +157,7 @@ function update(v, cover = -1) {
 
   // ---------- the world ----------
   TU.uTime.value = v; TU.uT.value = t; TU.uSink.value = s.sink; TU.uFall.value = fallOf(t);
-  TU.uDust.value = smooth(0.1, 3.5, t) * 0.7; TU.uErupt.value = smooth(0, 0.35, t); TU.uFire.value = s.ignite;
+  TU.uDust.value = smooth(0.1, 3.5, t) * 0.7; TU.uErupt.value = smooth(0, 0.07, t); TU.uFire.value = s.ignite;
   SU.uFall.value = fallOf(t); SU.uDust.value = smooth(0, 1.0, t); SU.uTime.value = t;
   statue.mesh.position.y = STATUE.base - s.sink;
   summit.frame(v, s, camera);
@@ -161,7 +169,7 @@ function update(v, cover = -1) {
   sun.intensity = 3.0 * (1 - 0.35 * smooth(1, 4.5, t));
   hemi.intensity = 1.15 * (1 - 0.2 * smooth(1, 4.5, t));
   sky.mesh.position.copy(camera.position);
-  sky.uniforms.uDim.value = smooth(0, 0.08, t);
+  sky.uniforms.uDim.value = smooth(0, 0.004, t);
   sky.uniforms.uDust.value = smooth(0.5, 4.0, t) * 0.45;
   sky.uniforms.uFire.value = s.ignite;
   sky.uniforms.uTime.value = v;
@@ -173,7 +181,8 @@ function update(v, cover = -1) {
   renderer.toneMappingExposure = 1.0 + 0.15 * s.ignite;
   bloom.strength = 0.3 + 0.25 * s.ignite;
   finish.uniforms.uTime.value = v;
-  finish.uniforms.uShake.value = jolt * 2 + rumble * 0.3;
+  finish.uniforms.uShake.value = jolt * 3 + rumble * 0.3;
+  finish.uniforms.uPop.value = s.pop;
   finish.uniforms.uFire.value = s.ignite;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
