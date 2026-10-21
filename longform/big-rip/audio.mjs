@@ -95,11 +95,16 @@ function loadVoice() {
   const src = path.join(ROOT, 'voice.m4a');
   const raw = path.join(ROOT, 'out', 'voice_clean.f32');
   fs.mkdirSync(path.dirname(raw), { recursive: true });
-  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs) {
-    // rumble and pops out (high-pass), the room hiss down, a touch of presence, even levels
-    const fx = 'highpass=f=85,afftdn=nf=-52:nr=10:tn=1,equalizer=f=3200:t=q:w=1.2:g=2,equalizer=f=250:t=q:w=1:g=-2,' +
-      'acompressor=threshold=-24dB:ratio=3:attack=6:release=160:makeup=1';
+  // The phone was under a blanket with a sock over its mic: the recording came out boomy (100-300 Hz ~10 dB too
+  // strong) and dull (little above 5 kHz). So: rumble out, the boom and mud cut, presence and air back, the hiss
+  // down, "s" sounds softened, even levels. (Measured against the raw take, Oct 20.)
+  const fx = 'highpass=f=100:p=2,afftdn=nf=-50:nr=8:tn=1,equalizer=f=140:t=q:w=1:g=-8,equalizer=f=270:t=q:w=1:g=-8,' +
+    'equalizer=f=520:t=q:w=1.2:g=-4,equalizer=f=3300:t=q:w=0.9:g=5,treble=g=9:f=7000,deesser=i=0.4,' +
+    'acompressor=threshold=-24dB:ratio=3.5:attack=5:release=120:makeup=2';
+  const tag = raw + '.fx';
+  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== fx) {
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-af', fx, '-ac', '1', '-ar', String(SR), '-f', 'f32le', raw]);
+    fs.writeFileSync(tag, fx);
   }
   const b = fs.readFileSync(raw);
   return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length));
