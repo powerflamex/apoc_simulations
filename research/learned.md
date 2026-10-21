@@ -38,6 +38,14 @@
   moment with a finish line on screen; gravity-doubles has 5 s beats, one place, and a slow middle after you die.
   Best next step: the retention graph in Studio (Analytics > the video > Engagement) shows the exact seconds people leave.
 
+- Owner, Oct 21 (Studio, since published): trillion-years (Oct 17) 1,116,543 views, 69.6% stayed, avg 0:50 of 1:07 (~73-75%);
+  big-crunch (Oct 18) 74,802, 61.7% stayed, 0:41 (~61%); jupiter (Oct 19) 43,083, 60.5% stayed, 0:45 (~63%);
+  jump-doubles (Oct 20) 37,892, 61.6% stayed, 0:40 (~62%); oxygen-5s (Oct 21, <1 day) 8,448, 67.6% stayed, ~59% viewed.
+  The retention curves of all three he showed (jupiter, big-crunch, trillion-years) fall in the first ~12-15 s and are
+  flat after that: the middles now hold; the first seconds lose people. Trillion-years and big-crunch share their opening
+  shots, yet trillion-years held far better (curve flattens at ~75% vs ~55%): the title's promise ("you" + one huge,
+  plain number) matters more than the picture. Owner's take: make the beginnings more action-packed.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
