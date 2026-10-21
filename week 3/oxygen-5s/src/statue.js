@@ -72,7 +72,7 @@ export function makeStatue(scene) {
         transformed.y = max(yy, heap);
         transformed.xz *= 1.0 + onHeap * 0.5 * landed * (1.0 - rr / heapR * 0.5);`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uDust; uniform float uTime; varying float vLanded; varying vec3 vLoc;\nfloat sh21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }')
+      .replace('#include <common>', '#include <common>\nuniform float uDust; uniform float uTime; uniform float uSkin; varying float vLanded; varying vec3 vLoc;\nfloat sh21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }')
       .replace('#include <color_fragment>', `#include <color_fragment>
         {
           // soapstone tiles (a fine mosaic), weathered

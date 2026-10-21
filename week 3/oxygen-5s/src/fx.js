@@ -71,7 +71,7 @@ export function makeFx(scene, cityB, winPts = []) {
   const CD = [];   // the city's blocks (a sample of them)
   {
     const R = rng(92);
-    for (const b of cityB) if (R() < 0.08) CD.push(b);
+    for (const b of cityB) if (b.street || R() < 0.08) CD.push(b);   // (every tower of the Botafogo street: it's seen up close)
   }
 
   return {
@@ -129,6 +129,14 @@ export function makeFx(scene, cityB, winPts = []) {
           const left = Math.max(b.h - fall, 3);
           const r = 6 + b.w * 0.3 + 18 * done + 4 * t;
           dust.puff(b.x, b.y + left * 0.8 + r * 0.3, b.z, r, 0.16 * smooth(0.05, 0.4, done), 0.85, 0, b.seed);
+          if (b.street && fall > 1) {   // up close: the top pours off as sand, down the face toward the street
+            const R2 = rng(Math.floor(b.seed * 1e6)), zf = b.z - b.side * (b.d / 2 + 2);
+            for (let k = 0; k < 7; k++) {
+              const x = b.x + (k / 6 - 0.5) * b.w * 0.9, top = b.y + left;
+              dust.puff(x, top + 2, b.z + (R2() - 0.5) * b.d * 0.6, 5 + 3 * R2() + 4 * done, 0.42 * smooth(1, 6, fall), 0.82, 0, R2());
+              for (let j = 1; j <= 4; j++) dust.puff(x + (R2() - 0.5) * 4, top - j * 0.18 * Math.min(fall, 60), zf - b.side * j * 0.8, 2.5 + j * 1.2, 0.22 * smooth(1, 6, fall) * (1 - j / 5), 0.8, 0, R2());
+            }
+          }
         }
       }
       // the sea exploding: a wall of fog and seabed rolling in from every shore; on fire at 5.00 s
@@ -158,8 +166,8 @@ export function makeFx(scene, cityB, winPts = []) {
       if (t > 0 && !OFF.includes('sea')) {
         const front = s.sea, wall = s.wall;
         const R = rng(23);
-        const rad = Math.max(2.5, Math.min(wall * 0.22, 60));
-        const layers = Math.max(1, Math.min(4, Math.ceil(wall / (rad * 1.4))));
+        const rad = clamp(wall * 0.22, 2.5, 240);   // (fine near the sand; as it towers up, puffs as big as the main wall's)
+        const layers = Math.max(1, Math.min(5, Math.ceil(wall / (rad * 1.4))));
         const step = Math.max(12, rad * 1.2);
         for (let a = BEACH.a0 + 150; a < 950; a += step) {
           for (let k = 0; k < 3; k++) {
@@ -168,7 +176,7 @@ export function makeFx(scene, cityB, winPts = []) {
             const g = Math.max(heightAt(x, z), 0);
             for (let j = 0; j < layers; j++) {
               const u = (j + 0.5) / layers;
-              dust.puff(x, g + wall * u * (1 - 0.15 * k), z, rad * (0.8 + 0.5 * R()) * (1 + 0.3 * (1 - u)), 0.62 * smooth(0, 0.002, t), 0.66 + 0.33 * u, s.ignite * 2, R());
+              dust.puff(x, g + wall * u * (1 - 0.15 * k), z, rad * (0.8 + 0.5 * R()) * (1 + 0.3 * (1 - u)), 0.7 * smooth(0, 0.002, t), 0.84 + 0.16 * u, s.ignite * 2, R());
             }
           }
         }
@@ -176,8 +184,8 @@ export function makeFx(scene, cityB, winPts = []) {
       // every window: the glass is powder the instant the oxygen goes; a grey puff at each pane, drifting down
       if (t > 0 && t < 1.2) for (const w of winPts) {
         const k = smooth(0, 0.004, t) * (1 - smooth(0.25, 1.2, t));
-        const r = 0.8 + 3.5 * Math.min(1, t / 0.12) + w.seed;
-        dust.puff(w.x + w.nx * r * 0.6, w.y - 4.9 * t * t, w.z + w.nz * r * 0.6, r, 0.45 * k, 0.82, 0, w.seed);
+        const r = 2.2 + 3.0 * Math.min(1, t / 0.1) + 2.0 * w.seed;   // (soft and overlapping: a grey veil down the face, not dots)
+        dust.puff(w.x + w.nx * r * 0.5, w.y - 4.9 * t * t, w.z + w.nz * r * 0.5, r, 0.13 * k, 0.78, 0, w.seed);
       }
       // the pressure punch at the summit kicks the dust up off the terrace
       if (s.place === 1 && s.pop > 0.02) {

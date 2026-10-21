@@ -382,20 +382,23 @@ v2 (Oct 19): the camera stays on the ground for most of it (held shots of the cr
 What if oxygen disappeared for 5 seconds? Rio falls apart 😳 #whatif #science
 
 **YouTube description**
-Every oxygen atom on Earth vanishes for 5 seconds, except the ones inside living things. You're at Christ the Redeemer, 2,300 ft above Rio. Shown in 12x slow motion.
+Every oxygen atom on Earth vanishes for 5 seconds, except the ones inside living things. You're in Rio: the same instant from Christ the Redeemer, Copacabana beach, a Botafogo street and Avenida Atlântica, then all 5 seconds in 9x slow motion.
 
 The air is 21% oxygen: the pressure drops at once and every ear pops.
-Engines need oxygen: the tour helicopter's rotor winds down and it drops.
-Water is 89% oxygen: the sea turns into hydrogen gas, needs 1,200 times the room, and explodes.
-Concrete is about half oxygen: the statue falls apart like sand. Its head reaches its feet in 2.8 seconds.
-Granite is 47% oxygen: Corcovado turns to dust and sinks, with you on it. After 5 seconds you've fallen 340 ft.
+Water is 89% oxygen: the sea turns into hydrogen gas, needs 1,200 times the room, and explodes up the beach.
+Glass is half oxygen: every window turns to dust.
+Clouds are water: they blink out. Every engine dies.
+Concrete is half oxygen: the statue falls apart like sand. Its head reaches its feet in 2.8 seconds.
+Granite is 47% oxygen: the mountain sinks, with you on it. After 5 seconds you've fallen 340 ft.
 Then the oxygen comes back, straight into all that hydrogen.
 
 Would you rather lose oxygen for 5 seconds or gravity? 👇
 
 #whatif #oxygen #science #simulation
 
-Cover: `week 3/oxygen-5s/out/oxygen-5s_v4_cover.png` (`node render.mjs --cover 21.0`: the statue sinking into its own dust above the crowd; title low)
+Cover: `week 3/oxygen-5s/out/oxygen-5s_v4_cover.png` (`node render.mjs --cover 28.5`: the statue crumbling above the crowd, the city behind it in dust; title low)
+
+v3 (Oct 20, 60.9 s): after the normal day and the moment at the statue, the same instant is replayed at Copacabana (the sea blowing up the beach), a Botafogo street (every window puffs to dust) and Avenida Atlântica (the clouds blink out, the blast reaches the traffic); then the 5 s at 9x, a new place every 5 s, ending on the dust wall rolling over the city. Owner: v2 was "the same thing the whole time".
 
 v2 (Oct 20, 63.4 s): opens on 1.5 s of a normal day with a countdown ("OXYGEN DISAPPEARS IN 1.50 s"), then the moment hits at once: flash, jolt, a shock ring, every cloud bursting away, a shell of dust off the statue, the sky a shade darker.
 

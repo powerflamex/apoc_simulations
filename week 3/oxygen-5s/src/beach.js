@@ -36,9 +36,9 @@ export function windowPoints(B) {
   for (const b of B) {
     if (b.street) {
       const zf = b.z - b.side * b.d / 2;   // the face toward the street
-      for (let k = 0; k < 46; k++) pts.push({ x: b.x + (R() - 0.5) * b.w * 0.95, y: b.y + 4 + R() * (b.h - 6), z: zf - b.side * 0.6, nx: 0, nz: -b.side, seed: R() });
+      for (let k = 0; k < 80; k++) pts.push({ x: b.x + (R() - 0.5) * b.w * 0.95, y: b.y + 4 + R() * (b.h - 6), z: zf - b.side * 0.6, nx: 0, nz: -b.side, seed: R() });
     } else if (b.beachfront) {
-      for (let k = 0; k < 10; k++) {
+      for (let k = 0; k < 24; k++) {
         const [x, z] = beachXZ(b.s - 0.6, b.a + (R() - 0.5) * b.w * 0.9);
         pts.push({ x, y: b.y + 4 + R() * (b.h - 6), z, nx: -BEACH.nx, nz: -BEACH.nz, seed: R() });
       }
@@ -54,8 +54,10 @@ export function makeBeach(scene) {
   let guard = 0;
   const SH = [0xf2f2ee, 0xe2574c, 0x3b6db3, 0xf3c94b, 0x58a37a, 0xe98bb4, 0xf08a3c, 0x41c1c9, 0xffffff, 0x1d1f24];
   const SW = [0x1b3a6b, 0xe2574c, 0x111111, 0xf3c94b, 0x2a9d8f, 0xd63384, 0xffffff];
-  while (P.length < 170 && guard++ < 6000) {
-    const s = 12 + R() * 80, a = -60 + Math.pow(R(), 0.8) * 760;
+  while (P.length < 300 && guard++ < 9000) {
+    // most of them in the stretch the beach shot looks at (just ahead of the camera, toward the water)
+    const s = 10 + R() * 64, a = R() < 0.7 ? 175 + R() * 115 : -60 + R() * 760;   // (most in the wedge the beach shot looks along)
+    if (Math.abs(a - 231) < 4 && Math.abs(s - 77) < 5) continue;   // (not in the camera)
     if (P.some((p) => Math.abs(p.s - s) < 1.0 && Math.abs(p.a - a) < 1.0)) continue;
     const kind = R();
     P.push({ s, a, seed: R(), sit: kind < 0.3, walk: kind > 0.75, yaw: (R() - 0.5) * 6.28, dir: R() < 0.5 ? 1 : -1,
@@ -67,7 +69,8 @@ export function makeBeach(scene) {
 
   // ---------- umbrellas ----------
   const U = [];
-  for (let k = 0; k < 80; k++) U.push({ s: 18 + R() * 70, a: -80 + R() * 820, c: [0xe63946, 0xf4a261, 0x2a9d8f, 0xffffff, 0x457b9d, 0xffd166][Math.floor(R() * 6)], tilt: (R() - 0.5) * 0.25 });
+  for (let k = 0; k < 90; k++) U.push({ s: 18 + R() * 62, a: R() < 0.6 ? 170 + R() * 130 : -80 + R() * 820, c: [0xe63946, 0xf4a261, 0x2a9d8f, 0xffffff, 0x457b9d, 0xffd166][Math.floor(R() * 6)], tilt: (R() - 0.5) * 0.25 });
+  for (let k = U.length - 1; k >= 0; k--) if (Math.abs(U[k].a - 231) < 9 && Math.abs(U[k].s - 77) < 12) U.splice(k, 1);   // (none right over the beach camera)
   const canopy = new THREE.InstancedMesh(new THREE.ConeGeometry(1.25, 0.55, 12, 1, true).translate(0, 2.25, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, side: THREE.DoubleSide }), U.length);
   const pole = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.025, 0.025, 2.3, 5).translate(0, 1.15, 0), new THREE.MeshStandardMaterial({ color: 0xdddddd }), U.length);
   U.forEach((u, i) => canopy.setColorAt(i, new THREE.Color(u.c)));

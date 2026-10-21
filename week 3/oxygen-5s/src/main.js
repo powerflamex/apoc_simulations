@@ -98,7 +98,7 @@ const finish = new ShaderPass({
       float front = (1.0 - uPop) * 1.6;
       float ring = exp(-pow((rr - front) / 0.08, 2.0)) * uPop;
       vec2 uv = vUv + normalize(cc + 1e-5) * ring * 0.025 * vec2(1.0, 0.5625);
-      vec2 off = (vUv - 0.5) * (uShake * 0.006 + ring * 0.03);
+      vec2 off = (vUv - 0.5) * (uShake * 0.003 + ring * 0.012);
       vec3 col = vec3(texture2D(tDiffuse, uv + off).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - off).b);
       col += vec3(0.9, 0.95, 1.0) * pow(uPop, 3.0) * 0.45 + ring * 0.15;
       col = mix(col, col * col * (3.0 - 2.0 * clamp(col, 0.0, 1.0)), 0.22);
@@ -121,20 +121,20 @@ const SHOTS = [
   // the statue: a normal day, then the moment
   { a: -3, b: 5.0, pos: [50, 712.5, 7], pos2: [46, 711.8, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
   // the same moment on Copacabana's promenade, looking up the beach (the sea on the right)
-  { a: 5.0, b: 9.0, pos: BX(101, 40, 5.3), pos2: BX(101, 46, 5.3), aim: BX(30, 330, 9), aim2: BX(30, 336, 12), fov: 60 },
+  { a: 5.0, b: 9.0, pos: BX(80, 230, 4.9), pos2: BX(78, 233, 5.0), aim: BX(-520, 330, 8), aim2: BX(-520, 333, 30), fov: 60 },
   // the same moment in Botafogo: in the street, looking up at the towers
   { a: 9.0, b: 12.5, pos: [2400, 6.7, SZ + 3], pos2: [2412, 6.7, SZ + 3], aim: [2720, 150, SZ - 2], aim2: [2730, 160, SZ - 2], fov: 64 },
   // the same moment on Avenida Atlântica: traffic, the beach, Sugarloaf, the clouds, the helicopter
-  { a: 12.5, b: 16.0, pos: BX(119, -170, 5.4), pos2: BX(119, -150, 5.4), aim: BX(40, 900, 150), aim2: BX(40, 920, 160), fov: 55 },
+  { a: 12.5, b: 16.0, pos: BX(119, -170, 6.5), pos2: BX(119, -150, 6.5), aim: [5600, 260, -400], aim2: [5600, 280, -400], fov: 52 },
   // then the five seconds (9x)
-  { a: 16.0, b: 21.4, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
-  { a: 21.4, b: 26.8, pos: BX(1050, 330, 270), pos2: BX(1020, 340, 262), aim: BX(250, 420, 40), aim2: BX(300, 420, 50), fov: 55 },
-  { a: 26.8, b: 32.2, pos: [-62, 735, 42], pos2: [-56, 730, 38], aim: [0, 714, 0], aim2: [0, 706, 0], fov: 52, aimSink: true },
-  { a: 32.2, b: 37.6, pos: [2420, 6.7, SZ + 3], pos2: [2440, 6.7, SZ + 3], aim: [2720, 110, SZ - 2], aim2: [2730, 90, SZ - 2], fov: 64 },
-  { a: 37.6, b: 43.0, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
-  { a: 43.0, b: 48.4, pos: BX(1500, 300, 380), pos2: BX(1480, 310, 370), aim: BX(500, 420, 60), aim2: BX(550, 420, 60), fov: 55 },
-  { a: 48.4, b: 53.8, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 34, attached: true },
-  { a: 53.8, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
+  { a: 16.0, b: 21.0, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
+  { a: 21.0, b: 26.0, pos: BX(1050, 330, 270), pos2: BX(1020, 340, 262), aim: BX(250, 420, 40), aim2: BX(300, 420, 50), fov: 55 },
+  { a: 26.0, b: 31.0, pos: [-62, 735, 42], pos2: [-56, 730, 38], aim: [0, 714, 0], aim2: [0, 706, 0], fov: 52, aimSink: true },
+  { a: 31.0, b: 36.0, pos: [2420, 6.7, SZ + 3], pos2: [2440, 6.7, SZ + 3], aim: [2720, 190, SZ - 2], aim2: [2730, 130, SZ - 2], fov: 64 },
+  { a: 36.0, b: 41.0, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
+  { a: 41.0, b: 46.0, pos: BX(1500, 300, 380), pos2: BX(1480, 310, 370), aim: BX(500, 420, 60), aim2: BX(550, 420, 60), fov: 55 },
+  { a: 46.0, b: 51.0, pos: BX(-450, 380, 1350), pos2: BX(-430, 380, 1330), aim: [0, 380, 0], aim2: [0, 330, 0], fov: 50 },   // high over the sea: the wall rolling across the flattened city at the sinking mountain
+  { a: 51.0, b: VIDEO_DURATION + 1, pos: [1500, 780, 1250], pos2: [1440, 750, 1190], aim: [3300, 360, 2950], aim2: [3300, 440, 2950], fov: 55 },   // over the city, the blast rolling toward you
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.a && v < s.b) || SHOTS[0];
 const v3 = new THREE.Vector3(), v4 = new THREE.Vector3();

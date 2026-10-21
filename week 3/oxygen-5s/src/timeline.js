@@ -26,9 +26,9 @@ export const V0 = 1.5;                      // video time of the moment
 export const SEGS = [
   { a: -10, b: V0, t0: -11.5, t1: 0, place: 'A NORMAL DAY ON CORCOVADO', real: true },
   { a: V0, b: 5.0, t0: 0, t1: 0.1, place: 'CORCOVADO' },
-  { a: 5.0, b: 9.0, t0: 0, t1: 0.012, place: 'THE SAME MOMENT · COPACABANA', fine: true },
-  { a: 9.0, b: 12.5, t0: 0, t1: 0.1, place: 'THE SAME MOMENT · BOTAFOGO' },
-  { a: 12.5, b: 16.0, t0: -0.08, t1: 0.3, place: 'THE SAME MOMENT · AVENIDA ATLÂNTICA' },   // (a breath before: the clouds, then they blink out)
+  { a: 5.0, b: 9.0, t0: -0.002, t1: 0.012, place: 'THE SAME MOMENT · COPACABANA', fine: true },
+  { a: 9.0, b: 12.5, t0: -0.02, t1: 0.1, place: 'THE SAME MOMENT · BOTAFOGO' },
+  { a: 12.5, b: 16.0, t0: -0.08, t1: 0.07, place: 'THE SAME MOMENT · AVENIDA ATLÂNTICA' },   // (a breath before: the clouds, then they blink out)
   { a: 16.0, b: 59.0, t0: 0.3, t1: 5.0, place: 'SLOW MOTION 9×', main: true },
   { a: 59.0, b: 80, t0: 5.0, t1: 5.0 + 21 / 9, place: 'OXYGEN IS BACK', main: true },
 ];
@@ -87,7 +87,7 @@ export const COUNTERS = [
   {
     from: -3, to: T_SWITCH + 2, label: 'WITHOUT OXYGEN',
     labelFn: (v) => (tau(v) < 0 ? 'OXYGEN DISAPPEARS IN' : 'WITHOUT OXYGEN'),
-    fmt: (t) => `${Math.min(Math.abs(t), 5).toFixed(Math.abs(t) < 0.1 && t > 0 ? 3 : 2)} s`,
+    fmt: (t) => `${Math.min(Math.abs(t), 5).toFixed(Math.abs(t) < 0.1 && t !== 0 ? 3 : 2)} s`,
     value: (v) => tau(v),
     allowNegative: true,
     unit: (v) => {
