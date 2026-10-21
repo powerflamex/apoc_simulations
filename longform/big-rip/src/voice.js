@@ -11,7 +11,7 @@ export const VOICE = [
   [54.82, 58.91, 30.9],    // And imagine you could stand right here, and watch what happens.
   [64.52, 70.76, 36.3],    // Sixty million years before the end ...
   [71.64, 73.26, 43.0],    // The Milky Way comes apart.
-  [74.24, 80.66, 45.4],    // Two hundred billion stars, flung out into the dark.
+  [77.31, 80.66, 45.4],    // Two hundred billion stars, flung out into the dark. (from the re-say: he first said "years")
   [81.51, 82.04, 52.6],    // Look up.
   [83.44, 89.03, 54.0],    // You can see the band of light ... start to unravel.
   [94.96, 99.54, 63.2],    // From down here, it's the most beautiful thing anyone has ever seen.
