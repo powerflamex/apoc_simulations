@@ -479,17 +479,14 @@ Which one scares you most? 👇
 
 #whatif #simulation #space #science #endoftheworld
 
-## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080_v2-final.mp4`
+## Long video 3. The Big Rip — `longform/out/big-rip_1920x1080_take2-warm.mp4`
 
-16:9, 6:55, narrated by the owner (his own voice, one take, Oct 20). Opens on a flash-forward of the city splitting
-with the title and "In seven minutes, space itself is going to rip you apart." on frame 0.
-Thumbnail: `longform/out/big-rip_thumb.png` (Oct 21: the split city at 5:19 with **THE BIG RIP** in big gold letters).
-Upload `big-rip_1920x1080.mp4` (Oct 21): the v3 voice mix (voice up front, music ~14 dB under it) plus a big gold
-**THE BIG RIP** title at 0:05.8-0:11, as he says "This is the Big Rip". Older copies `_voice-v2` / `_voice-v3` have no title card.
-Upload `big-rip_1920x1080_take2.mp4` (Oct 21): same picture as `big-rip_1920x1080.mp4` (with the title), his second take
-(read along to the video, clearer: no sock), each sentence placed where the read-along showed it.
-**Upload `big-rip_1920x1080_v2-final.mp4`** (Oct 21, his pick): the first take with the v2 mix, the 0:46 slip fixed
-("years" -> only the re-said "stars"), on the picture with the THE BIG RIP title.
+16:9, 6:55, narrated by the owner. Opens on a flash-forward of the city splitting with the title and "In seven
+minutes, space itself is going to rip you apart." on frame 0; a big gold **THE BIG RIP** at 0:05.8 as he says it.
+Thumbnail: `longform/out/big-rip_thumb.png` (the split city at 5:19 with **THE BIG RIP** in big gold letters).
+**Upload `big-rip_1920x1080_take2-warm.mp4`** (Oct 21, his pick): his second take (read along to the video, no sock),
+mixed warm and close; the slip at the end cut. Kept for reference: `_v2-final` (first take; he said it sounds like
+"talking through something": the sock and blanket), `_take2`, `_voice-v2`, `_voice-v3`, `big-rip_1920x1080.mp4`.
 
 **YouTube title (68 chars)**
 What If Space Ripped Apart? You'd Have 30 Minutes Left (The Big Rip)

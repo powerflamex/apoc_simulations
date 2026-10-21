@@ -4,7 +4,7 @@
 // whoomp at every step, the time-lapse rush while the sky races, a shimmer as the Milky Way unravels, cold wind in
 // the summer snow, TV static and a lost-signal tone, the quake, the air lifting off, Earth splitting (one huge low
 // boom), drifting among the pieces, a heartbeat and a rising tone as you stretch, the white, then the city again.
-// The voice (voice.m4a, cleaned with ffmpeg) is placed line by line from src/voice.js; the bed dips under it.
+// The voice (voice2.m4a, cleaned with ffmpeg) is placed line by line from src/voice.js; the bed dips under it.
 // No sharp clicks anywhere: every impact has a soft onset.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -92,20 +92,21 @@ const CHORDS = [
 ].map(([t, m, g, fc]) => ({ t, f: m.map(N), g, fc }));
 
 function loadVoice() {
-  const src = path.join(ROOT, 'voice.m4a');
+  const src = path.join(ROOT, 'voice2.m4a');
   const raw = path.join(ROOT, 'out', 'voice_clean.f32');
   fs.mkdirSync(path.dirname(raw), { recursive: true });
-  // The phone was under a blanket with a sock over its mic: the recording came out boomy (100-300 Hz ~10 dB too
-  // strong) and dull (little above 5 kHz). So: rumble out, the boom and mud cut, presence and air back, the hiss
-  // down, "s" sounds softened, even levels. (Measured against the raw take, Oct 20.) The owner's pick (Oct 21) over the
-  // v3 mix and over his second take: this first take with this EQ and these levels.
-  const fx = 'highpass=f=100:p=2,afftdn=nf=-50:nr=8:tn=1,equalizer=f=140:t=q:w=1:g=-8,equalizer=f=270:t=q:w=1:g=-8,' +
-    'equalizer=f=520:t=q:w=1.2:g=-4,equalizer=f=3300:t=q:w=0.9:g=5,treble=g=9:f=7000,deesser=i=0.4,' +
-    'acompressor=threshold=-24dB:ratio=3.5:attack=5:release=120:makeup=2';
+  // The second take (Oct 21, read along to the video, phone in a blanket tent without the sock): clear on top now,
+  // but soft and raspy (morning voice), so very heavy low down (100-600 Hz 25-37 dB over 1 kHz). So: rumble out,
+  // the boom and mud cut to about where the first take ended up (which he liked: warm and close), a touch of
+  // presence, the hiss down, "s" sounds softened, firm compression so the soft voice stays upfront.
+  // warmer / closer: half the low cut, no presence lift, the top a touch softer
+  const fx = 'highpass=f=75:p=2,afftdn=nf=-52:nr=6:tn=1,equalizer=f=115:t=q:w=1:g=-5,equalizer=f=210:t=q:w=1:g=-5,' +
+    'equalizer=f=400:t=q:w=1.2:g=-4,treble=g=-2:f=7000,deesser=i=0.3,' +
+    'acompressor=threshold=-30dB:ratio=4:attack=10:release=110:makeup=4';
   const tag = raw + '.fx';
-  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== fx) {
+  if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== src + fx) {
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-af', fx, '-ac', '1', '-ar', String(SR), '-f', 'f32le', raw]);
-    fs.writeFileSync(tag, fx);
+    fs.writeFileSync(tag, src + fx);
   }
   const b = fs.readFileSync(raw);
   return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length));
@@ -123,7 +124,7 @@ export function makeSoundtrack(outFile) {
     const i0 = Math.round(a * SR), n = Math.round((b - a) * SR), o = Math.round(at * SR), f = Math.round(0.02 * SR);
     for (let k = 0; k < n && o + k < NS; k++) V[o + k] += rec[i0 + k] * Math.min(1, k / f, (n - 1 - k) / f);
   }
-  {   // level: the speech (louder than -40 dBFS in 20 ms blocks) to -19 dBFS RMS
+  {   // level: the speech (louder than -40 dBFS in 20 ms blocks) to -17 dBFS RMS
     let e = 0, c = 0;
     const B = Math.round(0.02 * SR);
     for (let i = 0; i + B < NS; i += B) {
@@ -131,7 +132,7 @@ export function makeSoundtrack(outFile) {
       for (let k = 0; k < B; k++) s += V[i + k] * V[i + k];
       if (s / B > 1e-4) { e += s; c += B; }
     }
-    const g = c ? Math.pow(10, -19 / 20) / Math.sqrt(e / c) : 1;
+    const g = c ? Math.pow(10, -17 / 20) / Math.sqrt(e / c) : 1;
     for (let i = 0; i < NS; i++) V[i] *= g;
   }
   // ---- how much the bed dips: 1 while the voice talks (from the line table, smoothed) ----
@@ -186,7 +187,7 @@ export function makeSoundtrack(outFile) {
     }
     let l = 0, r = 0, wet = 0;         // ambience + music (dips under the voice)
     let hl = 0, hr = 0, hwet = 0;      // hits and the big moments (they sit in the silences)
-    const dk = 1 - 0.62 * duck[n];
+    const dk = 1 - 0.8 * duck[n];
     const ff = t < FF_LEN ? 1 : 0;
     const closing = t >= SEC.end + 1 ? 1 : 0;
     const cityIn = closing ? smooth(SEC.end + 1, SEC.end + 4, t) : smooth(FF_LEN - 0.05, FF_LEN + 0.4, t);   // the city comes in after the flash-forward and after the white
@@ -380,8 +381,8 @@ export function makeSoundtrack(outFile) {
     }
 
     const fade = 1 - s.fadeOut;
-    // levels: the ambience and music dip ~8 dB under the voice, the hits ~4 dB
-    const ga = 2.5 * dk, gh = 1.6 * (1 - 0.4 * duck[n]);
+    // levels: the ambience and music dip ~14 dB under the voice (it sits in front), the hits ~8 dB
+    const ga = 2.5 * dk, gh = 1.6 * (1 - 0.6 * duck[n]);
     const rl = revL.run((wet * ga + hwet * gh) * 0.5), rr = revR.run((wet * ga + hwet * gh) * 0.5);
     L[n] = (l * ga + hl * gh + rl * 0.7) * fade;
     R[n] = (r * ga + hr * gh + rr * 0.7) * fade;
