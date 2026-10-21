@@ -7,6 +7,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { STATUE } from './statue.js';
 import { G } from './timeline.js';
+import { beachXZ } from './geo.js';
+const HELI_C = beachXZ(20, 560);   // the tour helicopter is over Copacabana beach
 import { rng, smooth, clamp } from './util.js';
 
 export const TERR = { x0: -10, x1: 30, z0: -12, z1: 12, y: STATUE.base };
@@ -128,7 +130,7 @@ export function makeSummit(scene) {
       // the helicopter: circling off the east edge, then falling, turning
       const [dy, rot, w] = heliAt(t);
       const a = 0.35 + 0.22 * t;   // (story time: everything moves in slow motion)
-      heli.position.set(150 + Math.cos(a) * 50, 728 + dy, -45 + Math.sin(a) * 50);
+      heli.position.set(HELI_C[0] + Math.cos(a) * 70, 150 + dy, HELI_C[1] + Math.sin(a) * 70);
       heli.rotation.set(0.04 + (1 - w) * 0.2, -a - Math.PI / 2 + rot, (1 - w) * 0.25);
       // the rotor turns 400 rpm (slowly, in slow motion), then winds down
       const turns = t < 0 ? t : 0.9 * (1 - Math.exp(-t / 0.9));

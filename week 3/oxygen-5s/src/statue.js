@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const STATUE = { base: 704.5, ped: 8, h: 30 };      // terrace level, pedestal height, statue height
-export const SU = { uFall: { value: 0 }, uDust: { value: 0 }, uTime: { value: 0 } };
+export const SU = { uFall: { value: 0 }, uDust: { value: 0 }, uTime: { value: 0 }, uSkin: { value: 0 } };
 
 function robe() {
   // radius against height (the statue's own metres, from its feet): a long robe, a narrow waist, broad shoulders
@@ -79,6 +79,9 @@ export function makeStatue(scene) {
           vec2 tile = floor(vec2(vLoc.x + vLoc.z, vLoc.y) * 8.0);
           float t = sh21(tile);
           diffuseColor.rgb *= 0.92 + 0.12 * t;
+          // the soapstone skin goes at once: underneath, rough grey concrete
+          vec3 concrete = vec3(0.47, 0.47, 0.45) * (0.75 + 0.35 * sh21(floor(vLoc.xy * 3.0) + floor(vLoc.z * 3.0)));
+          diffuseColor.rgb = mix(diffuseColor.rgb, concrete, uSkin * step(0.18, sh21(tile + 7.0) + uSkin));
           // turning to powder: grainy, duller; what has landed is just a heap of grey-beige dust
           float grain = sh21(floor(vLoc.xz * 40.0) + floor(vLoc.y * 40.0));
           vec3 dust = vec3(0.68, 0.65, 0.58) * (0.8 + 0.3 * grain);

@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, T_SWITCH, V5, tau, vOfTau, SLOW } from './src/timeline.js';
+import { state, VIDEO_DURATION, LOOP, T_SWITCH, V5, tau, vOfTau, SLOW, SEGS } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -56,7 +56,7 @@ export function makeSoundtrack(outFile) {
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(4242);
   const white = () => R0() * 2 - 1;
-  const V0 = vOfTau(0);   // the moment the oxygen goes (in the loop's lead-in)
+  const MOMENTS = SEGS.slice(1, 5).map((g) => g.vm);   // the moment, and each replay of it from another place
 
   const windF = [new SVF(), new SVF()], windSub = new OnePole(60), gustE = new OnePole(0.8);
   const chatF = Array.from({ length: 4 }, () => new SVF()), chatE = Array.from({ length: 4 }, () => new OnePole(4));
@@ -70,7 +70,7 @@ export function makeSoundtrack(outFile) {
   const ph = new Float64Array(32);
   // the city's buildings coming down far away: a scatter of slow rolling rumbles
   const thunder = [];
-  for (let k = 0; k < 26; k++) thunder.push({ v: 9.5 + Math.pow(R0(), 0.8) * 46, d: 3 + R0() * 4, g: 0.05 + 0.08 * R0(), pan: R0() * 1.6 - 0.8 });
+  for (let k = 0; k < 26; k++) thunder.push({ v: 17 + Math.pow(R0(), 0.8) * 40, d: 3 + R0() * 4, g: 0.05 + 0.08 * R0(), pan: R0() * 1.6 - 0.8 });
 
   let s = state(-LOOP);
   for (let n = -N0; n < N; n++) {
@@ -100,13 +100,14 @@ export function makeSoundtrack(outFile) {
       l += hv * 0.6; r += hv * 1.0; wet += hv * 0.4;
     }
 
-    // --- the moment: a deep thump as the air thins; your ears pop (then everything outside is muffled) ---
-    {
-      const dt = v - V0;
-      if (dt > -0.01 && dt < 6) {
+    // --- the moment (and each replay of it): a deep thump as the air thins; your ears pop ---
+    for (let mi = 0; mi < MOMENTS.length; mi++) {
+      const dt = v - MOMENTS[mi];
+      const nextA = mi + 1 < MOMENTS.length ? MOMENTS[mi + 1] : SEGS[5].b;
+      if (dt > -0.01 && dt < 6 && v < nextA + 1.5) {
         ph[2] += (28 + 40 * Math.exp(-Math.max(dt, 0) * 2)) / SR;
         const e = env(dt, 0.04, 1.4) * (1 - smooth(4, 6, dt));
-        const vv = (Math.tanh(2 * Math.sin(TAU * ph[2])) * 0.6 + thumpF.run(white(), 180, 0.7).lp * 0.8) * e * 0.6;
+        const vv = (Math.tanh(2 * Math.sin(TAU * ph[2])) * 0.6 + thumpF.run(white(), 180, 0.7).lp * 0.8) * e * 0.6 * (1 - smooth(nextA - 0.3, nextA + 0.4, v));
         dl += vv; dr += vv;
         const pop = popF.run(white(), 900, 0.8).lp * env(dt - 0.15, 0.03, 0.25) * 0.35 * (1 - smooth(1, 2, dt));
         dl += pop; dr += pop * 0.9;
@@ -140,6 +141,18 @@ export function makeSoundtrack(outFile) {
       const k = smooth(1.2, 4.0, t) * (1 - s.ignite);
       const fv = (fallF[0].run(white(), 300 + 200 * k, 0.6).bp + 0.5 * fallF[1].run(white(), 140, 0.7).lp) * k * 0.14;
       l += fv; r += fv * 0.95;
+    }
+    // --- Copacabana: the sea erupting right in front of you, a roar that swells as the blast comes up the sand ---
+    if (s.place === 2) {
+      const k = smooth(0, 0.012, t);
+      const bv = (seaF[0].run(white(), 120 + 500 * k, 0.5).lp * 1.6 + seaSub.run(white()) * 3) * (0.15 + 0.6 * k);
+      l += bv; r += bv; wet += bv * 0.4;
+    }
+    // --- Botafogo: every window: a soft rushing hiss of glass turning to dust (no clinks) ---
+    if (s.place === 3) {
+      const k = smooth(0, 0.01, t) * (1 - smooth(0.08, 0.1, t));
+      const gv = grainF[0].run(white(), 2600, 0.7).bp * 0.08 * k;
+      l += gv; r += gv; wet += gv * 0.8;
     }
     // --- the sea exploding: a roar that never stops growing ---
     if (t > 0) {

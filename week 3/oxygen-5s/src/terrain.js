@@ -5,7 +5,7 @@
 // dust creeps over everything, the buildings fall like sand from the top down, and the sea turns into a churning
 // white explosion of hydrogen and seafloor.
 import * as THREE from 'three';
-import { heightAt, waterAt, isCity, fbm } from './geo.js';
+import { heightAt, waterAt, isCity, fbm, BEACH, STREET } from './geo.js';
 import { rng, clamp, smooth } from './util.js';
 
 export const TU = {
@@ -93,8 +93,36 @@ export function makeTerrain(scene) {
           col = mix(pave, vec3(0.16, 0.16, 0.17), street);
           col = mix(col, vec3(0.2, 0.33, 0.14), step(0.82, tn(p * 0.012)) * 0.7);   // squares and parks
         }
+        // Copacabana up close: the wave-mosaic promenade, the avenue's six lanes, the sidewalk
+        float beachSand = 0.0;
+        {
+          vec2 d = p - vec2(${BEACH.x0.toFixed(1)}, ${BEACH.z0.toFixed(1)});
+          float bs = dot(d, vec2(${BEACH.nx}, ${BEACH.nz})), ba = dot(d, vec2(${BEACH.ux}, ${BEACH.uz}));
+          if (ba > ${(BEACH.a0 - 150).toFixed(1)} && ba < ${(BEACH.a1 + 150).toFixed(1)} && bs < 94.0) beachSand = 1.0;
+          if (ba > ${(BEACH.a0 - 150).toFixed(1)} && ba < ${(BEACH.a1 + 150).toFixed(1)} && bs > 94.0 && bs < 140.0) {
+            float w = px * 1.5 + 0.02;
+            if (bs < 108.0) {   // the promenade's black-and-white waves
+              float wave = fract((bs + 1.6 * sin(ba * 0.42)) / 1.5);
+              col = mix(vec3(0.06, 0.06, 0.06), vec3(0.88, 0.86, 0.82), smoothstep(0.5 - w, 0.5 + w, wave));
+            } else if (bs < 130.0) {   // the avenue
+              col = vec3(0.13, 0.13, 0.14) * (0.85 + 0.25 * n2);
+              float lane = abs(fract((bs - 108.0) / 3.3 + 0.5) - 0.5) * 3.3;
+              col = mix(col, vec3(0.85), (1.0 - smoothstep(0.08, 0.08 + w, lane)) * step(0.5, fract(ba / 9.0)) * step(110.0, bs) * step(bs, 128.0));
+              col = mix(col, vec3(0.85, 0.65, 0.1), (1.0 - smoothstep(0.1, 0.1 + w, abs(bs - 119.0))));
+            } else {   // the sidewalk in front of the towers (mosaic too)
+              col = mix(vec3(0.55, 0.53, 0.5), vec3(0.75, 0.73, 0.7), step(0.5, fract((ba + bs) * 0.7)));
+            }
+          }
+        }
+        // the street of towers in Botafogo: asphalt, kerbs, sidewalks
+        if (p.x > ${(STREET.x0 - 40).toFixed(1)} && p.x < ${(STREET.x1 + 40).toFixed(1)} && abs(p.y - (${STREET.z.toFixed(1)})) < 20.0) {
+          float dzs = abs(p.y - (${STREET.z.toFixed(1)}));
+          col = dzs < ${(STREET.hw - 3).toFixed(1)} ? vec3(0.12, 0.12, 0.13) * (0.85 + 0.25 * n2) : vec3(0.5, 0.48, 0.45);
+          col = mix(col, vec3(0.85), (1.0 - smoothstep(0.08, 0.16, dzs)) * step(0.5, fract(p.x / 8.0)));
+        }
         // sand along the beaches (low, flat, near the water)
-        float sand = (1.0 - smoothstep(4.0, 9.0, vWP.y + uSink * vInfo.w)) * (1.0 - smoothstep(0.08, 0.2, slope)) * (1.0 - wet);
+        // (Copacabana's sand up close; elsewhere only the lowest, flattest ground by the water)
+        float sand = max(beachSand, (1.0 - smoothstep(2.0, 3.5, vWP.y + uSink * vInfo.w)) * (1.0 - smoothstep(0.08, 0.2, slope))) * (1.0 - wet);
         col = mix(col, vec3(0.86, 0.79, 0.62) * (0.9 + 0.15 * n2), sand * 0.9);
         // the powder: once the oxygen is gone, rock and concrete are loose grey-beige dust; it shows first where the
         // ground is moving (the slopes), and the dust settles over everything
@@ -110,6 +138,34 @@ export function makeTerrain(scene) {
   disk.frustumCulled = false;
   disk.receiveShadow = true;
   scene.add(disk);
+  // a fine patch over Copacabana's stretch (3 m grid): a clean, straight waterline and the sand sloping into the sea
+  {
+    const NA = 540, NS = 84, A0 = BEACH.a0 - 60, A1 = BEACH.a1 + 60, S0 = -60, S1 = 190;
+    const pos = [], info = [], idx = [];
+    for (let j = 0; j <= NS; j++) for (let i = 0; i <= NA; i++) {
+      const a = A0 + (A1 - A0) * i / NA, sv = S0 + (S1 - S0) * j / NS;
+      const x = BEACH.x0 + BEACH.nx * sv + BEACH.ux * a, z = BEACH.z0 + BEACH.nz * sv + BEACH.uz * a;
+      const h = sv < 0 ? 0.3 + 0.06 * sv : heightAt(x, z);
+      pos.push(x, h, z);
+      info.push(0.02, 0, sv < -18 ? 1 : 0, 0);
+    }
+    for (let j = 0; j < NS; j++) for (let i = 0; i < NA; i++) {
+      const k = j * (NA + 1) + i;
+      idx.push(k, k + 1, k + NA + 1, k + 1, k + NA + 2, k + NA + 1);   // (faces up)
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('aInfo', new THREE.Float32BufferAttribute(info, 4));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const pmat = mat.clone();
+    pmat.onBeforeCompile = mat.onBeforeCompile;
+    pmat.customProgramCacheKey = mat.customProgramCacheKey;
+    pmat.polygonOffset = true; pmat.polygonOffsetFactor = -2; pmat.polygonOffsetUnits = -2;
+    const patch = new THREE.Mesh(g, pmat);
+    patch.receiveShadow = true; patch.frustumCulled = false;
+    scene.add(patch);
+  }
 
   // ---------- the sea: blue with the sun's glitter; then it explodes into hydrogen: a churning white surface ----------
   const seaMat = new THREE.ShaderMaterial({
@@ -163,7 +219,7 @@ export function makeTerrain(scene) {
 }
 
 // ---------- the city: thousands of apartment blocks and towers on the flat land ----------
-export function makeCity(scene) {
+export function makeCity(scene, extra = []) {
   const R = rng(1965);
   const B = [];
   for (let x = -9000; x < 9000; x += 70) for (let z = -9000; z < 9000; z += 70) {
@@ -178,6 +234,7 @@ export function makeCity(scene) {
     const w = 18 + R() * (beach ? 22 : 16), d = 16 + R() * 18;
     B.push({ x: bx, z: bz, w, d, h, y: heightAt(bx, bz), yaw: (R() - 0.5) * 0.15, seed: R(), glass: centro && R() < 0.4 ? 1 : 0 });
   }
+  B.push(...extra);
   const geo = new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
   const aB = new Float32Array(B.length * 4);
   B.forEach((b, i) => aB.set([b.h, b.seed, b.glass, 0], i * 4));
@@ -204,9 +261,13 @@ export function makeCity(scene) {
         // windows: rows of dark glass (dust after the glass goes)
         vec2 g = vec2((vLoc.x + vLoc.z) * 8.0, hh / 3.1);
         float win = step(0.3, fract(g.x)) * step(0.35, fract(g.y)) * side * step(2.5, hh);
-        vec3 wc = mix(vec3(0.38, 0.46, 0.56), vec3(0.08, 0.08, 0.085), smoothstep(0.0, 0.35, uT));
+        vec3 wc = vec3(0.38, 0.46, 0.56);
+        if (uT > 0.0) {
+          float puff = smoothstep(0.0, 0.004, uT) * (1.0 - smoothstep(0.08, 0.6, uT));
+          wc = mix(vec3(0.07, 0.07, 0.075), vec3(0.8, 0.78, 0.74), puff);
+        }
         vec3 col = mix(base, wc, win * 0.85);
-        if (glass > 0.5) col = mix(vec3(0.25, 0.38, 0.5), wc, smoothstep(0.0, 0.35, uT)) * (0.8 + 0.2 * step(0.1, fract(g.y)));
+        if (glass > 0.5) col = (uT > 0.0 ? wc : vec3(0.25, 0.38, 0.5)) * (0.8 + 0.2 * step(0.1, fract(g.y)));
         col = mix(col, base * 0.6, 1.0 - side);
         // turning to sand: dusty, crumbling from the top
         col = mix(col, vec3(0.63, 0.59, 0.52), clamp(uDust * 1.4 + (1.0 - vLeft) * 1.5, 0.0, 1.0));

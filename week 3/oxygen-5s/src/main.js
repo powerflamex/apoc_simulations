@@ -8,6 +8,8 @@ import { makeSky } from './sky.js';
 import { makeTerrain, makeCity, TU } from './terrain.js';
 import { makeStatue, SU, STATUE } from './statue.js';
 import { makeSummit } from './summit.js';
+import { makeBeach, extraBuildings, windowPoints } from './beach.js';
+import { beachXZ, STREET } from './geo.js';
 import { makeFx } from './fx.js';
 import { makeOverlay } from './overlay.js';
 import { state, VIDEO_DURATION, LOOP, V5, V0, fallOf, vOfTau } from './timeline.js';
@@ -45,16 +47,18 @@ TU.uSunDir.value.copy(SUN);
 const sky = makeSky(SUN);
 scene.add(sky.mesh);
 const terrain = makeTerrain(scene);
-const city = makeCity(scene);
+const EXTRA = extraBuildings();
+const city = makeCity(scene, EXTRA);
+const beach = makeBeach(scene);
 const statue = makeStatue(scene);
 const summit = makeSummit(scene);
-const fx = makeFx(scene, city.B);
+const fx = makeFx(scene, city.B, windowPoints(EXTRA));
 fx.dust.mat.uniforms.uLight.value.setRGB(1.35, 1.3, 1.24);
 
 const sun = new THREE.DirectionalLight(0xfff1dc, 3.0);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 10, far: 400 });
+Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 10, far: 450 });
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.05;
 scene.add(sun, sun.target);
 const hemi = new THREE.HemisphereLight(0x9cc0ee, 0x5a5040, 1.15);
@@ -111,14 +115,26 @@ composer.addPass(finish);
 // ---------- the camera: held shots (a drone off the terrace, you at the railing, falling with the mountain) ----------
 // attached: the camera is on the summit, so it sinks with it
 const SUMMIT_Y = STATUE.base;
+const BX = (sv, a, y) => { const [x, z] = beachXZ(sv, a); return [x, y, z]; };
+const SZ = STREET.z;
 const SHOTS = [
-  { a: -3, b: 10.5, pos: [50, 712.5, 7], pos2: [45, 711.5, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
-  { a: 10.5, b: 18.5, pos: [31, SUMMIT_Y + 1.65, 1.0], pos2: [31.3, SUMMIT_Y + 1.65, 0.6], aim: [2000, 540, -420], aim2: [2000, 535, -400], fov: 55, attached: true },
-  { a: 18.5, b: 26.5, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
-  { a: 26.5, b: 34.5, pos: [-115, 748, 62], pos2: [-105, 742, 56], aim: [0, 705, 0], aim2: [0, 690, 0], fov: 52 },
-  { a: 34.5, b: 43.5, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
-  { a: 43.5, b: 53.5, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 32, attached: true },
-  { a: 53.5, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
+  // the statue: a normal day, then the moment
+  { a: -3, b: 5.0, pos: [50, 712.5, 7], pos2: [46, 711.8, 6], aim: [0, 727, 0], aim2: [0, 726, 0], fov: 58 },
+  // the same moment on Copacabana's promenade, looking up the beach (the sea on the right)
+  { a: 5.0, b: 9.0, pos: BX(101, 40, 5.3), pos2: BX(101, 46, 5.3), aim: BX(30, 330, 9), aim2: BX(30, 336, 12), fov: 60 },
+  // the same moment in Botafogo: in the street, looking up at the towers
+  { a: 9.0, b: 12.5, pos: [2400, 6.7, SZ + 3], pos2: [2412, 6.7, SZ + 3], aim: [2720, 150, SZ - 2], aim2: [2730, 160, SZ - 2], fov: 64 },
+  // the same moment on Avenida Atlântica: traffic, the beach, Sugarloaf, the clouds, the helicopter
+  { a: 12.5, b: 16.0, pos: BX(119, -170, 5.4), pos2: BX(119, -150, 5.4), aim: BX(40, 900, 150), aim2: BX(40, 920, 160), fov: 55 },
+  // then the five seconds (9x)
+  { a: 16.0, b: 21.4, pos: [62, 724, 46], pos2: [56, 721, 42], aim: [0, 713, 0], aim2: [0, 708, 0], fov: 50 },
+  { a: 21.4, b: 26.8, pos: BX(1050, 330, 270), pos2: BX(1020, 340, 262), aim: BX(250, 420, 40), aim2: BX(300, 420, 50), fov: 55 },
+  { a: 26.8, b: 32.2, pos: [-62, 735, 42], pos2: [-56, 730, 38], aim: [0, 714, 0], aim2: [0, 706, 0], fov: 52, aimSink: true },
+  { a: 32.2, b: 37.6, pos: [2420, 6.7, SZ + 3], pos2: [2440, 6.7, SZ + 3], aim: [2720, 110, SZ - 2], aim2: [2730, 90, SZ - 2], fov: 64 },
+  { a: 37.6, b: 43.0, pos: [58, 712, 44], pos2: [54, 706, 40], aim: [8, SUMMIT_Y + 2, 0], aim2: [8, SUMMIT_Y, 0], fov: 50, aimSink: true },
+  { a: 43.0, b: 48.4, pos: BX(1500, 300, 380), pos2: BX(1480, 310, 370), aim: BX(500, 420, 60), aim2: BX(550, 420, 60), fov: 55 },
+  { a: 48.4, b: 53.8, pos: [31, SUMMIT_Y + 1.6, 6], pos2: [31, SUMMIT_Y + 1.6, 7], aim: [3300, 40, 2200], aim2: [3400, 20, 2300], fov: 34, attached: true },
+  { a: 53.8, b: VIDEO_DURATION + 1, pos: [8, SUMMIT_Y + 1.6, 12.5], pos2: [8.5, SUMMIT_Y + 1.6, 12.8], aim: [300, 420, 2400], aim2: [300, 520, 2400], fov: 60, attached: true },
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.a && v < s.b) || SHOTS[0];
 const v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
@@ -144,10 +160,11 @@ function update(v, cover = -1) {
   pitch += (wobble(v * 0.5, 3) * 0.4 + wobble(v * 0.19, 8) * 1.6 * fallSway) * DEG;
   roll += (wobble(v * 0.3, 5) * 0.4 + wobble(v * 0.17, 7) * 3.0 * fallSway) * DEG;
   // the moment the pressure drops (a jolt), and the rumble of the ground going
-  const jolt = Math.exp(-Math.pow((v - V0 - 0.06) / 0.14, 2));   // the moment: everything jumps
+  const segA = s.seg.vm;
+  const jolt = s.place >= 1 && s.place <= 4 ? Math.exp(-Math.pow((v - segA - 0.06) / 0.14, 2)) : 0;   // each replay of the moment: everything jumps
   const rumble = smooth(0.2, 2.0, t) * (sh.attached ? 1 : 0.35) * (1 - s.flash);
-  pitch += (jolt * 2.5 * Math.sin((v - V0) * 40) + wobble(v * 23, 1) * 0.25 * rumble) * DEG;
-  roll += jolt * 1.5 * Math.sin((v - V0) * 31) * DEG;
+  pitch += (jolt * 2.5 * Math.sin((v - segA) * 40) + wobble(v * 23, 1) * 0.25 * rumble) * DEG;
+  roll += jolt * 1.5 * Math.sin((v - segA) * 31) * DEG;
   yaw += wobble(v * 19, 2) * 0.25 * rumble * DEG;
   camera.position.copy(v3);
   camera.rotation.set(pitch, yaw, roll);
@@ -158,14 +175,20 @@ function update(v, cover = -1) {
   // ---------- the world ----------
   TU.uTime.value = v; TU.uT.value = t; TU.uSink.value = s.sink; TU.uFall.value = fallOf(t);
   TU.uDust.value = smooth(0.1, 3.5, t) * 0.7; TU.uErupt.value = smooth(0, 0.07, t); TU.uFire.value = s.ignite;
-  SU.uFall.value = fallOf(t); SU.uDust.value = smooth(0, 1.0, t); SU.uTime.value = t;
+  SU.uFall.value = fallOf(t); SU.uDust.value = smooth(0.3, 1.5, t); SU.uTime.value = t; SU.uSkin.value = smooth(0, 0.008, t);
   statue.mesh.position.y = STATUE.base - s.sink;
   summit.frame(v, s, camera);
+  beach.frame(v, s);
   fx.frame(v, s, SUN);
 
   // ---------- light, air, sky ----------
-  sun.position.set(SUN.x * 200, STATUE.base - s.sink + SUN.y * 200, SUN.z * 200);
-  sun.target.position.set(10, STATUE.base - s.sink, 0);
+  // the shadows cover wherever the camera is looking (the statue, the beach, the street)
+  {
+    const fx_ = Math.sin(camera.rotation.y) * -1, fz_ = -Math.cos(camera.rotation.y);
+    const cx = camera.position.x + fx_ * 35, cz = camera.position.z + fz_ * 35, cy = sh.attached || Math.abs(camera.position.y - STATUE.base) < 60 ? STATUE.base - s.sink : Math.max(camera.position.y - 20, 0);
+    sun.position.set(cx + SUN.x * 200, cy + SUN.y * 200, cz + SUN.z * 200);
+    sun.target.position.set(cx, cy, cz);
+  }
   sun.intensity = 3.0 * (1 - 0.35 * smooth(1, 4.5, t));
   hemi.intensity = 1.15 * (1 - 0.2 * smooth(1, 4.5, t));
   sky.mesh.position.copy(camera.position);

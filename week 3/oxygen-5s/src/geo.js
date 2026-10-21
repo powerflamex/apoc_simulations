@@ -52,9 +52,35 @@ export function waterDist(x, z, max = 4000) {
   return max;
 }
 
+// Copacabana, the stretch we film close up: the shoreline runs from (3300, 3200) north-east to (3800, 2600).
+// beachST gives s = metres inland from the waterline, a = metres along the beach (north-east). Inland of the water:
+// sand to s = 95, the black-and-white wave promenade to 108, the six lanes of Avenida Atlântica to 130, the
+// sidewalk to 137, then the row of beachfront towers.
+export const BEACH = { x0: 3300, z0: 3200, ux: 0.6402, uz: -0.7682, nx: -0.7682, nz: -0.6402, a0: -350, a1: 1150 };
+export const beachST = (x, z) => { const dx = x - BEACH.x0, dz = z - BEACH.z0; return { s: dx * BEACH.nx + dz * BEACH.nz, a: dx * BEACH.ux + dz * BEACH.uz }; };
+export const beachXZ = (s, a) => [BEACH.x0 + BEACH.nx * s + BEACH.ux * a, BEACH.z0 + BEACH.nz * s + BEACH.uz * a];
+export const inBeach = (x, z) => { const { s, a } = beachST(x, z); return a > BEACH.a0 && a < BEACH.a1 && s > -5 && s < 175; };
+// a street of towers in Botafogo (east-west), where we look up as every window goes
+export const STREET = { x0: 2230, x1: 2870, z: -1450, hw: 12 };
+export const inStreet = (x, z) => x > STREET.x0 - 40 && x < STREET.x1 + 40 && Math.abs(z - STREET.z) < 75;
+
 // ground height (m)
 export function heightAt(x, z) {
   if (waterAt(x, z)) return -12;
+  {   // the beach and its avenue: a smooth slope of sand up from the water, then level
+    const { s, a } = beachST(x, z);
+    if (a > BEACH.a0 - 200 && a < BEACH.a1 + 200 && s > -5 && s < 260) {
+      const flat = s < 95 ? 0.3 + 0.035 * s : 3.6 + 0.004 * (s - 95);
+      const edge = Math.min(1, Math.max(0, (Math.min(a - BEACH.a0, BEACH.a1 - a) + 200) / 200));
+      const out = Math.min(1, Math.max(0, (s - 175) / 85));
+      const k = edge * (1 - out);
+      if (k > 0) return flat * k + heightRaw(x, z) * (1 - k);
+    }
+  }
+  if (inStreet(x, z)) return 5;
+  return heightRaw(x, z);
+}
+function heightRaw(x, z) {
   let h = 4 + 6 * fbm(x * 0.002, z * 0.002);
   // Corcovado: a steep granite tooth, its summit at the origin, a ridge running back west-north-west into the Tijuca forest
   const r = Math.hypot(x, z);
@@ -80,6 +106,7 @@ export function heightAt(x, z) {
 // where the city is: low, not water, not steep (a coarse test, for placing buildings)
 export function isCity(x, z) {
   if (waterAt(x, z)) return false;
+  if (inBeach(x, z) || inStreet(x, z)) return false;   // (those two places are built by hand)
   const h = heightAt(x, z);
   if (h > 32) return false;
   const e = 25;

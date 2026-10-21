@@ -4,17 +4,17 @@
 // fire, when the oxygen comes back into the hydrogen.
 import * as THREE from 'three';
 import { makeSmoke } from './smoke.js';
-import { SEA, heightAt, waterAt } from './geo.js';
+import { SEA, heightAt, waterAt, BEACH, beachXZ, beachST } from './geo.js';
 import { reliefOf } from './terrain.js';
 import { STATUE } from './statue.js';
 import { fallOf } from './timeline.js';
 import { rng, smooth, clamp } from './util.js';
 
 const OFF = (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('off') || '' : '').split(',');   // debugging: ?off=sea,city,mount,statue,clouds
-export function makeFx(scene, cityB) {
-  const clouds = makeSmoke(scene, 400);
+export function makeFx(scene, cityB, winPts = []) {
+  const clouds = makeSmoke(scene, 700);
   clouds.mat.uniforms.uLight.value.setRGB(1.55, 1.55, 1.6);
-  const dust = makeSmoke(scene, 4600);
+  const dust = makeSmoke(scene, 6000);
 
   // ---------- clouds ----------
   const CL = [];
@@ -24,6 +24,11 @@ export function makeFx(scene, cityB) {
       const a = R() * Math.PI * 2, d = 60 + Math.pow(R(), 0.7) * 1400;
       CL.push({ x: Math.cos(a) * d - 200, y: 640 + R() * 260, z: Math.sin(a) * d, r: 35 + R() * 110, seed: R(), drift: 3 + R() * 4 });
     }
+    for (let c = 0; c < 26; c++) {   // cumulus over Sugarloaf, the bay and the sea, where the beach shots look
+      const cx = 4500 + R() * 7000, cz = -3500 + R() * 6000, n = 4 + Math.floor(R() * 4), s = 220 + R() * 260;
+      for (let k = 0; k < n; k++) CL.push({ x: cx + (R() - 0.5) * s * 2, y: 1300 + R() * 500, z: cz + (R() - 0.5) * s * 2, r: s * (0.6 + 0.6 * R()), seed: R(), drift: 2 });
+    }
+    for (let k = 0; k < 14; k++) { const a = R() * 6.28; CL.push({ x: 5600 + Math.cos(a) * 300, y: 330 + R() * 120, z: -400 + Math.sin(a) * 300, r: 60 + R() * 70, seed: R(), drift: 3 }); }   // wisps on Sugarloaf
     for (let c = 0; c < 45; c++) {   // fair-weather cumulus over the city and the sea
       const cx = (R() - 0.3) * 22000, cz = (R() - 0.5) * 22000, n = 3 + Math.floor(R() * 4), s = 200 + R() * 300;
       for (let k = 0; k < n; k++) CL.push({ x: cx + (R() - 0.5) * s * 2, y: 1500 + R() * 400, z: cz + (R() - 0.5) * s * 2, r: s * (0.6 + 0.6 * R()), seed: R(), drift: 2 });
@@ -40,6 +45,7 @@ export function makeFx(scene, cityB) {
       for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; if (!waterAt(x + Math.cos(a) * 150, z + Math.sin(a) * 150)) { nx += Math.cos(a); nz += Math.sin(a); } }
       const l = Math.hypot(nx, nz);
       if (l < 0.5) return;
+      { const { s: bs, a: ba } = beachST(x, z); if (ba > BEACH.a0 - 100 && ba < BEACH.a1 + 100 && bs > -150 && bs < 300) return; }
       SH.push({ x, z, nx: nx / l, nz: nz / l, k: lake ? 0.38 : 1 });
     };
     for (let i = 0; i < SEA.length; i++) {
@@ -146,6 +152,39 @@ export function makeFx(scene, cityB) {
               dust.puff(x + (R() - 0.5) * rad, y, z + (R() - 0.5) * rad, r, 0.6 * smooth(0, 0.25, t), 0.62 + 0.36 * u, fire, R());
             }
           }
+        }
+      }
+      // Copacabana up close: the sea erupting along the waterline and blasting up the sand (fine puffs)
+      if (t > 0 && !OFF.includes('sea')) {
+        const front = s.sea, wall = s.wall;
+        const R = rng(23);
+        const rad = Math.max(2.5, Math.min(wall * 0.22, 60));
+        const layers = Math.max(1, Math.min(4, Math.ceil(wall / (rad * 1.4))));
+        const step = Math.max(12, rad * 1.2);
+        for (let a = BEACH.a0 + 150; a < 950; a += step) {
+          for (let k = 0; k < 3; k++) {
+            const sv = Math.max(-20, front - k * rad * 1.1) - 6;   // (starting just out in the water)
+            const [x, z] = beachXZ(sv, a + (R() - 0.5) * step);
+            const g = Math.max(heightAt(x, z), 0);
+            for (let j = 0; j < layers; j++) {
+              const u = (j + 0.5) / layers;
+              dust.puff(x, g + wall * u * (1 - 0.15 * k), z, rad * (0.8 + 0.5 * R()) * (1 + 0.3 * (1 - u)), 0.62 * smooth(0, 0.002, t), 0.66 + 0.33 * u, s.ignite * 2, R());
+            }
+          }
+        }
+      }
+      // every window: the glass is powder the instant the oxygen goes; a grey puff at each pane, drifting down
+      if (t > 0 && t < 1.2) for (const w of winPts) {
+        const k = smooth(0, 0.004, t) * (1 - smooth(0.25, 1.2, t));
+        const r = 0.8 + 3.5 * Math.min(1, t / 0.12) + w.seed;
+        dust.puff(w.x + w.nx * r * 0.6, w.y - 4.9 * t * t, w.z + w.nz * r * 0.6, r, 0.45 * k, 0.82, 0, w.seed);
+      }
+      // the pressure punch at the summit kicks the dust up off the terrace
+      if (s.place === 1 && s.pop > 0.02) {
+        const R = rng(64), base0 = STATUE.base - s.sink;
+        for (let k = 0; k < 60; k++) {
+          const x = -9 + R() * 38, z = -11 + R() * 22;
+          dust.puff(x, base0 + 0.3 + (1 - s.pop) * 0.8, z, 0.4 + 2.2 * (1 - s.pop), 0.3 * s.pop, 0.85, 0, R());
         }
       }
       clouds.end(); dust.end();
