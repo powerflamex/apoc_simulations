@@ -64,12 +64,36 @@ export function personPose(p, v, s) {
   const x = p.x, z = p.z + p.dir * d;
   const yaw = p.face ?? (p.dir > 0 ? 0 : Math.PI);
   const o = { x, y: streetY(z), z, yaw: yaw + (v > p.vStop ? 0.6 * Math.sin(v * 0.8 + p.seed * 9) * smooth(p.vStop, p.vStop + 1, v) : 0), s: p.s, walk: p.ph + d / 0.75 * Math.PI, stride: p.speed > 0 ? 1 - smooth(p.vStop, p.vStop + 0.8, v) : 0, sit: 0, pitch: 0, roll: 0, armL: 0, armR: p.phone ? 1 : 0, look: 0.1 };
-  // crouching, arms over the head
-  const c = smooth(p.vCrouch, p.vCrouch + 0.5, v);
-  o.sit = 0.55 * c; o.armL = lerp(o.armL, 1.7, c); o.armR = lerp(o.armR, 1.65, c); o.look = lerp(o.look, -0.3, c);
+  // the shaking throws everyone off balance: they sway with the jolts and take quick little steps to stay up
+  const sh = Math.min(s.shake, 2.2);
+  const ph = p.seed * 40;
+  const jolt = Math.sin(v * 9.3 + ph) * 0.6 + Math.sin(v * 13.7 + ph * 1.3) * 0.4;
+  o.roll = 0.09 * sh * jolt;
+  o.pitch = 0.06 * sh * Math.sin(v * 7.1 + ph * 0.7);
+  if (p.speed === 0 || v > p.vStop) { o.walk = v * 7 + ph; o.stride = Math.min(0.45, 0.25 * sh) * (0.6 + 0.4 * Math.sin(v * 2.3 + ph)); }
+  o.armL = 0.35 + 0.35 * sh * (0.5 + 0.5 * Math.sin(v * 5.3 + ph));             // arms out to catch themselves
+  o.armR = p.phone ? 1 : 0.3 + 0.35 * sh * (0.5 + 0.5 * Math.sin(v * 4.7 + ph * 2));
+  o.yaw += 0.25 * Math.sin(v * 1.7 + ph) * smooth(0, 1, sh);                   // looking round: what is this?
+  // then they brace, each their own way: covering the head, grabbing for balance, or down on their knees
+  const c = smooth(p.vCrouch, p.vCrouch + 0.6, v);
+  if (c > 0) {
+    const kind = Math.floor(p.seed * 3);
+    const bob = 0.5 + 0.5 * Math.sin(v * 6 + ph);
+    if (kind === 0) {        // covering the head with one arm, the other out, half crouched, rocking
+      o.sit = lerp(o.sit, 0.35 + 0.1 * bob, c); o.armL = lerp(o.armL, 1.25 + 0.1 * bob, c); o.armR = lerp(o.armR, 0.6 + 0.4 * bob, c);
+      o.pitch = lerp(o.pitch, 0.22, c) + 0.05 * jolt; o.look = lerp(o.look, -0.35, c);
+    } else if (kind === 1) { // staggering, arms flailing forward for something to hold
+      o.sit = lerp(o.sit, 0.2 + 0.15 * bob, c); o.armL = lerp(o.armL, 0.7 + 0.5 * Math.sin(v * 3.9 + ph), c); o.armR = lerp(o.armR, 0.8 + 0.5 * Math.sin(v * 4.4 + ph * 3), c);
+      o.roll += 0.12 * jolt * c; o.stride = Math.max(o.stride, 0.4 * c);
+    } else {                 // down on one knee, a hand on the ground
+      o.sit = lerp(o.sit, 0.75, c); o.pitch = lerp(o.pitch, 0.35, c) + 0.04 * jolt; o.armL = lerp(o.armL, 0.2, c); o.armR = lerp(o.armR, 1.15, c); o.look = lerp(o.look, -0.2, c);
+      o.stride = lerp(o.stride, 0, c);
+    }
+  }
   // knocked down by the rolling street: over onto the side, lying flat
   const k = smooth(p.vDown, p.vDown + 0.5, v);
-  if (k > 0) { o.roll = p.downDir * 1.45 * k; o.sit = lerp(o.sit, 0.2, k); o.y += 0.15 * k; }
+  if (k > 0) { o.roll = lerp(o.roll, p.downDir * 1.45, k); o.pitch = lerp(o.pitch, 0, k); o.sit = lerp(o.sit, 0.2, k); o.stride = lerp(o.stride, 0, k); o.y += 0.15 * k + 0.12 * k * Math.abs(Math.sin(v * 8 + p.seed * 40)) * Math.min(1, s.shake);
+    o.armL = lerp(o.armL, 0.9 + 0.3 * Math.sin(v * 3 + p.seed * 9), k); o.armR = lerp(o.armR, 0.5, k); }
   // thrown into the air (tumbling)
   const ty = tossY(s.toss, v, p.seed);
   if (ty > 0) { o.y += ty; o.pitch += ty * 0.6; o.roll += ty * 0.4 * p.downDir; }

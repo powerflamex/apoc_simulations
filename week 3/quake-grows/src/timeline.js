@@ -45,7 +45,7 @@ export const V_SPLIT = vAtMag(10.0), V_PYRAMID = vAtMag(10.3), V_AIR = vAtMag(11
 // ---- how hard the ground moves (made-up but monotone; they set the look) ----
 // shake: the fast jolting (camera, small things), 0..~3; roll: height of the rolling ground waves (m);
 // toss: how far loose things are thrown up (m) once the shaking beats gravity
-export const shakeAt = (v) => clamp(0.12 * Math.pow(1.55, magAt(v) - 5), 0, 3.2);
+export const shakeAt = (v) => clamp(0.5 * Math.pow(1.42, magAt(v) - 5), 0, 3.2);   // felt from the first frame
 export const rollAt = (v) => { const m = magAt(v); return m < 7.3 ? 0 : 0.35 * Math.pow(2.1, m - 8) * smooth(7.3, 8.2, m); };
 export const tossAt = (v) => { const m = magAt(v); return m < 10.8 ? 0 : 3 * Math.pow(2.0, m - 11) * smooth(10.8, 11.2, m); };
 

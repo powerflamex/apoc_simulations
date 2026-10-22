@@ -41,7 +41,7 @@ export function makeTraffic(scene, { plainMat, glowMat }) {
         z -= slide(v) * (z > -540 ? 1 : 0.4);
         const y0 = streetY(z);
         const slope = Math.atan2(streetY(z + 2) - streetY(z - 2), 4);
-        const rock = (s.shake * 0.06 + s.roll * 0.03) * Math.sin(v * (5 + c.seed * 3) + c.seed * 20);
+        const rock = (Math.min(s.shake, 2) * 0.05 + s.roll * 0.03) * Math.sin(v * (5 + c.seed * 3) + c.seed * 20);
         const ty = tossY(s.toss, v, c.seed);
         const tum = ty > 0 ? (v - V_AIR) * (1 + c.seed * 2) : 0;
         dummy.position.set(c.x, y0 + Math.abs(rock) * 0.3 + ty, z);

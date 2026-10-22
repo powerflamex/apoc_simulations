@@ -99,7 +99,7 @@ export function makeProps(scene, { plainMat, glowMat }) {
       // ---- posts and trees: sway, then go over; thrown up from magnitude 11 ----
       const place = (mesh, list, i, a, h) => {
         const tip = smooth(a.vTip, a.vTip + 1.2, v) * 1.45;
-        const sw = (s.shake * 0.04 + s.roll * 0.02) * Math.sin(v * (3 + a.seed * 3) + a.seed * 9) * (1 - smooth(a.vTip, a.vTip + 0.3, v));
+        const sw = (Math.min(s.shake, 2) * 0.07 + s.roll * 0.02) * Math.sin(v * (3 + a.seed * 3) + a.seed * 9) * (1 - smooth(a.vTip, a.vTip + 0.3, v));
         const ty = tossY(toss, v, a.seed);
         dummy.position.set(a.x, a.y0 + ty, a.z);
         dummy.rotation.set(sw + tip * Math.cos(a.tipDir), a.yaw, tip * Math.sin(a.tipDir) + (ty > 0 ? ty * 0.3 : 0), 'YXZ');

@@ -93,7 +93,7 @@ export function quakeShader(shader, { rigid = false, sway = false } = {}) {
         float k = pow(clamp((qw.y - qb.y) / hgt, 0.0, 1.0), 1.5);
         float Tn = 0.1 * hgt / 3.8 + 0.25;
         float ph = aS.x * 40.0;
-        float amp = (uShake * 0.8 + uRoll * 0.35) * min(hgt / 20.0, 6.0);
+        float amp = (uShake * 2.5 + uRoll * 0.35) * min(hgt / 20.0, 6.0);
         qw.x += amp * k * sin(uTime * 6.2832 / Tn + ph);
         qw.z += amp * k * 0.7 * sin(uTime * 6.2832 / Tn * 1.13 + ph * 1.7);
       }` : ''}

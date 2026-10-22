@@ -451,6 +451,8 @@ What magnitude would you survive? 👇
 
 Cover: `week 3/quake-grows/out/quake-grows_v4_cover.png` (`node render.mjs --cover 50.6`: Earth with its crust shattering, glowing seams over the night side)
 
+v3 (Oct 21, 59.5 s): the owner said the start had too little shaking and rumbling, and the people froze in one stiff pose. Now the camera jolts from the first frame, the buildings sway, the rumble is ~6 dB louder with a surging roar, and people stagger, sway and brace in different ways (covering their heads, grabbing for balance, down on one knee).
+
 v2 (Oct 21, 59.5 s): starts 3.4 s into the story (magnitude 5.85: glass raining off the fronts, people crouching in the first 2 s); renamed from "kept getting stronger" to "hit magnitude 18" (a plain number in the title, like trillion-years).
 
 ## Next Short. False vacuum decay — `week 3/false-vacuum/out/false-vacuum_v4_1080x1920_60fps_tiktok.mp4`
@@ -601,6 +603,8 @@ Which ending of the universe should I simulate next? 👇
 16:9, 6:27, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
 the city melting into lava with the title on frame 0. Two numbers on screen: THE BIG CRUNCH IN ... and THE NIGHT SKY
 (its temperature, -270 °C up to 10²⁰ °C). Oct 21: rendered and checked WITHOUT the voice (a draft: don't upload yet).
+Oct 21 (owner: the first 30 s were the same shot): 0:05-0:27 now shows the whole universe from outside crunching into
+a point and a new Big Bang at 0:19.6, then the promenade; the water's far ripples no longer speckle.
 The owner records SCRIPT.md; the voice drops in, the timing follows it, the chapters below get re-timed, then upload.
 Thumbnail: `longform/out/big-crunch_thumb.png` (the city melting into lava at 3:58, **THE BIG CRUNCH** in big gold
 letters, like the Big Rip's).
@@ -609,7 +613,7 @@ letters, like the Big Rip's).
 What If the Universe Started Shrinking? The Night Sky Gets Hotter Than the Sun (The Big Crunch)
 
 **YouTube description**
-Right now the universe is growing. But a 2025 study of new dark-energy measurements says it may stop in about 11 billion years and fall back in, ending in a Big Crunch about 20 billion years from now. Imagine Earth were still here, and you could stand on the seafront and watch.
+Right now the universe is growing. But a 2025 study of new dark-energy measurements says it may stop in about 11 billion years and fall back in, ending in a Big Crunch about 20 billion years from now. And then, maybe, it all bursts out again in a brand-new Big Bang. Imagine Earth were still here, and you could stand on the seafront and watch.
 
 15 billion years left: Andromeda crashes into the Milky Way.
 9 billion years: the universe stops growing. Far galaxies turn from red to blue: they're coming back.
@@ -624,7 +628,8 @@ The end of a crunch is the Big Bang played backwards: the sky's temperature at e
 
 Which ending would you rather live through? 👇
 
-0:00 The Big Crunch
+0:00 The Big Crunch (and a new Big Bang?)
+0:27 Tonight, on the seafront
 0:54 Andromeda
 1:34 The universe stops growing
 2:09 The galaxies come back

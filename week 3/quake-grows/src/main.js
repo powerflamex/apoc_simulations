@@ -154,11 +154,12 @@ function cityCam(v, s) {
   // standing on the ground: the ground carries you (half of the jolt, all of the roll and the rift)
   const air = smooth(V_AIR - 0.3, V_AIR + 1, v);
   const d = quakeD(x, streetY(z), z);
-  x += d.x * 0.5 * (1 - air); y += d.y * (1 - air) + (s.shake * 0.04) * Math.sin(v * 17) * (1 - air); z += d.z * 0.5 * (1 - air);
+  x += d.x * 0.35 * (1 - air); y += d.y * (1 - air) + (Math.min(s.shake, 2) * 0.03) * Math.sin(v * 17) * (1 - air); z += d.z * 0.35 * (1 - air);
   const sh = s.shake * (1 - 0.5 * air);
-  const yaw = (wobble(v * 0.35, 4) * 0.6 + wobble(v * 9.3, 1) * 0.35 * sh + 0.6 * Math.sin(v * 0.13)) * DEG + air * wobble(v * 0.6, 8) * 4 * DEG;
-  const pitch = (keys(CP, v) + wobble(v * 10.7, 2) * 0.3 * sh + wobble(v * 0.3, 7) * 0.4) * DEG + air * 3 * DEG * Math.sin(v * 0.9);
-  const roll = (wobble(v * 8.1, 3) * 0.45 * sh + wobble(v * 0.27, 9) * 0.5) * DEG + air * 6 * DEG * Math.sin(v * 0.7 + 1);
+  const shk = Math.pow(sh, 0.7);   // (the jolting you feel holding the camera)
+  const yaw = (wobble(v * 0.35, 4) * 0.6 + wobble(v * 9.3, 1) * 0.9 * shk + 0.6 * Math.sin(v * 0.13)) * DEG + air * wobble(v * 0.6, 8) * 4 * DEG;
+  const pitch = (keys(CP, v) + wobble(v * 10.7, 2) * 0.85 * shk + wobble(v * 0.3, 7) * 0.4) * DEG + air * 3 * DEG * Math.sin(v * 0.9);
+  const roll = (wobble(v * 8.1, 3) * 1.1 * shk + wobble(v * 0.27, 9) * 0.5) * DEG + air * 6 * DEG * Math.sin(v * 0.7 + 1);
   return { x, y, z, yaw, pitch, roll, fov: 64 + 4 * smooth(V_AIR, V_AIR + 4, v) };
 }
 // space: straight above San Francisco, then pulling back until the whole planet is in view
@@ -188,7 +189,7 @@ function update(v, cover = -1) {
   renderPass.scene = inSpace ? planet.scene : scene;
   renderPass.camera = inSpace ? spaceCam : camera;
   QU.uTime.value = v; F.uTime.value = v;
-  QU.uShake.value = inSpace ? 0 : s.shake * 0.06;
+  QU.uShake.value = inSpace ? 0 : s.shake * 0.09;
   QU.uRoll.value = s.roll;
   QU.uSplit.value = smooth(V_SPLIT - 0.2, V_SPLIT + 2.0, v);
   GU.uCrack.value = smooth(vAtMag(8.8), vAtMag(11), v) * 1.6;
@@ -264,7 +265,7 @@ function update(v, cover = -1) {
   f.uTime.value = v;
   f.uDust.value = inSpace ? 0 : s.dust;
   f.uBrown.value = window.__cover ? 0 : s.brown;
-  f.uAb.value = punch * 1.4 + (inSpace ? 0 : s.shake * 0.25);
+  f.uAb.value = punch * 1.4 + (inSpace ? 0 : Math.min(s.shake, 1.5) * 0.25);
   f.uBlur.value = inSpace ? 0 : Math.min(0.006, s.shake * 0.0018) * Math.abs(Math.sin(v * 13));
   f.uTitle.value = window.__cover ? 1.15 : s.title;
   f.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;

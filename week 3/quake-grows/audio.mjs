@@ -60,6 +60,7 @@ export function makeSoundtrack(outFile) {
   const cableF = new SVF();
   const rumF = [new SVF(), new SVF()], rumSub = [new OnePole(35), new OnePole(35)];
   const ratF = [new SVF(), new SVF()], ratE = new OnePole(20);
+  const roarF = [new SVF(), new SVF()], roarE = new OnePole(6);
   const glassF = [new SVF(), new SVF()];
   const crashF = new SVF(), crashSub = new OnePole(45), groanF = new SVF();
   const boomF = new SVF();
@@ -110,13 +111,18 @@ export function makeSoundtrack(outFile) {
     }
     // --- the rumble: deep, everywhere, growing with every step ---
     if (v < T_SWITCH) {
-      const k = clamp(0.03 + Math.pow(1.38, m - 5) * 0.03, 0, 0.6) * (city ? 1 : 0.8);
+      // (loud from the first frame: the deep roar of the ground itself, like a freight train under the street)
+      const k = clamp(0.13 + Math.pow(1.38, m - 5) * 0.035, 0, 0.6) * (city ? 1 : 0.8);
       const rl = (rumSub[0].run(white()) * 3.2 + rumF[0].run(white(), 70 + 8 * m, 0.6).lp) * k;
       const rr = (rumSub[1].run(white()) * 3.2 + rumF[1].run(white(), 75 + 8 * m, 0.6).lp) * k;
       l += rl; r += rr; wet += (rl + rr) * 0.15;
+      // the roar: a growling mid-low band that surges with the jolts
+      const surge = roarE.run(0.55 + 0.45 * Math.sin(v * 9.3) * Math.sin(v * 3.1 + 1));
+      l += roarF[0].run(white(), 170 + 25 * Math.sin(v * 0.7), 0.35).bp * k * 1.3 * surge;
+      r += roarF[1].run(white(), 190 + 25 * Math.sin(v * 0.6 + 1), 0.35).bp * k * 1.3 * surge;
       if (city) {
         const e = ratE.run(0.5 + 0.5 * Math.sin(v * 13.1) * Math.sin(v * 21.7 + 1));
-        const rk = clamp((m - 4.7) * 0.03, 0, 0.09) * (1 - smooth(V_AIR, V_DUST, v));
+        const rk = clamp(0.07 + (m - 5) * 0.03, 0, 0.16) * (1 - smooth(V_AIR, V_DUST, v));
         l += ratF[0].run(white(), 700, 0.5).bp * e * rk; r += ratF[1].run(white(), 900, 0.5).bp * e * rk;
       }
     }
