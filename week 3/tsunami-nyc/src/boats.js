@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BOATS, SIF, ferryAt, landY } from './layout.js';
-import { V_FERRY } from './timeline.js';
+import { V_FERRY, V_HIT } from './timeline.js';
 import { smooth, clamp } from './util.js';
 
 function colored(parts) {
@@ -83,7 +83,10 @@ export function makeBoats(scene) {
         const keel = clamp((ground - level) / 2.5);
         m.position.set(b.x, y + Math.sin(v * 0.9 + i) * 0.08 * (1 - keel), b.z);
         m.rotation.set(0.05 * keel, b.yaw, b.side * 0.42 * smooth(0, 1, keel), 'YXZ');
-        m.visible = v < 58.6;
+        m.visible = v < V_HIT + 0.5;
+        // the foot of the wave arrives: it picks the boat up and throws it ahead of itself, rolling
+        const tB = V_HIT + b.z / 56;
+        if (v > tB) { const dt = v - tB; m.position.z += 45 * dt + 20 * dt * dt; m.position.y += 22 * Math.sqrt(dt) + 6 * dt; m.rotation.x -= dt * 2.5; m.rotation.z += dt * 3 * b.side; }
       });
       // the Staten Island Ferry: on course for the slip, until the wave's face takes it
       const f = ferryAt(v);

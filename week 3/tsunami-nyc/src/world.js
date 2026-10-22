@@ -63,7 +63,8 @@ export function makeWorld(scene) {
       TU.uLevel.value = s.level; TU.uTime.value = v;
       const u = harbour.u;
       u.uTime.value = v; u.uLevel.value = s.level; u.uFront.value = s.front; u.uH.value = s.H;
-      u.uLean.value = 0.35 * smooth(52, V_HIT, v); u.uShade.value = s.shade;
+      u.uLean.value = 0.35 * smooth(52, V_HIT, v) + 0.4 * smooth(56, V_HIT, v); u.uShade.value = s.shade;
+      u.uCurl.value = smooth(55.8, V_HIT + 0.1, v);
       city.frame(v, s, glows);
       boats.frame(v, s);
       PEOPLE.forEach((p, i) => crowd.pose(i, personPose(p, v, s)));
@@ -82,7 +83,7 @@ export function makeWorld(scene) {
         const z = s.front - (crest ? s.H * 0.5 : -5) + 20 - ph * 30;
         const d = Math.hypot(x - cx, z - cz);
         if (!crest && R() < 0.5) continue;
-        smoke.puff(x, y, z, r * (crest ? 1.3 : 1.8), (crest ? 0.14 : 0.12) * Math.sin(Math.PI * ph) * smooth(r, r + 60, d), crest ? 0.98 : 0.95, 0, R());
+        smoke.puff(x, y, z, r * (crest ? 1.3 : 1.8), (crest ? 0.14 : 0.12 * smooth(180, 450, d)) * Math.sin(Math.PI * ph) * smooth(r, r + 60, d), crest ? 0.98 : 0.95, 0, R());
       }
       // the bursts
       for (const b of BURSTS) {
@@ -96,13 +97,18 @@ export function makeWorld(scene) {
           smoke.puff(p.x + (Rb() - 0.5) * 120 * b.size, s.level + s.H * (0.4 + 0.7 * Rb()) * (0.3 + 0.9 * ph), p.z + 20 + Rb() * 40, r, 0.4 * (1 - ph) * smooth(0, 0.15, dt), 0.98, 0, Rb());
         }
       }
-      // spray blowing in ahead of it at the end: the air fills with it
-      if (s.spray > 0) {
-        for (let k = 0; k < 70; k++) {
-          const x = cx + (R() - 0.5) * 300, ph = (v * (0.6 + R() * 0.5) + R()) % 1;
-          const z = cz - 40 - R() * Math.max(30, s.dist) + ph * 40;
-          const r = 6 + R() * 14;
-          smoke.puff(x, 2 + R() * 30 + ph * 10, z, r, 0.12 * s.spray * Math.sin(Math.PI * ph) * smooth(r, r + 20, Math.hypot(x - cx, z - cz)), 0.97, 0, R());
+      // the hit: the foot slams into the seawall and a wall of white water bursts up over the railing
+      {
+        const dt = v - (V_HIT - 0.06);
+        if (dt > 0 && dt < 1.2) {
+          const Rh = rng(9090);
+          for (let k = 0; k < 60; k++) {
+            const x = cx + (Rh() - 0.5) * 2 * (12 + 260 * Rh());
+            const d0 = Math.abs(x - cx);
+            const up = (18 + 70 * Rh()) * (1 - Math.exp(-dt / 0.25));
+            const r = (3 + 9 * Rh()) * (0.6 + dt * 2);
+            smoke.puff(x, 1 + up * (0.3 + 0.7 * Rh()), 2 + Rh() * 6 + dt * 18, r, 0.6 * smooth(0, 0.08, dt) * smooth(3, 10, d0 + dt * 30), 1.0, 0, Rh());
+          }
         }
       }
       glows.end(); smoke.end();
@@ -115,6 +121,13 @@ function personPose(p, v, s) {
   const [x, z] = p.posAt(v);
   const o = { x, y: 0, z, yaw: p.yaw, s: p.kid ? 0.62 : p.s, walk: 0, stride: 0, sit: 0, pitch: 0, roll: 0, armL: 0, armR: 0, look: 0.08 };
   if (z > 640) return { visible: false };
+  // the hit: the surge comes over the seawall and throws everyone near it back, tumbling, into the park
+  const tHit = V_HIT + Math.max(0, z) / 60 - 0.02;
+  if (v > tHit && z < 120) {
+    const dt = v - tHit;
+    return { x: x + Math.sin(p.seed * 30) * dt * 3, y: 0.3 + 8 * dt, z: z + 13 * dt + 14 * dt * dt, yaw: p.yaw, s: p.kid ? 0.62 : p.s,
+      walk: 0, stride: 0, sit: 0, pitch: -(dt * 7 + 1.2) * (p.seed < 0.5 ? 1 : -0.7), roll: dt * 5 * (p.seed - 0.5), armL: 1.6, armR: 1.4, look: 0 };
+  }
   if (v < p.vRun) {
     if (p.ux) { o.walk = p.ph + (x - p.x) / 0.75 * Math.PI; o.stride = 1; }
     // looking out at it: phones up, pointing, heads tilting back as it grows

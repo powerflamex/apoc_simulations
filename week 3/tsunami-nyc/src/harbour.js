@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { WATER0 } from './timeline.js';
 
 export const HU = {
-  uTime: { value: 0 }, uLevel: { value: WATER0 }, uFront: { value: -3000 }, uH: { value: 180 }, uLean: { value: 0 },
+  uTime: { value: 0 }, uLevel: { value: WATER0 }, uFront: { value: -3000 }, uH: { value: 180 }, uLean: { value: 0 }, uCurl: { value: 0 },
   uSun: { value: new THREE.Vector3(0.3, 0.1, -0.95) }, uFogC: { value: new THREE.Color() }, uFogD: { value: 0 }, uLight: { value: 1 },
   uShade: { value: 0 },
 };
@@ -102,22 +102,34 @@ export function makeHarbour(scene) {
   const wave = new THREE.Mesh(geo, new THREE.ShaderMaterial({
     uniforms: HU, side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      uniform float uTime; uniform float uLevel; uniform float uFront; uniform float uH; uniform float uLean;
+      uniform float uTime; uniform float uLevel; uniform float uFront; uniform float uH; uniform float uLean; uniform float uCurl;
       varying vec3 vW; varying float vS; varying float vHf; varying vec3 vN;
       ${NOISE}
-      // the profile: q (m behind the foot) and h (m above the trough) at parameter s
+      const float PIV = 0.7;
+      // the face (t: 0 foot .. 1 lip) before it curls
+      vec2 face(float t, float H, float Lf) { return vec2(Lf * (pow(t, 0.7) - (0.15 + uLean) * pow(t, 5.0)), H * t); }
+      // the profile: q (m behind the foot) and h (m above the trough) at parameter s. At the end (uCurl) the top
+      // of the face curls over and down: the lip, everything above PIV, swings forward about it like a falling
+      // sheet (the back of the wave then starts from the pivot, under the curl)
       vec2 prof(float s, float x) {
         float H = uH * (0.92 + 0.16 * nn(vec2(x * 0.0013, 2.0)));
         float Lf = 0.55 * H;
+        float k = smoothstep(0.0, 0.3, uCurl);
         if (s < 0.55) {
           float t = s / 0.55;
-          float h = H * t;
-          // the face: steepening toward the top, the lip leaning out over the foot as it nears the shore
-          float q = Lf * (pow(t, 0.7) - (0.15 + uLean) * pow(t, 5.0));
-          return vec2(q, h);
+          vec2 p = face(t, H, Lf);
+          if (t > PIV && uCurl > 0.0) {
+            vec2 pv = face(PIV, H, Lf);
+            vec2 d = vec2(pv.x - p.x, p.y - pv.y);          // (forward, up) from the pivot
+            float a = uCurl * 2.3 * pow((t - PIV) / (1.0 - PIV), 1.2);
+            vec2 r = vec2(d.x * cos(a) + d.y * sin(a), -d.x * sin(a) + d.y * cos(a));
+            p = vec2(pv.x - r.x, pv.y + r.y);
+          }
+          return p;
         }
         float t2 = (s - 0.55) / 0.45;
-        return vec2(Lf * (0.85 - uLean) + 2600.0 * pow(t2, 1.6), H * (1.0 - 0.45 * pow(t2, 0.6)));
+        vec2 top = mix(face(1.0, H, Lf), face(PIV, H, Lf) + vec2(Lf * 0.25, 0.0), k);
+        return vec2(top.x + 2600.0 * pow(t2, 1.6), mix(top.y, H, smoothstep(0.0, 0.08, t2) * k) * (1.0 - 0.45 * pow(t2, 0.6)));
       }
       void main() {
         float s = position.y, x = position.x;
@@ -127,7 +139,7 @@ export function makeHarbour(scene) {
         rag *= smoothstep(0.0, 900.0, abs(x));
         float boil = (fbm(vec2(x * 0.012, s * 30.0 - uTime * 1.4)) - 0.5) * 14.0 * smoothstep(0.0, 0.3, s);
         vec3 p = vec3(x, uLevel + a.y + boil * 0.5, uFront - a.x + rag + boil);
-        vS = s; vHf = a.y / max(uH, 1.0);
+        vS = s; vHf = s < 0.55 ? s / 0.55 : a.y / max(uH, 1.0);   // (on the face: how far up it, even when curled)
         vec2 b = prof(min(s + 0.01, 1.0), x);
         vec2 tng = normalize(vec2(b.x - a.x, b.y - a.y) + 1e-5);
         vN = normalize(vec3(0.0, tng.x, tng.y));    // facing the camera (+z) on the face
@@ -145,7 +157,11 @@ export function makeHarbour(scene) {
         vec2 q = vec2(vW.x * 0.03, vW.y * 0.012 + uTime * 0.55);
         float f = fbm(q + vec2(fbm(q * 0.7 + 4.0) * 0.9, 0.0));
         float streak = smoothstep(0.52, 0.8, f);
-        float foot = 1.0 - smoothstep(0.0, 0.06, vHf + (f - 0.5) * 0.05);
+        // up close: finer runs of foam sliding down the face, and the base a churning white wall of broken water
+        float near = 1.0 - smoothstep(80.0, 450.0, dist);
+        float fd = fbm(vec2(vW.x * 0.11, vW.y * 0.045 + uTime * 1.7));
+        streak = max(streak, smoothstep(0.56, 0.8, fd) * near * 0.8);
+        float foot = 1.0 - smoothstep(0.0, 0.06 + 0.1 * near, vHf + (f - 0.5) * 0.05 + (fd - 0.5) * 0.08 * near);
         float lip = smoothstep(0.9, 0.98, vHf + (f - 0.5) * 0.1) * step(vS, 0.62);
         vec3 deep = mix(vec3(0.006, 0.035, 0.045), vec3(0.02, 0.1, 0.11), smoothstep(0.0, 0.85, vHf));
         // light through the thin water near the top (the Sun is behind the wave)
@@ -158,7 +174,7 @@ export function makeHarbour(scene) {
         c += vec3(0.25, 0.3, 0.38) * pow(1.0 - abs(dot(V, normalize(vN))), 4.0) * 0.4;
         vec3 foam = vec3(0.86, 0.9, 0.9) * (0.7 + 0.3 * uLight);
         foam += vec3(1.3, 0.7, 0.3) * back * smoothstep(0.85, 1.0, vHf) * uLight;
-        c = mix(c, foam * (0.5 + 0.5 * vHf), clamp(streak * 0.22 * (0.3 + vHf) + foot * 0.85 + lip, 0.0, 1.0));
+        c = mix(c, foam * (0.62 + 0.38 * vHf + 0.25 * near * foot), clamp(streak * (0.22 + 0.3 * near) * (0.3 + vHf) + foot * 0.92 + lip, 0.0, 1.0));
         c = mix(c, uFogC, (1.0 - exp(-uFogD * uFogD * dist * dist)) * 0.85);
         gl_FragColor = vec4(c, 1.0);
       }`,

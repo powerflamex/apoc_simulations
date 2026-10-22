@@ -55,11 +55,15 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.28, 0.4, 
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.3 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 }, uCool: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.3 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 }, uCool: { value: 0 }, uFoam: { value: 0 }, uT: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uVig; uniform float uTitle; uniform float uCounter; uniform float uAb; uniform float uCool;
+    uniform float uFoam; uniform float uT;
     varying vec2 vUv;
+    float h1(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(h1(i), h1(i+vec2(1,0)), f.x), mix(h1(i+vec2(0,1)), h1(i+vec2(1,1)), f.x), f.y); }
+    float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++){ s += a * vn(p); p = p * 2.07 + 3.1; a *= 0.5; } return s; }
     void main() {
       vec2 c = vUv - 0.5;
       vec2 off = c * uAb * 0.012;
@@ -67,6 +71,20 @@ const finish = new ShaderPass({
       // in the wave's shadow the light goes cold
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
       col = mix(col, mix(vec3(lum), col, 0.85) * vec3(0.9, 0.98, 1.08), uCool * 0.6);
+      // the water hitting the camera: torn white foam and green water rushing past and up, flooding in from the
+      // bottom and the edges (no underwater scene: it goes straight on to white)
+      if (uFoam > 0.0) {
+        vec2 q = vUv * vec2(2.2, 4.0);
+        float f1 = fbm(q + vec2(uT * 1.1, -uT * 9.0));
+        float f2 = fbm(q * 2.4 + vec2(-uT * 2.3, -uT * 14.0) + f1);
+        float st = fbm(vec2(vUv.x * 16.0 + f1 * 2.0, vUv.y * 1.2 - uT * 12.0));
+        float foam = smoothstep(0.38, 0.72, f1 * 0.55 + f2 * 0.35 + st * 0.3);
+        vec3 water = mix(vec3(0.05, 0.2, 0.19), vec3(0.4, 0.62, 0.6), f2);
+        vec3 fc = mix(water, vec3(0.94, 0.97, 0.97), foam);
+        float edge = max(abs(vUv.x - 0.5) * 1.2, 1.0 - vUv.y);
+        float cov = clamp(uFoam * 2.2 - (1.0 - edge) * 1.1 + (f1 - 0.5) * 0.6, 0.0, 1.0);
+        col = mix(col, fc, smoothstep(0.0, 0.25, cov));
+      }
       col = mix(col, col * col * (3.0 - 2.0 * clamp(col, 0.0, 1.0)), 0.28);
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.45 * exp(-pow((vUv.y - ${WIDE ? '0.665' : '0.69'}) / ${WIDE ? '0.17' : '0.1'}, 2.0));
@@ -94,12 +112,12 @@ function spline(list, t) {
 // turns on round to the bay, rises like a drone to 150 m to see the whole wall take the ferry and Governors Island,
 // and comes back down to you at the railing, looking up at the lip curling over.
 const PX = [[-3, CAM.x], [16, CAM.x], [20, 1.5], [27, 2.5], [31, 0], [38, 0], [46, 2], [52, 0], [56, -0.5], [60, -0.5]];
-const PY = [[-3, CAM.y], [16, CAM.y], [20, 2.4], [28, 2.4], [30, 4], [33.8, 9], [37.5, 90], [41.5, 150], [47, 140], [52, 40], [55.5, 3.5], [57, 2.2], [60, 2.2]];
-const PZ = [[-3, CAM.z], [16, CAM.z - 1], [20, 12], [27, 14], [31, 16], [38, 70], [46, 60], [52, 25], [56, 4.6], [60, 4.4]];
+const PY = [[-3, CAM.y], [16, CAM.y], [20, 2.4], [28, 2.4], [30, 4], [33.8, 9], [37.5, 90], [41.5, 150], [47, 140], [52, 40], [55.5, 3.5], [57, 2.4], [58.9, 3.0], [59.15, 3.4], [59.5, 6], [60, 6]];
+const PZ = [[-3, CAM.z], [16, CAM.z - 1], [20, 12], [27, 14], [31, 16], [38, 70], [46, 60], [52, 25], [56, 5], [57.5, 8.5], [58.9, 12], [59.15, 13], [59.5, 24], [60, 30]];
 // a long lens at the start (the wall and the Statue big on the horizon), wide from the turn on
-const FOV = [[-3, 30], [10, 30], [13.5, 25], [16.4, 25], [18, 50], [20, 62], [29.5, 62], [31.3, 26], [33.8, 26], [36, 60], [52, 64], [57, 72], [60, 74]];
+const FOV = [[-3, 30], [10, 30], [13.5, 25], [16.4, 25], [18, 50], [20, 62], [29.5, 62], [31.3, 26], [33.8, 26], [36, 60], [52, 64], [57, 74], [60, 76]];
 const YAW = [[-3, -2], [11, -3], [13.5, -4.5], [16.4, -4.8], [17.3, -12], [19, -120], [20.5, -178], [26.5, -182], [29, -300], [30.4, -362], [31.3, -369], [33.8, -369.5], [36, -361], [40, -360], [43, -350], [47, -343], [51, -354], [56, -362], [60, -362]];
-const PITCH = [[-3, 0.5], [11, 1.2], [13.5, 2.2], [16.4, 3], [20, 6], [26.5, 8], [30, 3], [31.3, 1.5], [33.8, 2.5], [36, -3], [41, -5], [47, 0], [52, 6], [55, 18], [57.5, 34], [60, 40]];
+const PITCH = [[-3, 0.5], [11, 1.2], [13.5, 2.2], [16.4, 3], [20, 6], [26.5, 8], [30, 3], [31.3, 1.5], [33.8, 2.5], [36, -3], [41, -5], [47, 0], [52, 6], [55, 14], [57.5, 17], [58.8, 18], [59.1, 22], [59.3, 40], [59.6, 55], [60, 60]];
 
 const fogC = new THREE.Color();
 const tmp = new THREE.Color();
@@ -153,6 +171,7 @@ function update(v, cover = -1) {
   renderer.toneMappingExposure = 1.2 - 0.15 * s.shade;
   finish.uniforms.uAb.value = 0.3 * sh + punch * 1.2;
   finish.uniforms.uCool.value = s.shade;
+  finish.uniforms.uFoam.value = s.foam || 0; finish.uniforms.uT.value = v;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 

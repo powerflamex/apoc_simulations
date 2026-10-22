@@ -116,8 +116,11 @@ export function state(v) {
   // the wall shades the low sun more and more; spray fills the air at the end
   s.shade = smooth(30, 56, v);
   s.spray = smooth(50, V_HIT, v);
-  s.shake = 0.1 + 0.4 * smooth(35, 58, v) + 0.5 * smooth(56, V_HIT, v);
-  s.flash = smooth(V_HIT - 0.35, V_HIT + 0.25, v);
+  s.shake = 0.1 + 0.4 * smooth(35, 58, v) + 0.5 * smooth(56, V_HIT, v) + 1.5 * smooth(V_HIT - 0.05, V_HIT + 0.1, v);
+  // the water reaches the camera (4 m behind the railing) just after it hits the seawall: rushing white water
+  // fills the frame, then it goes to plain white for the loop
+  s.foam = smooth(V_HIT + 0.07, V_HIT + 0.27, v);
+  s.flash = smooth(V_HIT + 0.3, V_HIT + 0.48, v);
   s.flashColor = FOAM_COLOR;
   s.title = 1 - smooth(3.0, 3.8, v);
   s.you = 1 - smooth(6.2, 7.0, v);
