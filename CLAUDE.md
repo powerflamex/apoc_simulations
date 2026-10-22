@@ -16,6 +16,13 @@ After changing any project, without being asked and without stopping to ask:
    (about 5 min per video; it clears `out/.segments` itself and writes `out/<name>_v4_1080x1920_60fps.mp4`
    plus the `_tiktok.mp4` upload copy). Overwrite the old videos; no backups are wanted (the script deletes any
    other .mp4 in that project's `out/` once the new upload copy is made).
+   Run it in the background and don't ask the owner whether the PC is free: every video goes through the render
+   gate (`render-gate.sh`), which waits by itself while another session renders, while he has paused renders (the
+   "Pause renders" / "Resume renders" shortcuts on his desktop), while he's playing a game, while the laptop is on
+   battery or while the graphics card is still hot (starts under 65°C). It prints why it's waiting, and the wait
+   can be long (hours, if he's paused it): that's expected, don't stop it or tell him to unpause. Any other long
+   render (long-form videos) goes through it too: `bash render-gate.sh <label> node render.mjs ...`.
+   The upload copy uses 4 CPU cores while he's at the PC, 8 once he's been away 5 min, 2 on battery.
 2. Check the result in the rendered `_tiktok.mp4`, not just the code: pull frames with ffmpeg at the moments
    you changed (`ffmpeg -ss <sec> -i <video> -frames:v 1 frame.png`), look at them, and for timing problems step
    frame by frame (1/60 s). Fix and re-render if anything is off.

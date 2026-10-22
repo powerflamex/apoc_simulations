@@ -273,11 +273,14 @@ async function renderSegment(w, seg) {
   }
 }
 
-// ---- upload copy: each finished segment is re-encoded on the CPU (one at a time, lowest priority, 4 cores) while
+// ---- upload copy: each finished segment is re-encoded on the CPU (one at a time, lowest priority, 4 cores, more when the PC is idle) while
 // the GPU renders the next ones, then the pieces are joined. Same x264 settings as the old whole-file pass.
 // The watermark is off for the first 3 s and fades out before the loop point (video length minus ~1 s).
 const UPLOAD = arg('upload', null);
 const WATERMARK = arg('watermark', null);
+// how many CPU cores each piece may use: the render gate (render-gate.sh) writes it, 4 while the owner is at the
+// PC, 8 once he has been away for 5 min, 2 on battery; read again before every piece (4 when run on its own)
+const upThreads = () => { try { return String(parseInt(fs.readFileSync(process.env.RENDER_THREADS_FILE, 'utf8')) || 4); } catch { return '4'; } };
 if (WATERMARK && !fs.existsSync(WATERMARK)) throw new Error(`watermark not found: ${WATERMARK}`);
 const upFile = (seg) => seg.file.replace(/\.mp4$/, '_up.mp4');
 let upChain = Promise.resolve(), upError = null;
@@ -291,7 +294,7 @@ function queueUpload(seg) {
       `[1:v]setpts=PTS+${off}/TB,format=rgba,colorchannelmixer=aa=0.5,fade=in:st=3:d=0.5:alpha=1,` +
       `fade=out:st=${END - 2.8}:d=1:alpha=1,setpts=PTS-STARTPTS[w];[0:v][w]overlay=74:180:shortest=1[v]`, '-map', '[v]'] : [];
     try {
-      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', seg.file, ...wm, '-c:v', 'libx264', '-threads', '4',
+      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', seg.file, ...wm, '-c:v', 'libx264', '-threads', upThreads(),
         '-preset', 'medium', '-crf', '18', '-maxrate', '24M', '-bufsize', '48M', '-pix_fmt', 'yuv420p',
         '-profile:v', 'high', '-level', '5.1', '-r', String(FPS), '-an', tmp], true);
       fs.renameSync(tmp, upFile(seg));
