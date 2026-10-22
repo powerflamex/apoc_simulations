@@ -35,7 +35,15 @@ export const FERRY_U = 8;                              // m/s toward the slip (1
 export const V_FERRY = (FERRY.z + SPEED * V_HIT) / (SPEED - FERRY_U);
 export const V_GOV = vAtZ(GOVERNORS.z + 250);         // ~46 s
 export const V_JERSEY = vAtZ(-150);
-export const T_SWITCH = 59.6;                         // the foam has covered everything: the loop point sits in it
+// you stand 12 m back from the railing at the end: the water reaches you this long after it hits the seawall
+export const CAM_END_Z = 24;
+export const V_CONTACT = V_HIT + CAM_END_Z / SPEED;   // 59.43 (scene time)
+// The hit plays in slow motion: from SLOW_AT the scene runs at SLOW of real speed, so you see the white water come
+// over the seawall, take the people at the railing and reach you. sceneT maps the video clock to the scene clock.
+export const SLOW_AT = V_HIT - 0.2, SLOW = 0.4;
+export const sceneT = (t) => (t < SLOW_AT ? t : SLOW_AT + (t - SLOW_AT) * SLOW);
+export const videoT = (w) => (w < SLOW_AT ? w : SLOW_AT + (w - SLOW_AT) / SLOW);
+export const T_SWITCH = videoT(V_CONTACT + 0.5);      // (video clock) white: the loop point sits in it
 export const LOOP = 1.0;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 export const FOAM_COLOR = '#f4f7f6';
@@ -116,11 +124,14 @@ export function state(v) {
   // the wall shades the low sun more and more; spray fills the air at the end
   s.shade = smooth(30, 56, v);
   s.spray = smooth(50, V_HIT, v);
-  s.shake = 0.1 + 0.4 * smooth(35, 58, v) + 0.5 * smooth(56, V_HIT, v) + 1.5 * smooth(V_HIT - 0.05, V_HIT + 0.1, v);
+  s.shake = 0.1 + 0.4 * smooth(35, 58, v) + 0.5 * smooth(56, V_HIT, v) + 1.2 * smooth(V_HIT - 0.05, V_HIT + 0.1, v);
   // the water reaches the camera (4 m behind the railing) just after it hits the seawall: rushing white water
   // fills the frame, then it goes to plain white for the loop
-  s.foam = smooth(V_HIT + 0.07, V_HIT + 0.27, v);
-  s.flash = smooth(V_HIT + 0.3, V_HIT + 0.48, v);
+  // the spray reaches the lens first (water running down it), then the wall of water itself: you are inside the
+  // white water, thrown and tumbling, and it goes on to white
+  s.wet = smooth(V_CONTACT - 0.15, V_CONTACT - 0.02, v);
+  s.foam = smooth(V_CONTACT - 0.02, V_CONTACT + 0.1, v);
+  s.flash = smooth(V_CONTACT + 0.26, V_CONTACT + 0.44, v);
   s.flashColor = FOAM_COLOR;
   s.title = 1 - smooth(3.0, 3.8, v);
   s.you = 1 - smooth(6.2, 7.0, v);

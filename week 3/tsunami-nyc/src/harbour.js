@@ -121,7 +121,7 @@ export function makeHarbour(scene) {
           if (t > PIV && uCurl > 0.0) {
             vec2 pv = face(PIV, H, Lf);
             vec2 d = vec2(pv.x - p.x, p.y - pv.y);          // (forward, up) from the pivot
-            float a = uCurl * 2.3 * pow((t - PIV) / (1.0 - PIV), 1.2);
+            float a = uCurl * 1.6 * pow((t - PIV) / (1.0 - PIV), 1.2);
             vec2 r = vec2(d.x * cos(a) + d.y * sin(a), -d.x * sin(a) + d.y * cos(a));
             p = vec2(pv.x - r.x, pv.y + r.y);
           }

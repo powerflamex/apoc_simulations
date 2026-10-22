@@ -11,7 +11,9 @@ import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { F } from './facade.js';
 import { PEOPLE, SUN, LIB, GOV, ferryAt } from './layout.js';
-import { V_LIBERTY, V_FERRY, V_GOV, V_HIT } from './timeline.js';
+import { V_LIBERTY, V_FERRY, V_GOV, V_HIT, V_CONTACT } from './timeline.js';
+import { makeSpray } from './spray.js';
+import { makeSurge } from './surge.js';
 import { rng, smooth, clamp, DEG } from './util.js';
 
 export function makeWorld(scene) {
@@ -43,6 +45,8 @@ export function makeWorld(scene) {
   PEOPLE.forEach((p, i) => crowd.color(i, ...p.col));
   const glows = makeGlows(scene, 3000);
   const smoke = makeSmoke(scene, 3500);
+  const spray = makeSpray(scene, { camX: -0.5 });
+  const surge = makeSurge(scene, { camX: -0.5 });
 
   // what the wave takes, with a burst of spray: the statue, the ferry, the island
   const BURSTS = [
@@ -64,7 +68,9 @@ export function makeWorld(scene) {
       const u = harbour.u;
       u.uTime.value = v; u.uLevel.value = s.level; u.uFront.value = s.front; u.uH.value = s.H;
       u.uLean.value = 0.35 * smooth(52, V_HIT, v) + 0.4 * smooth(56, V_HIT, v); u.uShade.value = s.shade;
-      u.uCurl.value = smooth(55.8, V_HIT + 0.1, v);
+      u.uCurl.value = smooth(55.8, V_CONTACT, v);
+      spray.frame(v); spray.u.uLight.value = 1 - 0.3 * s.shade;
+      surge.frame(v); surge.u.uLight.value = 1 - 0.25 * s.shade; surge.u.uSun.value.copy(sunDir);
       city.frame(v, s, glows);
       boats.frame(v, s);
       PEOPLE.forEach((p, i) => crowd.pose(i, personPose(p, v, s)));

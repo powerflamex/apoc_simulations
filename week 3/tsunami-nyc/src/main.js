@@ -8,7 +8,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, beatAt, VIDEO_DURATION, LOOP, V_HIT, FOAM_COLOR } from './timeline.js';
+import { state, beatAt, sceneT, VIDEO_DURATION, LOOP, V_HIT, V_CONTACT, CAM_END_Z, FOAM_COLOR } from './timeline.js';
 import { CAM, SUN, YOU } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -55,11 +55,11 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.28, 0.4, 
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.3 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 }, uCool: { value: 0 }, uFoam: { value: 0 }, uT: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.3 }, uTitle: { value: 0 }, uCounter: { value: 0 }, uAb: { value: 0 }, uCool: { value: 0 }, uFoam: { value: 0 }, uT: { value: 0 }, uWet: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uVig; uniform float uTitle; uniform float uCounter; uniform float uAb; uniform float uCool;
-    uniform float uFoam; uniform float uT;
+    uniform float uFoam; uniform float uT; uniform float uWet;
     varying vec2 vUv;
     float h1(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(h1(i), h1(i+vec2(1,0)), f.x), mix(h1(i+vec2(0,1)), h1(i+vec2(1,1)), f.x), f.y); }
@@ -67,7 +67,18 @@ const finish = new ShaderPass({
     void main() {
       vec2 c = vUv - 0.5;
       vec2 off = c * uAb * 0.012;
-      vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
+      // water on the lens: sheets and runs of it bend the picture, bright where the light catches their edges
+      vec2 wuv = vUv;
+      float wsh = 0.0;
+      if (uWet > 0.0) {
+        float w1 = fbm(vUv * vec2(5.0, 2.5) + vec2(0.0, uT * 2.5));
+        float w2 = fbm(vUv * vec2(14.0, 5.0) + vec2(3.0, uT * 5.0));
+        float sheet = smoothstep(0.45, 0.6, w1 + (1.0 - vUv.y) * 0.15) * uWet;
+        wuv += (vec2(w2, w1) - 0.5) * 0.06 * sheet;
+        wsh = 0.0;
+      }
+      vec3 col = vec3(texture2D(tDiffuse, wuv + off).r, texture2D(tDiffuse, wuv).g, texture2D(tDiffuse, wuv - off).b);
+      col += vec3(0.6, 0.7, 0.7) * wsh;
       // in the wave's shadow the light goes cold
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
       col = mix(col, mix(vec3(lum), col, 0.85) * vec3(0.9, 0.98, 1.08), uCool * 0.6);
@@ -112,12 +123,12 @@ function spline(list, t) {
 // turns on round to the bay, rises like a drone to 150 m to see the whole wall take the ferry and Governors Island,
 // and comes back down to you at the railing, looking up at the lip curling over.
 const PX = [[-3, CAM.x], [16, CAM.x], [20, 1.5], [27, 2.5], [31, 0], [38, 0], [46, 2], [52, 0], [56, -0.5], [60, -0.5]];
-const PY = [[-3, CAM.y], [16, CAM.y], [20, 2.4], [28, 2.4], [30, 4], [33.8, 9], [37.5, 90], [41.5, 150], [47, 140], [52, 40], [55.5, 3.5], [57, 2.4], [58.9, 3.0], [59.15, 3.4], [59.5, 6], [60, 6]];
-const PZ = [[-3, CAM.z], [16, CAM.z - 1], [20, 12], [27, 14], [31, 16], [38, 70], [46, 60], [52, 25], [56, 5], [57.5, 8.5], [58.9, 12], [59.15, 13], [59.5, 24], [60, 30]];
+const PY = [[-3, CAM.y], [16, CAM.y], [20, 2.4], [28, 2.4], [30, 4], [33.8, 9], [37.5, 90], [41.5, 150], [47, 140], [52, 40], [55.5, 3.5], [57, 2.4], [58.9, 3.0], [60, 3.0]];
+const PZ = [[-3, CAM.z], [16, CAM.z - 1], [20, 12], [27, 14], [31, 16], [38, 70], [46, 60], [52, 25], [56, 6], [57.5, 14], [58.9, CAM_END_Z], [60, CAM_END_Z]];
 // a long lens at the start (the wall and the Statue big on the horizon), wide from the turn on
 const FOV = [[-3, 30], [10, 30], [13.5, 25], [16.4, 25], [18, 50], [20, 62], [29.5, 62], [31.3, 26], [33.8, 26], [36, 60], [52, 64], [57, 74], [60, 76]];
 const YAW = [[-3, -2], [11, -3], [13.5, -4.5], [16.4, -4.8], [17.3, -12], [19, -120], [20.5, -178], [26.5, -182], [29, -300], [30.4, -362], [31.3, -369], [33.8, -369.5], [36, -361], [40, -360], [43, -350], [47, -343], [51, -354], [56, -362], [60, -362]];
-const PITCH = [[-3, 0.5], [11, 1.2], [13.5, 2.2], [16.4, 3], [20, 6], [26.5, 8], [30, 3], [31.3, 1.5], [33.8, 2.5], [36, -3], [41, -5], [47, 0], [52, 6], [55, 14], [57.5, 17], [58.8, 18], [59.1, 22], [59.3, 40], [59.6, 55], [60, 60]];
+const PITCH = [[-3, 0.5], [11, 1.2], [13.5, 2.2], [16.4, 3], [20, 6], [26.5, 8], [30, 3], [31.3, 1.5], [33.8, 2.5], [36, -3], [41, -5], [47, 0], [52, 6], [55, 14], [57.5, 15], [58.8, 13], [59.3, 12], [60, 12]];
 
 const fogC = new THREE.Color();
 const tmp = new THREE.Color();
@@ -138,6 +149,12 @@ function update(v, cover = -1) {
   const b = beatAt(v);
   let punch = 0;
   if (b && !window.__cover) { punch = smooth(0, 0.05, b.dt) * Math.exp(-Math.max(0, b.dt - 0.05) * 5); pitch += punch * 0.6 * DEG; }
+  // the water hits you: thrown back and up, tumbling over
+  if (cover < 0 && v > V_CONTACT - 0.02) {
+    const dc = v - (V_CONTACT - 0.02), k = 1 - Math.exp(-dc / 0.12);
+    z += 9 * k + 8 * dc; y += 3.5 * k;
+    roll += 80 * DEG * smooth(0, 0.4, dc); pitch += 35 * DEG * k; yaw += 25 * DEG * k;
+  }
   camera.position.set(x, y, z);
   camera.rotation.set(pitch, yaw, roll);
   camera.fov = spline(FOV, v) * (1 - 0.04 * punch);
@@ -171,7 +188,7 @@ function update(v, cover = -1) {
   renderer.toneMappingExposure = 1.2 - 0.15 * s.shade;
   finish.uniforms.uAb.value = 0.3 * sh + punch * 1.2;
   finish.uniforms.uCool.value = s.shade;
-  finish.uniforms.uFoam.value = s.foam || 0; finish.uniforms.uT.value = v;
+  finish.uniforms.uFoam.value = s.foam || 0; finish.uniforms.uT.value = v; finish.uniforms.uWet.value = s.wet || 0;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
@@ -204,7 +221,7 @@ let comp = null;
 function renderFrame(t) {
   const tail = t - (VIDEO_DURATION - LOOP);
   if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0, LOOP * 0.92, tail));
-  else update(t);
+  else update(sceneT(t));
   composer.render();
   if (comp) comp.paint();
 }

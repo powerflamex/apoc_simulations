@@ -506,8 +506,9 @@ Cover: `week 3/friction/out/friction_v4_cover.png` (`node render.mjs --cover 19.
 
 ## Next Short. A 1,000 ft tsunami hits New York — `week 3/tsunami-nyc/out/tsunami-nyc_v4_1080x1920_60fps_tiktok.mp4`
 
-60.6 s. The railing at the Battery, Manhattan's southern tip, at sunset. The wall is already on the horizon at frame 0;
-the clock counts down to the moment it hits you.
+62.6 s. The railing at the Battery, Manhattan's southern tip, at sunset. The wall is already on the horizon at frame 0;
+the clock counts down to the moment it hits you. v3 (Oct 21): the hit plays in slow motion: the white water comes over
+the seawall, takes the people at the railing and rolls over the promenade into the camera, then white (no underwater screen).
 
 **YouTube title (97 chars, emoji counted as 2)**
 What if a 1,000 ft tsunami hit New York? 3x taller than the Statue of Liberty 🌊 #whatif #science

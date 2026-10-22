@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, distAt, VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_HIT, V_LIBERTY, V_FERRY, V_GOV } from './src/timeline.js';
+import { state, distAt, sceneT, VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_HIT, V_CONTACT, V_LIBERTY, V_FERRY, V_GOV } from './src/timeline.js';
 import { PEOPLE } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -59,7 +59,7 @@ export function makeSoundtrack(outFile) {
 
   let s = state(-LOOP);
   for (let n = -N0; n < N; n++) {
-    const v = n / SR;
+    const v = sceneT(n / SR);           // (the scene clock: the hit plays in slow motion)
     if (n % 48 === 0) s = state(v);
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;
     const end = 1 - smooth(V_HIT - 0.1, V_HIT + 0.4, v);
@@ -149,6 +149,15 @@ export function makeSoundtrack(outFile) {
         const e = Math.min(dt / 0.03, 1) * Math.exp(-dt * 1.5) * b.g;
         const vv = (Math.sin(TAU * ph[24]) * 0.8 + boomF.run(white(), 90 + 140 * Math.exp(-dt * 4), 0.6).lp * 0.9) * e;
         dl += vv; dr += vv; wet += vv * 0.6;
+      }
+    }
+    // --- the water hits you: a deep, soft body blow ---
+    {
+      const dt = v - V_CONTACT;
+      if (dt > 0 && dt < 1.5) {
+        ph[28] += (34 + 30 * Math.exp(-dt * 6)) / SR;
+        const e = Math.min(dt / 0.02, 1) * Math.exp(-dt * 3) * 0.7;
+        dl += Math.sin(TAU * ph[28]) * e; dr += Math.sin(TAU * ph[28]) * e;
       }
     }
     // --- the end: the lip comes down, a vast soft crash, then white ---
