@@ -476,6 +476,54 @@ Would you rather see it coming, or not? 👇
 
 Cover: `week 3/false-vacuum/out/false-vacuum_v4_cover.png` (`node render.mjs --cover 4.6`: the glowing wall of the bubble about to slice through Saturn and its rings)
 
+## Next Short. Friction disappears — `week 3/friction/out/friction_v4_1080x1920_60fps_tiktok.mp4`
+
+61 s. The top of a steep San Francisco street at sunset, looking down to the bay and Alcatraz. Friction is gone for good;
+the clock races to the finish line "YOU REACH THE BAY AT 1:00".
+
+**YouTube title (93 chars, emoji counted as 2)**
+What if friction disappeared? San Francisco slides into the bay at 90 mph 🌉 #whatif #science
+
+**YouTube description**
+You're at the top of a steep street in San Francisco when friction disappears. Standing, walking, brakes, tyres: they all need friction.
+
+Nobody can stand. Everything on the hill starts to slide, 4 mph faster every second.
+The cable car can't grip its cable. It slides back down and hits the bay at 85 mph.
+Nothing can slow down: every car on the street ends up in the bay.
+A bolt only holds by friction: the street lamps fall. So does a nail: every house on the hill folds.
+Then the ground itself goes. Sand only holds a slope because of friction. The whole hillside slides, with you on it.
+One minute in, you hit the bay at 90 mph.
+
+What would you grab first? 👇
+
+#whatif #friction #physics #science #simulation
+
+Cover: `week 3/friction/out/friction_v4_cover.png` (`node render.mjs --cover 19.5`: the street from above, two columns of cars racing down to the bay)
+
+## Next Short. A 1,000 ft tsunami hits New York — `week 3/tsunami-nyc/out/tsunami-nyc_v4_1080x1920_60fps_tiktok.mp4`
+
+60.6 s. The railing at the Battery, Manhattan's southern tip, at sunset. The wall is already on the horizon at frame 0;
+the clock counts down to the moment it hits you.
+
+**YouTube title (97 chars, emoji counted as 2)**
+What if a 1,000 ft tsunami hit New York? 3x taller than the Statue of Liberty 🌊 #whatif #science
+
+**YouTube description**
+You're in Battery Park, at the southern tip of Manhattan. Two miles out, a wall of water is crossing the harbor at 125 mph.
+
+First the sea runs out: the harbor drains and the boats sit on the mud.
+The wave grows as the water gets shallow, from 600 ft to 1,000 ft.
+It's three times taller than the Statue of Liberty. She's gone at 16 seconds.
+Everyone runs. Almost every tower in Manhattan is shorter than the wave.
+It blocks out the sunset and stretches across the whole harbor. It takes the Staten Island Ferry, then Governors Island.
+59 seconds after you first see it, it reaches you.
+
+Would you run, or stay and watch? 👇
+
+#whatif #tsunami #newyork #science #simulation
+
+Cover: `week 3/tsunami-nyc/out/tsunami-nyc_v4_cover.png` (`node render.mjs --cover 51`: the 1,000 ft wall towering over the drained bay)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
