@@ -474,7 +474,7 @@ Would you rather see it coming, or not? 👇
 
 #whatif #space #physics #science #simulation
 
-COVER_LINE
+Cover: `week 3/false-vacuum/out/false-vacuum_v4_cover.png` (`node render.mjs --cover 4.6`: the glowing wall of the bubble about to slice through Saturn and its rings)
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
