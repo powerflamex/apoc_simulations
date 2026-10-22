@@ -11,7 +11,7 @@ import { makeRain } from './rain.js';
 import { makeGround } from './ground.js';
 import { makeBuildings } from './buildings.js';
 import { makeProps } from './props.js';
-import { makeTraffic } from './traffic.js';
+import { makeTraffic, carFrame, HERO } from './traffic.js';
 import { makeCrowd } from './crowd.js';
 import { PEOPLE, personPose, umbrellaOf } from './people.js';
 import { makeGlows } from './glows.js';
@@ -21,10 +21,10 @@ import { makeSpace, RE } from './space.js';
 import { makeOverlay } from './overlay.js';
 import { DW, drownMat, underK } from './drown.js';
 import { F } from './facade.js';
-import { B, CAM0, NEEDLE, COLUMBIA, RAINIER, PATH } from './layout.js';
+import { B, CAM0, NEEDLE, COLUMBIA, RAINIER, PATH, CARS } from './layout.js';
 import {
   STORY_START, state, beatAt, VIDEO_DURATION, LOOP, UNDER_COLOR, V_EVEREST0, V_EVEREST, V_UP, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM,
-  V_SIGN, V_POWER, V_NEEDLE, V_COLUMBIA, V_RAINIER, levelAt, fmtDepth,
+  V_SIGN, V_POWER, V_NEEDLE, V_COLUMBIA, V_RAINIER, V_SCREAM, V_UNDER, levelAt, fmtDepth,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -64,8 +64,9 @@ const props = makeProps(scene, ctx);
 const before = new Set(scene.children);
 const traffic = makeTraffic(scene, ctx);
 const carMeshes = scene.children.filter((o) => !before.has(o));
-const crowd = makeCrowd(scene, PEOPLE.length + 4, drownMat(plainMat(0xffffff, 0.8)), { castShadow: false });
+const crowd = makeCrowd(scene, PEOPLE.length + 5, drownMat(plainMat(0xffffff, 0.8)), { castShadow: false });
 PEOPLE.forEach((p, i) => crowd.color(i, ...p.col));
+crowd.color(PEOPLE.length + 4, 0xf2c230, 0x1b2631, 0xe0ac86, 0x2e2018);   // the man in the car (yellow raincoat)
 const umbGeo = new THREE.ConeGeometry(0.55, 0.26, 10, 1, true).translate(0, -0.13, 0);
 const umbs = new THREE.InstancedMesh(umbGeo, drownMat(plainMat(0xffffff, 0.35, { side: THREE.DoubleSide })), PEOPLE.length);
 const uc = new THREE.Color();
@@ -83,6 +84,8 @@ const space = makeSpace();
 // a little warm light from the sunset band in the west
 const hemi = new THREE.HemisphereLight(0x6a7896, 0x2a2420, 1.15);
 scene.add(hemi);
+const heroLight = new THREE.PointLight(0xffd9a8, 0, 9, 1.5);   // a streetlamp's light on the man in the car
+scene.add(heroLight);
 const glowLight = new THREE.DirectionalLight(0xff9a66, 0.55);
 glowLight.position.set(0, 300, -1000);
 scene.add(glowLight, glowLight.target);
@@ -245,14 +248,36 @@ function seattleCam(v, s) {
   const atRainier = () => [yawTo(RAINIER.x - x, RAINIER.z - z) - 2 * Math.PI, Math.atan2(2600 - y, Math.hypot(RAINIER.x - x, RAINIER.z - z)) - 4 * DEG];
   const mix2 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
   let aim;
+  // the push-in on the man in the car while he screams and goes under
+  const wH = smooth(6.2, 6.9, v) * (1 - smooth(8.9, 10.0, v));
   if (v < 16.5) aim = atSign();
+  if (wH > 0) { const h = heroPose(v, L).head; aim = mix2(aim, [yawTo(h.x - x, h.z - z) + 1.5 * DEG, Math.atan2(h.y - y, Math.hypot(h.x - x, h.z - z)) - 3.5 * DEG], wH * 0.9); }   // (him right of centre, clear of the counter and captions)
   else if (v < 28.2) aim = mix2(atSign(), atNeedle(), smooth(16.5, 21.5, v));
   else aim = mix2(mix2(atNeedle(), atColumbia(), smooth(28.2, 30.6, v)), atRainier(), smooth(31.2, 33.5, v));
   const [yaw, pitch] = aim;
-  const fov = v < 16.5 ? lerp(54, 52, smooth(8, 16, v)) : v < 28.2 ? lerp(52, 50, smooth(16.5, 21.5, v)) : lerp(50, 44, smooth(31, 40, v));
+  let fov = v < 16.5 ? lerp(54, 52, smooth(8, 16, v)) : v < 28.2 ? lerp(52, 50, smooth(16.5, 21.5, v)) : lerp(50, 44, smooth(31, 40, v));
+  fov = lerp(fov, 30, wH);
   return { x, y, z, yaw, pitch, roll: 0, fov };
 }
 const COLUMBIA_TOP = 286;
+// the man leaning out of the passenger window of the car stuck ahead: waving for help, then screaming as it goes down
+const heroObj = new THREE.Object3D(), heroV = new THREE.Vector3();
+function heroPose(v, level) {
+  const f = carFrame(CARS[HERO], v, level);
+  heroObj.position.set(f.x, f.y, f.z); heroObj.rotation.set(f.pitch, f.yaw, f.roll, 'YXZ'); heroObj.updateMatrixWorld(true);
+  heroV.set(0.62, 0.45, -0.15).applyMatrix4(heroObj.matrixWorld);          // his seat (the car's right is its +x)
+  const scream = smooth(V_SCREAM - 0.15, V_SCREAM + 0.1, v);
+  // sitting facing forward (legs inside the car), leaning out sideways through the passenger window
+  const P = f.yaw - Math.PI + 0.3;
+  const lean = 0.62 + 0.12 * scream + 0.05 * Math.sin(v * 3.1);
+  const o = { x: heroV.x, y: heroV.y, z: heroV.z, yaw: P, s: 1.05, walk: 0, stride: 0, sit: 0.9,
+    pitch: 0.08 * Math.sin(v * 2.3), roll: lean, look: -0.2 + 0.3 * scream,
+    armL: lerp(0.6, 1.4 + 0.15 * Math.sin(v * 9), scream), armR: 1.45 + 0.3 * Math.sin(v * (6 + 4 * scream)), visible: v < V_UNDER + 2.5 };
+  // his head (for the camera): out to his right
+  const rx = -Math.cos(P), rz = Math.sin(P), hh = 1.6 * 1.05;
+  const hx = heroV.x + rx * hh * Math.sin(lean), hy = heroV.y - 0.38 + hh * Math.cos(lean), hz = heroV.z + rz * hh * Math.sin(lean);
+  return { o, head: { x: hx, y: hy, z: hz } };
+}
 // keep the camera off the islands on the way to Rainier
 function terrainClear(x, z) { let m = -1e9; for (const [dx, dz] of [[0, 0], [600, -300], [-600, 300], [1200, -600]]) m = Math.max(m, seattleH(x + dx, z + dz)); return m; }
 
@@ -374,6 +399,8 @@ function update(v, cover = -1) {
       umbs.instanceMatrix.needsUpdate = true;
     } else PEOPLE.forEach((p, i) => crowd.pose(i, { visible: false }));
     for (let i = 0; i < 4; i++) crowd.pose(PEOPLE.length + i, { visible: false });
+    crowd.pose(PEOPLE.length + 4, camera.position.y < 60 ? heroPose(v, L).o : { visible: false });
+    if (v < V_UNDER + 1) { const h = heroPose(v, L).head; glows.add(h.x + 0.6, h.y + 0.9, h.z + 1.2, 0.0001, 0, 0, 0); heroLight.position.set(h.x - 1.5, h.y + 2.5, h.z + 4); heroLight.intensity = 6 * (1 - smooth(V_UNDER, V_UNDER + 0.6, v)); } else heroLight.intensity = 0;
     // torches in the windows after the blackout; they go when their window goes under
     if (v > V_POWER && camera.position.y < 400) for (const t of TORCH) {
       if (v < t.v0 || t.y < L + 0.3) continue;
@@ -384,6 +411,7 @@ function update(v, cover = -1) {
   } else if (where === 'everest') {
     PEOPLE.forEach((p, i) => crowd.pose(i, { visible: false }));
     everest.pose(v, crowd, PEOPLE.length);
+    crowd.pose(PEOPLE.length + 4, { visible: false });
     everest.frame(v, glows, L);
   }
   crowd.commit();

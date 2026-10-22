@@ -74,6 +74,8 @@ export const NEEDLE_H = 605 * FT;
 export const COLUMBIA_H = 937 * FT;
 export const RAINIER_H = 14411 * FT;
 export const V_FLOAT = vAtLevel(2 * FT);      // cars lift off
+// the man leaning out of the car stuck ahead on the right: he screams as it starts to go down, and goes under
+export const V_SCREAM = 7.0, V_HERO_SINK = 7.25, V_UNDER = 7.92;   // (his head goes under at ~7.9: checked frame by frame)
 export const V_SIGN = vAtLevel(SIGN_TOP);
 export const V_POWER = V_SIGN + 0.5;          // the grid fails (the substations are under)
 export const V_NEEDLE = vAtLevel(NEEDLE_H);

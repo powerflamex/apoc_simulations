@@ -8,7 +8,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, STORY_START, LOOP, BEATS, V_FLOAT, V_SIGN, V_POWER, V_EVEREST, V_EVEREST0, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM, levelAt } from './src/timeline.js';
+import { spawnSync } from 'node:child_process';
+import { state, VIDEO_DURATION, STORY_START, LOOP, BEATS, V_FLOAT, V_SIGN, V_POWER, V_EVEREST, V_EVEREST0, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM, V_SCREAM, V_UNDER, levelAt } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -64,6 +65,21 @@ export function makeSoundtrack(outFile) {
   const diveF = [new SVF(), new SVF()], splashF = new SVF(), deepF = new SVF(), deepSub = new OnePole(30);
   const bubF = new SVF();
   const muffL = new OnePole(14000), muffR = new OnePole(14000);
+  // the man in the car: the owner's "nooo" clip (sounds/nooo.mp3, kept out of git), voice from ~0.55 s into the file.
+  // Clear while his head is above the water, then muffled and sinking away once it goes under.
+  let NO = null;
+  {
+    const f = path.join(path.dirname(fileURLToPath(import.meta.url)), 'sounds', 'nooo.mp3');
+    if (fs.existsSync(f)) {
+      const r = spawnSync('ffmpeg', ['-v', 'error', '-i', f, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
+      if (r.status === 0) {
+        const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
+        let pk = 0; for (const x of a) pk = Math.max(pk, Math.abs(x));
+        NO = { a, g: 0.75 / Math.max(pk, 1e-6), t0: V_SCREAM - 0.55 };
+      }
+    } else console.warn('audio: sounds/nooo.mp3 not found, the scream is left out');
+  }
+  const noF = new OnePole(12000), noHP = new OnePole(180), gulpF = new SVF();
   const revL = new Reverb(7), revR = new Reverb(8);
   const ph = new Float64Array(40);
   // car horns on the street at the start (soft two-tone), and alarms when the cars float
@@ -215,6 +231,20 @@ export function makeSoundtrack(outFile) {
       }
     }
 
+    // the man in the car screaming, then the water closing over his head
+    if (NO) {
+      const i = Math.round((v - NO.t0) * SR);
+      if (i >= 0 && i < NO.a.length) {
+        const under = smooth(V_UNDER - 0.08, V_UNDER + 0.2, v);
+        noF.set(9000 * Math.pow(260 / 9000, under));
+        const x = NO.a[i] * NO.g;
+        const y = noF.run(x - noHP.run(x) * 0.6) * (1 - 0.55 * under) * (1 - smooth(V_UNDER + 0.3, V_UNDER + 1.8, v));
+        l += y * 0.85; r += y * 1.0; wet += y * 0.35 * (1 - under);
+      }
+      // the gulp as the water goes over his head
+      const dg = v - V_UNDER;
+      if (dg > -0.05 && dg < 0.8) { const gv = gulpF.run(white(), 220 + 300 * Math.exp(-Math.max(dg, 0) * 8), 0.4).lp * env(dg, 0.03, 0.25) * 0.5; l += gv * 0.8; r += gv; }
+    }
     // under the water, the world above is gone; in space, only the drone
     const under = v >= V_SPLASH ? 1 : 0;
     const fcm = under ? 400 : 14000;

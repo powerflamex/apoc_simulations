@@ -134,6 +134,8 @@ export const CARS = [];
   // 1st Ave: a queue each way across the end of the street
   for (const [x0, dir] of [[-14, 1], [14, -1]]) for (let n = 0; n < 6; n++) add({ x: x0 - dir * n * 6.6 - dir * R() * 1.5, z: FIRST.z + (dir > 0 ? -3.4 : 3.4), dir: 0, ns: dir });
 }
+// (nothing between you and the car with the man leaning out of it, 14 m ahead on the right)
+for (let i = CARS.length - 1; i >= 0; i--) if (CARS[i].lane && CARS[i].x > 0 && CARS[i].z > -1 && CARS[i].z < 9) CARS.splice(i, 1);
 // shopfronts people step into, out of the rain (doors on the Pike St frontage)
 export const DOORS = [];
 {

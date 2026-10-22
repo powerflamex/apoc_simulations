@@ -425,6 +425,8 @@ Where would you go to last the longest? 👇
 
 Cover: `week 3/rain-1000-years/out/rain-1000-years_v4_cover.png` (`node render.mjs --cover 21.7`: the Space Needle half under, its saucer lit, a boat's searchlight beside it)
 
+v3 (Oct 21, 59.3 s): a man in a yellow raincoat leans out of the passenger window of the car stuck ahead on the right, waving; the camera pushes in; he screams "Nooo" (the owner's clip, `sounds/nooo.mp3`, kept out of git) as the car sinks, and the water closes over his head at 0:04.4 with the lightning flash; his voice goes muffled. Note: the clip is Darth Vader's "Nooo" from Star Wars: YouTube may flag it as copyrighted.
+
 v2 (Oct 21, 59.3 s): starts 3.6 s into the story (the water at 1.8 ft, lightning at 0.5 s, cars lifting); the owner's stats showed people leaving in the first 15 s.
 
 ## Day 19. An earthquake that hits magnitude 18 — `week 3/quake-grows/out/quake-grows_v4_1080x1920_60fps_tiktok.mp4`

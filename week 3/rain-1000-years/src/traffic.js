@@ -5,12 +5,33 @@
 import * as THREE from 'three';
 import { makeFleet } from './cars.js';
 import { CARS } from './layout.js';
-import { V_FLOAT } from './timeline.js';
+import { V_FLOAT, V_HERO_SINK } from './timeline.js';
 import { underK, drownMat } from './drown.js';
 import { rng, smooth, clamp } from './util.js';
 
 const PAL = [0xb8bcc2, 0x1f2328, 0xf2f2f0, 0x8c1d1d, 0x24406b, 0x55595e, 0xd9c9a3, 0x2f4f3a, 0xe3b21a, 0x6d1f4f, 0xf2f2f0, 0x1f2328, 0x3a5a8a];
 const dummy = new THREE.Object3D();
+
+// the drift: everything floats toward the bay (-z) at the same pace
+const drift = (v) => { const t = Math.max(0, v - V_FLOAT); return 0.45 * t * t / (1 + 0.25 * t); };
+// the car stuck 14 m ahead on the right, facing you: a man leans out of its near window (main.js, people.js)
+export const HERO = CARS.findIndex((c) => c.lane && c.x > 0 && Math.abs(c.z + 4.4) < 1.5);
+// where car c is at video time v with the water at level (it floats, drifts, fills and sinks nose first)
+export function carFrame(c, v, level) {
+  let x = c.x, z = c.z, y = 0, yaw = c.yaw, pitch = 0, roll = 0;
+  const lift = smooth(c.vLift, c.vLift + 0.8, v);
+  const sink = smooth(c.vSink, c.vSink + c.sinkDur, v);
+  if (lift > 0) {
+    z -= drift(Math.min(v, V_FLOAT + 6.5)) - drift(c.vLift);   // (the same for all: they keep their gaps)
+    yaw += c.spin * smooth(c.vLift, c.vLift + 5, v);
+    // floating: riding the water line, bobbing; sinking: nose (engine) first, back down to the street
+    const float = Math.max(0, level - 0.62);
+    y = float * lift * (1 - sink) + 0.04 * Math.sin(v * 2.1 + c.seed * 9) * lift * (1 - sink);
+    pitch = 0.04 * Math.sin(v * 1.7 + c.seed * 5) * lift * (1 - sink) + 0.35 * Math.sin(Math.PI * sink) * (c.dir > 0 ? 1 : -1);
+    roll = 0.05 * Math.sin(v * 1.3 + c.seed * 3) * lift * (1 - sink);
+  }
+  return { x, y, z, yaw, pitch, roll };
+}
 
 export function makeTraffic(scene, { plainMat, glowMat }) {
   const P = (c, r, e) => drownMat(plainMat(c, r, e));
@@ -24,25 +45,16 @@ export function makeTraffic(scene, { plainMat, glowMat }) {
     c.vDark = c.vSink + 1.5 + R() * 3.5;                      // lights short out
     c.spin = (R() - 0.5) * 0.7;
     c.lights = c.parked ? R() < 0.15 : true;
+    c.sinkDur = 1.6;
   });
-  // the drift: everything floats toward the bay (-z) at the same pace, a little faster in the middle of the street
-  const drift = (v) => { const t = Math.max(0, v - V_FLOAT); return 0.45 * t * t / (1 + 0.25 * t); };
+  // (the cars right behind his, dark too: no headlights glaring behind his head)
+  CARS.forEach((c) => { if (c.lane && c.x > 0 && c.z < CARS[HERO].z - 1 && c.z > CARS[HERO].z - 20) c.lights = false; });
+  { const h = CARS[HERO]; h.vLift = V_FLOAT + 0.25; h.vSink = V_HERO_SINK; h.sinkDur = 1.5; h.spin = -0.12; h.lights = false; }   // (its engine has flooded: lights dead, nothing to glare)
   return {
     fleet,
     frame(v, s, glows, level) {
       CARS.forEach((c, i) => {
-        let x = c.x, z = c.z, y = 0, yaw = c.yaw, pitch = 0, roll = 0;
-        const lift = smooth(c.vLift, c.vLift + 0.8, v);
-        const sink = smooth(c.vSink, c.vSink + 1.6, v);
-        if (lift > 0) {
-          z -= drift(Math.min(v, V_FLOAT + 6.5)) - drift(c.vLift);   // (the same for all: they keep their gaps)
-          yaw += c.spin * smooth(c.vLift, c.vLift + 5, v);
-          // floating: riding the water line, bobbing; sinking: nose (engine) first, back down to the street
-          const float = Math.max(0, level - 0.62);
-          y = float * lift * (1 - sink) + 0.04 * Math.sin(v * 2.1 + c.seed * 9) * lift * (1 - sink);
-          pitch = 0.04 * Math.sin(v * 1.7 + c.seed * 5) * lift * (1 - sink) + 0.35 * Math.sin(Math.PI * sink) * (c.dir > 0 ? 1 : -1);
-          roll = 0.05 * Math.sin(v * 1.3 + c.seed * 3) * lift * (1 - sink);
-        }
+        const { x, y, z, yaw, pitch, roll } = carFrame(c, v, level);
         dummy.position.set(x, y, z); dummy.rotation.set(pitch, yaw, roll, 'YXZ'); dummy.scale.setScalar(1); dummy.updateMatrix();
         const on = c.lights && v < c.vDark && (v < c.vDark - 0.6 || Math.sin(v * 41 + c.seed * 20) > 0);
         fleet.set(i, dummy.matrix, on);

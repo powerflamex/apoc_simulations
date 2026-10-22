@@ -10,3 +10,6 @@ stills/
 
 # long-video working files (rendered clips, stills and cards; regenerable)
 longform/six/clips/
+
+# sound clips the owner supplied (e.g. a movie quote): local only, not in the repo
+sounds/
