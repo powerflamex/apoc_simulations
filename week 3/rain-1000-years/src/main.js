@@ -23,7 +23,7 @@ import { DW, drownMat, underK } from './drown.js';
 import { F } from './facade.js';
 import { B, CAM0, NEEDLE, COLUMBIA, RAINIER, PATH } from './layout.js';
 import {
-  state, beatAt, VIDEO_DURATION, LOOP, UNDER_COLOR, V_EVEREST0, V_EVEREST, V_UP, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM,
+  STORY_START, state, beatAt, VIDEO_DURATION, LOOP, UNDER_COLOR, V_EVEREST0, V_EVEREST, V_UP, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM,
   V_SIGN, V_POWER, V_NEEDLE, V_COLUMBIA, V_RAINIER, levelAt, fmtDepth,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
@@ -440,8 +440,8 @@ let comp = null;
 // clears, so the video loops seamlessly.
 function renderFrame(t) {
   const tail = t - (VIDEO_DURATION - LOOP);
-  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0, LOOP * 0.92, tail));
-  else update(t);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   composer.render();
   if (comp) comp.paint();
 }

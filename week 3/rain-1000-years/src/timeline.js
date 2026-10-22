@@ -14,7 +14,7 @@
 // space (the whole planet one ocean), then down into the water (to the end, deep dark water: the loop point).
 import { smooth, clamp, lerp } from './util.js';
 
-export const STORY_START = 0;
+export const STORY_START = 3.6;              // the video starts this far into the story: the water already at 2 ft, cars lifting
 export const FT = 0.3048;
 export const M_PER_DAY = 2 * FT;              // 1 inch an hour
 export const DAYS_YEAR = 365.25;
@@ -64,7 +64,7 @@ export const V_SPLASH = 58.6;                 // into the sea
 export const V_BOTTOM = 61.4;                 // dark: the loop point sits in it
 export const T_SWITCH = 61.9;
 export const LOOP = 1.0;
-export const VIDEO_DURATION = T_SWITCH + LOOP;
+export const VIDEO_DURATION = T_SWITCH + LOOP - STORY_START;
 export const UNDER_COLOR = '#020b12';
 export const place = (v) => (v < V_EVEREST0 ? 'seattle' : v < V_SPACE ? 'everest' : 'space');
 
@@ -107,10 +107,9 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [3.8, 6.4, 'An inch of rain an hour. It never stops.'],
-  [6.6, 9.0, 'By day 3, the water is over your head.'],
-  [9.2, 11.6, 'Cars sink with their lights still on.'],
-  [11.8, 14.2, 'It rises 2 feet every day.'],
+  [7.4, 9.8, 'An inch of rain an hour. It never stops.'],
+  [10.0, 12.0, 'Cars sink with their lights still on.'],
+  [12.2, 14.2, 'It rises 2 feet every day.'],
   [14.4, 16.6, 'The Market sign goes under.'],
   [17.0, 19.4, 'The power goes out across the city.'],
   [19.6, 22.0, 'Boats pull people off the rooftops.'],
@@ -185,7 +184,7 @@ export function state(v) {
   s.bolt = 0; s.boltV = -99;
   for (const b of BEATS) if (v >= b.v - 0.05 && v - b.v < 1.2) { s.bolt = Math.max(s.bolt, boltCurve(v - b.v + 0.05)); s.boltV = b.v; }
   for (const x of [1.6, 13.0, 21.7, 33.2, 45.5]) if (v >= x && v - x < 1.2) { s.bolt = Math.max(s.bolt, 0.6 * boltCurve(v - x)); s.boltV = x; }
-  s.title = 1 - smooth(3.0, 3.8, v);
+  s.title = 1 - smooth(STORY_START + 3.0, STORY_START + 3.8, v);
   // the white of the clouds between Everest and space; the dive into the sea; the deep
   s.cloud = smooth(V_UP + 0.02, V_UP + 0.4, v) * (1 - smooth(V_SPACE - 0.1, V_SPACE + 0.5, v));
   s.under = v >= V_SPLASH ? 1 : 0;

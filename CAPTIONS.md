@@ -423,12 +423,14 @@ Where would you go to last the longest? 👇
 
 #whatif #rain #science #simulation
 
-Cover: `week 3/rain-1000-years/out/rain-1000-years_v4_cover.png` (`node render.mjs --cover 25.3`: the Space Needle half under, its saucer lit, a boat's searchlight beside it)
+Cover: `week 3/rain-1000-years/out/rain-1000-years_v4_cover.png` (`node render.mjs --cover 21.7`: the Space Needle half under, its saucer lit, a boat's searchlight beside it)
 
-## Day 19. An earthquake that keeps getting stronger — `week 3/quake-grows/out/quake-grows_v4_1080x1920_60fps_tiktok.mp4`
+v2 (Oct 21, 59.3 s): starts 3.6 s into the story (the water at 1.8 ft, lightning at 0.5 s, cars lifting); the owner's stats showed people leaving in the first 15 s.
 
-**YouTube title (92 chars)**
-What if an earthquake kept getting stronger? At 18.4, Earth breaks apart 🌎 #whatif #science
+## Day 19. An earthquake that hits magnitude 18 — `week 3/quake-grows/out/quake-grows_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (87 chars)**
+What if an earthquake hit magnitude 18? At 18.4, Earth breaks apart 🌎 #whatif #science
 
 **YouTube description**
 You're on California Street in San Francisco. Every step up the magnitude scale is 32 times more energy, and this earthquake never stops climbing.
@@ -447,7 +449,32 @@ What magnitude would you survive? 👇
 
 #whatif #earthquake #science #simulation
 
-Cover: `week 3/quake-grows/out/quake-grows_v4_cover.png` (`node render.mjs --cover 54`: Earth with its crust shattering, glowing seams over the night side)
+Cover: `week 3/quake-grows/out/quake-grows_v4_cover.png` (`node render.mjs --cover 50.6`: Earth with its crust shattering, glowing seams over the night side)
+
+v2 (Oct 21, 59.5 s): starts 3.4 s into the story (magnitude 5.85: glass raining off the fronts, people crouching in the first 2 s); renamed from "kept getting stronger" to "hit magnitude 18" (a plain number in the title, like trillion-years).
+
+## Next Short. False vacuum decay — `week 3/false-vacuum/out/false-vacuum_v4_1080x1920_60fps_tiktok.mp4`
+
+**YouTube title (96 chars, emoji counted as 2)**
+What if false vacuum decay happened? A bubble erases everything at light speed 🫧 #whatif #space
+
+**YouTube description**
+Out past Neptune, a bubble of "true vacuum" appears: a place where the laws of physics are different. It grows at the speed of light, and whatever it touches stops existing.
+
+Neptune, 2.9 billion miles from you: gone.
+Saturn and its rings, then Jupiter.
+It swallows the Sun in 4.6 seconds.
+But in Paris the Sun keeps shining for 8 more minutes. Its last light is still on the way, and the bubble is right behind it.
+The Moon goes in a hundredth of a second. Then Earth, starting with the side facing the Sun.
+The last mile down the Champs-Élysées takes 5 millionths of a second: 1 foot every billionth of a second. Nobody sees it coming.
+
+Physicists think our universe might be sitting in a "false vacuum". If it is, a bubble like this could appear anywhere. The best estimates say the wait is far, far longer than the age of the universe.
+
+Would you rather see it coming, or not? 👇
+
+#whatif #space #physics #science #simulation
+
+COVER_LINE
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

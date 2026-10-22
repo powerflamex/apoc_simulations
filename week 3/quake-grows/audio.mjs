@@ -1,4 +1,4 @@
-// Procedural soundtrack for "What if an earthquake kept getting stronger?", synced to src/timeline.js.
+// Procedural soundtrack for "What if an earthquake hit magnitude 18?", synced to src/timeline.js.
 //   node audio.mjs  -> out/soundtrack.wav
 // The city at sunset: traffic, voices, the cable car's bell and the hum of its cable. Under it a rumble that never
 // stops growing (each magnitude step adds a deep boom), things rattling (smooth, no clicks), glass going (a soft
@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, BEATS, V_GLASS, V_BRIDGE, V_SPLIT, V_AIR, V_DUST, V_PLANET, V_BREAK, T_SWITCH } from './src/timeline.js';
+import { state, VIDEO_DURATION, STORY_START, LOOP, BEATS, V_GLASS, V_BRIDGE, V_SPLIT, V_AIR, V_DUST, V_PLANET, V_BREAK, T_SWITCH } from './src/timeline.js';
 import { B } from './src/layout.js';
 import { vAtMag } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -49,7 +49,7 @@ const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt / dec));
 
 export function makeSoundtrack(outFile) {
-  const N = Math.round(VIDEO_DURATION * SR);
+  const N = Math.round((VIDEO_DURATION + STORY_START) * SR);   // the whole story (the video skips the first STORY_START s)
   const N0 = Math.round(LOOP * SR);
   const L = new Float32Array(N), R = new Float32Array(N);
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
@@ -199,7 +199,8 @@ export function makeSoundtrack(outFile) {
   }
 
   {   // in the white, the soundtrack turns into the lead-in to the first frame (the street before)
-    const a = N - N0, xf = Math.round(0.7 * SR);
+    const a = N - N0, b = Math.round((STORY_START - LOOP) * SR), xf = Math.round(0.7 * SR);
+    for (let i = 0; i < N0; i++) { PL[i] = L[b + i]; PR[i] = R[b + i]; }
     for (let i = 0; i < N0; i++) {
       const kk = Math.min(1, i / xf), wi = Math.sin(kk * Math.PI / 2), wo = Math.cos(kk * Math.PI / 2);
       L[a + i] = L[a + i] * wo + PL[i] * wi;

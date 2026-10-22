@@ -45,6 +45,11 @@ export function makeBuildings(scene) {
       const p = face();
       CH.push({ x: p.x, y: b.y0 + b.h * (0.4 + 0.6 * R()), z: p.z, v: b.vBrick + R() * 3, sz: [0.25 + R() * 0.5, 0.12 + R() * 0.15, 0.2 + R() * 0.4], c: R() < 0.5 ? b.col : 0xf2efe8, seed: R(), out: -(b.side || 1) * (0.5 + R() * 1.5) });
     }
+    // glass: shards raining off the fronts near you when the windows go (magnitude ~6)
+    if (b.front && Math.hypot(b.x, b.z) < 200) for (let k = 0; k < 40; k++) {
+      const p = face();
+      CH.push({ x: p.x, y: b.y0 + 4 + R() * Math.max(2, b.h - 6), z: p.z, v: b.vGlass + R() * 1.4, sz: [0.3 + R() * 0.4, 0.02, 0.3 + R() * 0.5], c: 0xd8eef8, seed: R(), out: -(b.side || 1) * (1.5 + R() * 4), glass: true });
+    }
     const nc = b.landmark ? 120 : b.h > 60 ? 40 : 16;
     for (let k = 0; k < nc; k++) {
       const p = face();
@@ -60,7 +65,7 @@ export function makeBuildings(scene) {
 
   return {
     mesh, chunks,
-    frame(v, s, smoke) {
+    frame(v, s, smoke, glows) {
       // ---- the buildings: crumbling down (a little lean), the box sunk into the slope ----
       for (let i = 0; i < n; i++) {
         const b = B[i];
@@ -88,6 +93,8 @@ export function makeBuildings(scene) {
         e3.set(ang * Math.sin(c.seed * 9), c.seed * 6, ang * Math.cos(c.seed * 7));
         q.setFromEuler(e3);
         chunks.setMatrixAt(i, m4.compose(pos.set(x, y + tos, z), q, sc.set(c.sz[0], c.sz[1], c.sz[2])));
+        // falling glass catches the low Sun: a glint that flickers as each shard turns
+        if (c.glass && glows && dt < tf + 0.3) { const g = Math.max(0, Math.sin(ang * 2.3 + c.seed * 9)); glows.add(x, y, z, 0.35, 3.2 * g, 2.8 * g, 2.2 * g); }
       }
       chunks.instanceMatrix.needsUpdate = true;
       // ---- dust: off the shedding fronts, and a boiling cloud where each building comes down ----

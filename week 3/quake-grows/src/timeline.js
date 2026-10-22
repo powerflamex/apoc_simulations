@@ -1,4 +1,4 @@
-// "What if an earthquake never stopped getting stronger?" — the story as functions of VIDEO time v (seconds).
+// "What if an earthquake hit magnitude 18?" — the story as functions of VIDEO time v (seconds).
 // You are on California Street in San Francisco at golden hour, at the top of Nob Hill, looking down the hill past
 // the cable car to the Financial District and the Bay Bridge. The rule: the quake's magnitude keeps climbing, one
 // whole step every 4 s in the city (5 s once we are out in space). Each step is 32 times the energy of the last:
@@ -12,7 +12,7 @@
 // Shaking stronger than gravity (ground acceleration > 1 g) throws everything loose into the air (M 11 here).
 import { smooth, clamp, lerp } from './util.js';
 
-export const STORY_START = 0;
+export const STORY_START = 3.4;              // the video starts this far into the story: magnitude 5.85, the windows go at 0.6 s
 // magnitude at video time v (piecewise linear: 4 s per step in the city, 5 s per step in space, slowing at the end)
 const MK = [[-8, 3.0], [0, 5.0], [28, 12.0], [33, 13.0], [38, 14.0], [43, 15.0], [48, 16.0], [53, 17.0], [58.4, 18.0], [60.4, 18.4]];
 export function magAt(v) {
@@ -34,7 +34,7 @@ export const energyOf = (m) => Math.pow(10, 1.5 * m + 4.8);
 export const V_BREAK = vAtMag(18.4);           // Earth flies apart
 export const T_SWITCH = V_BREAK + 1.5;         // full white; the loop point sits in it (the pieces fly apart first)
 export const LOOP = 1.0;
-export const VIDEO_DURATION = T_SWITCH + LOOP;
+export const VIDEO_DURATION = T_SWITCH + LOOP - STORY_START;
 export const V_DUST = vAtMag(12.25);           // the city is lost in dust
 export const V_PLANET = vAtMag(12.55);         // out of the dust: California from space
 export const place = (v) => (v < V_PLANET ? 'city' : 'planet');
@@ -66,9 +66,8 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [3.9, 6.4, 'You’re in San Francisco. Every step is 32 times stronger.'],
-  [6.6, 9.4, 'Magnitude 7: as strong as the 1989 quake here.'],
-  [9.6, 12.0, 'Bricks rain down from the old buildings.'],
+  [7.4, 9.6, 'You’re in San Francisco. Every step is 32 times stronger.'],
+  [9.8, 12.0, 'Bricks rain down from the old buildings.'],
   [12.2, 14.6, 'Stronger than 1906. The street rolls like waves.'],
   [14.8, 17.6, 'The strongest ever recorded was 9.5. This is stronger.'],
   [17.8, 20.0, 'The Bay Bridge falls.'],
@@ -118,7 +117,7 @@ export function state(v) {
   s.m = magAt(v);
   s.place = place(v);
   s.shake = shakeAt(v); s.roll = rollAt(v); s.toss = tossAt(v);
-  s.title = 1 - smooth(3.0, 3.8, v);
+  s.title = 1 - smooth(STORY_START + 3.0, STORY_START + 3.8, v);
   // dust: from the falling buildings, thickening until the city is gone in it; the brown-out hides the cut to space
   s.dust = 0.06 * smooth(V_BRICK, V_FALL, v) + 0.14 * smooth(V_FALL, V_AIR, v) + 0.35 * smooth(V_AIR + 1, V_DUST, v);
   s.brown = smooth(V_DUST - 0.6, V_DUST + 0.2, v) * (1 - smooth(V_PLANET - 0.15, V_PLANET + 0.6, v));

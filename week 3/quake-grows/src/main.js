@@ -21,7 +21,7 @@ import { QU, quakeD, quakeMat } from './quake.js';
 import { F } from './facade.js';
 import { CAM0, SUN, streetY } from './layout.js';
 import {
-  state, beatAt, magAt, vAtMag, VIDEO_DURATION, LOOP, T_SWITCH, V_BREAK, V_PLANET, V_DUST, V_AIR, V_SPLIT, V_ROLL,
+  STORY_START, state, beatAt, magAt, vAtMag, VIDEO_DURATION, LOOP, T_SWITCH, V_BREAK, V_PLANET, V_DUST, V_AIR, V_SPLIT, V_ROLL,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -223,7 +223,7 @@ function update(v, cover = -1) {
     smoke.mat.uniforms.uLight.value.setRGB(1.0, 0.8, 0.62).multiplyScalar(0.8 + 0.3 * sunK);
 
     glows.begin(camera); smoke.begin();
-    buildings.frame(v, s, smoke);
+    buildings.frame(v, s, smoke, glows);
     props.frame(v, s, glows, smoke);
     traffic.frame(v, s, glows);
     bay.frame(v, s, glows);
@@ -287,8 +287,8 @@ function update(v, cover = -1) {
 let comp = null;
 function renderFrame(t) {
   const tail = t - (VIDEO_DURATION - LOOP);
-  if (tail >= 0) update(t - VIDEO_DURATION, 1 - smooth(0, LOOP * 0.92, tail));
-  else update(t);
+  if (tail >= 0) update(t - VIDEO_DURATION + STORY_START, 1 - smooth(0, LOOP * 0.92, tail));
+  else update(t + STORY_START);
   composer.render();
   if (comp) comp.paint();
 }
