@@ -43,8 +43,9 @@ climbing to 5,500 °C and past a billion. A big word pops at each step. The voic
 | Time | Picture | Counter / NEXT |
 |---|---|---|
 | 0:00-0:05 | **Flash-forward:** the city's skyline melting under an orange-white sky, the bay steaming. Title on frame 0: "What if the universe started shrinking?" | ~400,000 years / THE SKY: 3,000 °C |
-| 0:05-0:40 | The promenade at dusk: people walking, cars, the city lighting up, the first stars. | 20,000,000,000 years / NEXT: ANDROMEDA |
-| 0:40-0:46 | "Imagine you could stand right here": time races, people blur into streaks, it's night for good. | |
+| 0:05-0:27 | **The whole universe from outside** (owner, Oct 21: the old 0:05-0:40 was the same sunset shot for 35 s; show the crunch and the restart in the first 20 s): a ball of galaxies with ours marked YOU ARE HERE. It spreads apart (light reddened), stops at 0:13, falls back in (blue), faster and faster, into one blazing point at 0:18.3. **Silence**, one point of light in the dark. **0:19.6 a new Big Bang** fills the screen and a new universe bursts out. White flash. | YEARS FROM NOW: 0 -> 11 billion (IT STOPS) -> 20 billion (THE BIG CRUNCH); then A NEW UNIVERSE: 100 -> 3 billion years old |
+| 0:27-0:46 | The promenade at dusk: people walking, cars, the city lighting up; the countdown starts. | 20,000,000,000 years / NEXT: ANDROMEDA |
+| 0:46-0:50 | "Imagine you could stand right here": time races, people blur into streaks, it's night for good. | |
 | 0:46-1:18 | Andromeda grows night after night over the bay until it fills half the sky; it crashes through the Milky Way; the band of stars becomes one big glowing ball. **Silence.** | 15 billion / NEXT: THE UNIVERSE STOPS GROWING |
 | 1:18-1:52 | The telescope on the promenade: a far galaxy, its light red ... white ... blue. | 9 BILLION YEARS LEFT / NEXT: THE GALAXIES |
 | 1:52-2:20 | Galaxies come back: more every night, bigger, bluer, then they crash together and the whole night sky is starlight. **Silence.** | 1 billion -> 100 million / NEXT: THE NIGHT |

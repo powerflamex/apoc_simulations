@@ -22,7 +22,13 @@ export const YR = 365.25 * 86400, DAY = 86400, HR = 3600, MIN = 60;
 // ---- sections (video time) ----
 export const SEC = {
   ff: 0,          // flash-forward: the city melting under the glowing sky (title on screen)
-  prom: 5,        // the promenade at dusk; "This is the Big Crunch"
+  demo: 5,        // the whole universe from outside (src/demo.js): it grows ("This is the Big Crunch")
+  dStop: 13.0,    // it stops ("in eleven billion years, it stops")
+  dFall: 13.8,    // it falls back in, faster and faster
+  dCrunch: 18.3,  // one blazing point; [silence] black, one point of light
+  dBang: 19.6,    // a new Big Bang: a new universe bursts out
+  walk: 27.2,     // (through a white flash) the promenade at dusk, people out; the countdown starts
+  prom: 5,        // (the promenade's own clock starts here: its first 22 s are seen only in the closing shot)
   lapse: 50,      // "imagine you could stand right here": time races, the people blur away, night for good
   andro: 54,      // Andromeda grows night after night
   aNight0: 63, aNight1: 71.5,   // a night with people out under it ("then it fills half the sky")
@@ -91,7 +97,7 @@ function monotone(P) {
 
 // ---- the time left (story seconds) at video time v ----
 const ANCH = [
-  [SEC.prom, 20.0e9 * YR],
+  [SEC.walk, 20.0e9 * YR],
   [SEC.lapse, 18.3e9 * YR],
   [SEC.andro, 17.6e9 * YR],
   [SEC.aNight0, 16.6e9 * YR],
@@ -122,7 +128,7 @@ const ANCH = [
 const logL = monotone(ANCH.map(([v, L]) => [v, Math.log10(L)]));
 export function left(v) {
   if (v >= SEC.crunch) return 0;
-  return Math.pow(10, logL(Math.max(v, SEC.prom)));
+  return Math.pow(10, logL(Math.max(v, SEC.walk)));
 }
 // story seconds per video second (how fast time is racing)
 export const rate = (v) => Math.max(1e-30, (left(v - 0.02) - left(v + 0.02)) / 0.04);
@@ -146,8 +152,22 @@ export function skyK(v) {
   return Math.exp(lerp(Math.log(2.725), Math.log(P), k));
 }
 
+// ---- the opening demonstration: the size of the whole universe (1 = today) ----
+export function scaleAt(v) {
+  if (v < SEC.dStop) { const u = clamp((v - SEC.demo) / (SEC.dStop - SEC.demo)); return 1 + 0.55 * (1 - (1 - u) * (1 - u)); }
+  if (v < SEC.dFall) return 1.55;
+  if (v < SEC.dCrunch) { const u = (v - SEC.dFall) / (SEC.dCrunch - SEC.dFall); return 1.55 * (1 - Math.pow(u, 2.2)); }
+  if (v < SEC.dBang) return 0;
+  return 1.8 * (1 - Math.exp(-0.55 * (v - SEC.dBang)));
+}
+// how fast it grows (+) or shrinks (-), per second
+export const scaleRate = (v) => (scaleAt(v + 0.02) - scaleAt(v - 0.02)) / 0.04;
+
 // ---- the big moments: a word pops up at each one ----
 export const BEATS = [
+  { v: SEC.dStop, w: 'It stops', k: '11 BILLION YEARS FROM NOW' },
+  { v: SEC.dCrunch, w: 'The Big Crunch', k: '20 BILLION YEARS FROM NOW', quiet: true },
+  { v: SEC.dBang + 0.15, w: 'A new Big Bang?', k: 'AND IT ALL STARTS AGAIN', quiet: true },
   { v: 77, w: 'Andromeda', k: '15 BILLION YEARS LEFT' },
   { v: SEC.turn, w: 'Falling back', k: '9 BILLION YEARS LEFT' },
   { v: SEC.back, w: 'The galaxies', k: '1 BILLION YEARS LEFT' },
@@ -200,8 +220,14 @@ export function fmtTemp(K) {
   if (m >= 9.95) { m /= 10; n++; }   // (never "10.0 x 10^n")
   return `${m.toFixed(1)} × 10${String(n).split('').map((d) => SUP[+d]).join('')} °C`;
 }
+// (the opening demonstration: how far ahead it is, then the new universe's age)
+const demoYears = monotone([[SEC.demo, 0], [SEC.dStop, 11e9], [SEC.dFall, 11.4e9], [SEC.dCrunch, 20e9]]);
 export const COUNTERS = [
-  { from: -10, to: SEC.crunch + 0.4, label: 'THE BIG CRUNCH IN', fmt: fmtLeft, value: (v) => left(v), unit: (v) => { const n = nextAt(v); return n ? `NEXT: ${n}` : ''; } },
+  { from: -10, to: SEC.crunch + 0.4, gap: [SEC.demo, SEC.walk], label: 'THE BIG CRUNCH IN', fmt: fmtLeft, value: (v) => left(v), unit: (v) => { const n = nextAt(v); return n ? `NEXT: ${n}` : ''; } },
+  { from: SEC.demo, to: SEC.walk, label: (v) => (v < SEC.dBang ? 'YEARS FROM NOW' : 'A NEW UNIVERSE'), fmt: (x) => x,
+    value: (v) => (v < SEC.dBang ? `${fmtInt(Math.min(20e9, demoYears(Math.min(v, SEC.dCrunch))))} years`
+      : `${fmtInt(Math.pow(10, 2 + 7.5 * clamp((v - SEC.dBang) / 7)))} years old`),
+    unit: (v) => (v < SEC.dStop ? 'NEXT: IT STOPS GROWING' : v < SEC.dCrunch ? 'NEXT: THE BIG CRUNCH' : '') },
 ];
 export const SKYROW = { from: SEC.freeze - 0.6, to: SEC.crunch + 0.4, label: 'THE NIGHT SKY', value: (v) => fmtTemp(skyK(v)) };
 
@@ -315,6 +341,8 @@ export function state(v) {
   s.white = smooth(SEC.bang + 0.75, SEC.whiteout + 0.6, v);
   // white at the end, then back to the promenade as it was
   s.flash = smooth(SEC.whiteout - 0.3, SEC.whiteout + 0.5, v) * (1 - smooth(SEC.end + 1, SEC.end + 5, v));
+  // (and a quick one from the opening demonstration to the promenade)
+  s.flash = Math.max(s.flash, smooth(SEC.walk - 0.7, SEC.walk, v) * (1 - smooth(SEC.walk, SEC.walk + 0.9, v)));
   s.after = v >= SEC.end + 1 ? 1 : 0;
   s.fadeOut = smooth(SEC.out - 2.5, SEC.out, v);
   s.title = 1 - smooth(5.0, 5.5, v);

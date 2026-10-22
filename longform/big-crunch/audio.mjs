@@ -8,13 +8,15 @@
 // hiss), the glowing sky's low oven roar, the lava's slow deep bubbling, the fog of fire roaring up to the moment the
 // Sun is lost, then a near-silence; adrift: a deep pulse that quickens through the last three minutes, everything
 // sucked into one point (a rising whoosh), a second of silence, the new Big Bang, the white, and the seaside again.
+// The opening demonstration (the whole universe from outside) has its own: a rush of air while it spreads out, a tone
+// and a whoosh rising as it falls in, near-silence on the last point of light, and the same new Big Bang.
 // The voice (voice.m4a, cleaned with ffmpeg) is placed line by line from src/voice.js; the bed dips under it.
 // No sharp clicks anywhere: every impact has a soft onset.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { state, SEC, VIDEO_DURATION, BEATS, V_FF, FF_LEN } from './src/timeline.js';
+import { state, SEC, VIDEO_DURATION, BEATS, V_FF, FF_LEN, scaleRate } from './src/timeline.js';
 import { VOICE } from './src/voice.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -73,8 +75,12 @@ const storyOf = (t) => (t < FF_LEN ? V_FF + t : t >= SEC.end + 1 ? SEC.prom + 2 
 const N = (m) => 440 * Math.pow(2, (m - 69) / 12);   // midi -> Hz
 const CHORDS = [
   [0, [38, 45, 50, 53], 1.0, 500],          // flash-forward: D minor, low
-  [5, [50, 54, 57, 62, 64], 0.7, 1000],     // the promenade at dusk: D(add9), warm
-  [36, [47, 50, 54, 57], 0.75, 900],        // "everything starts falling back in": Bm7
+  [5, [50, 57, 62, 66, 69], 0.7, 1300],     // the whole universe, spreading out: D major, wide
+  [SEC.dStop, [45, 52, 57, 59, 64], 0.6, 1000],      // it stops: Asus2, hanging
+  [SEC.dFall + 0.2, [46, 53, 58, 61], 0.85, 800],    // it falls back in: Bb minor
+  [SEC.dCrunch + 0.1, [], 0, 400],                   // [silence]: one point of light
+  [SEC.dBang + 1.4, [50, 57, 62, 66, 71], 0.75, 1400], // a new universe: D6/9, bright
+  [SEC.walk, [50, 54, 57, 62, 64], 0.7, 1000],       // the promenade at dusk: D(add9), warm
   [54, [46, 50, 53, 57, 62], 0.9, 1300],    // Andromeda: Bbmaj7, wide and bright
   [84.9, [58, 65, 70], 0.25, 2000],         // [silence]: only a high glint
   [88, [41, 48, 53, 57, 60], 0.85, 1200],   // one ball of stars: Fmaj7
@@ -172,7 +178,8 @@ export function makeSoundtrack(outFile) {
   const cars = []; for (let t = 4; t < VIDEO_DURATION; t += 2.5 + RE() * 4) cars.push({ t, dir: RE() < 0.5 ? -1 : 1, d: 2.5 + RE() * 2 });
   const bubbles = []; for (let t = SEC.melt; t < SEC.space; t += 0.6 + RE() * 1.4) bubbles.push({ t, f: 38 + RE() * 40, g: 0.4 + RE() * 0.6, p: RE() * 2 - 1 });
   const chirps = []; for (let t = SEC.summer - 2; t < SEC.wNight1 + 1; t += 0.35 + RE() * 0.5) chirps.push({ t, f: 4300 + RE() * 700, n: 2 + Math.floor(RE() * 3), p: RE() * 2 - 1 });
-  const beats = BEATS.filter((b) => b.v > FF_LEN);
+  const beats = BEATS.filter((b) => b.v > FF_LEN && !b.quiet);
+  const dRushF = [new SVF(), new SVF()], dFallF = new SVF();
 
   let s = state(storyOf(0));
   for (let n = 0; n < NS; n++) {
@@ -192,8 +199,9 @@ export function makeSoundtrack(outFile) {
     const dk = 1 - 0.8 * duck[n];
     const ff = t < FF_LEN ? 1 : 0;
     const closing = t >= SEC.end + 1 ? 1 : 0;
-    const earth = !s.space && !ff;
-    const inAfter = closing ? smooth(SEC.end + 1, SEC.end + 4, t) : smooth(FF_LEN - 0.05, FF_LEN + 0.4, t);
+    const demo = t >= SEC.demo && t < SEC.walk ? 1 : 0;
+    const earth = !s.space && !ff && !demo;
+    const inAfter = closing ? smooth(SEC.end + 1, SEC.end + 4, t) : smooth(SEC.walk - 0.3, SEC.walk + 0.8, t);
     const race = smooth(Math.log10(1 / 3600), Math.log10(30), Math.log10(s.E));   // 0 real time .. 1 the ages racing
 
     // --- the seaside: waves on the bay (until it boils away), the crowd's murmur and traffic in real time ---
@@ -230,6 +238,24 @@ export function makeSoundtrack(outFile) {
         const rf = 300 + 1300 * race + 150 * Math.sin(t * 0.6);
         const g = race * 0.035 * (1 - s.glowI * 0.7);
         l += rushF[0].run(white(), rf, 0.9).bp * g; r += rushF[1].run(white(), rf * 1.12, 0.9).bp * g;
+      }
+    }
+    // --- the opening demonstration: a rush of air as the universe spreads out (pitch with its speed); as it falls in,
+    // a tone and a whoosh rising to the crunch ---
+    if (demo) {
+      const sp = Math.abs(scaleRate(t));
+      const g = Math.min(1, sp / 0.15) * (1 - smooth(SEC.walk - 1, SEC.walk, t));
+      if (g > 0.002) {
+        const rf = 350 + 900 * Math.min(1, sp / 0.3);
+        l += dRushF[0].run(white(), rf, 0.9).bp * g * 0.05; r += dRushF[1].run(white(), rf * 1.13, 0.9).bp * g * 0.05;
+      }
+      const sq = t > SEC.dFall && t < SEC.dCrunch + 0.05 ? smooth(SEC.dFall, SEC.dCrunch, t) : 0;
+      if (sq > 0.001) {
+        const gg = sq * sq * (1 - smooth(SEC.dCrunch - 0.02, SEC.dCrunch + 0.05, t));
+        ph[60] += (55 + 500 * Math.pow(sq, 3)) / SR;
+        const sw = Math.sin(TAU * ph[60]) * 0.07 + Math.sin(TAU * ph[60] * 1.5) * 0.03;
+        const wh = dFallF.run(white(), 400 + 3000 * sq * sq, 0.8).bp * 0.12;
+        hl += (sw + wh) * gg; hr += (sw + wh * 0.9) * gg; hwet += (sw + wh) * gg * 0.4;
       }
     }
     // --- the pad: a chord per stage, cross-fading ---
@@ -363,8 +389,8 @@ export function makeSoundtrack(outFile) {
     }
     // --- the new Big Bang: a low tone rising out of the silence, then a deep soft boom, a bright rush of air and a
     // warm major chord blooming out of it, ringing into the white ---
-    if (!closing) {
-      const db = t - SEC.bang;
+    if (!closing) for (const BANG of [SEC.dBang, SEC.bang]) {
+      const db = t - BANG;
       if (db > -0.5 && db < 0.05) {
         const p = smooth(-0.5, 0, db) * (1 - smooth(0, 0.05, db));
         ph[56] += (38 + 70 * p * p) / SR;
@@ -383,9 +409,9 @@ export function makeSoundtrack(outFile) {
         ch *= smooth(0, 0.25, d) * Math.exp(-d * 0.5) * 0.035;
         hl += (sub + rum + air + ch) * att; hr += (sub + rum * 0.97 + air * 0.95 + ch) * att; hwet += (air + ch) * att;
       }
-      // the white: a bright swell and a ring
+      // the white: a bright swell and a ring (at the end only)
       const dw = t - SEC.whiteout;
-      if (dw > -2 && dw < 6) {
+      if (BANG === SEC.bang && dw > -2 && dw < 6) {
         const e = (dw < 0 ? Math.pow(smooth(-2, 0, dw), 2) : Math.exp(-dw * 0.8)) * (1 - smooth(4, 6, dw));
         const x = whiteF[0].run(white(), 2400, 0.7).bp * 0.4 * e * 0.12;
         let ring = 0;
@@ -412,7 +438,9 @@ export function makeSoundtrack(outFile) {
     }
 
     // the crunch: a second of near-silence before the bang
-    const hush = t > SEC.crunch + 0.1 && t < SEC.bang - 0.5 ? 0.15 : 1;
+    // (and in the opening, the moment of black with one point of light)
+    const hush = 1 - 0.85 * Math.max(smooth(SEC.crunch + 0.02, SEC.crunch + 0.1, t) * (1 - smooth(SEC.bang - 0.55, SEC.bang - 0.5, t)),
+      smooth(SEC.dCrunch + 0.02, SEC.dCrunch + 0.15, t) * (1 - smooth(SEC.dBang - 0.55, SEC.dBang - 0.5, t)));
     const fade = 1 - s.fadeOut;
     // levels: the ambience and music dip ~14 dB under the voice (it sits in front), the hits ~8 dB
     const ga = 2.5 * dk, gh = 1.6 * (1 - 0.6 * duck[n]);

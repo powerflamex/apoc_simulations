@@ -18,7 +18,7 @@
   html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
   #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
   #stage canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
-  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing, .clean #name, .clean #sky, .clean #scopek { display: none !important; }
+  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing, .clean #name, .clean #sky, .clean #scopek, .clean #here { display: none !important; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 
@@ -65,6 +65,10 @@
   #cover .k { font: 700 52px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; }
   #cover .w { font: 700 230px/1 'Cormorant', serif; color: #f1c978; margin: 16px 0 0; font-variant-numeric: lining-nums tabular-nums; }
 
+  #here { position: absolute; left: 0; top: 0; width: 600px; text-align: center; opacity: 0;
+    font: 700 28px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; color: #f1c978;
+    text-shadow: 0 2px 14px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.95); }
+
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
 
   #stage.compositing > div { visibility: hidden; }
@@ -91,6 +95,7 @@
   </div>
   <div id="name" class="serif">THE BIG CRUNCH</div>
   <div id="closing" class="serif"></div>
+  <div id="here" class="serif">YOU ARE HERE</div>
   <div id="cover" class="serif">
     <div class="w">THE BIG CRUNCH</div>
   </div>

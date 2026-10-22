@@ -1,6 +1,7 @@
 // Camera, light and post for "What if the universe started shrinking?" (1920x1080, 30 fps). The video is a pure
-// function of time: renderFrame(v). The first FF_LEN seconds replay the city melting (the flash-forward); after the
-// white the closing shot is the promenade at dusk, as at the start.
+// function of time: renderFrame(v). The first FF_LEN seconds replay the city melting (the flash-forward); then the
+// whole universe from outside crunches and bangs again (src/demo.js) until SEC.walk; after the white at the end the
+// closing shot is the promenade at dusk.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -10,6 +11,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky, blackbody, fireColor } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeSpace } from './space.js';
+import { makeDemo } from './demo.js';
 import { makeOverlay } from './overlay.js';
 import { state, SEC, VIDEO_DURATION, V_FF, FF_LEN, beatAt, sunDir, clockT } from './timeline.js';
 import { DEG, smooth, wobble, clamp, lerp } from './util.js';
@@ -44,6 +46,7 @@ const sky = makeSky();
 scene.add(sky.mesh);
 const world = makeWorld(scene);
 const space = makeSpace();
+const demo = makeDemo();
 const overlay = makeOverlay();
 
 const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
@@ -109,10 +112,12 @@ const SUN_YAW = Math.atan2(SUN_LATE[0], -SUN_LATE[2]) / DEG, SUN_EL = Math.asin(
 // You stand at the railing at x = 0, z = 0, looking west (-z) over the bay; the sea is on the left, the city along
 // the shore on the right.
 const SHOTS = [
-  // dusk: behind you at the railing, looking along the promenade, then turning to the sunset over the bay
+  // dusk: behind you at the railing, looking along the promenade, then turning to the sunset over the bay (seen from
+  // SEC.walk on; the closing shot shows it from 7 s)
   [SEC.prom, SEC.lapse, {
-    x: K([5, -0.5], [30, -0.8], [50, -1.0]), y: K([5, 1.95], [30, 2.1], [50, 2.4]), z: K([5, 4.6], [30, 5.8], [50, 7.0]),
-    yaw: K([5, 9], [20, 5], [36, -2], [50, -8]), pitch: K([5, 1.5], [30, 2], [50, 6]), fov: K([5, 40], [50, 44]),
+    x: K([5, -0.5], [27.2, -0.55], [40, -0.85], [50, -1.0]), y: K([5, 1.95], [27.2, 1.97], [40, 2.15], [50, 2.4]),
+    z: K([5, 4.6], [27.2, 4.8], [40, 6.0], [50, 7.0]),
+    yaw: K([5, 9], [27.2, 8], [36, 3], [43, -2], [50, -8]), pitch: K([5, 1.5], [27.2, 1.6], [40, 2.4], [50, 6]), fov: K([5, 40], [27.2, 40.5], [50, 44]),
   }],
   // the hours race; night falls; the view lifts to the sky over the bay
   [SEC.lapse, SEC.andro, { x: K([50, -1.0], [54, -1.2]), y: K([50, 2.4], [54, 2.7]), z: K([50, 7.0], [54, 8.0]), yaw: K([50, -8], [54, -14]), pitch: K([50, 6], [54, 16]), fov: K([50, 44], [54, 52]) }],
@@ -188,7 +193,13 @@ function update(v, vv = v) {
   if (b && !window.__cover && vv >= FF_LEN) punch = smooth(0, 0.06, b.dt) * Math.exp(-Math.max(0, b.dt - 0.06) * 4);
   let heat = 0;
 
-  if (s.space) {
+  if (vv === v && v >= SEC.demo && v < SEC.walk) {
+    // ---------- the opening demonstration: the whole universe from outside ----------
+    renderPass.scene = demo.scene;
+    s.here = demo.frame(v, camera, punch);
+    renderer.toneMappingExposure = 1.0;
+    bloom.strength = 0.8;
+  } else if (s.space) {
     // ---------- after Earth: you, adrift in the glow ----------
     renderPass.scene = space.scene;
     space.frame(v, camera, s);
@@ -301,7 +312,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [2, 20, 60, 80, 110, 140, 185, 200, 215, 240, 260, 285, 310, 340, 346, 360]) renderFrame(t);   // compile everything once
+  for (const t of [2, 10, 18.5, 21, 30, 60, 80, 110, 140, 185, 200, 215, 240, 260, 285, 310, 340, 346, 360]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world, space };

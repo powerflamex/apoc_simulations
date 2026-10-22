@@ -17,19 +17,31 @@
 
 In seven minutes, the whole universe is going to fall in on you.
 
-### 2. The promenade
+### 2. The whole universe
 
 This is the Big Crunch.
 
-Right now, the universe is growing. Every galaxy is flying away from every other galaxy.
+Every galaxy is flying away from us.
 
-But in 2025, scientists looked at new measurements, and found it might not last.
+In eleven billion years, it stops.
 
-The growing is slowing down.
+And everything falls back in.
 
-In about eleven billion years, it could stop. And then, everything starts falling back in.
+Crushed into one single point.
 
-Their guess for the end: about twenty billion years from now.
+**[wait 1 second]**
+
+And then, maybe, it all explodes again.
+
+A brand-new Big Bang. A whole new universe.
+
+### 3. The promenade
+
+In 2025, scientists looked at new measurements of the universe.
+
+And found the growing is already slowing down.
+
+Their guess for the crunch: about twenty billion years from now.
 
 Our Sun will be long gone by then.
 
@@ -37,7 +49,7 @@ But imagine Earth is still here, just like tonight.
 
 And imagine you could stand right here, and watch the whole thing.
 
-### 3. Andromeda
+### 4. Andromeda
 
 The first thing you'd notice isn't the crunch.
 
@@ -59,7 +71,7 @@ And almost none of them actually hit.
 
 The two galaxies just melt into one giant ball of stars.
 
-### 4. The universe stops growing
+### 5. The universe stops growing
 
 Nine billion years left.
 
@@ -77,7 +89,7 @@ Blue means it's coming back.
 
 The universe has stopped growing. And every galaxy out there is now falling toward us.
 
-### 5. The galaxies come back
+### 6. The galaxies come back
 
 A billion years left.
 
@@ -91,7 +103,7 @@ A hundred million years left, they crash into each other. All of them.
 
 There's no more dark space left in the sky.
 
-### 6. The night gets warm
+### 7. The night gets warm
 
 And now, something strange happens to the night.
 
@@ -115,7 +127,7 @@ The oceans boil away.
 
 Not because of the Sun. Because of the sky.
 
-### 7. The sky glows
+### 8. The sky glows
 
 Three million years left.
 
@@ -125,7 +137,7 @@ Dull red. Like the inside of an oven.
 
 And it's the same in every direction. There's nowhere to hide from it.
 
-### 8. The ground melts
+### 9. The ground melts
 
 One million years left. The sky is over a thousand degrees.
 
@@ -135,7 +147,7 @@ The city goes first. Then the rock under it.
 
 Imagine you're somehow still here, floating over a sea of lava.
 
-### 9. The fog of fire
+### 10. The fog of fire
 
 Four hundred thousand years left.
 
@@ -147,7 +159,7 @@ The whole universe turns into a fog of fire.
 
 The last time it looked like this was right after the Big Bang.
 
-### 10. The stars
+### 11. The stars
 
 A hundred thousand years left.
 
@@ -163,7 +175,7 @@ Earth goes the same way.
 
 **[wait 3 seconds]**
 
-### 11. The last three minutes
+### 12. The last three minutes
 
 Three minutes left.
 
@@ -175,7 +187,7 @@ The center of every atom gets smashed apart.
 
 Every atom in you. Every atom in Earth. Every atom that ever existed.
 
-### 12. The end
+### 13. The end
 
 One hundred-thousandth of a second left.
 
@@ -189,7 +201,7 @@ And then, maybe, it bursts out again.
 
 A new Big Bang.
 
-### 13. The ending
+### 14. The ending
 
 That's the Big Crunch.
 
