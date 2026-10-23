@@ -583,6 +583,58 @@ Which technique would you survive? 👇
 
 Cover: `week 3/gojo/out/gojo_v4_cover.png` (`node render.mjs --cover 57`: Gojo floating inside the Unlimited Void, the black sphere and its ring behind him, streams of light)
 
+## Next Short. The Sun explodes — `week 3/sun-explodes/out/sun-explodes_v4_1080x1920_60fps_tiktok.mp4`
+
+64.6 s. Copacabana, Rio, at 7:40 a.m., the beach full of people. The Sun exploded 8:18 ago; its light lands at 1.7 s
+(9x brighter), everyone flinches and runs (into the sea or into the towers). Time-lapse: umbrellas and palms burn, the
+street hits 1,600°F, every car burns, the rock glows, the sea steams and boils away (1 m, 10 m, 100 m: the bay floor is
+bared out to the horizon), the towers sag and fall, the fireball swallows Mercury and Venus and fills half the sky; the
+blast hits Earth at 4:08:13; white, loop. (A pretend explosion: the Sun is too small to really go supernova.)
+
+**YouTube title (83 chars, emoji counted as 2)**
+What if the Sun exploded? Its light takes 8 min 20 s to reach you ☀️ #whatif #space
+
+**YouTube description**
+The Sun explodes. Its light takes 8 minutes 20 seconds to reach you. Then:
+
+9x brighter: your skin burns in seconds. Everyone runs.
+50x: umbrellas and palm trees catch fire.
+The street hits 1,600°F. Every car burns.
+1,000x: the rock itself glows. The sea starts to boil.
+The sea drops 1 meter, then 10, then 100, and the ocean drains to the horizon.
+Mercury is swallowed. Then Venus.
+4 hours 8 minutes after the explosion, the blast hits Earth.
+
+Where would you hide? 👇
+
+#whatif #sun #space #simulation
+
+Cover: `week 3/sun-explodes/out/sun-explodes_v4_cover.png` (`node render.mjs --cover 50`: the giant boiling Sun over the drained, glowing bay, a Cagarras island standing up out of it)
+
+## Next Short. You fall into a black hole — `week 3/black-hole-fall/out/black-hole-fall_v4_1080x1920_60fps_tiktok.mp4`
+
+63.9 s. You (a spacesuit) fall into Sagittarius A* (4 million Suns), the lensed disk huge on frame 0; the counter races the
+distance to the edge with "AT 0 KM: NO WAY BACK"; a gold stamp every 5 s as you pass 30%, 40% ... 90% of light speed. A
+cut to how it looks from far away (you freeze at the edge and fade red), then THE EDGE: 26 s left to the center in real
+time, the universe shrinks to a circle above you, thrusters only make it faster, you're stretched thinner than a hair;
+white, loop. Music soundtrack.
+
+**YouTube title (92 chars, emoji counted as 2)**
+What if you fell into a black hole? Past the edge, nothing can save you 🕳️ #blackhole #space
+
+**YouTube description**
+You fall into Sagittarius A*, the black hole at the center of our galaxy: 4 million Suns.
+Every few seconds you're 10% closer to the speed of light.
+Seen from far away, you'd freeze at the edge and fade to red.
+For you, there's no wall: from the edge to the center takes 26 seconds, in real time.
+Firing your thrusters only gets you there faster.
+
+Would you look back at the shrinking universe, or straight down? 👇
+
+#blackhole #space #physics #whatif #shorts
+
+Cover: `week 3/black-hole-fall/out/black-hole-fall_v4_cover.png` (`node render.mjs --cover 4.5`: the huge black hole, its disk arching over the top, you falling in at the lower right)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
