@@ -8,7 +8,7 @@ import { rng } from './util.js';
 export function makeGojo(scene) {
   const M = (c, r = 0.75, extra = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, ...extra });
   const navy = M(0x232c48, 0.62), navy2 = M(0x2a3352, 0.6), skin = M(0xf0d2bd, 0.55), shoe = M(0x0c0c0e, 0.4),
-    hair = M(0xf5f7fb, 0.6, { emissive: new THREE.Color(0.18, 0.2, 0.24) }), band = M(0x060608, 0.5),
+    hair = M(0xe8ecf2, 0.6, { emissive: new THREE.Color(0.08, 0.09, 0.11) }), band = M(0x060608, 0.5),
     eye = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 5.5, 9.0) }), button = M(0xb8a060, 0.3, { metalness: 0.8 });
   const mats = [navy, navy2, skin, shoe, hair, band, button];
   // a faint cool rim on his outline, so he reads against the lit towers at night

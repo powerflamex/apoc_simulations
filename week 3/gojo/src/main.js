@@ -18,7 +18,7 @@ import { PEOPLE, personPose } from './people.js';
 import { updateCuts } from './cuts.js';
 import { makeOverlay } from './overlay.js';
 import { state, beatAt, VIDEO_DURATION, LOOP, GOJO, BLUE, CAM0, V_RELEASE, BALL_LAND, V_RED_FORM, V_RED, V_RED_HIT, RED_P1, PURPLES, purpleAt,
-  V_SIGN, V_DOMAIN, V_INSIDE, V_WHITE, voidR, blueOn } from './timeline.js';
+  V_SIGN, V_DOMAIN, V_INSIDE, V_WHITE, voidR, blueOn, V_LAUNCH, V_LAND, throwK } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -132,8 +132,14 @@ function gojoPose(v) {
   const q = { x: GOJO.x, y: GOJO.y + 0.12 * Math.sin(v * 1.3) + 1.2 * smooth(V_DOMAIN, V_DOMAIN + 6, v), z: GOJO.z, yaw: keyed(YAW, v),
     lean: 0.04, sh: [0.12, 0.12], shOut: [0.1, 0.1], el: [0.25, 0.25], hip: [0.06, 0.24], knee: [0.12, 0.5], head: 0.05, fing: [0, 0], wrist: [0, 0], blind: 0 };
   // Blue: right hand out toward the point below him, two fingers up
-  const kB = smooth(-3, -2, v) * (1 - smooth(12.9, 13.5, v));
-  q.sh[1] = lerp(q.sh[1], 0.75, kB); q.shOut[1] = lerp(q.shOut[1], 0.75, kB); q.el[1] = lerp(q.el[1], 0.15, kB); q.fing[1] = kB; q.head = lerp(q.head, 0.28, kB); q.headYaw = 0.35 * kB;
+  // Blue in his right hand, held up in front of him (palm up), then thrown down toward the street at V_LAUNCH
+  const kHold = 1 - smooth(V_LAUNCH - 0.05, V_LAUNCH + 0.15, v);
+  const kB = (1 - kHold) * (1 - smooth(12.9, 13.5, v));
+  q.sh[1] = lerp(q.sh[1], 0.25, kHold); q.shOut[1] = lerp(q.shOut[1], 0.38, kHold); q.el[1] = lerp(q.el[1], 1.05, kHold); q.wrist[1] = lerp(0, -0.7, kHold);
+  q.head = lerp(q.head, 0.12, kHold);
+  q.sh[1] = lerp(q.sh[1], 0.55, kB); q.shOut[1] = lerp(q.shOut[1], 0.7, kB); q.el[1] = lerp(q.el[1], 0.1, kB); q.fing[1] = Math.max(q.fing[1], kB); q.head = lerp(q.head, 0.3, kB); q.headYaw = 0.35 * kB;
+  q.sh[1] -= 0.35 * Math.exp(-Math.max(0, v - V_LAUNCH) / 0.18) * (v > V_LAUNCH ? 1 : 0);   // (the throw)
+  q.lean += 0.1 * Math.exp(-Math.max(0, v - V_LAUNCH) / 0.3) * (v > V_LAUNCH ? 1 : 0);
   q.t = v;
   q.lean += 0.04 * Math.sin(v * 0.9 + 0.5); q.roll = 0.035 * Math.sin(v * 0.7);
   q.hip[0] += 0.08 * Math.sin(v * 1.1); q.hip[1] += 0.08 * Math.sin(v * 1.1 + 1.7); q.knee[1] += 0.1 * Math.sin(v * 1.3);
@@ -174,29 +180,33 @@ const side1 = new THREE.Vector3(-P1.d.z, 0, P1.d.x);   // to his right-hand side
 if (side1.x < 0) side1.multiplyScalar(-1);
 function shotAt(v) {
   const k = (a, b) => smooth(a, b, v);
-  if (v < 1.7) {
-    // down on the avenue: people running past you, Blue ripping cars up off the street on his right, and him
-    // above it all against the sky and the moon
-    const t = k(-1.5, 1.7);
-    const p = new THREE.Vector3(lerp(0.3, 0, t), 1.75, lerp(-46.5, -49, t)), fov = Math.exp(lerp(Math.log(50), Math.log(34), t));
-    const aim = new THREE.Vector3(lerp(GOJO.x, BLUE.x, 0.5), GOJO.y + 1.6, lerp(GOJO.z, BLUE.z, 0.5));
-    return { pos: v3.copy(p), look: v4.copy(framed(p, aim, fov, 0.14)), fov, hand: 0.8 };
-  }
-  if (v < 3.6) {
-    // the long lens up at him from the street: silhouetted on the sky, the moon behind him
-    const t = k(1.7, 3.6);
-    // (from just west of the avenue's middle, so the line up to him passes clear of the thick of the debris round Blue)
-    const p = new THREE.Vector3(lerp(-3.4, -2.8, t), lerp(9.5, 10.5, t), lerp(-61, -63, t)), fov = lerp(24, 21, t);
-    return { pos: v3.copy(p), look: v4.copy(framed(p, Gc(1.0), fov, 0.16)), fov, hand: 0.4 };
+  if (v < 4.4) {
+    // close on him (knees up, a little below him, the night sky behind), Blue crackling in his hand; as he throws
+    // it the camera pulls back fast and down, following it to the street, and ends on the avenue: the cars and
+    // the debris spiralling up into it, him above against the sky
+    const pClose = new THREE.Vector3(lerp(0.9, 0.55, k(-1.5, 1.3)), GOJO.y + 1.0, GOJO.z + lerp(4.5, 4.1, k(-1.5, 1.3)));
+    const pWide = new THREE.Vector3(lerp(0.2, 0, k(3.2, 4.4)), 1.75, lerp(-47.5, -49.5, k(3.2, 4.4)));
+    const m = k(1.3, 3.4), mp = m * m * (3 - 2 * m);
+    const p = pClose.clone().lerp(pWide, mp);
+    p.y += 6 * Math.sin(Math.PI * m) * 0;   // (straight back and down)
+    const fov = Math.exp(lerp(Math.log(28.5), Math.log(36), m));
+    const aimWide = new THREE.Vector3(lerp(GOJO.x, BLUE.x, 0.5), GOJO.y + 1.6, lerp(GOJO.z, BLUE.z, 0.5));
+    const lClose = framed(pClose, Gc(1.85), 28.5, 0.12);   // (his head just above the title)
+    // while it flies: between him and the orb, then onto the street where it opens, then the wide framing
+    const orbP = Gc(1.1).lerp(new THREE.Vector3(BLUE.x, BLUE.y, BLUE.z), throwK(v));
+    const lMid = Gc(1.2).lerp(orbP, 0.8);
+    const lWide = framed(p, aimWide, fov, 0.14);
+    const look = lClose.lerp(lMid, smooth(0.0, 0.35, m)).lerp(lWide, smooth(0.55, 1, m));
+    return { pos: v3.copy(p), look: v4.copy(look), fov, hand: lerp(0.35, 0.8, m) };
   }
   if (v < 8.3) {
     // you, at the curb: the street being pulled up into the point over it
-    const t = k(3.6, 8.3);
-    return { pos: v3.set(CAM0.x, CAM0.y, CAM0.z), look: v4.set(lerp(3, 4, t), lerp(16, 19, t), lerp(-76, -88, t)), fov: lerp(46, 42, t), hand: 1 };
+    const t = k(4.4, 8.3);
+    return { pos: v3.set(CAM0.x, CAM0.y, CAM0.z), look: v4.set(lerp(3, 4, t), lerp(12, 15, t), lerp(-76, -88, t)), fov: lerp(46, 42, t), hand: 1 };
   }
   if (v < 12.9) {
     const t = k(8.3, 12.9);
-    return { pos: v3.set(lerp(-9.5, -8.0, t), lerp(1.3, 1.8, t), lerp(-27, -31, t)), look: v4.set(BLUE.x, lerp(13, 16, t), BLUE.z), fov: lerp(58, 50, t), hand: 0.8 };
+    return { pos: v3.set(lerp(-9.5, -8.0, t), lerp(1.3, 1.8, t), lerp(-27, -31, t)), look: v4.set(BLUE.x, lerp(9, 12, t), BLUE.z), fov: lerp(58, 50, t), hand: 0.8 };
   }
   if (v >= 15.2 && v < 18.7) {
     // from high behind him: Red flies up the avenue, everything thrown aside, the tower hit
@@ -206,7 +216,7 @@ function shotAt(v) {
   if (v < 18.7) {
     // you: the ball comes down, he turns, Red forms on his fingertip
     const z = 0;
-    const look = new THREE.Vector3(lerp(BLUE.x * 0.6, 0, k(12.9, 14.6)), lerp(12, 22, k(12.9, 14.6)), lerp(-82, -92, k(12.9, 14.6))).lerp(new THREE.Vector3(0, 70, -760), z);
+    const look = new THREE.Vector3(lerp(BLUE.x * 0.6, 0, k(12.9, 14.6)), lerp(8, 22, k(12.9, 14.6)), lerp(-82, -92, k(12.9, 14.6))).lerp(new THREE.Vector3(0, 70, -760), z);
     return { pos: v3.set(CAM0.x, CAM0.y, CAM0.z), look: v4.copy(look), fov: Math.exp(lerp(Math.log(50), Math.log(24), z)), hand: 1 };
   }
   if (v < 22.8) {
@@ -273,6 +283,7 @@ function update(v, cover = -1) {
   let punch = 0;
   if (b && !window.__cover) { punch = smooth(0, 0.05, b.dt) * Math.exp(-Math.max(0, b.dt - 0.05) * 5); shake += 1.5 * punch; }
   if (v > BALL_LAND && v < BALL_LAND + 1) shake += 1.4 * Math.exp(-(v - BALL_LAND) / 0.25);
+  if (v > V_LAND && v < V_LAND + 1.2) shake += 1.6 * Math.exp(-(v - V_LAND) / 0.3);
   shake *= sh.hand;
   camera.position.copy(sh.pos);
   camera.position.x += wobble(v * 0.5, 2) * 0.05 + wobble(v * 13, 1) * 0.05 * shake;
@@ -308,7 +319,7 @@ function update(v, cover = -1) {
   // a soft key light just in front of him, toward the camera (its reach ends a few metres off)
   gojo.headPos(tv);
   gojoFill.position.copy(tv).addScaledVector(camera.position.clone().sub(tv).normalize(), 2.6).add(new THREE.Vector3(0, 1.2, 0));
-  gojoFill.intensity = s.inside ? 14 : 26;
+  gojoFill.intensity = s.inside ? 14 : 12;
   // in the void his outline is lit by the ring behind him
   ringLight.intensity = s.inside ? 3.0 : 0;
   ringLight.position.copy(camera.position).addScaledVector(vd.U.uC.value, 1000);

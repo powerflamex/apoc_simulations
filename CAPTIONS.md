@@ -564,7 +564,8 @@ Cover: `week 3/grow-trillion/out/grow-trillion_v4_cover.png` (`node render.mjs -
 ## Next Short. Gojo attacks your city — `week 3/gojo/out/gojo_v4_1080x1920_60fps_tiktok.mp4`
 
 61.4 s (all sound made in the code: no anime audio, so no claim risk). A downtown avenue at night; Gojo floats 80 ft over
-it. Frame 0: Blue is already ripping cars off the street (counter "DOMAIN EXPANSION IN 42.00 s", "14 CARS PULLED IN").
+it. v3 (Oct 22, owner's ask): frame 0 is Gojo close up and big, Blue glowing in his raised hand, counter racing from
+"DOMAIN EXPANSION IN 42.00 s"; at 1.5 s he throws it and the camera pulls back down to the street, where it lands at 2.3 s.
 Blue crushes 98 cars into a ball, Red flies up the avenue and blows a 40-story tower in half, Hollow Purple cuts a 3-mile
 trench, a second one misses you by 60 ft, then Domain Expansion: Unlimited Void (years of information racing up); white, loop.
 

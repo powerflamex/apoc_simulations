@@ -1,7 +1,8 @@
 // "What if Gojo attacked your city?" — the story as functions of VIDEO time v (seconds), real time throughout.
 // You stand at the curb of a downtown avenue at dusk. Gojo floats 85 ft over the street, 100 m up the avenue,
 // and works through his techniques, each bigger than the last, counting down to his Domain Expansion:
-//   BLUE (already pulling for 5.5 s at frame 0): a point of attraction 16 m over the street, off his right hand. Its reach grows to 58 m; whatever
+//   BLUE: at the first frame it glows in his right hand; at 1.5 s he throws it down toward the street; it lands
+//     0.8 s later 11 m over the avenue, off to his right, and opens. Its reach grows to 58 m; whatever
 //     it reaches is torn loose (closest first) and dragged along a spiral into it, crushed into one ball.
 //   RED: a point of repulsion fired up the avenue at 500 m/s (1,100 mph); everything near its path is thrown
 //     outward, every window it passes bursts, and it blows the tower at the end of the avenue in half.
@@ -15,14 +16,17 @@ import { smooth, clamp, lerp } from './util.js';
 export const STORY_START = 0;
 export const FT = 0.3048;
 export const GOJO = { x: 0, y: 25, z: -95 };     // his feet (he is 1.9 m tall)
-export const BLUE = { x: 8, y: 16, z: -86 };
+export const BLUE = { x: 8, y: 11, z: -86 };
 export const CAM0 = { x: 12.6, y: 1.66, z: 4 };    // you, at the east curb
 
 // ---- Blue ----
-export const V_BLUE0 = -5.5;                       // it opened before the first frame
+export const V_LAUNCH = 1.5, V_LAND = 2.3;           // he throws it; it reaches its spot and opens
+export const V_BLUE0 = V_LAND;
 export const V_RELEASE = 12.9;                     // he lets go: the ball drops
 export const BLUE_MAX = 58;
-export const blueR = (v) => v < V_BLUE0 ? 0 : 4 + (BLUE_MAX - 4) * Math.pow(smooth(V_BLUE0, 10.4, v), 0.85);
+// (it opens fast: the reach jumps out in the first second, then keeps growing to its full 58 m at 10.4 s)
+const RK = (v) => (1 - Math.exp(-(v - V_BLUE0) / 2.4)) / (1 - Math.exp(-(10.4 - V_BLUE0) / 2.4));
+export const blueR = (v) => v < V_BLUE0 ? 0 : 4 + (BLUE_MAX - 4) * clamp(RK(v));
 // time when the reach first gets to distance d (inverse of blueR, by bisection)
 export function vBlueAt(d) {
   if (d <= 4) return V_BLUE0;
@@ -31,8 +35,10 @@ export function vBlueAt(d) {
   for (let i = 0; i < 40; i++) { const m = (a + b) / 2; if (blueR(m) < d) a = m; else b = m; }
   return (a + b) / 2;
 }
-export const blueOn = (v) => smooth(V_BLUE0, V_BLUE0 + 0.8, v) * (1 - smooth(V_RELEASE - 0.1, V_RELEASE + 0.25, v));
-export const BALL_LAND = V_RELEASE + Math.sqrt(2 * (BLUE.y - 5) / 9.8);   // it falls 12 m to the street (it is ~5 m round)
+export const blueOn = (v) => smooth(V_LAND - 0.05, V_LAND + 0.3, v) * (1 - smooth(V_RELEASE - 0.1, V_RELEASE + 0.25, v));
+// the throw: 0 in his hand .. 1 landed (it speeds up on the way down)
+export const throwK = (v) => { const k = clamp((v - V_LAUNCH) / (V_LAND - V_LAUNCH)); return k * k * (0.4 + 0.6 * k) / 1.0; };
+export const BALL_LAND = V_RELEASE + Math.sqrt(2 * (BLUE.y - 3.2) / 9.8);   // it falls ~8 m to the street (it is 30 ft round)
 
 // ---- Red ----
 export const V_RED_FORM = 13.5, V_RED = 15.0;
@@ -80,7 +86,7 @@ export const yearsAt = (v) => Math.max(0, v - V_INSIDE) * 2.5;
 
 // ---- the beats: a stamp, a camera jolt, a boom ----
 export const BEATS = [
-  { v: 3.3, label: 'CURSED TECHNIQUE LAPSE', text: 'Blue', color: '#9cc8ff' },
+  { v: 3.4, label: 'CURSED TECHNIQUE LAPSE', text: 'Blue', color: '#9cc8ff' },
   { v: BALL_LAND, label: 'CRUSHED', text: '3,000 tons', color: '#9cc8ff', small: true },
   { v: V_RED, label: 'REVERSAL', text: 'Red', color: '#ff8a7a' },
   { v: V_RED_HIT, label: 'THE TOWER IS', text: 'hit', color: '#ff8a7a', small: true },
@@ -93,7 +99,7 @@ export function beatAt(v) { let b = null; for (const x of BEATS) if (x.v <= v) b
 // ---- captions ----
 export const CAPTIONS = [
   [0.3, 3.0, 'Gojo is floating 80 ft over your street.'],
-  [3.3, 5.6, 'Blue: a point of gravity the size of a fist.'],
+  [3.4, 5.6, 'Blue: a point of gravity the size of a fist.'],
   [5.8, 8.1, 'It rips a car off the street every half second.'],
   [8.3, 10.6, 'It tears the windows out of the towers.'],
   [10.8, 13.1, '{CARS} cars, crushed into a ball 30 ft wide.'],

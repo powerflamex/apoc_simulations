@@ -11,6 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { B, CARS, LAMPS, SIGNALS, SIGNS, SCREENS, WALK, FH } from './layout.js';
 import { cellsOf, redPerp, vRedAt, GLASS_R } from './city.js';
 import { vErased, erasedAt } from './cuts.js';
+import { V_LAUNCH, V_LAND, throwK } from './timeline.js';
 import { BLUE, GOJO, BLUE_MAX, vBlueAt, blueR, V_BLUE0, V_RELEASE, BALL_LAND, RED_LEN, redReach, redFront, V_RED, V_RED_FORM, V_RED_HIT,
   RED_P0, RED_P1, RED_SPEED, PURPLES, purpleAt, TALLY, setCarsPulled, V_DOMAIN } from './timeline.js';
 import { rng, smooth, clamp, lerp } from './util.js';
@@ -302,9 +303,9 @@ export function makeFx(scene, ctx, street) {
 
   // ---------- Hollow Purple ----------
   const purpleMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uK: { value: 1 } },
+    uniforms: { uTime: { value: 0 }, uK: { value: 1 }, uDeep: { value: new THREE.Color(0.16, 0.01, 0.7) }, uHot: { value: new THREE.Color(0.75, 0.25, 2.1) }, uEdge: { value: new THREE.Color(1.1, 0.3, 2.6) }, uScale: { value: 3 } },
     vertexShader: /* glsl */ `varying vec3 vN; varying vec3 vV; varying vec3 vP; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vN = normalize(mat3(modelMatrix) * normal); vV = normalize(cameraPosition - w.xyz); vP = position; gl_Position = projectionMatrix * viewMatrix * w; }`,
-    fragmentShader: /* glsl */ `uniform float uTime; uniform float uK; varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    fragmentShader: /* glsl */ `uniform float uTime; uniform float uK; uniform vec3 uDeep; uniform vec3 uHot; uniform vec3 uEdge; uniform float uScale; varying vec3 vN; varying vec3 vV; varying vec3 vP;
       float h3(vec3 p){ p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
       float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
         return mix(mix(mix(h3(i), h3(i+vec3(1,0,0)), f.x), mix(h3(i+vec3(0,1,0)), h3(i+vec3(1,1,0)), f.x), f.y), mix(mix(h3(i+vec3(0,0,1)), h3(i+vec3(1,0,1)), f.x), mix(h3(i+vec3(0,1,1)), h3(i+vec3(1,1,1)), f.x), f.y), f.z); }
@@ -313,12 +314,18 @@ export function makeFx(scene, ctx, street) {
         vec3 p = vP * 3.0;
         float sw = n3(p + vec3(uTime * 1.3, -uTime * 0.9, uTime)) * 0.6 + n3(p * 2.3 - uTime * 2.1) * 0.4;
         float bands = 0.5 + 0.5 * sin((vP.y + sw * 0.6) * 18.0 + uTime * 6.0);
-        vec3 deep = vec3(0.16, 0.01, 0.7), hot = vec3(0.75, 0.25, 2.1);
-        vec3 c = mix(deep, hot, pow(mu, 3.0) * 0.8 + sw * 0.3) + vec3(1.1, 0.3, 2.6) * pow(1.0 - mu, 2.5) * 0.9;
+        vec3 deep = uDeep, hot = uHot;
+        vec3 c = mix(deep, hot, pow(mu, 3.0) * 0.8 + sw * 0.3) + uEdge * pow(1.0 - mu, 2.5) * 0.9;
         c *= 0.45 + 0.95 * bands;
         c += vec3(0.9, 0.6, 1.6) * smoothstep(0.93, 1.0, n3(vP * 9.0 + uTime * 4.0)) * 2.0;
         gl_FragColor = vec4(c * uK, 1.0); }`,
   });
+  // Blue in his hand / on its way down: a small swirling ball of blue light (the same look as Purple's sphere)
+  const blueBallMat = purpleMat.clone();
+  blueBallMat.uniforms.uDeep.value.setRGB(0.01, 0.06, 0.4); blueBallMat.uniforms.uHot.value.setRGB(0.22, 0.6, 1.25); blueBallMat.uniforms.uEdge.value.setRGB(0.25, 0.6, 1.6);
+  const blueBall = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), blueBallMat);
+  blueBall.visible = false;
+  scene.add(blueBall);
   const purples = PURPLES.map(() => {
     const m = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), purpleMat);
     const h = new THREE.Mesh(quad, haloMat([0.8, 0.25, 1.5], 0.4));
@@ -390,13 +397,44 @@ export function makeFx(scene, ctx, street) {
       // ---- Blue ----
       const bOn = s.blueOn;
       const pulse = 1 + 0.12 * Math.sin(v * 23) + 0.08 * Math.sin(v * 37);
-      blueCore.visible = bOn > 0.01;
+      // where the point is: in his hand, on its way down (an arc), or at its spot over the street
+      const tk = throwK(v);
+      gojo.handPos(1, tv2); tv2.y += 0.12; tv2.z += 0.08;
+      const orb = tv.copy(tv2).lerp(Bv, tk);
+      orb.y += 3.0 * Math.sin(Math.PI * Math.min(tk, 1)) * (1 - tk);
+      const landed = v >= V_LAND && v < V_RELEASE + 0.3;
+      const flare = v >= V_LAND ? Math.exp(-(v - V_LAND) / 0.18) : 0;   // it opens with a flash
+      const inHand = v < V_LAND;
+      const size = inHand ? 0.065 + 0.09 * tk : 1;
+      blueCore.visible = inHand || bOn > 0.01;
       // (kept to a sensible size on screen through a long lens)
-      const frameH = 2 * cam.position.distanceTo(Bv) * Math.tan(cam.fov * Math.PI / 360);
-      blueCore.position.copy(Bv); blueCore.scale.setScalar(Math.min(0.4, 0.014 * frameH) * pulse * (0.4 + 0.6 * bOn));
-      blueHalo.visible = bOn > 0.01;
-      blueHalo.position.copy(Bv); blueHalo.scale.setScalar(Math.min(4 + 1 * Math.sin(v * 3), 0.13 * frameH)); blueHalo.material.uniforms.uTime.value = v; blueHalo.material.uniforms.uK.value = bOn;
-      blueLight.intensity = 750 * bOn * pulse;
+      const frameH = 2 * cam.position.distanceTo(orb) * Math.tan(cam.fov * Math.PI / 360);
+      blueCore.material.color.setRGB(2.2, 4.5, 8);
+      blueBall.visible = inHand; blueBall.position.copy(orb); blueBall.scale.setScalar(size * (1 + 0.06 * Math.sin(v * 17)));
+      blueBallMat.uniforms.uTime.value = v * 1.6;
+      blueCore.position.copy(orb); blueCore.scale.setScalar(inHand ? size * 0.3 * pulse : Math.min(0.4, 0.014 * frameH) * pulse * (0.4 + 0.6 * bOn));
+      blueHalo.visible = blueCore.visible;
+      blueHalo.position.copy(orb); blueHalo.scale.setScalar(inHand ? 0.32 + 1.6 * tk : Math.min(4 + 1 * Math.sin(v * 3), 0.13 * frameH) * (1 + 1.5 * flare));
+      blueHalo.material.uniforms.uTime.value = v; blueHalo.material.uniforms.uK.value = inHand ? 0.22 + 0.5 * tk : bOn + 2 * flare;
+      blueLight.position.copy(orb);
+      blueLight.intensity = inHand ? 0.6 + 60 * tk * tk : 750 * bOn * pulse + 4000 * flare;
+      // sparks crackling round it and spiralling in (in his hand, and as it flies)
+      if (inHand) for (let j = 0; j < 36; j++) {
+        const ph = (v * (0.9 + 0.3 * ((j * 0.37) % 1)) + j * 0.618) % 1;
+        const r = (0.12 + 0.9 * (1 - ph) * (1 - ph)) * (1 + 3 * tk);
+        const a = j * 2.399 + ph * 9 * (j % 2 ? 1 : -1), b = Math.sin(j * 1.7) * 1.2;
+        glows.add(orb.x + Math.cos(a) * Math.cos(b) * r, orb.y + Math.sin(b) * r * 0.7, orb.z + Math.sin(a) * Math.cos(b) * r, 0.035 + 0.03 * ph, 0.6 * ph + 0.2, 1.1 * ph + 0.3, 2.2 * ph + 0.5);
+      }
+      // its trail on the way down: where it was a moment ago
+      if (v > V_LAUNCH && inHand) {
+        gojo.handPos(1, tv2); tv2.y += 0.12; tv2.z += 0.08;
+        for (let j = 1; j < 28; j++) {
+          const kk = throwK(v - j * 0.01), q = j / 28;
+          const x = tv2.x + (Bv.x - tv2.x) * kk, z = tv2.z + (Bv.z - tv2.z) * kk;
+          const y = tv2.y + (Bv.y - tv2.y) * kk + 3.0 * Math.sin(Math.PI * kk) * (1 - kk);
+          glows.add(x, y, z, 0.35 * (1 - q) + 0.05, 0.35 * (1 - q), 0.7 * (1 - q), 1.6 * (1 - q));
+        }
+      }
       SU.uBlueL.value = bOn;
       // the ball: grows in the point, dropped when he lets go, a crater where it lands
       const bR = ballAt(Math.min(v, V_RELEASE));
@@ -411,6 +449,15 @@ export function makeFx(scene, ctx, street) {
       }
       BALL_U.uGlow.value = v < V_RELEASE ? 1 : Math.exp(-(v - V_RELEASE) / 2.5) + 0.05;
       SU.uCrater.value = smooth(BALL_LAND, BALL_LAND + 0.15, v);
+      // where it opens: a shock ring of dust off the street below it
+      if (v > V_LAND && v < V_LAND + 3) {
+        const dt = v - V_LAND;
+        for (let j = 0; j < 30; j++) {
+          const a = j / 30 * 6.283 + Math.sin(j * 2.7);
+          const r = 3 + 26 * (1 - Math.exp(-dt * 2.2)) * (0.8 + 0.2 * Math.sin(j * 1.3));
+          smoke.puff(BLUE.x + Math.cos(a) * r, 1.2 + 1.5 * dt, BLUE.z + Math.sin(a) * r, 2.5 + 3 * dt, 0.5 * Math.exp(-dt / 1.2), 0.42, 0.15 * Math.exp(-dt * 4), j * 0.21 + 7);
+        }
+      }
       // dust where it lands
       if (v > BALL_LAND && v < BALL_LAND + 6) {
         const dt = v - BALL_LAND;

@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, LOOP, BALL_LAND, V_RELEASE, V_RED_FORM, V_RED, V_RED_HIT, PURPLES, V_SIGN, V_DOMAIN, V_INSIDE, V_WHITE, T_SWITCH,
-  blueOn, blueR, BLUE_MAX } from './src/timeline.js';
+  blueOn, blueR, BLUE_MAX, V_LAUNCH, V_LAND } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -53,9 +53,9 @@ export function makeSoundtrack(outFile) {
   const white = () => R0() * 2 - 1;
 
   // braam hits: [time, strength, root Hz]
-  const HITS = [[3.3, 0.6, 55], [V_RED, 0.75, 49], [V_RED_HIT, 0.55, 46.25], [P1.fire, 1.0, 41.2], [P2.fire, 1.1, 36.7], [V_DOMAIN, 1.2, 32.7]];
+  const HITS = [[V_LAND, 0.6, 55], [V_RED, 0.75, 49], [V_RED_HIT, 0.55, 46.25], [P1.fire, 1.0, 41.2], [P2.fire, 1.1, 36.7], [V_DOMAIN, 1.2, 32.7]];
   // low booms (soft thuds with a long rumble): [time, size, pan]
-  const BOOMS = [[BALL_LAND, 0.9, -0.1], [V_RED_HIT + 2.2, 1.3, 0], [P1.fire + 0.05, 0.8, 0.2], [P2.fire + 0.3, 1.4, -0.5], [V_DOMAIN, 1.0, 0]];
+  const BOOMS = [[V_LAND + 0.02, 1.0, 0.2], [BALL_LAND, 0.9, -0.1], [V_RED_HIT + 2.2, 1.3, 0], [P1.fire + 0.05, 0.8, 0.2], [P2.fire + 0.3, 1.4, -0.5], [V_DOMAIN, 1.0, 0]];
   for (let i = 0; i < 9; i++) BOOMS.push([P1.fire + 1.2 + i * 0.45 + R0() * 0.2, 0.25 + R0() * 0.2, R0() * 1.4 - 0.7]);   // the tops landing in the trench
   // drone chords (Hz): D minor -> Bb -> G minor -> a dark cluster in the void
   const CHORDS = [[-2, [73.42, 110, 146.83, 174.61]], [V_RED_FORM, [58.27, 87.31, 116.54, 146.83]], [P1.form0, [49, 73.42, 98, 116.54]], [V_DOMAIN, [43.65, 65.41, 87.31, 92.5]]];
@@ -69,6 +69,7 @@ export function makeSoundtrack(outFile) {
   grains.sort((a, b) => a.t - b.t);
 
   const ph = new Float64Array(16);
+  let humHandPh = 0;
   let brownL = 0, brownR = 0, subPh = 0, whinePh = 0, humPh = [0, 0, 0], padPh = [0, 0, 0, 0, 0];
   const braamPh = [0, 0, 0, 0];
   const cityL = new OnePole(250), cityR = new OnePole(280);
@@ -105,6 +106,11 @@ export function makeSoundtrack(outFile) {
     groanPh += (62 + 18 * Math.sin(t * 0.9) - 10 * Math.sin(t * 3.7)) / SR;
     const groan = groanF.run(saw(groanPh) + 0.5 * saw(groanPh * 1.49), 300, 0.9).lp * suck * 0.08 * (0.5 + 0.5 * Math.sin(t * 1.3));
 
+    // ---- Blue in his hand: a soft, pulsing electric hum (it stops when it is thrown) ----
+    humHandPh += 98 / SR;
+    const handG = 0.05 * (1 - smooth(V_LAUNCH, V_LAUNCH + 0.4, t)) * (t < V_LAND ? 1 : 0) * (0.7 + 0.3 * Math.sin(t * 23));
+    const handHum = (Math.sin(TAU * humHandPh) * 0.6 + Math.sin(TAU * humHandPh * 2.01) * 0.3 + Math.sin(TAU * humHandPh * 3.02) * 0.15) * handG;
+
     // ---- Red: the charging whine ----
     let whine = 0;
     if (t > V_RED_FORM && t < V_RED + 0.3) {
@@ -115,9 +121,10 @@ export function makeSoundtrack(outFile) {
     // the whoosh as it goes, and the roar of Purple going past
     let roarG = 0;
     roarG += 0.5 * env(t - V_RED, 0.05, 0.8);
+    roarG += 0.55 * (t > V_LAUNCH - 0.05 && t < V_LAND + 0.4 ? Math.sin(Math.PI * clamp((t - V_LAUNCH + 0.05) / (V_LAND - V_LAUNCH + 0.45))) ** 2 : 0);   // (the throw: a whoosh down)
     roarG += 0.9 * env(t - P1.fire, 0.1, 1.6);
     roarG += 1.4 * env(t - (P2.fire + 0.1), 0.15, 1.2);
-    const roarFc = 300 + 1500 * env(t - V_RED, 0.05, 0.5) + 800 * env(t - P2.fire, 0.2, 0.8);
+    const roarFc = 300 + 1500 * env(t - V_RED, 0.05, 0.5) + 800 * env(t - P2.fire, 0.2, 0.8) + (t > V_LAUNCH - 0.05 && t < V_LAND + 0.4 ? 1400 * (1 - clamp((t - V_LAUNCH) / (V_LAND - V_LAUNCH + 0.4))) : 0);
     const roar = roarF.run(white(), roarFc, 0.5).bp * roarG * 0.6;
     const roarPan = t > P2.fire - 0.2 && t < P2.fire + 2.5 ? -0.7 : 0;
     // the glass: a soft rushing shimmer (no clicks)
@@ -196,8 +203,8 @@ export function makeSoundtrack(outFile) {
     const duck = 1 - 0.75 * smooth(V_SIGN, V_SIGN + 0.6, t) * (1 - smooth(V_DOMAIN - 0.05, V_DOMAIN + 0.05, t));
 
     const bpN = clamp(boomPanSum, -0.8, 0.8);
-    let l = (cl + crw * 0.8 + wl + sub + groan + roar * (1 - roarPan) + glass * 0.8 + hum + hiss + dl + braam + whine) * duck + boom * (1 - bpN * 0.5) + pad + gl + riser;
-    let r = (cr + crw + wr + sub + groan + roar * (1 + roarPan) + glass + hum + hiss * 0.9 + dr + braam + whine) * duck + boom * (1 + bpN * 0.5) + pad * 0.95 + gr + riser;
+    let l = (cl + crw * 0.8 + wl + sub + groan + roar * (1 - roarPan) + glass * 0.8 + hum + hiss + dl + braam + whine + handHum) * duck + boom * (1 - bpN * 0.5) + pad + gl + riser;
+    let r = (cr + crw + wr + sub + groan + roar * (1 + roarPan) + glass + hum + hiss * 0.9 + dr + braam + whine + handHum) * duck + boom * (1 + bpN * 0.5) + pad * 0.95 + gr + riser;
     const wet = (dl + dr) * 0.5 + braam * 0.8 + pad * 1.5 + (gl + gr) * 1.2 + boom * 0.2;
     l += revL.run(wet * 0.5) * 0.9; r += revR.run(wet * 0.5) * 0.9;
     if (n < 0) { PL[n + N0] = l; PR[n + N0] = r; } else { L[n] = l; R[n] = r; }
