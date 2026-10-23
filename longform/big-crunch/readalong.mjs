@@ -20,14 +20,14 @@ const WPS = 2.4, GAP = 0.6;
 // line (its first words) -> the video time it starts at
 const ANCHORS = [
   ['In seven minutes', SEC.ff + 0.5],
-  ['This is the Big Crunch', SEC.demo + 0.6],
-  ['Every galaxy is flying', SEC.demo + 2.9],
-  ['In eleven billion years', SEC.dStop - 2.1],
-  ['And everything falls', SEC.dFall + 0.1],
-  ['Crushed into one', SEC.dCrunch - 2.1],
+  ['This is the Big Crunch', SEC.demo + 0.4],
+  ['Every galaxy is flying', SEC.demo + 3.3],
+  ['In eleven billion years', SEC.dStop - 2.2],
+  ['And everything falls', SEC.dFall - 0.2],
+  ['Crushed into one', SEC.dCrunch - 2.8],
   ['[wait', SEC.dCrunch],
-  ['And then, maybe, it all', SEC.dBang + 0.6],
-  ['A brand-new', SEC.dBang + 3.8],
+  ['And then, maybe, it all', SEC.dBang - 2.6],   // (the bang goes off on "explodes")
+  ['A brand-new', SEC.dBang + 2.0],
   ['In 2025', SEC.walk + 0.6],
   ['And imagine you could stand', SEC.lapse - 1],
   ['The first thing you', SEC.andro],

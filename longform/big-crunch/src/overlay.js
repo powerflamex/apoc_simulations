@@ -78,7 +78,7 @@ export function makeOverlay() {
 
     const n = s.name || 0;
     name.style.opacity = n.toFixed(3);
-    name.style.transform = `scale(${(1 + 0.12 * (1 - smooth(5.5, 6.2, v))).toFixed(4)})`;
+    name.style.transform = `scale(${(1 + 0.12 * (1 - smooth(6.5, 7.2, v))).toFixed(4)})`;
 
     // the big word: pops in, holds, fades
     const b = beatAt(t);

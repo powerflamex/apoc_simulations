@@ -81,25 +81,25 @@ const CHORDS = [
   [SEC.dCrunch + 0.1, [], 0, 400],                   // [silence]: one point of light
   [SEC.dBang + 1.4, [50, 57, 62, 66, 71], 0.75, 1400], // a new universe: D6/9, bright
   [SEC.walk, [50, 54, 57, 62, 64], 0.7, 1000],       // the promenade at dusk: D(add9), warm
-  [54, [46, 50, 53, 57, 62], 0.9, 1300],    // Andromeda: Bbmaj7, wide and bright
-  [84.9, [58, 65, 70], 0.25, 2000],         // [silence]: only a high glint
-  [88, [41, 48, 53, 57, 60], 0.85, 1200],   // one ball of stars: Fmaj7
-  [94.5, [45, 52, 57, 60], 0.8, 900],       // the turn: A minor
-  [129, [43, 50, 55, 59, 62], 0.9, 1400],   // the galaxies come back: Gmaj7, rising
-  [144.6, [26, 38], 0.35, 220],             // [silence]: a low hum
-  [148, [48, 55, 60, 64], 0.75, 1100],      // no more dark: C major, open
-  [153, [45, 52, 57, 60, 64], 0.75, 900],   // the night gets warm: Am(add9)
-  [182, [41, 48, 53, 57, 64], 0.7, 1100],   // a summer night: Fmaj7
-  [194, [40, 47, 52, 55], 0.8, 800],        // boiling: E minor, darker
-  [208, [38, 45, 50, 51], 0.85, 600],       // the sky glows: Dm(b9), uneasy
-  [225, [33, 40, 45, 46], 0.9, 500],        // the ground melts: low and tight
-  [245, [33, 38, 39, 45], 0.85, 600],       // the fog of fire
-  [270, [38, 45, 50, 57, 64], 0.8, 1000],   // hotter than the Sun: open fifths
-  [296.5, [], 0, 400],                      // [silence]: Earth boils away
-  [300, [26, 38, 45], 0.55, 300],           // adrift: low
-  [325, [38, 45, 50, 57], 0.7, 700],        // everything
-  [341.5, [], 0, 400],                      // the squeeze, the crunch, the bang
-  [352, [50, 54, 57, 62, 66], 0.7, 1000],   // the seaside again: D major
+  [60, [46, 50, 53, 57, 62], 0.9, 1300],    // Andromeda: Bbmaj7, wide and bright
+  [90.9, [58, 65, 70], 0.25, 2000],         // [silence]: only a high glint
+  [94, [41, 48, 53, 57, 60], 0.85, 1200],   // one ball of stars: Fmaj7
+  [100.5, [45, 52, 57, 60], 0.8, 900],       // the turn: A minor
+  [135, [43, 50, 55, 59, 62], 0.9, 1400],   // the galaxies come back: Gmaj7, rising
+  [150.6, [26, 38], 0.35, 220],             // [silence]: a low hum
+  [154, [48, 55, 60, 64], 0.75, 1100],      // no more dark: C major, open
+  [159, [45, 52, 57, 60, 64], 0.75, 900],   // the night gets warm: Am(add9)
+  [188, [41, 48, 53, 57, 64], 0.7, 1100],   // a summer night: Fmaj7
+  [200, [40, 47, 52, 55], 0.8, 800],        // boiling: E minor, darker
+  [214, [38, 45, 50, 51], 0.85, 600],       // the sky glows: Dm(b9), uneasy
+  [231, [33, 40, 45, 46], 0.9, 500],        // the ground melts: low and tight
+  [251, [33, 38, 39, 45], 0.85, 600],       // the fog of fire
+  [276, [38, 45, 50, 57, 64], 0.8, 1000],   // hotter than the Sun: open fifths
+  [302.5, [], 0, 400],                      // [silence]: Earth boils away
+  [306, [26, 38, 45], 0.55, 300],           // adrift: low
+  [331, [38, 45, 50, 57], 0.7, 700],        // everything
+  [347.5, [], 0, 400],                      // the squeeze, the crunch, the bang
+  [358, [50, 54, 57, 62, 66], 0.7, 1000],   // the seaside again: D major
 ].map(([t, m, g, fc]) => ({ t, f: m.map(N), g, fc }));
 
 function loadVoice() {
@@ -107,11 +107,11 @@ function loadVoice() {
   if (!fs.existsSync(src)) return null;
   const raw = path.join(ROOT, 'out', 'voice_clean.f32');
   fs.mkdirSync(path.dirname(raw), { recursive: true });
-  // the Big Rip v3 clean-up (owner-approved): rumble out, the boom and mud cut a little, presence and air back, the
-  // hiss down, "s" sounds softened, firm compression so the voice stays up front
-  const fx = 'highpass=f=80:p=2,afftdn=nf=-50:nr=6:tn=1,equalizer=f=140:t=q:w=1:g=-3,equalizer=f=270:t=q:w=1:g=-5,' +
-    'equalizer=f=520:t=q:w=1.2:g=-3,equalizer=f=3300:t=q:w=0.9:g=4,treble=g=7:f=7000,deesser=i=0.3,' +
-    'acompressor=threshold=-28dB:ratio=4:attack=8:release=100:makeup=3';
+  // his Oct 22 take: very quiet room, warm low end (like the Big Rip's first take, which he liked) but dull on top
+  // (2-8 kHz 7-9 dB under it). So: rumble out, a light de-hiss, a touch less mud, presence and air back up, "s"
+  // sounds softened, firm compression so the voice stays up front
+  const fx = 'highpass=f=75:p=2,afftdn=nf=-55:nr=4:tn=1,equalizer=f=250:t=q:w=1:g=-2,equalizer=f=3200:t=q:w=1:g=4,' +
+    'treble=g=7:f=5000,deesser=i=0.3,acompressor=threshold=-28dB:ratio=3.5:attack=10:release=110:makeup=3';
   const tag = raw + '.fx';
   if (!fs.existsSync(raw) || fs.statSync(raw).mtimeMs < fs.statSync(src).mtimeMs || !fs.existsSync(tag) || fs.readFileSync(tag, 'utf8') !== fx) {
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-af', fx, '-ac', '1', '-ar', String(SR), '-f', 'f32le', raw]);

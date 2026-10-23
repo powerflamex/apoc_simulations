@@ -22,54 +22,54 @@ export const YR = 365.25 * 86400, DAY = 86400, HR = 3600, MIN = 60;
 // ---- sections (video time) ----
 export const SEC = {
   ff: 0,          // flash-forward: the city melting under the glowing sky (title on screen)
-  demo: 5,        // the whole universe from outside (src/demo.js): it grows ("This is the Big Crunch")
-  dStop: 13.0,    // it stops ("in eleven billion years, it stops")
-  dFall: 13.8,    // it falls back in, faster and faster
-  dCrunch: 18.3,  // one blazing point; [silence] black, one point of light
-  dBang: 19.6,    // a new Big Bang: a new universe bursts out
-  walk: 27.2,     // (through a white flash) the promenade at dusk, people out; the countdown starts
+  demo: 6,        // the whole universe from outside (src/demo.js): it grows ("This is the Big Crunch")
+  dStop: 14.8,   // it stops ("in eleven billion years, it stops")
+  dFall: 15.8,   // it falls back in, faster and faster
+  dCrunch: 21.0, // one blazing point (as he finishes "one single point"); [silence] black, one point of light
+  dBang: 24.6,   // a new Big Bang on "explodes" (its stressed "-plodes"): a new universe bursts out
+  walk: 30.8,    // (through a white flash) the promenade at dusk, people out; the countdown starts
   prom: 5,        // (the promenade's own clock starts here: its first 22 s are seen only in the closing shot)
-  lapse: 50,      // "imagine you could stand right here": time races, the people blur away, night for good
-  andro: 54,      // Andromeda grows night after night
-  aNight0: 63, aNight1: 71.5,   // a night with people out under it ("then it fills half the sky")
-  crash: 71,      // it crashes through the Milky Way
-  aHush: 84.7,    // [silence]
-  ball: 88.5,     // "the two galaxies just melt into one giant ball of stars"
-  turn: 94.5,     // nine billion years left: the universe stops growing
-  scope0: 99.5, scope1: 122.5,  // the telescope: a far galaxy's light, red -> white -> blue
-  white: 113.1, blue: 116.3,
-  back: 129,      // a billion years left: the galaxies come back
-  crash2: 139.1,  // a hundred million: they crash together
-  hush2: 144.5,   // [silence]
-  warm: 153,      // the night gets warm
-  freeze: 157.3,  // "space has always been freezing, -270"
-  squeeze: 169.9, // "that old heat gets squeezed back together"
-  ice: 176.7,     // sixteen million: warmer than ice
-  summer: 182.5,  // fifteen million: a summer evening (people out, no jackets)
-  wNight1: 192,
-  hot: 194.1,     // ten million: hotter than boiling water
-  boil: 199.9,    // the oceans boil away
-  glow: 208,      // three million: the sky glows
-  melt: 225,      // one million: the ground glows, melts
-  rise: 238,      // you rise and float over the lava
-  fog: 245,       // 400,000: atoms torn apart, a fog of fire
-  stars: 270,     // 100,000: hotter than the Sun's surface
-  look: 278,      // "look for the Sun"
-  sunGone: 280.4, // "it's gone"
-  earthGo: 294.6, // "Earth goes the same way" [silence]
-  space: 298,     // (cut, inside the even glow, to you adrift)
-  last3: 301,     // three minutes left: atoms' cores smashed
-  quark: 325,     // 1/100,000 s: protons melt
-  squash: 333,    // all of space squeezes into one point and drags you in
-  crunch: 343,    // [silence] black, one point of light
-  bang: 344.6,    // a new Big Bang
-  whiteout: 349,
-  end: 351,       // white clearing onto the promenade at dusk, as at the start; the closing lines
-  out: 387,
+  lapse: 56,      // "imagine you could stand right here": time races, the people blur away, night for good
+  andro: 60,      // Andromeda grows night after night
+  aNight0: 69, aNight1: 77.5,   // a night with people out under it ("then it fills half the sky")
+  crash: 77,      // it crashes through the Milky Way
+  aHush: 90.7,    // [silence]
+  ball: 94.5,     // "the two galaxies just melt into one giant ball of stars"
+  turn: 100.5,     // nine billion years left: the universe stops growing
+  scope0: 105.5, scope1: 128.5,  // the telescope: a far galaxy's light, red -> white -> blue
+  white: 119.1, blue: 122.3,
+  back: 135,      // a billion years left: the galaxies come back
+  crash2: 145.1,  // a hundred million: they crash together
+  hush2: 150.5,   // [silence]
+  warm: 159,      // the night gets warm
+  freeze: 163.3,  // "space has always been freezing, -270"
+  squeeze: 175.9, // "that old heat gets squeezed back together"
+  ice: 182.7,     // sixteen million: warmer than ice
+  summer: 188.5,  // fifteen million: a summer evening (people out, no jackets)
+  wNight1: 198,
+  hot: 200.1,     // ten million: hotter than boiling water
+  boil: 205.9,    // the oceans boil away
+  glow: 214,      // three million: the sky glows
+  melt: 231,      // one million: the ground glows, melts
+  rise: 244,      // you rise and float over the lava
+  fog: 251,       // 400,000: atoms torn apart, a fog of fire
+  stars: 276,     // 100,000: hotter than the Sun's surface
+  look: 284,      // "look for the Sun"
+  sunGone: 286.4, // "it's gone"
+  earthGo: 300.6, // "Earth goes the same way" [silence]
+  space: 304,     // (cut, inside the even glow, to you adrift)
+  last3: 307,     // three minutes left: atoms' cores smashed
+  quark: 331,     // 1/100,000 s: protons melt
+  squash: 339,    // all of space squeezes into one point and drags you in
+  crunch: 349,    // [silence] black, one point of light
+  bang: 350.6,    // a new Big Bang
+  whiteout: 355,
+  end: 357,       // white clearing onto the promenade at dusk, as at the start; the closing lines
+  out: 393,
 };
 export const VIDEO_DURATION = SEC.out;
-export const V_FF = 236.5;          // the flash-forward replays the city melting from this moment
-export const FF_LEN = 5;
+export const V_FF = 242.5;          // the flash-forward replays the city melting from this moment
+export const FF_LEN = 6;
 // (the space scene's names from the Short)
 export const V_ENGULF = SEC.space, V_CRUNCH = SEC.crunch;
 
@@ -102,7 +102,7 @@ const ANCH = [
   [SEC.andro, 17.6e9 * YR],
   [SEC.aNight0, 16.6e9 * YR],
   [SEC.aNight1, 15.6e9 * YR],
-  [77, 15.0e9 * YR],          // the crash ("in the next few billion years")
+  [83, 15.0e9 * YR],          // the crash ("in the next few billion years")
   [SEC.ball, 13e9 * YR],
   [SEC.turn, 9.0e9 * YR],
   [SEC.scope0, 8.4e9 * YR],
@@ -168,7 +168,7 @@ export const BEATS = [
   { v: SEC.dStop, w: 'It stops', k: '11 BILLION YEARS FROM NOW' },
   { v: SEC.dCrunch, w: 'The Big Crunch', k: '20 BILLION YEARS FROM NOW', quiet: true },
   { v: SEC.dBang + 0.15, w: 'A new Big Bang?', k: 'AND IT ALL STARTS AGAIN', quiet: true },
-  { v: 77, w: 'Andromeda', k: '15 BILLION YEARS LEFT' },
+  { v: 83, w: 'Andromeda', k: '15 BILLION YEARS LEFT' },
   { v: SEC.turn, w: 'Falling back', k: '9 BILLION YEARS LEFT' },
   { v: SEC.back, w: 'The galaxies', k: '1 BILLION YEARS LEFT' },
   { v: SEC.crash2, w: 'They crash', k: '100 MILLION YEARS LEFT' },
@@ -190,7 +190,7 @@ export function beatAt(v) {
 }
 // what comes next (the finish line under the counter)
 const NEXT = [
-  [0, 'ANDROMEDA'], [79, 'THE UNIVERSE STOPS GROWING'], [SEC.turn + 4, 'THE GALAXIES COME BACK'], [SEC.back + 4, 'THEY CRASH'],
+  [0, 'ANDROMEDA'], [85, 'THE UNIVERSE STOPS GROWING'], [SEC.turn + 4, 'THE GALAXIES COME BACK'], [SEC.back + 4, 'THEY CRASH'],
   [SEC.crash2 + 4, 'THE NIGHT GETS WARM'], [SEC.summer + 4, 'THE OCEANS BOIL'], [SEC.boil + 4, 'THE SKY GLOWS'],
   [SEC.glow + 7, 'THE GROUND MELTS'], [SEC.melt + 9, 'ATOMS'], [SEC.fog + 7, 'THE STARS'], [SEC.sunGone + 6, 'THE LAST 3 MINUTES'],
   [SEC.last3 + 4, 'EVERYTHING'], [SEC.squash, ''],
@@ -345,7 +345,7 @@ export function state(v) {
   s.flash = Math.max(s.flash, smooth(SEC.walk - 0.7, SEC.walk, v) * (1 - smooth(SEC.walk, SEC.walk + 0.9, v)));
   s.after = v >= SEC.end + 1 ? 1 : 0;
   s.fadeOut = smooth(SEC.out - 2.5, SEC.out, v);
-  s.title = 1 - smooth(5.0, 5.5, v);
-  s.name = smooth(5.5, 5.9, v) * (1 - smooth(10.5, 11.3, v));   // THE BIG CRUNCH, as the voice says it (5.6 s)
+  s.title = 1 - smooth(6.0, 6.5, v);
+  s.name = smooth(6.5, 6.9, v) * (1 - smooth(11.5, 12.3, v));   // THE BIG CRUNCH, as the voice says it (6.4 s)
   return s;
 }
