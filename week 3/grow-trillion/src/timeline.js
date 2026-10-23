@@ -1,0 +1,216 @@
+// "What if you grew 1 trillion times bigger?" — the story as functions of VIDEO time v (seconds; real time).
+// You grow 10x every 5 seconds: size s = 10^(0.5 + v / 5) (3.2x at frame 0, 1 trillion x at 57.5 s), keeping your
+// shape and your density (70 kg at 1x, so your mass goes up as s^3: 4x heavier every second). You can't get hurt.
+// You start in the middle of a downtown crossing (Chicago's grid, Lake Michigan 1.8 km east) at 2:30 PM, your
+// right foot at the origin. The physics that follows from your size and weight:
+//   your shoe (0.27 m at 1x) sweeps over the cars and corner buildings round you; every step is an earthquake;
+//   the rock under your soles fails when the pressure passes ~200 MPa (s ~ 17,500, 2 x 70 s^3 g / (0.06 s^2));
+//   you sink into the crust; Earth (12,742 km) is smaller than you at s = 7.3 million; you outweigh it at
+//   s = 44 million; at s ~ 300 million your gravity (hundreds of Earths, right under your shoe) crushes it;
+//   bigger than the Sun at 800 million, heavier than it at 3 billion; your outstretched hand grows over the Sun at
+//   s ~ 80 billion (the Sun stays where it is; you grow round it); a million Suns at 300 billion; at 1 trillion
+//   the Sun is a 1.4 mm grain of sand in your palm. (You'd collapse into a black hole at ~3 trillion.)
+import { smooth, clamp, lerp } from './util.js';
+
+export const STORY_START = 0;
+export const H0 = 1.75;                      // m, your height at 1x
+export const MASS0 = 70;                     // kg
+export const R_E = 6.371e6, R_SUN = 6.957e8, AU = 1.496e11, MOON_DIST = 3.844e8, R_MOON = 1.737e6;
+export const LOG0 = 0.5, RATE = 5;           // log10 s = LOG0 + v / RATE
+export const V_TRILLION = (12 - LOG0) * RATE;      // 57.5
+export const logS = (v) => Math.min(12, LOG0 + v / RATE);
+export const sizeAt = (v) => Math.pow(10, logS(v));
+export const vOfS = (s) => (Math.log10(s) - LOG0) * RATE;
+
+// ---- the events ----
+export const STOMP1 = { up: 6.25, down: 7.0, foot: 1, lift: 0.13 };     // left foot (foot 1), down at s ~ 80
+export const STOMP2 = { up: 15.9, down: 16.7, foot: 0, lift: 0.11 };    // right foot, down at s ~ 7,000
+export const V_PLANE = 19.0;                 // an airliner crosses in front of your knees (s ~ 20,000)
+export const V_CRUSH_ROCK = vOfS(17500);     // the rock under your soles gives way (~19.7 s)
+export const V_EARTH_CRACK = 39.6, V_EARTH_BURST = 40.6;   // Earth crushed under your shoe (s ~ 250-400 million)
+export const V_REACH0 = 46.8, V_REACH1 = 50.2;             // you raise your right hand toward the Sun
+export const V_TOUCH = 52.0;                 // your hand grows over the Sun (s = 79 billion)
+export const S_TOUCH = sizeAt(V_TOUCH);
+export const V_PUSH = 57.9;                  // the camera pushes into the grain of sand that is the Sun
+export const T_SWITCH = 59.75;               // full white; the loop point sits in it
+export const LOOP = 0.9;
+export const VIDEO_DURATION = T_SWITCH + LOOP;
+
+// ---- the shots (the camera itself is in main.js) ----
+export const SHOTS = [
+  { k: 'street', a: -2, b: 9.55 },
+  { k: 'drone', a: 9.55, b: 21.5 },
+  { k: 'feet', a: 21.5, b: 32.35 },
+  { k: 'ball', a: 32.35, b: 42.5 },
+  { k: 'sun', a: 42.5, b: 47.3 },
+  { k: 'reach', a: 47.3, b: 55.0 },
+  { k: 'palm', a: 55.0, b: 99 },
+];
+export const shotAt = (v) => SHOTS.find((x) => v < x.b) || SHOTS[SHOTS.length - 1];
+
+// ---- captions (video time) ----
+export const CAPTIONS = [
+  [3.9, 6.35, 'Every 5 seconds, you get 10x bigger.'],
+  [6.5, 8.9, 'Every step is an earthquake.'],
+  [9.0, 11.4, 'You get 4x heavier every second.'],
+  [11.5, 13.9, 'The tallest towers only reach your knees.'],
+  [14.0, 16.35, 'Your head is above the clouds.'],
+  [16.5, 18.9, 'One step flattens 100 city blocks.'],
+  [19.0, 21.4, 'Your shadow is 60 miles long.'],
+  [21.5, 23.9, 'The rock under your feet gives way.'],
+  [24.0, 26.4, 'Your head is in space.'],
+  [26.5, 28.9, 'Your shoe is as long as Belgium.'],
+  [29.0, 32.25, 'Earthquakes shake the whole planet.'],
+  [32.4, 35.6, 'Earth is smaller than you.'],
+  [35.8, 38.0, 'You now weigh more than Earth.'],
+  [38.1, 40.4, 'Earth is a ball under your shoe.'],
+  [40.5, 42.4, 'Your gravity crushes it.'],
+  [42.5, 44.9, 'You’re bigger than the Sun.'],
+  [45.0, 47.3, 'You weigh more than the Sun.'],
+  [47.5, 49.9, 'Now the Sun is the size of a grapefruit.'],
+  [50.0, 52.4, 'Your hand reaches the Sun.'],
+  [52.5, 54.9, 'The Sun is a marble in your hand.'],
+  [55.0, 57.35, 'You weigh as much as a million Suns.'],
+  [57.5, 59.5, '1 trillion times bigger. The Sun is a grain of sand.'],
+];
+
+export function captionAt(v) {
+  for (const [a, b, text] of CAPTIONS) {
+    if (v >= a - 0.01 && v <= b + 0.01) {
+      const fadeIn = clamp((v - a) / 0.3);
+      const fadeOut = clamp((b - v) / 0.3);
+      return { text, alpha: Math.min(fadeIn, fadeOut), rise: (1 - fadeIn) * 14 };
+    }
+  }
+  return null;
+}
+
+// ---- the counter: your size, racing up ----
+const fmtInt = (x) => Math.round(x).toLocaleString('en-US');
+export function fmtSize(s) {
+  if (s < 10) return `${s.toFixed(1)}x`;
+  return `${fmtInt(s)}x`;
+}
+export function fmtHeight(m) {
+  const ft = m / 0.3048;
+  if (ft < 5280) return `${fmtInt(ft)} FT`;
+  const mi = ft / 5280;
+  if (mi < 10) return `${mi.toFixed(1)} MILES`;
+  if (mi < 1e6) return `${fmtInt(mi)} MILES`;
+  if (mi < 1e9) return `${(mi / 1e6).toFixed(mi < 1e7 ? 1 : 0)} MILLION MILES`;
+  return `${(mi / 1e9).toFixed(1)} BILLION MILES`;
+}
+// what you're as tall as (the note under the height)
+export function noteAt(s) {
+  const H = s * H0;
+  if (H < 9) return 'AS TALL AS A GIRAFFE';
+  if (H < 17) return 'TALLER THAN A HOUSE';
+  if (H < 250) return `AS TALL AS A ${Math.max(5, Math.round(H / 3.4))}-STORY BUILDING`;
+  if (H < 443) return 'TALLER THAN EVERY TOWER IN TOWN';
+  if (H < 828) return 'TALLER THAN THE EMPIRE STATE BUILDING';
+  if (H < 2600) return 'TALLER THAN THE BURJ KHALIFA';
+  if (H < 8849) return 'YOUR HEAD IS IN THE CLOUDS';
+  if (H < 12000) return 'TALLER THAN MOUNT EVEREST';
+  if (H < 100e3) return 'TALLER THAN AIRLINERS FLY';
+  if (H < 420e3) return 'YOUR HEAD IS IN SPACE';
+  if (H < 12.742e6) return 'TALLER THAN THE SPACE STATION FLIES';
+  if (H < 384.4e6) return 'TALLER THAN EARTH IS WIDE';
+  if (H < 1.3914e9) return 'TALLER THAN THE MOON IS FAR AWAY';
+  if (H < AU) return 'BIGGER THAN THE SUN';
+  if (H < 7.785e11) return 'TALLER THAN THE SUN IS FAR AWAY';
+  if (H < 1.434e12) return 'TALLER THAN JUPITER’S ORBIT';
+  return 'TALLER THAN SATURN’S ORBIT';
+}
+export const COUNTERS = [
+  {
+    from: -3, to: T_SWITCH + 2, label: 'YOUR SIZE',
+    fmt: (s) => fmtSize(s),
+    value: (v) => sizeAt(v),
+    unit: (v) => { const s = sizeAt(v); return `${fmtHeight(s * H0)} TALL · ${noteAt(s)}`; },
+    badge: (v) => v < V_TRILLION - 0.05 ? `1 TRILLION x IN ${(V_TRILLION - v).toFixed(1)} s` : '1 TRILLION x',
+  },
+];
+
+// the big gold stamp at every power of ten
+export const STAMPS = [];
+{
+  const NAMES = ['10x', '100x', '1,000x', '10,000x', '100,000x', '1 MILLION x', '10 MILLION x', '100 MILLION x',
+    '1 BILLION x', '10 BILLION x', '100 BILLION x', '1 TRILLION x'];
+  NAMES.forEach((t, i) => STAMPS.push({ v: vOfS(Math.pow(10, i + 1)), t }));
+}
+export const lastStamp = (v) => { let b = null; for (const x of STAMPS) if (x.v <= v) b = x; return b; };
+
+// ---- the state at video time v ----
+export function state(v) {
+  const s = { v };
+  s.s = sizeAt(v);
+  s.H = s.s * H0;
+  s.mass = MASS0 * s.s ** 3;
+  s.shot = shotAt(v);
+  // how far your soles have sunk into the ground (you-units: fractions of your 1.75 m), once the rock fails;
+  // past ~10 million times, Earth is too small to sink into
+  s.sink = 0.07 * smooth(V_CRUSH_ROCK - 0.3, 31, v) * (1 - smooth(31.5, 33.5, v));
+  s.crack = smooth(V_CRUSH_ROCK - 0.5, 27, v);                    // glowing cracks round your shoes
+  s.earthCrack = smooth(V_EARTH_CRACK, V_EARTH_BURST, v);
+  s.earthBurst = smooth(V_EARTH_BURST - 0.05, V_EARTH_BURST + 0.15, v);
+  s.reach = smooth(V_REACH0, V_REACH1, v);
+  s.title = 1 - smooth(3.0, 3.75, v);
+  s.flash = smooth(V_PUSH + 0.6, T_SWITCH - 0.08, v);
+  s.flashColor = '#fffaf0';
+  s.endcard = 0; s.endText = 0; s.fadeOut = 0;
+  return s;
+}
+
+// how far each foot is lifted (you-units) for the two stomps; 'hit' is the time since the last stomp landed
+export function footLift(v) {
+  const out = [0, 0];
+  for (const st of [STOMP1, STOMP2]) {
+    if (v < st.up || v > st.down) continue;
+    const k = (v - st.up) / (st.down - st.up);
+    // up quickly, hang, slam down (a little faster than it rose)
+    out[st.foot] = st.lift * Math.sin(Math.PI * Math.pow(k, 0.75));
+  }
+  return out;
+}
+export const stompAge = (v) => {
+  let a = 99, st = null;
+  for (const x of [STOMP1, STOMP2]) if (v >= x.down && v - x.down < a) { a = v - x.down; st = x; }
+  return { age: a, st };
+};
+// where your feet are (you-units, relative to the anchor = your right sole): facing south (+z), left foot east
+export const FOOT_X = [0, 0.21];
+// your shoe's footprint (you-units): toe 0.19 ahead of the ankle line, heel 0.08 behind, 0.1 wide
+export const SHOE = { toe: 0.19, heel: 0.085, hw: 0.052 };
+export function underShoe(xm, zm, s, pad = 0) {   // world metres -> which foot covers it (-1: none)
+  for (let f = 0; f < 2; f++) {
+    const x = xm / s - FOOT_X[f], z = zm / s;
+    if (x > -SHOE.hw - pad && x < SHOE.hw + pad && z > -SHOE.heel - pad && z < SHOE.toe + pad) return f;
+  }
+  return -1;
+}
+// the first video time a point (world metres, a box of half size r) is covered by a shoe as you grow
+export function vCovered(xm, zm, r = 0, foot = -1) {
+  let best = 1e9;
+  for (let f = 0; f < 2; f++) {
+    if (foot >= 0 && f !== foot) continue;
+    // the shoe grows about the anchor (0, 0): a point is inside when its coordinates / s fit the footprint
+    // solve for the smallest s with |x/s - fx| <= hw (+ r/s) and -heel <= z/s <= toe
+    let lo = 0.5, hi = 1e7;
+    const inside = (s) => {
+      const x = xm / s - FOOT_X[f], z = zm / s, rr = r / s;
+      return x > -SHOE.hw - rr && x < SHOE.hw + rr && z > -SHOE.heel - rr && z < SHOE.toe + rr;
+    };
+    // coverage is not monotone in general (a point off to the side is covered only once the foot's offset
+    // carries the shoe over it) — scan in log steps, then refine
+    let sHit = -1;
+    for (let ls = -0.3; ls < 7; ls += 0.01) { if (inside(Math.pow(10, ls))) { sHit = Math.pow(10, ls); lo = Math.pow(10, ls - 0.01); hi = sHit; break; } }
+    if (sHit < 0) continue;
+    for (let i = 0; i < 30; i++) { const m = Math.sqrt(lo * hi); if (inside(m)) hi = m; else lo = m; }
+    best = Math.min(best, vOfS(hi));
+  }
+  return best;
+}
+// the taxi stopped broadside in front of your right toe, and when the toe reaches it
+export const TAXI = { x: 0.35, z: 2.75 };
+export const V_CAR = vCovered(TAXI.x, TAXI.z, 1.6);
+export { lerp };

@@ -529,6 +529,36 @@ Would you run, or stay and watch? 👇
 
 Cover: `week 3/tsunami-nyc/out/tsunami-nyc_v4_cover.png` (`node render.mjs --cover 51`: the 1,000 ft wall towering over the drained bay)
 
+## Next Short. You grow 1 trillion times bigger — `week 3/grow-trillion/out/grow-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+60.7 s. You grow 10x every 5 seconds, from an 18 ft giant in a downtown crossing (Chicago) at frame 0 to 1 trillion times
+at 57.5 s. The counter races your size with a red "1 TRILLION x IN ..." countdown; a gold stamp at every power of ten.
+Your toe flattens a taxi, two stomps level the city, your head goes through the clouds and into space, the rock cracks and
+glows under you, Earth becomes a ball under your shoe and is crushed, you stand in front of the Sun, it lands in your hand
+as a marble and ends a grain of sand; white, loop.
+
+**YouTube title (98 chars, emoji counted as 2)**
+What if you grew 1 trillion times bigger? The Sun ends up a grain of sand in your hand ☀️ #whatif
+
+**YouTube description**
+Every 5 seconds, you get 10 times bigger. You can't get hurt. Everything else can.
+
+10x: your shoe flattens a taxi.
+100x: every step is an earthquake.
+1,000x: your head is above the clouds. One step flattens 100 city blocks.
+100,000x: the rock under your feet gives way, and your head is in space.
+10 million x: Earth is smaller than you.
+100 million x: Earth is a ball under your shoe, and your gravity crushes it.
+1 billion x: you're bigger than the Sun. Then you weigh more than it.
+100 billion x: the Sun is a marble in your hand.
+1 trillion x: you're 1.1 billion miles tall, and the Sun is a grain of sand.
+
+How big would you go before you stopped? 👇
+
+#whatif #space #science #simulation
+
+Cover: `week 3/grow-trillion/out/grow-trillion_v4_cover.png` (`node render.mjs --cover 35.5`: you standing on Earth, now a ball under your shoes)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
@@ -603,13 +633,13 @@ Which ending of the universe should I simulate next? 👇
 
 ## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
 
-16:9, 6:27, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
+16:9, 6:33, narrated by the owner, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
 the city melting into lava with the title on frame 0. Two numbers on screen: THE BIG CRUNCH IN ... and THE NIGHT SKY
-(its temperature, -270 °C up to 10²⁰ °C). Oct 21: rendered and checked WITHOUT the voice (a draft: don't upload yet).
-Oct 21 (owner: the first 30 s were the same shot): 0:05-0:27 now shows the whole universe from outside crunching into
-a point and a new Big Bang at 0:19.6, then the promenade; the water's far ripples no longer speckle.
-The owner records SCRIPT.md; the voice drops in, the timing follows it, the chapters below get re-timed, then upload.
-Thumbnail: `longform/out/big-crunch_thumb.png` (the city melting into lava at 3:58, **THE BIG CRUNCH** in big gold
+(its temperature, -270 °C up to 10²⁰ °C). 0:06-0:31 shows the whole universe from outside crunching into a point
+and a new Big Bang going off on his word "explodes" (0:24.6), then the promenade (owner, Oct 21: the first 30 s
+were the same shot; the water's far ripples no longer speckle). Oct 22: his voice in (one take, his restarts
+dropped); the opening is timed to it and everything after it moved 6 s later. **Upload this file.**
+Thumbnail: `longform/out/big-crunch_thumb.png` (the city melting into lava at 4:04, **THE BIG CRUNCH** in big gold
 letters, like the Big Rip's).
 
 **YouTube title (95 chars)**
@@ -632,18 +662,18 @@ The end of a crunch is the Big Bang played backwards: the sky's temperature at e
 Which ending would you rather live through? 👇
 
 0:00 The Big Crunch (and a new Big Bang?)
-0:27 Tonight, on the seafront
-0:54 Andromeda
-1:34 The universe stops growing
-2:09 The galaxies come back
-2:33 The night gets warm
-3:28 The sky glows
-3:45 The ground melts
-4:05 A fog of fire
-4:30 Hotter than the Sun
-5:01 The last three minutes
-5:45 A new Big Bang
-5:51 What's next?
+0:31 Tonight, on the seafront
+1:00 Andromeda
+1:40 The universe stops growing
+2:15 The galaxies come back
+2:39 The night gets warm
+3:34 The sky glows
+3:51 The ground melts
+4:11 A fog of fire
+4:36 Hotter than the Sun
+5:07 The last three minutes
+5:50 A new Big Bang
+5:57 What's next?
 
 #whatif #bigcrunch #space #science #simulation
 
