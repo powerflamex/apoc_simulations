@@ -7,7 +7,7 @@ import { B, CARS, LAMPS, TREES } from './layout.js';
 import { facadeMaterial, F } from './facade.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd } from './crowd.js';
-import { PEOPLE, personPose } from './people.js';
+import { PEOPLE, personPose, SCREAMER, screamerPose } from './people.js';
 import { STOMP1, STOMP2, FOOT_X, sizeAt } from './timeline.js';
 import { rng, smooth, clamp } from './util.js';
 
@@ -49,9 +49,28 @@ export function makeCity(scene, ctx) {
   const CH = [];
   const R = rng(616);
   for (const b of falling) {
-    if (b.vCrush > 1e8 || b.dN > 400) continue;
+    if (b.vCrush > 1e8 || b.dN > 1800) continue;
+    const sAt = sizeAt(b.vCrush);
+    if (b.hit) {
+      if (b.vCrush > 13.5) continue;   // (later, from up high, a building is a few pixels: its dust is enough)
+      // your body grew into it: a burst of broken wall and floors where you touched it, blown away from you,
+      // and the rest of it caving in below the hole
+      const nc = Math.round(clamp(b.h / 2, 24, 90));
+      const dir = Math.atan2(b.z - b.hit.z, b.x - b.hit.x);
+      const big = clamp(sAt / 60, 1, 6);
+      for (let k = 0; k < nc; k++) {
+        const a = dir + (R() - 0.5) * 2.0;
+        const sp = (4 + R() * 14) * Math.sqrt(big);
+        const hx = b.hit.x + Math.cos(dir) * 2 + (R() - 0.5) * b.w * 0.6, hz = b.hit.z + Math.sin(dir) * 2 + (R() - 0.5) * b.d * 0.6;
+        CH.push({ x: clamp(hx, b.x - b.w / 2, b.x + b.w / 2), y: clamp(b.hit.y + (R() - 0.5) * 18 * big, 2, b.h), z: clamp(hz, b.z - b.d / 2, b.z + b.d / 2),
+          v: b.vCrush + R() * 0.25, vx: Math.cos(a) * sp, vz: Math.sin(a) * sp, vy: 2 + R() * 8,
+          sz: [(0.8 + R() * 3) * big, (0.4 + R() * 1.5) * big, (0.8 + R() * 2.6) * big], spin: (R() - 0.5) * 6, seed: R(), c: R() < 0.45 ? b.col : 0x8a857c });
+      }
+      continue;
+    }
+    if (b.dN > 400) continue;
     const nc = Math.round(clamp(b.h / 3, 10, 50));
-    const fx = FOOT_X[b.x > 0.1 * sizeAt(b.vCrush) ? 1 : 0] * sizeAt(b.vCrush);
+    const fx = FOOT_X[b.x > 0.1 * sAt ? 1 : 0] * sAt;
     const dir = Math.atan2(b.z, b.x - fx);
     for (let k = 0; k < nc; k++) {
       const a = dir + (R() - 0.5) * 2.4;
@@ -96,8 +115,9 @@ export function makeCity(scene, ctx) {
   TREES.forEach((t, i) => crowns.setColorAt(i, col.setRGB(0.34 + 0.12 * t.seed, 0.45 + 0.1 * t.seed, 0.16)));
 
   // ---------- the crowd ----------
-  const crowd = makeCrowd(scene, PEOPLE.length, ctx.plainMat(0xffffff, 0.85), { castShadow: true });
+  const crowd = makeCrowd(scene, PEOPLE.length + 1, ctx.plainMat(0xffffff, 0.85), { castShadow: true });
   PEOPLE.forEach((p, i) => crowd.color(i, ...p.col));
+  crowd.color(PEOPLE.length, ...SCREAMER.col);
 
   // the shock of each stomp: an up-and-down jolt of the ground that runs outward (m), used for cars, lamps, trees
   function jolt(x, z, v) {
@@ -155,7 +175,7 @@ export function makeCity(scene, ctx) {
         if (dtB < 0 || dtB > b.dur + life) continue;
         const span = Math.max(b.w, b.d);
         const Rb = rng(Math.round(b.seed * 1e6));
-        const np = far ? 3 : b.h > 80 ? 22 : 14;
+        const np = far || (b.hit && b.vFall > 12.5) ? 3 : b.h > 80 ? 22 : 14;
         for (let k = 0; k < np; k++) {
           const vs = b.vFall + (k / np) * b.dur;
           const a = Rb() * Math.PI * 2, seed = Rb(), oy = Rb();
@@ -168,6 +188,24 @@ export function makeCity(scene, ctx) {
           const a2 = (far ? 0.5 : 0.36) * smooth(0, 0.25, age) * (1 - smooth(life * 0.5, life, age));
           smoke.puff(b.x + Math.cos(a) * spread, y, b.z + Math.sin(a) * spread, r, a2, 0.62 + 0.12 * seed, 0, seed);
         }
+      }
+      // a cloud of dust and glass bursting out where your body broke into a building
+      if (camY < 60000) for (const b of falling) {
+        if (!b.hit) continue;
+        const age = v - b.vCrush;
+        if (age < 0 || age > 7) continue;
+        const big = clamp(sizeAt(b.vCrush) / 60, 1, 6);
+        const Rb = rng(Math.round(b.seed * 3e5) + 11);
+        const dir = Math.atan2(b.z - b.hit.z, b.x - b.hit.x);
+        const nk = b.vCrush < 12.5 ? 10 : 2;
+        for (let k = 0; k < nk; k++) {
+          const a = dir + (Rb() - 0.5) * 2.2, seed = Rb();
+          const out = (3 + 22 * (1 - Math.exp(-age / 0.6))) * big * (0.5 + seed);
+          const r = (3 + age * 4) * big * (0.6 + 0.6 * Rb());
+          smoke.puff(b.hit.x + Math.cos(a) * out, Math.max(r * 0.4, b.hit.y - age * 3 * big + (Rb() - 0.5) * 10 * big), b.hit.z + Math.sin(a) * out, r,
+            0.42 * smooth(0, 0.12, age) * (1 - smooth(2.5, 7, age)), 0.66 + 0.1 * seed, 0, seed);
+        }
+        if (age < 0.25) glows.add(b.hit.x, b.hit.y, b.hit.z, 6 * big, 1.2 * (1 - age / 0.25), 1.2 * (1 - age / 0.25), 1.1 * (1 - age / 0.25));
       }
       // glass: glittering shards falling out of the burst windows
       for (const g of GL) {
@@ -235,6 +273,7 @@ export function makeCity(scene, ctx) {
       if (camY < 3000) {
         const youX = (FOOT_X[0] + FOOT_X[1]) / 2 * s.s;
         PEOPLE.forEach((p, i) => crowd.pose(i, personPose(p, v, youX)));
+        crowd.pose(PEOPLE.length, screamerPose(v));
         crowd.commit();
       }
     },

@@ -61,7 +61,7 @@ const city = makeCity(cityG, ctx);
 const you = makeYou(scene);
 const air = makeAir(scene, ctx);
 const glows = makeGlows(scene, 6000);
-const smoke = makeSmoke(scene, 3500);
+const smoke = makeSmoke(scene, 6000);
 smoke.mat.uniforms.uLight.value.setRGB(1.0, 0.97, 0.92);
 
 // light: the Sun (casts your shadow), the sky's blue from above and the ground's bounce; a point light for the end
@@ -164,7 +164,8 @@ function camAt(v, s) {
     // backing away down the avenue from the taxi in front of your shoe, looking up as you grow
     // low by the taxi at first, then backing off down the avenue and rising like a drone, so you always fill the frame
     const d = 8.5 * Math.pow(10, Math.max(v, -1.5) * 0.168);
-    pos.set(-3.4 - 0.012 * d + wobble(v * 0.6, 2) * 0.12, 1.25 + 0.115 * d + Math.abs(Math.sin(v * 5.5)) * 0.03 * smooth(4, 0, v), d);
+    // (from 5.5 s it climbs out of the street canyon, so the towers in front don't hide you once you're wider than the street)
+    pos.set(-3.4 - 0.012 * d + wobble(v * 0.6, 2) * 0.12, 1.25 + 0.115 * d + 0.62 * d * smooth(5.5, 9.5, v) + Math.abs(Math.sin(v * 5.5)) * 0.03 * smooth(4, 0, v), d);
     const aimY = S * 1.75 * lerp(0.5, 0.56, smooth(1, 9.5, v));
     tgt.set(cx * 0.6, aimY, 0);
     fov = lerp(64, 70, smooth(2, 9.5, v));

@@ -4,7 +4,7 @@
 // gets the time it is crushed: when one of your growing shoes first covers it (timeline.js vCovered), or when a
 // stomp's shock reaches it.
 import { rng, clamp } from './util.js';
-import { vCovered, STOMP1, STOMP2, sizeAt, FOOT_X, TAXI } from './timeline.js';
+import { vCovered, vBodyHit, vStanceHit, STOMP1, STOMP2, sizeAt, FOOT_X, TAXI } from './timeline.js';
 
 export const AVE = { road: 11, walk: 17 };                 // |x| < road: carriageway; < walk: + sidewalks
 export const LANES = [-9.4, -5.6, -1.9, 1.9, 5.6, 9.4];    // x; x > 0 northbound (-z); the outer two: parked/stopped
@@ -51,6 +51,11 @@ const near = (x, z, w, d) => Math.hypot(Math.max(0, Math.abs(x) - w / 2), Math.m
       vc = vCovered(b.x, b.z, Math.min(b.w, b.d) / 2);
       for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) vc = Math.min(vc, vCovered(b.x + ox * b.w * 0.45, b.z + oz * b.d * 0.45, 0));
     }
+    // ...or when your legs, hips, arms or head grow into it (before the second stomp knocks everything down)
+    b.hit = b.dN < 2200 ? vBodyHit(b.x, b.z, b.w, b.d, b.h, 8000) : null;
+    const st = b.dN < 2200 ? vStanceHit(b.x, b.z, b.w, b.d, b.h) : null;
+    if (st && (!b.hit || st.v < b.hit.v)) b.hit = st;
+    if (b.hit && b.hit.v < vc) vc = b.hit.v; else b.hit = null;
     b.vCrush = vc;
     b.vGlass = Math.min(vShock(b.x, b.z, 'glass'), b.vCrush);
     b.vTopple = vShock(b.x, b.z, 'topple');

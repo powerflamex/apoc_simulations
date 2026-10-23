@@ -31,9 +31,9 @@ export const V_EARTH_CRACK = 39.6, V_EARTH_BURST = 40.6;   // Earth crushed unde
 export const V_REACH0 = 46.8, V_REACH1 = 50.2;             // you raise your right hand toward the Sun
 export const V_TOUCH = 52.0;                 // your hand grows over the Sun (s = 79 billion)
 export const S_TOUCH = sizeAt(V_TOUCH);
-export const V_PUSH = 57.9;                  // the camera pushes into the grain of sand that is the Sun
-export const T_SWITCH = 59.75;               // full white; the loop point sits in it
-export const LOOP = 0.9;
+export const V_PUSH = 57.6;                  // the Sun's light swells until it's all you see
+export const T_SWITCH = 59.0;                // full white; the loop point sits in it (the video stays under 60 s)
+export const LOOP = 0.85;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
 // ---- the shots (the camera itself is in main.js) ----
@@ -71,7 +71,7 @@ export const CAPTIONS = [
   [50.0, 52.4, 'Your hand reaches the Sun.'],
   [52.5, 54.9, 'The Sun is a marble in your hand.'],
   [55.0, 57.35, 'You weigh as much as a million Suns.'],
-  [57.5, 59.5, '1 trillion times bigger. The Sun is a grain of sand.'],
+  [57.5, 58.85, '1 trillion times bigger. The Sun is a grain of sand.'],
 ];
 
 export function captionAt(v) {
@@ -209,6 +209,44 @@ export function vCovered(xm, zm, r = 0, foot = -1) {
     best = Math.min(best, vOfS(hi));
   }
   return best;
+}
+// your body (standing, at 1x, metres; anchor = your right sole): capsules [ax, ay, az, bx, by, bz, radius] for the
+// legs, hips and torso, the arms hanging a little out from your sides, and your head. A building is broken apart the
+// moment any of them grows into it (vBodyHit); the point of contact is where the debris bursts out.
+export const BODY = [
+  [0, 0.1, 0.01, 0, 0.88, 0, 0.078], [0.21, 0.1, 0.01, 0.21, 0.88, 0, 0.078],
+  [0.105, 0.84, 0, 0.105, 1.42, 0, 0.16],
+  [-0.085, 1.39, -0.01, -0.2, 0.84, 0.05, 0.05], [0.295, 1.39, -0.01, 0.41, 0.84, 0.05, 0.05],
+  [0.105, 1.6, 0.01, 0.105, 1.66, 0.01, 0.11],
+];
+export function vBodyHit(x, z, w, d, h, sMax = 2e4) {
+  const reach = Math.hypot(Math.max(0, Math.abs(x - 0.1) - w / 2), Math.max(0, Math.abs(z) - d / 2));
+  for (let ls = Math.max(-0.2, Math.log10(Math.max(reach, 0.1) / 0.5)); ls < Math.log10(sMax); ls += 0.008) {
+    const sz = Math.pow(10, ls);
+    // the box in your own size
+    const x0 = (x - w / 2) / sz, x1 = (x + w / 2) / sz, z0 = (z - d / 2) / sz, z1 = (z + d / 2) / sz, y1 = h / sz;
+    for (const c of BODY) {
+      for (let k = 0; k <= 8; k++) {
+        const t = k / 8;
+        const px = c[0] + (c[3] - c[0]) * t, py = c[1] + (c[4] - c[1]) * t, pz = c[2] + (c[5] - c[2]) * t;
+        const dx = Math.max(x0 - px, 0, px - x1), dy = Math.max(-py, 0, py - y1), dz = Math.max(z0 - pz, 0, pz - z1);
+        if (dx * dx + dy * dy + dz * dz < c[6] * c[6]) return { v: vOfS(sz), x: px * sz, y: Math.min(py * sz, h), z: pz * sz };
+      }
+    }
+  }
+  return null;
+}
+// the ground you stand over (you-units): from just outside your right foot to just outside your left, heel to toe.
+// Anything in it as you grow is something you grow into (your legs, the space between your feet): it breaks apart.
+export const STANCE = { x0: -0.07, x1: 0.28, z0: -0.1, z1: 0.21 };
+export function vStanceHit(x, z, w, d, h) {
+  const need = (lo, hi, a0, a1) => (lo > 0 ? lo / a1 : hi < 0 ? hi / a0 : 0);   // s at which [lo, hi] meets [a0 s, a1 s]
+  const sx = need(x - w / 2, x + w / 2, STANCE.x0, STANCE.x1), sz = need(z - d / 2, z + d / 2, STANCE.z0, STANCE.z1);
+  const sHit = Math.max(sx, sz, 0.5);
+  if (sHit > 9000) return null;
+  // the point of contact: the box's nearest point to the middle of your stance, at your shin height
+  const cx = 0.105 * sHit, cz = 0.05 * sHit;
+  return { v: vOfS(sHit), x: Math.min(Math.max(cx, x - w / 2), x + w / 2), y: Math.min(h * 0.6, 0.4 * sHit * 1.75), z: Math.min(Math.max(cz, z - d / 2), z + d / 2) };
 }
 // the taxi stopped broadside in front of your right toe, and when the toe reaches it
 export const TAXI = { x: 0.35, z: 2.75 };

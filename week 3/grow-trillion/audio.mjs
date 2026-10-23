@@ -7,7 +7,9 @@
 // then the ground giving way (a long quake rumble), Earth crushed under your shoe (one deep blast), the Sun landing
 // in your hand (a warm swell with a shimmer), and a riser into the white, which runs into the street sound of the
 // first frame (the loop). No sharp clicks anywhere: every impact is a soft-edged low thud.
+// The man running at the camera at the start screams: the owner's clip (sounds/scream.mp3, kept out of git).
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, LOOP, T_SWITCH, STAMPS, STOMP1, STOMP2, V_CAR, V_CRUSH_ROCK, V_EARTH_CRACK, V_EARTH_BURST, V_TOUCH, V_PUSH } from './src/timeline.js';
@@ -110,6 +112,19 @@ export function makeSoundtrack(outFile) {
   const shimHP = new SVF();
   const revL = new Reverb(1), revR = new Reverb(2);
   let brownL = 0, brownR = 0;
+  // the scream: from the first frame (the clip's voice starts ~0.1 s in), a little right of centre, like the man
+  let SC = null;
+  {
+    const f = path.join(path.dirname(fileURLToPath(import.meta.url)), 'sounds', 'scream.mp3');
+    if (fs.existsSync(f)) {
+      const r = spawnSync('ffmpeg', ['-v', 'error', '-i', f, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
+      if (r.status === 0) {
+        const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
+        let pk = 0; for (const x of a) pk = Math.max(pk, Math.abs(x));
+        SC = { a, g: 0.5 / Math.max(pk, 1e-6), n0: Math.round(-0.06 * SR) };
+      }
+    } else console.warn('audio: sounds/scream.mp3 not found, the scream is left out');
+  }
 
   for (let n = -N0; n < N; n++) {
     const t = n / SR;
@@ -223,7 +238,17 @@ export function makeSoundtrack(outFile) {
     const low = boom * 0.55 + quake + collapse + groan;
     const outL = cl0 + cr0 * 0.2 + vl + al + dl + braam + low + crunch + heart + shim + warm + riser + rl * 0.9;
     const outR = cr0 + cl0 * 0.2 + vr + ar + dr + braam + low + crunch + heart + shim * 0.9 + warm + riser + rr * 0.9;
-    if (n < 0) { PL[n + N0] = outL; PR[n + N0] = outR; } else { L[n] = outL; R[n] = outR; }
+    let scL = 0, scR = 0;
+    if (SC) {
+      const i = n - SC.n0;
+      if (i >= 0 && i < SC.a.length) {
+        const k = Math.min(1, (SC.a.length - i) / (0.08 * SR));   // a soft end
+        const x = SC.a[i] * SC.g * k;
+        scL = x * 0.45; scR = x * 0.55;
+      }
+    }
+    const oL = outL + scL, oR = outR + scR;
+    if (n < 0) { PL[n + N0] = oL; PR[n + N0] = oR; } else { L[n] = oL; R[n] = oR; }
   }
 
   {   // in the white, the soundtrack turns into the lead-in to the first frame
