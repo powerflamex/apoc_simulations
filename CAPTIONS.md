@@ -701,6 +701,52 @@ Which ending would you rather live through? 👇
 
 #whatif #bigcrunch #space #science #simulation
 
+## Long video 5. The heat death — `longform/out/heat-death_1920x1080.mp4`
+
+16:9, 6:14, a new scene (an observatory terrace on a ridge above a city; plan `longform/HEAT-DEATH.md`), to be
+narrated by the owner (script `longform/heat-death/SCRIPT.md`, read-along video `longform/out/heat-death_READ-ALONG.mp4`).
+The video promised at the end of the Big Crunch. Opens on a flash-forward of the frozen city under a black hole with
+the title on frame 0. Two numbers on screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its
+temperature, -230 °C down to a hair above absolute zero). 0:06-0:35 shows the whole universe from outside: every
+galaxy racing away, the stars going out, black holes flashing out, then a new Big Bang. Draft without the voice
+(Oct 22): **wait for his recording before uploading.**
+Thumbnail: `longform/out/heat-death_thumb.png`.
+
+**YouTube title (92 chars)**
+What If You Watched the Universe Die? The Last Light Goes Out in a Googol Years (Heat Death)
+
+**YouTube description**
+Most scientists think the universe will never stop growing. Nothing crashes, nothing rips: everything just slowly runs out. This is the heat death. Imagine Earth were still here, and you could stand on an observatory terrace above the city and watch it all happen.
+
+5 billion years: the Sun swells into a red giant. Then it throws off its outer layers, and all that's left is a white dwarf the size of Earth.
+Earth freezes to −230 °C. Even the air freezes and falls as snow.
+2 trillion years: every galaxy beyond our own is gone from the sky.
+100 trillion years: the last star in the universe goes out.
+1 quadrillion years: our Sun is a black dwarf. Now and then two dead stars crash, and for a moment there's light again.
+10 billion billion years: the dead stars are flung away or fall into the giant black hole at the centre of the galaxy.
+10⁴⁰ years: if protons decay, every atom is gone. Earth evaporates.
+10⁶⁷ years: black holes the size of stars evaporate. A googol years (10¹⁰⁰): the biggest ones go out in a last flash.
+Then nothing, a hair above absolute zero, forever. Unless Roger Penrose is right, and a universe that empty becomes the next Big Bang.
+
+Sources: Adams & Laughlin (1997), "A Dying Universe"; Krauss & Scherrer (2007), "The Return of a Static Universe"; Hawking radiation; Penrose's conformal cyclic cosmology.
+
+Big Rip, Big Crunch or heat death: which ending scares you most? 👇
+
+0:00 The heat death (and a new Big Bang?)
+0:35 Tonight, at the observatory
+1:07 The Sun becomes a red giant
+1:22 A white dwarf, and Earth freezes
+1:50 The galaxies leave
+2:20 The last star
+2:59 Dead stars and the black hole
+3:41 Atoms fall apart
+4:10 The last black hole
+4:51 Nothing
+5:16 Penrose's idea
+5:46 Which ending is worst?
+
+#whatif #heatdeath #endoftheuniverse #space #science
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).
