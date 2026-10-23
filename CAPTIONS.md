@@ -561,6 +561,27 @@ How big would you go before you stopped? 👇
 
 Cover: `week 3/grow-trillion/out/grow-trillion_v4_cover.png` (`node render.mjs --cover 35.5`: you standing on Earth, now a ball under your shoes)
 
+## Next Short. Gojo attacks your city — `week 3/gojo/out/gojo_v4_1080x1920_60fps_tiktok.mp4`
+
+61.4 s (all sound made in the code: no anime audio, so no claim risk). A downtown avenue at night; Gojo floats 80 ft over
+it. Frame 0: Blue is already ripping cars off the street (counter "DOMAIN EXPANSION IN 42.00 s", "14 CARS PULLED IN").
+Blue crushes 98 cars into a ball, Red flies up the avenue and blows a 40-story tower in half, Hollow Purple cuts a 3-mile
+trench, a second one misses you by 60 ft, then Domain Expansion: Unlimited Void (years of information racing up); white, loop.
+
+**YouTube title (56 chars, emoji counted as 2)**
+What if Gojo attacked your city? 🤯 #jujutsukaisen #gojo
+
+**YouTube description**
+Gojo floats 80 ft over your street and works through his techniques, each one bigger than the last.
+Blue rips 98 cars off the street and crushes them into a 30 ft ball.
+Red flies up the avenue at 1,100 mph and blows a 40-story tower in half.
+Hollow Purple erases 3 miles of city in 4 seconds. The second one misses you by 60 ft.
+Then: Domain Expansion. Unlimited Void. 0.2 seconds in there = half a year of information.
+Which technique would you survive? 👇
+#gojo #jujutsukaisen #jjk #whatif #simulation
+
+Cover: `week 3/gojo/out/gojo_v4_cover.png` (`node render.mjs --cover 57`: Gojo floating inside the Unlimited Void, the black sphere and its ring behind him, streams of light)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
