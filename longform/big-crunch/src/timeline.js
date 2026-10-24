@@ -37,7 +37,7 @@ export const SEC = {
   ball: 94.5,     // "the two galaxies just melt into one giant ball of stars"
   turn: 100.5,     // nine billion years left: the universe stops growing
   scope0: 105.5, scope1: 128.5,  // the telescope: a far galaxy's light, red -> white -> blue
-  white: 119.1, blue: 122.3,
+  white: 117.4, blue: 119.0,   // (on his words "it turns white" ... "then blue": he read the telescope part in one breath)
   back: 135,      // a billion years left: the galaxies come back
   crash2: 145.1,  // a hundred million: they crash together
   hush2: 150.5,   // [silence]
