@@ -46,6 +46,33 @@
   shots, yet trillion-years held far better (curve flattens at ~75% vs ~55%): the title's promise ("you" + one huge,
   plain number) matters more than the picture. Owner's take: make the beginnings more action-packed.
 
+- Full read of Studio (Advanced mode, data through Oct 22; read Oct 23). Channel: 9.02M views, +19,320 subs since Oct 4.
+  Lifetime views / average viewed / day-1 views (Studio day) / day-1 average viewed / day-2 views:
+  black hole v4 2.72M / 77.7% / 42K / 91% / 63K (exploded day 3: 455K); speed-doubles 1.48M / 78.2% / 209K / 83% / 220K;
+  trillion-years 1.32M / 73.9% / 351K / 78% / 266K (still 150K a day on day 6); asteroid v4 760K / 76.6%;
+  women-vanish 402K / 66.8% / 80K / 70% / 55K; sun-vanishes 400K / 76.1%; moon-falls 282K / 70.9% / 81K / 73% / 65K;
+  earth-spins 274K / 69.8%; gravity-doubles 210K / 66.9% / 53K / 69% / 58K; electrons 186K / 67.0% / 73K / 67% / 31K;
+  earth-stops 136K / 63.6% / 58K / 66% / 21K; earth-falls 134K / 76.2%; yellowstone 131K / 62.7% / 51K / 64% / 27K;
+  big-crunch v2 83K / 61.7% / 37K / 61% / 17K; jupiter 53K / 64.2% / 30K / 65% / 7.5K; jump-doubles 48K / 63.6% / 31K / 63% / 9K;
+  false-vacuum 33K (day 1 only) / 74.6%; oxygen-5s 24K / 62.3% / 16K / 61% / 7.6K; friction 24K / 61.3% / 22K (day 1) / 62%.
+  Live counts Oct 23: black-hole-fall 11K and gojo 3.4K on their first day.
+- What separates hits from the rest: **average percentage viewed on day 1**. The three 1M+ Shorts had 78-91% on day 1, and
+  day 2 was as big as day 1 (YouTube kept pushing). Everything at 61-70% got its day-1 test (16-80K) and then fell to a third
+  or half the next day. "Stayed to watch" does NOT separate them: hits and flops all sit at 61-75% on day 1 (trillion 71%,
+  oxygen 68%, women 75%). The swipe test is passed; the problem is people leaving before the end.
+- Every 1M+ Short is one simple rule that gets faster on a counter, with "you" in it, racing to a finish line named in the
+  title (light speed in 53 s; 1 trillion years, 10x every 3.5 s; a black hole you never see coming), biggest moment last.
+  The recent ones that stalled at 61-65% are either a one-off event (oxygen 5 s, yellowstone, friction) or a rule
+  whose middle drags (jupiter sinking, 31 jumps, big crunch reusing the trillion opening).
+- Day-1 views (the size of YouTube's first test) slid from ~50-80K (Oct 11-16) to ~16-37K (Oct 18-22) as average viewed
+  dropped; trillion-years (351K on day 1) shows the channel still gets a big test when a video holds people.
+- Women-vanish had by far the most likes (37 per 1,000 views) and comments (1.0 per 1,000) but only 67% viewed: arguments
+  in the comments didn't make it a hit. Subs per 1,000 views fell from ~2-3 (Oct 5-12) to ~1.2-1.3 (Oct 17-22).
+- Long videos: "7 ways" 36.6K views / 43.5% viewed; "6 more ways" 2.9K and "Big Rip" 1.3K (got 10x fewer thumbnail
+  impressions: 30K and 8K vs 334K).
+- Can't read the retention curve pages in the built-in browser (Studio answers "too many requests"); the Advanced-mode
+  tables work (daily views, stayed to watch, average viewed per video per day).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
