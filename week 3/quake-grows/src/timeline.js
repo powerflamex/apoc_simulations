@@ -59,7 +59,7 @@ export const NOTES = {
 export const BEATS = Object.keys(NOTES).map(Number).filter((m) => m > 5).map((m) => ({ m, v: vAtMag(m), k: NOTES[m] }))
   .concat([{ m: 18.4, v: V_BREAK, k: 'EARTH BREAKS APART' }]);
 // what each popup says (no magnitude: the counter shows it); '' = no popup (the beat's sound still plays)
-const SAY = { 6: 'WINDOWS BREAK', 7: 'LIKE SAN FRANCISCO, 1989', 8: 'THE STREET ROLLS LIKE THE SEA', 9: '',
+const SAY = { 6: '', 7: 'LIKE SAN FRANCISCO, 1989', 8: 'THE STREET ROLLS LIKE THE SEA', 9: '',
   10: 'NEVER HAPPENED ON EARTH', 11: 'STRONGER THAN GRAVITY', 12: 'AS STRONG AS THE DINOSAUR ASTEROID', 13: 'CALIFORNIA TEARS APART',
   14: 'THE CONTINENT CRACKS', 15: 'THE SUN’S OUTPUT FOR 5 SECONDS', 16: 'ENOUGH TO BOIL THE OCEANS', 17: 'THE CRUST SHATTERS',
   18: '', 18.4: 'EARTH BREAKS APART' };
@@ -79,9 +79,8 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [5.8, 7.9, 'You’re in San Francisco. Every step is 32 times stronger.'],
-  [9.8, 11.9, 'Bricks rain down from the old buildings.'],
-  [13.8, 15.9, 'Stronger than the 1906 quake.'],
+  [9.8, 11.9, 'You’re in San Francisco. Every step is 32 times stronger.'],
+  [13.8, 15.9, 'Bricks rain down from the old buildings.'],
   [16.0, 18.0, 'The strongest ever recorded was 9.5.'],
   [18.2, 19.9, 'The Bay Bridge falls.'],
   [21.8, 23.9, 'The street splits open.'],

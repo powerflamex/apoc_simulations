@@ -101,8 +101,9 @@ export const BEATS = [
   { h: 100e3, k: 'TALLER THAN SPACE BEGINS', miles: true },
   { h: 730500 * FT, k: 'YEAR 1,000', miles: true },
 ].map((b) => ({ ...b, v: vAtLevel(b.h) }));
+// (no popup while the title is up: the first beat only jolts)
 // what each popup says (no number: the counter shows the depth); '' = no popup (the beat's thunder still plays)
-const SAY = ['CARS FLOAT', 'IT’S OVER YOUR HEAD', 'THE SHOPS ARE UNDER', '', 'THE MARKET SIGN GOES UNDER', '', '',
+const SAY = ['', 'IT’S OVER YOUR HEAD', 'THE SHOPS ARE UNDER', '', 'THE MARKET SIGN GOES UNDER', '', '',
   'THE SPACE NEEDLE GOES UNDER', 'SEATTLE IS GONE', 'DENVER GOES UNDER', 'MOUNT RAINIER GOES UNDER', 'NORTH AMERICA IS GONE', '',
   'EVEREST GOES UNDER', 'THE OCEAN REACHES SPACE', 'YEAR 1,000: THE RAIN STOPS'];
 BEATS.forEach((b, i) => { b.say = SAY[i]; });
@@ -121,8 +122,8 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [5.8, 7.9, 'An inch of rain an hour. It never stops.'],
-  [12.2, 14.9, 'It rises 2 feet every day.'],
+  [12.2, 14.0, 'An inch of rain an hour. It never stops.'],
+  [14.1, 16.0, 'It rises 2 feet every day.'],
   [17.9, 19.5, 'The power goes out.'],
   [19.7, 22.0, 'Boats pull people off the rooftops.'],
   [22.2, 24.6, 'The towers drown floor by floor.'],

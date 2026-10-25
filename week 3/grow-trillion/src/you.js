@@ -198,7 +198,21 @@ export function makeYou(scene) {
   torso.add(new THREE.Mesh(lathe([[0.168, T0 - 0.005], [0.172, T0 + 0.045]], 0.66, 32).translate(0, 0, 0), M.hoodie));
   torso.add(new THREE.Mesh(new RoundedBoxGeometry(0.19, 0.1, 0.012, 2, 0.005).translate(0, 0.1, 0.1), M.hoodie));
   for (const sx of [-0.035, 0.035]) torso.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.15, 6).translate(sx, 0.42, 0.112).rotateX(0.0), M.cord));
-  torso.add(new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.04, 10, 24).scale(1, 1, 0.8).rotateX(Math.PI / 2 - 0.5).translate(0, 0.56, -0.045), M.hoodie));
+  {
+    // the hood lies bunched round the back of the neck only (a 220° roll, wide enough to clear the neck), its two ends
+    // tucked down at the collar bones; nothing crosses the front of the neck
+    const A = Math.PI * 1.22;
+    const hoodM = new THREE.Matrix4().makeTranslation(0, 0.548, -0.012)
+      .multiply(new THREE.Matrix4().makeRotationX(0.38))
+      .multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 2))
+      .multiply(new THREE.Matrix4().makeScale(1, 0.92, 1))
+      .multiply(new THREE.Matrix4().makeRotationZ(Math.PI / 2 - A / 2));
+    torso.add(new THREE.Mesh(new THREE.TorusGeometry(0.104, 0.034, 10, 28, A).applyMatrix4(hoodM), M.hoodie));
+    for (const a of [0, A]) {
+      const end = new THREE.Vector3(Math.cos(a) * 0.104, Math.sin(a) * 0.104, 0).applyMatrix4(hoodM);
+      torso.add(new THREE.Mesh(new THREE.SphereGeometry(0.034, 12, 10).translate(end.x, end.y - 0.004, end.z), M.hoodie));
+    }
+  }
   for (const sx of [-1, 1]) torso.add(new THREE.Mesh(new THREE.SphereGeometry(0.056, 16, 12).scale(1.0, 0.85, 0.85).translate(sx * 0.172, 0.49, -0.005), M.hoodie));
   // ---- neck and head ----
   const neck = new THREE.Group(); neck.position.set(0, 0.555, 0); torso.add(neck);

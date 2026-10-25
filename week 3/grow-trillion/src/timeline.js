@@ -127,7 +127,7 @@ export const STAMPS = [];
   const NAMES = ['10x', '100x', '1,000x', '10,000x', '100,000x', '1 MILLION x', '10 MILLION x', '100 MILLION x',
     '1 BILLION x', '10 BILLION x', '100 BILLION x', '1 TRILLION x'];
   // what the popup says (no number: the counter shows the size); t stays for the soundtrack
-  const SAY = ['TALLER THAN A HOUSE', 'AS TALL AS A SKYSCRAPER', 'TALLER THAN THE BURJ KHALIFA', 'TALLER THAN AIRLINERS FLY',
+  const SAY = ['', 'AS TALL AS A SKYSCRAPER', 'TALLER THAN THE BURJ KHALIFA', 'TALLER THAN AIRLINERS FLY',
     'YOUR HEAD IS IN SPACE', 'ABOVE THE SPACE STATION', 'TALLER THAN EARTH IS WIDE', 'EARTH IS A BALL UNDER YOUR SHOE',
     'BIGGER THAN THE SUN', 'THE SUN IS A GRAPEFRUIT', 'THE SUN IS A MARBLE IN YOUR HAND', 'THE SUN IS A GRAIN OF SAND'];
   NAMES.forEach((t, i) => STAMPS.push({ v: vOfS(Math.pow(10, i + 1)), t, say: SAY[i] }));

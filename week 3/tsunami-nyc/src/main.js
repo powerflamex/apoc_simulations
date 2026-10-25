@@ -211,8 +211,10 @@ function update(v, cover = -1) {
     stampW.style.opacity = '0';
     if (a > 0) {
       if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      // a steady size (growing it for a "pop" made long phrases wrap to two lines for a few frames): it rises in instead
       const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
-      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
+      stampEl.style.fontSize = `${fit.toFixed(1)}px`;
+      stampEl.style.transform = `translateY(${(22 * (1 - smooth(0, 0.18, p.dt))).toFixed(1)}px)`;
     }
   }
 

@@ -55,7 +55,7 @@ const FRONTS = TOWERS.filter((t) => t.row === 0).map((t) => ({ phi0: t.phi0 + 2 
 // p: { x0, z0 (where they are at T0), ux, uz (walking velocity before), tReact, tRun, path: [{T, x, z}] (the run), ... }
 const ease = (x) => x * x * (3 - 2 * x);
 export function where(p, T, out = {}) {
-  out.vis = true;
+  out.vis = true; out.done = false; out.over = 0;      // (out is reused: clear what only the running branch sets)
   if (T < p.tStop) { out.x = p.x0 + p.ux * (T - T0); out.z = p.z0 + p.uz * (T - T0); out.u = Math.hypot(p.ux, p.uz); return out; }
   // slowing to a stop over 0.5 s after flinching
   const tS = Math.min(T, p.tStop + 0.5) - p.tStop;
@@ -194,7 +194,7 @@ function track(p, i) { const T = T0 + i * DT; where(p, T, tw); return tw; }
     const sp = (R() < 0.5 ? 1 : -1) * (1.1 + R() * 0.4);
     const v = alongV(phi, sp);
     const b = base(phi, d);
-    if (add({ ...b, ...v, x0: b.x0 - v.ux * (T_FLASH - T0) * 0.5, z0: b.z0 - v.uz * (T_FLASH - T0) * 0.5, yaw: Math.atan2(-v.ux, -v.uz), walking: true, sea: R() < 0.75 })) n++;
+    if (add({ ...b, ...v, x0: b.x0 - v.ux * (T_FLASH - T0) * 0.5, z0: b.z0 - v.uz * (T_FLASH - T0) * 0.5, yaw: Math.atan2(v.ux, v.uz), walking: true, sea: R() < 0.75 })) n++;
   }
   // swimming (chest-deep, beyond the first breakers)
   for (let k = 0, n = 0; k < 500 && n < 34; k++) {
@@ -215,14 +215,14 @@ function track(p, i) { const T = T0 + i * DT; where(p, T, tw); return tw; }
     const v = R() < 0.85 ? alongV(phi, sp) : { ux: 0, uz: 0 };
     const b = base(phi, d, { col: dressed() });
     const moving = v.ux || v.uz;
-    if (add({ ...b, ...v, x0: b.x0 - v.ux * (T_FLASH - T0) * 0.5, z0: b.z0 - v.uz * (T_FLASH - T0) * 0.5, yaw: moving ? Math.atan2(-v.ux, -v.uz) : b.yaw, walking: !!moving, jog, phone: !moving && R() < 0.4 })) n++;
+    if (add({ ...b, ...v, x0: b.x0 - v.ux * (T_FLASH - T0) * 0.5, z0: b.z0 - v.uz * (T_FLASH - T0) * 0.5, yaw: moving ? Math.atan2(v.ux, v.uz) : b.yaw, walking: !!moving, jog, phone: !moving && R() < 0.4 })) n++;
   }
   for (let k = 0, n = 0; k < 500 && n < 26; k++) {
     const phi = -0.01 + Math.pow(R(), 1.3) * 0.12, d = 134.2 + R() * 3.6;
     const sp = (R() < 0.5 ? 1 : -1) * (1.1 + R() * 0.4);
     const v = alongV(phi, sp);
     const b = base(phi, d, { col: dressed() });
-    if (add({ ...b, ...v, yaw: Math.atan2(-v.ux, -v.uz), walking: true })) n++;
+    if (add({ ...b, ...v, yaw: Math.atan2(v.ux, v.uz), walking: true })) n++;
   }
 }
 
@@ -275,7 +275,7 @@ export function personPose(p, T) {
   }
   // running
   const [ax, az, bx, bz] = p.path;
-  const runYaw = Math.atan2(-(bx - ax), -(bz - az));
+  const runYaw = Math.atan2(bx - ax, bz - az);
   const turn = smooth(p.tRun - 0.05, p.tRun + 0.35, T);
   let dy = runYaw - p.yaw; dy -= 2 * Math.PI * Math.round(dy / (2 * Math.PI));
   o.yaw = p.yaw + dy * turn;
