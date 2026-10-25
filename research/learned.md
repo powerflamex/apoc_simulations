@@ -96,9 +96,7 @@
 - **Repeating a formula decays:** doubling: speed 55 -> gravity 48 -> jump 39; time-lapse: trillion 56 -> big crunch 38.
   The first viewers of a new Short are recent viewers, who have already seen the trick.
 - Momentum (a smaller first test) explains fewer views on newer Shorts, not their lower scores.
-- Look: hits open at dusk/night with lit cities and strong contrast; several stalls open in pale, washed-out daylight
-  (jupiter, oxygen, friction, black-hole-fall's brown haze). Only black-hole-fall clearly lost viewers to it (46% swiped).
-
+- (Checked Oct 25 and wrong: frame brightness/contrast does not predict stay; see the tsunami note below.)
 - Red finish-line badge and gold milestone popups don't decide a hit: trillion-years had both and won; black hole and
   speed-doubles had neither. Keep the badge. Popups must say what is happening ("EVEREST GOES UNDER"), never repeat the
   counter or show a different number from it (found Oct 25 in rain 38 vs 28 ft, sun 1,300x vs 1,000x, quake 13.1 vs 13,
@@ -141,6 +139,16 @@
     Spikes at every chapter start and the Big Rip's late climb show viewers skipping build-up and explaining to reach
     destruction. Rules: no blank/white or calm start, no explaining in the first 30 s (one line max), a big visible
     moment every ~45-60 s, and the most extreme scenes earlier rather than all at the end.
+- tsunami-nyc (posted Oct 25): 54.2% stayed, 0:37 of 1:01 (61%) watched early on, 6.2K views on day 1: score 33, the
+  lowest yet, despite a question that passes the 10-year-old test. Frame 0: the "1,000 ft" wave is a thin far-off
+  stripe, half the frame is empty pale sky, a toy-like boat, people cut off at the bottom: the danger doesn't look
+  scary or close.
+- Measured every Short's first frame (brightness, contrast, color): those numbers do NOT explain stayed-to-watch
+  (women-vanish is one of the palest frames and had the best stay, 75%; black-hole-fall is dark and colorful and had
+  54%). So "washed-out look" was wrong. A better fit: frames with people close to the camera in a busy, recognizable
+  place stay best (women 75, electrons 74, gojo/trillion/gravity 71, earth-stops 70, oxygen/friction 68); frames where
+  the subject is far away, small or abstract stay worst (tsunami 54, black-hole-fall 54, jupiter/jump 61, yellowstone 62,
+  false vacuum 66). Rule: on frame 0 the danger must look big and close, with people near the camera.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
