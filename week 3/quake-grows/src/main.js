@@ -21,7 +21,7 @@ import { QU, quakeD, quakeMat } from './quake.js';
 import { F } from './facade.js';
 import { CAM0, SUN, streetY } from './layout.js';
 import {
-  STORY_START, state, beatAt, magAt, vAtMag, VIDEO_DURATION, LOOP, T_SWITCH, V_BREAK, V_PLANET, V_DUST, V_AIR, V_SPLIT, V_ROLL,
+  STORY_START, state, beatAt, popupAt, POP, magAt, vAtMag, VIDEO_DURATION, LOOP, T_SWITCH, V_BREAK, V_PLANET, V_DUST, V_AIR, V_SPLIT, V_ROLL,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -271,17 +271,19 @@ function update(v, cover = -1) {
   f.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
   overlay(v, s, v);
+  // the gold popup: one phrase saying what just happened (never a number), sized to fit the width
   {
-    const a = b && !window.__cover ? smooth(0, 0.06, b.dt) * (1 - smooth(1.6, 2.1, b.dt)) * (1 - s.flash) : 0;
+    const p = window.__cover ? null : popupAt(v);
+    const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
-    stampW.style.opacity = a.toFixed(3);
+    stampW.style.opacity = '0';
     if (a > 0) {
-      const t = b.m === 18.4 ? '18.4' : String(b.m);
-      if (stampEl.textContent !== t) stampEl.textContent = t;
-      if (stampW.textContent !== b.k) stampW.textContent = b.k;
-      stampEl.style.fontSize = `${(150 * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
+      if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
+      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
     }
   }
+
   return s;
 }
 

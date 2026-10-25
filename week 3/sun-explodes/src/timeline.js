@@ -115,15 +115,15 @@ export const T_F1600 = reach((T) => toF(tEq(fluxLag(T))), 1600);
 
 // ---- the beats: a big gold number pops up, with a jolt and a boom ----
 export const BEATS = [
-  { v: V_FLASH + 0.05, label: 'THE SUN IS NOW', text: '9× BRIGHTER' },
-  { T: reach(bright, 50), label: 'THE SUN IS NOW', text: '50× BRIGHTER' },
-  { T: T_F1600, label: 'IN THE SUNLIGHT', text: '1,600°F', small: true },
-  { T: reach(bright, 1000), label: 'THE SUN IS NOW', text: '1,000× BRIGHTER', small: true },
-  { T: reach(seaDrop, 1), label: 'THE SEA HAS DROPPED', text: '1 METER', small: true },
-  { T: reach(seaDrop, 10), label: 'THE SEA HAS DROPPED', text: '10 METERS', small: true },
-  { T: T_MERCURY, label: 'SWALLOWED', text: 'MERCURY', small: true },
-  { T: reach(seaDrop, 100), label: 'THE SEA HAS DROPPED', text: '100 METERS', small: true },
-  { T: T_VENUS, label: 'SWALLOWED', text: 'VENUS', small: true },
+  { v: V_FLASH + 0.05, label: 'THE SUN IS NOW', text: '9× BRIGHTER', say: 'THE LIGHT ARRIVES' },
+  { T: reach(bright, 50), label: 'THE SUN IS NOW', text: '50× BRIGHTER', say: 'THE BEACH CATCHES FIRE' },
+  { T: T_F1600, label: 'IN THE SUNLIGHT', text: '1,600°F', small: true, say: '' },
+  { T: reach(bright, 1000), label: 'THE SUN IS NOW', text: '1,000× BRIGHTER', small: true, say: 'IT KEEPS GROWING' },
+  { T: reach(seaDrop, 1), label: 'THE SEA HAS DROPPED', text: '1 METER', small: true, say: 'THE SEA BOILS AWAY' },
+  { T: reach(seaDrop, 10), label: 'THE SEA HAS DROPPED', text: '10 METERS', small: true, say: 'THE BAY RUNS DRY' },
+  { T: T_MERCURY, label: 'SWALLOWED', text: 'MERCURY', small: true, say: 'MERCURY IS GONE' },
+  { T: reach(seaDrop, 100), label: 'THE SEA HAS DROPPED', text: '100 METERS', small: true, say: 'THE OCEAN IS GONE' },
+  { T: T_VENUS, label: 'SWALLOWED', text: 'VENUS', small: true, say: 'VENUS IS GONE. EARTH IS NEXT.' },
 ];
 for (const b of BEATS) if (b.v === undefined) b.v = vOfT(b.T);
 export function beatAt(v) {
@@ -132,33 +132,35 @@ export function beatAt(v) {
   return cur;
 }
 
-// ---- captions (video time) ----
+// the popup (one gold phrase, no number) shows for POP s after a beat that has one
+export const POP = 1.7;
+export function popupAt(v) {
+  let b = null;
+  for (const x of BEATS) if (x.say && v >= x.v && v < x.v + POP) b = x;
+  return b ? { say: b.say, dt: v - b.v } : null;
+}
+
+// ---- captions (video time): in the gaps between the popups, never on screen with one ----
 export const CAPTIONS = [
   [0.0, 1.6, 'Its light takes 8 min 20 s to reach you.'],
-  [2.0, 4.4, 'Here it is.'],
   [4.6, 7.2, 'Your skin starts burning in seconds.'],
   [7.4, 9.8, 'Everyone runs for shade.'],
   [10.0, 12.6, 'The fireball grows 10,000 km every second.'],
-  [12.8, 15.4, 'Umbrellas and palm trees catch fire.'],
-  [15.6, 18.2, 'In the sun the street hits 1,600°F.'],
+  [15.5, 18.2, 'In the sun the street hits 1,600°F.'],
   [18.4, 21.0, 'Every car on the avenue burns.'],
   [21.2, 23.8, 'Windows sag. Aluminum melts.'],
-  [24.0, 26.6, 'Now the rock itself glows.'],
-  [26.8, 29.4, 'The sea starts to steam.'],
-  [29.6, 32.2, 'The blast is still almost 4 hours away.'],
-  [32.4, 35.0, 'The sea boils away, a meter at a time.'],
-  [35.2, 37.8, 'The beach melts into glass.'],
-  [38.0, 40.6, 'The towers sag and fall.'],
-  [40.8, 43.4, 'The sea drains away from the beach.'],
-  [44.0, 46.6, 'The shore is now a mile out.'],
-  [46.8, 49.4, 'Mercury is the first planet to go.'],
-  [49.6, 52.2, 'The ocean drains to the horizon.'],
-  [52.4, 55.0, '330 feet of it, boiled into the sky.'],
-  [55.2, 57.8, 'The Sun fills half the sky.'],
-  [58.0, 60.6, 'Venus is gone. Earth is next.'],
-  [60.8, 63.0, '4 hours 8 minutes: it hits Earth.'],
+  [24.0, 26.4, 'Now the rock itself glows.'],
+  [26.6, 28.45, 'The sea starts to steam.'],
+  [30.4, 32.8, 'The blast is still almost 4 hours away.'],
+  [34.0, 36.55, 'The beach melts into glass.'],
+  [38.5, 41.0, 'The towers sag and fall.'],
+  [45.1, 47.6, 'The shore is now a mile out.'],
+  [50.0, 53.05, 'The ocean drains to the horizon.'],
+  [55.0, 57.9, 'The Sun fills half the sky.'],
+  [60.4, 63.0, '4 hours 8 minutes: it hits Earth.'],
 ];
 export function captionAt(v) {
+  if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
       const fadeIn = a <= 0 ? 1 : clamp((v - a) / 0.3);
@@ -189,7 +191,6 @@ export const COUNTERS = [
     fmt: (T) => fmtClock(T),
     value: (v) => storyT(Math.min(v, V_BLAST)),
     unit: (v) => fmtBright(storyT(Math.min(v, V_BLAST))),
-    badge: (v) => (v < V_FLASH ? 'THE LIGHT ARRIVES AT 8:20' : v < V_BLAST ? 'THE BLAST HITS EARTH AT 4:08:13' : ''),
     lapse: (v) => smooth(8.5, 9.5, v),
   },
 ];

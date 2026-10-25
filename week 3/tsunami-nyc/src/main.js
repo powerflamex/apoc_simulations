@@ -8,7 +8,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeOverlay } from './overlay.js';
-import { state, beatAt, sceneT, VIDEO_DURATION, LOOP, V_HIT, V_CONTACT, CAM_END_Z, FOAM_COLOR } from './timeline.js';
+import { state, beatAt, popupAt, POP, sceneT, VIDEO_DURATION, LOOP, V_HIT, V_CONTACT, CAM_END_Z, FOAM_COLOR } from './timeline.js';
 import { CAM, SUN, YOU } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -203,16 +203,19 @@ function update(v, cover = -1) {
       youEl.style.top = `${(sy - 112).toFixed(1)}px`;
     }
   }
+  // the gold popup: one phrase saying what just happened (never a number), sized to fit the width
   {
-    const a = b && !window.__cover ? smooth(0, 0.06, b.dt) * (1 - smooth(1.3, 1.8, b.dt)) * (1 - s.flash) : 0;
+    const p = window.__cover ? null : popupAt(v);
+    const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
-    stampW.style.opacity = a.toFixed(3);
+    stampW.style.opacity = '0';
     if (a > 0) {
-      if (stampEl.textContent !== b.text) stampEl.textContent = b.text;
-      if (stampW.textContent !== b.label) stampW.textContent = b.label;
-      stampEl.style.fontSize = `${((b.small ? 110 : 138) * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
+      if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
+      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
     }
   }
+
   return s;
 }
 

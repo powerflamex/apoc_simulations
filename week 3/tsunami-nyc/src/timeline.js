@@ -52,16 +52,16 @@ const ftAt = (v) => heightAt(v) / FT;
 export const vAtFt = (ft) => V_HIT - D0 * (1000 - ft) / 400 / SPEED;
 // the beats: the wave's height every 100 ft, and what it takes on the way
 export const BEATS = [
-  { v: 3.6, text: '−30 ft', label: 'THE SEA RUNS OUT', small: true },
-  { v: vAtFt(700), text: '700 ft', label: 'THE WAVE IS' },
-  { v: V_LIBERTY + 0.2, text: 'Liberty', label: 'SWALLOWED', small: true },
-  { v: 22.6, text: 'run', label: 'NOWHERE TO', small: true },
-  { v: vAtFt(800), text: '800 ft', label: 'THE WAVE IS' },
-  { v: V_FERRY + 0.3, text: 'the ferry', label: 'SWALLOWED', small: true },
-  { v: vAtFt(900), text: '900 ft', label: 'THE WAVE IS' },
-  { v: V_GOV, text: 'the island', label: 'SWALLOWED', small: true },
-  { v: 51.0, text: '¼ mile', label: 'IT IS', small: true },
-  { v: 57.0, text: '1,000 ft', label: 'THE WAVE IS' },
+  { v: 3.6, text: '−30 ft', label: 'THE SEA RUNS OUT', small: true, say: 'THE SEA RUNS OUT' },
+  { v: vAtFt(700), text: '700 ft', label: 'THE WAVE IS', say: '' },
+  { v: V_LIBERTY + 0.2, text: 'Liberty', label: 'SWALLOWED', small: true, say: 'LADY LIBERTY IS GONE' },
+  { v: 22.6, text: 'run', label: 'NOWHERE TO', small: true, say: 'NOWHERE TO RUN' },
+  { v: vAtFt(800), text: '800 ft', label: 'THE WAVE IS', say: '' },
+  { v: V_FERRY + 0.3, text: 'the ferry', label: 'SWALLOWED', small: true, say: 'THE FERRY IS GONE' },
+  { v: vAtFt(900), text: '900 ft', label: 'THE WAVE IS', say: '' },
+  { v: V_GOV, text: 'the island', label: 'SWALLOWED', small: true, say: 'GOVERNORS ISLAND IS GONE' },
+  { v: 51.0, text: '¼ mile', label: 'IT IS', small: true, say: '' },
+  { v: 57.0, text: '1,000 ft', label: 'THE WAVE IS', say: 'LOOK UP' },
 ];
 export function beatAt(v) {
   let b = null;
@@ -69,25 +69,30 @@ export function beatAt(v) {
   return b ? { ...b, dt: v - b.v } : null;
 }
 
+// the popup (one gold phrase, no number) shows for POP s after a beat that has one
+export const POP = 1.7;
+export function popupAt(v) {
+  let b = null;
+  for (const x of BEATS) if (x.say && v >= x.v && v < x.v + POP) b = x;
+  return b ? { say: b.say, dt: v - b.v } : null;
+}
+
+// captions sit in the gaps between the popups (never on screen together)
 export const CAPTIONS = [
-  [3.9, 6.3, 'You’re in Battery Park, New York.'],
-  [6.5, 8.9, 'The sea is running out of the harbor.'],
-  [9.1, 11.5, 'That wall on the horizon is water.'],
-  [11.4, 13.6, 'It’s coming at 125 mph.'],
-  [13.8, 16.4, 'Three times taller than Lady Liberty.'],
+  [5.4, 7.6, 'You’re in Battery Park, New York.'],
+  [7.8, 10.2, 'That wall on the horizon is water.'],
+  [10.4, 12.6, 'It’s coming at 125 mph.'],
+  [12.8, 15.9, 'Three times taller than Lady Liberty.'],
   [20.0, 22.4, 'Everyone runs.'],
-  [23.2, 25.6, 'It doesn’t matter. It’s 125 mph.'],
-  [25.8, 28.2, 'Almost every tower here is shorter.'],
+  [24.4, 26.8, 'Almost every tower here is shorter.'],
   [29.4, 31.8, 'A mile away. 29 seconds.'],
-  [34.0, 36.4, 'The ferry didn’t have a chance.'],
   [37.2, 39.6, 'It grows as the water gets shallow.'],
   [41.0, 43.4, 'It stretches across the whole harbor.'],
-  [46.6, 49.0, 'Governors Island is gone.'],
   [51.2, 53.6, 'A quarter mile. Eight seconds.'],
-  [53.8, 56.2, 'You’re looking straight up at it.'],
-  [56.4, 58.6, '1,000 feet of water.'],
+  [53.8, 56.8, 'You’re looking straight up at it.'],
 ];
 export function captionAt(v) {
+  if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
       const fadeIn = clamp((v - a) / 0.35), fadeOut = clamp((b - v) / 0.35);
@@ -104,11 +109,8 @@ export const COUNTERS = [
     fmt: (t) => { const c = Math.max(0, Math.floor(t * 100)); return `0:${pad(Math.floor(c / 100))}.${pad(c % 100)}`; },
     value: (v) => Math.max(0, V_HIT - v),
     unit: (v) => {
-      const mi = distAt(v) / 1609.34;
-      const d = mi >= 0.95 ? `${mi.toFixed(1)} MILES` : `${Math.round(distAt(v) / FT).toLocaleString('en-US')} ft AWAY`;
-      return `${Math.round(ftAt(v) / 10) * 10} ft TALL · ${d} · 125 mph`;
+      return `THE WAVE: ${Math.round(ftAt(v) / 10) * 10} ft TALL`;
     },
-    badge: () => '1,000 ft TALL WHEN IT HITS',
   },
 ];
 

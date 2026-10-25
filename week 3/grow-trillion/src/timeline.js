@@ -49,32 +49,23 @@ export const SHOTS = [
 export const shotAt = (v) => SHOTS.find((x) => v < x.b) || SHOTS[SHOTS.length - 1];
 
 // ---- captions (video time) ----
+// one caption in each gap between the popups (they're never on screen together)
 export const CAPTIONS = [
-  [3.9, 6.35, 'Every 5 seconds, you get 10x bigger.'],
-  [6.5, 8.9, 'Every step is an earthquake.'],
-  [9.0, 11.4, 'You get 4x heavier every second.'],
-  [11.5, 13.9, 'The tallest towers only reach your knees.'],
-  [14.0, 16.35, 'Your head is above the clouds.'],
-  [16.5, 18.9, 'One step flattens 100 city blocks.'],
-  [19.0, 21.4, 'Your shadow is 60 miles long.'],
-  [21.5, 23.9, 'The rock under your feet gives way.'],
-  [24.0, 26.4, 'Your head is in space.'],
-  [26.5, 28.9, 'Your shoe is as long as Belgium.'],
-  [29.0, 32.25, 'Earthquakes shake the whole planet.'],
-  [32.4, 35.6, 'Earth is smaller than you.'],
-  [35.8, 38.0, 'You now weigh more than Earth.'],
-  [38.1, 40.4, 'Earth is a ball under your shoe.'],
-  [40.5, 42.4, 'Your gravity crushes it.'],
-  [42.5, 44.9, 'You’re bigger than the Sun.'],
-  [45.0, 47.3, 'You weigh more than the Sun.'],
-  [47.5, 49.9, 'Now the Sun is the size of a grapefruit.'],
-  [50.0, 52.4, 'Your hand reaches the Sun.'],
-  [52.5, 54.9, 'The Sun is a marble in your hand.'],
-  [55.0, 57.35, 'You weigh as much as a million Suns.'],
-  [57.5, 58.85, '1 trillion times bigger. The Sun is a grain of sand.'],
+  [4.3, 7.3, 'Every 5 seconds, you get 10x bigger.'],
+  [9.3, 12.3, 'Every step is an earthquake.'],
+  [14.3, 17.3, 'Your head is above the clouds.'],
+  [19.3, 22.3, 'One step flattens 100 city blocks.'],
+  [24.3, 27.3, 'The rock under your feet gives way.'],
+  [29.3, 32.3, 'Earthquakes shake the whole planet.'],
+  [34.3, 37.3, 'Earth is smaller than you.'],
+  [39.4, 42.3, 'Your gravity crushes it.'],
+  [44.3, 47.3, 'You weigh more than the Sun.'],
+  [49.3, 52.3, 'Your hand reaches the Sun.'],
+  [54.3, 57.3, 'You weigh as much as a million Suns.'],
 ];
 
 export function captionAt(v) {
+  if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
       const fadeIn = clamp((v - a) / 0.3);
@@ -126,8 +117,7 @@ export const COUNTERS = [
     from: -3, to: T_SWITCH + 2, label: 'YOUR SIZE',
     fmt: (s) => fmtSize(s),
     value: (v) => sizeAt(v),
-    unit: (v) => { const s = sizeAt(v); return `${fmtHeight(s * H0)} TALL · ${noteAt(s)}`; },
-    badge: (v) => v < V_TRILLION - 0.05 ? `1 TRILLION x IN ${(V_TRILLION - v).toFixed(1)} s` : '1 TRILLION x',
+    unit: (v) => `${fmtHeight(sizeAt(v) * H0)} TALL`,
   },
 ];
 
@@ -136,7 +126,18 @@ export const STAMPS = [];
 {
   const NAMES = ['10x', '100x', '1,000x', '10,000x', '100,000x', '1 MILLION x', '10 MILLION x', '100 MILLION x',
     '1 BILLION x', '10 BILLION x', '100 BILLION x', '1 TRILLION x'];
-  NAMES.forEach((t, i) => STAMPS.push({ v: vOfS(Math.pow(10, i + 1)), t }));
+  // what the popup says (no number: the counter shows the size); t stays for the soundtrack
+  const SAY = ['TALLER THAN A HOUSE', 'AS TALL AS A SKYSCRAPER', 'TALLER THAN THE BURJ KHALIFA', 'TALLER THAN AIRLINERS FLY',
+    'YOUR HEAD IS IN SPACE', 'ABOVE THE SPACE STATION', 'TALLER THAN EARTH IS WIDE', 'EARTH IS A BALL UNDER YOUR SHOE',
+    'BIGGER THAN THE SUN', 'THE SUN IS A GRAPEFRUIT', 'THE SUN IS A MARBLE IN YOUR HAND', 'THE SUN IS A GRAIN OF SAND'];
+  NAMES.forEach((t, i) => STAMPS.push({ v: vOfS(Math.pow(10, i + 1)), t, say: SAY[i] }));
+}
+// the popup (one gold phrase) shows for POP s after each stamp
+export const POP = 1.7;
+export function popupAt(v) {
+  let b = null;
+  for (const x of STAMPS) if (x.say && v >= x.v && v < x.v + POP) b = x;
+  return b ? { say: b.say, dt: v - b.v } : null;
 }
 export const lastStamp = (v) => { let b = null; for (const x of STAMPS) if (x.v <= v) b = x; return b; };
 

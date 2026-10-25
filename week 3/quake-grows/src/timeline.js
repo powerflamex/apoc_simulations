@@ -58,6 +58,19 @@ export const NOTES = {
 };
 export const BEATS = Object.keys(NOTES).map(Number).filter((m) => m > 5).map((m) => ({ m, v: vAtMag(m), k: NOTES[m] }))
   .concat([{ m: 18.4, v: V_BREAK, k: 'EARTH BREAKS APART' }]);
+// what each popup says (no magnitude: the counter shows it); '' = no popup (the beat's sound still plays)
+const SAY = { 6: 'WINDOWS BREAK', 7: 'LIKE SAN FRANCISCO, 1989', 8: 'THE STREET ROLLS LIKE THE SEA', 9: '',
+  10: 'NEVER HAPPENED ON EARTH', 11: 'STRONGER THAN GRAVITY', 12: 'AS STRONG AS THE DINOSAUR ASTEROID', 13: 'CALIFORNIA TEARS APART',
+  14: 'THE CONTINENT CRACKS', 15: 'THE SUN’S OUTPUT FOR 5 SECONDS', 16: 'ENOUGH TO BOIL THE OCEANS', 17: 'THE CRUST SHATTERS',
+  18: '', 18.4: 'EARTH BREAKS APART' };
+BEATS.forEach((b) => { b.say = SAY[b.m] ?? ''; });
+// the popup (one gold phrase) shows for POP s after a beat that has one
+export const POP = 1.7;
+export function popupAt(v) {
+  let b = null;
+  for (const x of BEATS) if (x.say && v >= x.v && v < x.v + POP) b = x;
+  return b ? { say: b.say, dt: v - b.v } : null;
+}
 export function beatAt(v) {
   let b = null;
   for (const x of BEATS) if (v >= x.v) b = x;
@@ -66,24 +79,20 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [7.4, 9.6, 'You’re in San Francisco. Every step is 32 times stronger.'],
-  [9.8, 12.0, 'Bricks rain down from the old buildings.'],
-  [12.2, 14.6, 'Stronger than 1906. The street rolls like waves.'],
-  [14.8, 17.6, 'The strongest ever recorded was 9.5. This is stronger.'],
-  [17.8, 20.0, 'The Bay Bridge falls.'],
-  [20.2, 22.6, 'The street splits open.'],
-  [22.8, 25.4, 'The ground shakes harder than gravity.'],
-  [25.6, 27.9, 'Everything is thrown into the air.'],
-  [28.1, 30.6, 'As much energy as the asteroid that killed the dinosaurs.'],
-  [31.2, 33.9, 'The San Andreas Fault tears California open.'],
-  [34.1, 37.6, 'You can see it from space.'],
-  [38.2, 42.4, 'The cracks race across North America.'],
-  [43.2, 47.4, 'More energy than the Sun gives off in 5 seconds.'],
-  [48.2, 52.4, 'Enough to boil every ocean on Earth.'],
-  [53.2, 57.8, 'The crust shatters like an eggshell.'],
-  [58.4, 60.4, 'At 18.4, Earth comes apart.'],
+  [5.8, 7.9, 'You’re in San Francisco. Every step is 32 times stronger.'],
+  [9.8, 11.9, 'Bricks rain down from the old buildings.'],
+  [13.8, 15.9, 'Stronger than the 1906 quake.'],
+  [16.0, 18.0, 'The strongest ever recorded was 9.5.'],
+  [18.2, 19.9, 'The Bay Bridge falls.'],
+  [21.8, 23.9, 'The street splits open.'],
+  [25.8, 27.9, 'Everything is thrown into the air.'],
+  [29.8, 32.9, 'The San Andreas Fault starts to tear.'],
+  [34.8, 37.9, 'You can see it from space.'],
+  [39.8, 42.9, 'The cracks race across North America.'],
+  [58.2, 60.3, 'At 18.4, Earth comes apart.'],
 ];
 export function captionAt(v) {
+  if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
       const fadeIn = clamp((v - a) / 0.3);
@@ -106,8 +115,7 @@ export const COUNTERS = [
     from: -3, to: T_SWITCH + 2, label: 'EARTHQUAKE · MAGNITUDE',
     fmt: (m) => m.toFixed(1),
     value: (v) => magAt(v),
-    unit: (v) => unitAt(v),
-    badge: () => 'AT 18.4, EARTH BREAKS APART',
+    unit: () => '',
   },
 ];
 

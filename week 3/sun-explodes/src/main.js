@@ -9,7 +9,7 @@ import { makeWorld } from './world.js';
 import { makeOverlay } from './overlay.js';
 import { H } from './heat.js';
 import { BU } from './buildings.js';
-import { state, beatAt, VIDEO_DURATION, LOOP, V_FLASH, V_BLAST, T_FLASH, T_BLAST, storyT } from './timeline.js';
+import { state, beatAt, popupAt, POP, VIDEO_DURATION, LOOP, V_FLASH, V_BLAST, T_FLASH, T_BLAST, storyT } from './timeline.js';
 import { CAM, SUN_PATH, arcXZ, Y } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -229,17 +229,19 @@ function update(v, cover = -1) {
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
   overlay(v, s, v);
-  // the big text at each beat: pops in, holds, fades
+  // the gold popup: one phrase saying what just happened (never a number), sized to fit the width
   {
-    const a = b && !window.__cover ? smooth(0, 0.06, b.dt) * (1 - smooth(1.4, 1.9, b.dt)) * (1 - s.flash) : 0;
+    const p = window.__cover ? null : popupAt(v);
+    const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
-    stampW.style.opacity = a.toFixed(3);
+    stampW.style.opacity = '0';
     if (a > 0) {
-      if (stampEl.textContent !== b.text) stampEl.textContent = b.text;
-      if (stampW.textContent !== b.label) stampW.textContent = b.label;
-      stampEl.style.fontSize = `${((b.small ? 108 : 126) * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
+      if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
+      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
     }
   }
+
   return s;
 }
 

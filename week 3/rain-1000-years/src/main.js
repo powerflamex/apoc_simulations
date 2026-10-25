@@ -23,7 +23,7 @@ import { DW, drownMat, underK } from './drown.js';
 import { F } from './facade.js';
 import { B, CAM0, NEEDLE, COLUMBIA, RAINIER, PATH, CARS } from './layout.js';
 import {
-  STORY_START, state, beatAt, VIDEO_DURATION, LOOP, UNDER_COLOR, V_EVEREST0, V_EVEREST, V_UP, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM,
+  STORY_START, state, beatAt, popupAt, POP, VIDEO_DURATION, LOOP, UNDER_COLOR, V_EVEREST0, V_EVEREST, V_UP, V_SPACE, V_PLUNGE, V_SPLASH, V_BOTTOM,
   V_SIGN, V_POWER, V_NEEDLE, V_COLUMBIA, V_RAINIER, V_SCREAM, V_UNDER, levelAt, fmtDepth,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
@@ -447,19 +447,19 @@ function update(v, cover = -1) {
   f.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
   overlay(v, s, v);
-  // the big number at each beat: the depth pops in with what just went under
+  // the gold popup: one phrase saying what just happened (never a number), sized to fit the width
   {
-    const b = beatAt(v);
-    const a = b && !window.__cover ? smooth(0, 0.06, b.dt) * (1 - smooth(1.5, 2.0, b.dt)) * (1 - s.flash) : 0;
+    const p = window.__cover ? null : popupAt(v);
+    const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
-    stampW.style.opacity = a.toFixed(3);
+    stampW.style.opacity = '0';
     if (a > 0) {
-      const t = fmtDepth(b.h);
-      if (stampEl.textContent !== t) stampEl.textContent = t;
-      if (stampW.textContent !== b.k) stampW.textContent = b.k;
-      stampEl.style.fontSize = `${(138 * (1 + 0.3 * Math.exp(-b.dt * 9))).toFixed(1)}px`;
+      if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
+      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
     }
   }
+
   return s;
 }
 

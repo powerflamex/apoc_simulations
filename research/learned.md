@@ -134,6 +134,9 @@
   gravity-doubles: a red badge "EARTH CAVES IN AT 6,000x" under the counter).
   **But no red badge box (owner, Oct 25: "kinda ass"):** put the finish line in the title, a caption or the counter's
   own text, never as the red box under the counter. Removed from grow-trillion, sun-explodes, quake-grows, rain, tsunami.
+- On-screen text (owner, Oct 25): at most ~4 text items at once. One short line under the counter (44px) or none;
+  gold popups say what is happening in a phrase, never a number (they contradicted the counter); a popup and a caption
+  are never on screen together (captions go in the gaps). Pattern: `say` on each beat, `popupAt(v)`/`POP` in timeline.js.
 - Give the escalation a beat: gravity-doubles pops a big gold "4x", "8x"... in the lower middle at each doubling,
   with a camera jolt and a deep boom in the sound.
 - Never let the middle sit still: if the story leaves "you" (e.g. you die), move the camera somewhere new (gravity-doubles

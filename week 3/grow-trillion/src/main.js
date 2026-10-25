@@ -15,7 +15,7 @@ import { makeSmoke } from './smoke.js';
 import { makeGlows } from './glows.js';
 import { makeOverlay } from './overlay.js';
 import {
-  state, VIDEO_DURATION, LOOP, STAMPS, lastStamp, footLift, stompAge, STOMP1, STOMP2, V_CAR, V_PLANE, V_TOUCH, S_TOUCH,
+  state, VIDEO_DURATION, LOOP, STAMPS, lastStamp, popupAt, POP, footLift, stompAge, STOMP1, STOMP2, V_CAR, V_PLANE, V_TOUCH, S_TOUCH,
   V_EARTH_CRACK, V_EARTH_BURST, V_PUSH, T_SWITCH, AU, R_E, R_SUN, FOOT_X, sizeAt,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
@@ -444,19 +444,19 @@ function update(v, cover = -1) {
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 
   overlay(v, s, v);
-  // the gold stamp at every power of ten
+  // the gold popup: one phrase saying what just happened (never a number), sized to fit the width
   {
-    const st = lastStamp(v);
-    const dt = st ? v - st.v : 99;
-    const a = st && !window.__cover ? smooth(0, 0.06, dt) * (1 - smooth(1.2, 1.6, dt)) * (1 - s.flash) : 0;
+    const p = window.__cover ? null : popupAt(v);
+    const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
-    stampW.style.opacity = a.toFixed(3);
+    stampW.style.opacity = '0';
     if (a > 0) {
-      if (stampEl.textContent !== st.t) stampEl.textContent = st.t;
-      const long = st.t.length > 8;
-      stampEl.style.fontSize = `${((long ? 118 : 138) * (1 + 0.3 * Math.exp(-dt * 9))).toFixed(1)}px`;
+      if (stampEl.textContent !== p.say) stampEl.textContent = p.say;
+      const fit = Math.max(64, Math.min(118, 1700 / p.say.length));
+      stampEl.style.fontSize = `${(fit * (1 + 0.25 * Math.exp(-p.dt * 9))).toFixed(1)}px`;
     }
   }
+
   return s;
 }
 

@@ -101,6 +101,18 @@ export const BEATS = [
   { h: 100e3, k: 'TALLER THAN SPACE BEGINS', miles: true },
   { h: 730500 * FT, k: 'YEAR 1,000', miles: true },
 ].map((b) => ({ ...b, v: vAtLevel(b.h) }));
+// what each popup says (no number: the counter shows the depth); '' = no popup (the beat's thunder still plays)
+const SAY = ['CARS FLOAT', 'IT’S OVER YOUR HEAD', 'THE SHOPS ARE UNDER', '', 'THE MARKET SIGN GOES UNDER', '', '',
+  'THE SPACE NEEDLE GOES UNDER', 'SEATTLE IS GONE', 'DENVER GOES UNDER', 'MOUNT RAINIER GOES UNDER', 'NORTH AMERICA IS GONE', '',
+  'EVEREST GOES UNDER', 'THE OCEAN REACHES SPACE', 'YEAR 1,000: THE RAIN STOPS'];
+BEATS.forEach((b, i) => { b.say = SAY[i]; });
+// the popup (one gold phrase) shows for POP s after a beat that has one
+export const POP = 1.7;
+export function popupAt(v) {
+  let b = null;
+  for (const x of BEATS) if (x.say && v >= x.v && v < x.v + POP) b = x;
+  return b ? { say: b.say, dt: v - b.v } : null;
+}
 export function beatAt(v) {
   let b = null;
   for (const x of BEATS) if (v >= x.v) b = x;
@@ -109,28 +121,21 @@ export function beatAt(v) {
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [7.4, 9.8, 'An inch of rain an hour. It never stops.'],
-  [10.0, 12.0, 'Cars sink with their lights still on.'],
-  [12.2, 14.2, 'It rises 2 feet every day.'],
-  [14.4, 16.6, 'The Market sign goes under.'],
-  [17.0, 19.4, 'The power goes out across the city.'],
-  [19.6, 22.0, 'Boats pull people off the rooftops.'],
+  [5.8, 7.9, 'An inch of rain an hour. It never stops.'],
+  [12.2, 14.9, 'It rises 2 feet every day.'],
+  [17.9, 19.5, 'The power goes out.'],
+  [19.7, 22.0, 'Boats pull people off the rooftops.'],
   [22.2, 24.6, 'The towers drown floor by floor.'],
-  [24.8, 27.6, 'Month 10: the Space Needle.'],
-  [28.6, 31.0, 'Seattle is gone. Only the mountains are left.'],
-  [31.2, 33.6, 'Every coast on Earth has moved inland.'],
-  [33.8, 36.2, 'Year 7: Denver is underwater.'],
-  [36.4, 38.6, 'The sea climbs Mount Rainier.'],
-  [38.8, 40.8, 'Year 20: the summit goes under.'],
-  [41.4, 43.8, 'Year 28: the last land is the Himalayas.'],
-  [44.0, 46.4, 'The air rises with the water. Everest has sea-level air.'],
-  [46.6, 49.0, 'These are the last people on dry land.'],
-  [49.2, 50.6, 'Year 40.'],
-  [51.4, 53.8, 'Earth is one ocean. And it keeps raining.'],
-  [54.0, 56.6, 'Year 1,000: the ocean is 138 miles deep.'],
-  [56.8, 59.4, 'At the bottom, the water is crushed into ice.'],
+  [24.8, 27.8, 'Month 10: the water reaches the Space Needle.'],
+  [32.8, 35.6, 'Every coast on Earth has moved inland.'],
+  [38.5, 39.9, 'The sea climbs Mount Rainier.'],
+  [44.4, 46.4, 'The last land is the Himalayas.'],
+  [46.6, 50.1, 'These are the last people on dry land.'],
+  [52.1, 54.3, 'Earth is one ocean. And it keeps raining.'],
+  [58.4, 61.0, 'At the bottom, the water is crushed into ice.'],
 ];
 export function captionAt(v) {
+  if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
       const fadeIn = clamp((v - a) / 0.3);
@@ -170,8 +175,7 @@ export const COUNTERS = [
     labelFn: (v) => `RAIN · ${fmtTime(daysAt(v))}`,
     fmt: (m) => fmtDepth(m),
     value: (v) => levelAt(v),
-    unit: (v) => { const h = levelAt(v); let n = ''; for (const [m, t] of NOTES) if (h >= m) n = t; return `WATER · ${n}`; },
-    badge: (v) => (v < V_EVEREST ? 'EVEREST GOES UNDER IN YEAR 40' : 'THE RAIN STOPS IN YEAR 1,000'),
+    unit: () => 'OF WATER',
   },
 ];
 

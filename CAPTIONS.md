@@ -534,7 +534,7 @@ Cover: `week 3/tsunami-nyc/out/tsunami-nyc_v4_cover.png` (`node render.mjs --cov
 59.9 s (kept under a minute: the scream at the start is the owner's Squidward clip, so a claim can't block it). You grow
 10x every 5 seconds, from an 18 ft giant in a downtown crossing (Chicago) at frame 0 to 1 trillion times at 57.5 s.
 v2 (Oct 22): everyone is running at frame 0, a man runs at the camera screaming, and any building you grow into breaks
-apart (debris and dust burst out where you touch it); the camera climbs above the towers from 5 s. The counter races your size with a red "1 TRILLION x IN ..." countdown; a gold stamp at every power of ten.
+apart (debris and dust burst out where you touch it); the camera climbs above the towers from 5 s. The counter races your size (one line under it: how tall you are); at every power of ten a gold popup says what you just outgrew (Oct 25: no red badge, popups never show a number).
 Your toe flattens a taxi, two stomps level the city, your head goes through the clouds and into space, the rock cracks and
 glows under you, Earth becomes a ball under your shoe and is crushed, you stand in front of the Sun, it lands in your hand
 as a marble and ends a grain of sand; white, loop.
