@@ -125,6 +125,22 @@
   ripped apart? You'd have 30 minutes left."). The competitor long videos that hit 1M were simple "you" premises
   ("What if you sped up and couldn't stop?"). Can't yet tell whether the voice itself hurt (both voiced videos are
   also the cosmology ones).
+- **Long-video retention curves vs content (Oct 25; Advanced mode > Report > Audience retention works in the built-in
+  browser, but Studio blocks it after a few loads).**
+  - 7 Ways (7:12): opens with 1 s flashes of each ending, three of them plain white screens (#3-#1), title at 0:08, then
+    the asteroid part's calm island. 100% -> 84% at 0:09 -> 56% at 0:44: almost half gone before anything happens.
+    The impact holds flat (55%). After that each part loses a little: earth-spins -10, sun-vanishes -11 (the most),
+    earth-falls -4, black hole -7, speed-doubles -4, electrons then the outro -> 19%.
+  - 6 More Ways (6:34): opens on "In 6 minutes, the whole universe ends." and Earth-stops already at hurricane winds,
+    yet still 77% at 0:12 and 50% at 0:45. Women-vanish and Yellowstone lose the most (-14 each); "#1 the end of the
+    universe" holds best (47% -> 40%, flat).
+  - Big Rip (6:56): flash-forward holds (83% at 0:04), then 25 s of narrated explaining ("space has been stretching...
+    dark energy") over a calm city: 51% by 0:29, 45% by 0:46. Slow quiet middle (Sun and Moon shrinking) sinks to 31%
+    at 4:00; then the curve CLIMBS to 49% at ~6:25 (Earth splits, your hand stretches): people skip ahead to the climax.
+  - Pattern: every long video loses about half its viewers in the first 30-45 s; after ~1 min the curves are nearly flat.
+    Spikes at every chapter start and the Big Rip's late climb show viewers skipping build-up and explaining to reach
+    destruction. Rules: no blank/white or calm start, no explaining in the first 30 s (one line max), a big visible
+    moment every ~45-60 s, and the most extreme scenes earlier rather than all at the end.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
