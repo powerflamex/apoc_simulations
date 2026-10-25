@@ -514,7 +514,7 @@ the seawall, takes the people at the railing and rolls over the promenade into t
 What if a 1,000 ft tsunami hit New York? 3x taller than the Statue of Liberty 🌊 #whatif #science
 
 **YouTube description**
-You're in Battery Park, at the southern tip of Manhattan. Two miles out, a wall of water is crossing the harbor at 125 mph.
+You're in Battery Park, at the southern tip of Manhattan. On the horizon, a wall of water is crossing the harbor at 125 mph.
 
 First the sea runs out: the harbor drains and the boats sit on the mud.
 The wave grows as the water gets shallow, from 600 ft to 1,000 ft.
