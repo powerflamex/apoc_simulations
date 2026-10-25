@@ -108,6 +108,23 @@
   unposted Shorts handed to a separate session Oct 25.) Cleaner text won't fix a weak question, but it can't hurt.
 - Posting order suggested Oct 25 for the five finished Shorts: tsunami-nyc, sun-explodes, grow-trillion, rain-1000-years,
   quake-grows (most universal question first; formula repeats last).
+- **Long videos, full Studio read Oct 25 (data through Oct 24).** Views / times YouTube showed the thumbnail / clicked /
+  average watched / subs:
+  7 Ways (Oct 11, 7:12, no voice, parts = the 7 biggest Shorts) 38.6K / 348K / 4.6% / 3:07 (43%) / 115;
+  6 More Ways (Oct 19, 6:34, parts = mid Shorts: earth-stops, women, yellowstone, moon, gravity, big crunch)
+  3.1K / 33K / 3.6% / 2:35 (39%) / 7; The Big Rip (Oct 21, 6:56, owner's voice) 2.9K / 21K / 4.3% / 2:20 (34%) / 2;
+  "What If the Universe Collapsed and Started Over?" (Big Crunch, Oct 23 evening, ~6.5 min, voice) 466 / 3.3K / 5.5% /
+  1:57 (30%) / 2 in its first ~1.5 days.
+- The views fell because YouTube showed each new one less (348K -> 33K -> 21K -> 3.3K showings), and it showed them less
+  because each held people for less (43% -> 39% -> 34% -> 30%). Clicks were fine (3.6-5.5%; the newest is the best).
+  ~80% of every long video's views come from the home page (Browse); search and suggested barely count.
+- 7 Ways had everything going for it: the channel's 7 biggest Shorts, posted at the channel's peak (Oct 11-14,
+  ~1M Shorts views a day; it peaked at 10.4K views on Oct 14). 6 More Ways used weaker Shorts and a repeat format.
+- Same lesson as the Shorts: the narrated cosmology explainers (Big Rip, Big Crunch) need knowledge and hold worst, and
+  their posted titles have no "you" ("How the Universe Could End: The Big Rip"; its plan's title was "What if space
+  ripped apart? You'd have 30 minutes left."). The competitor long videos that hit 1M were simple "you" premises
+  ("What if you sped up and couldn't stop?"). Can't yet tell whether the voice itself hurt (both voiced videos are
+  also the cosmology ones).
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
