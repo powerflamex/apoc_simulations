@@ -99,6 +99,15 @@
 - Look: hits open at dusk/night with lit cities and strong contrast; several stalls open in pale, washed-out daylight
   (jupiter, oxygen, friction, black-hole-fall's brown haze). Only black-hole-fall clearly lost viewers to it (46% swiped).
 
+- Red finish-line badge and gold milestone popups don't decide a hit: trillion-years had both and won; black hole and
+  speed-doubles had neither. Keep the badge. Popups must say what is happening ("EVEREST GOES UNDER"), never repeat the
+  counter or show a different number from it (found Oct 25 in rain 38 vs 28 ft, sun 1,300x vs 1,000x, quake 13.1 vs 13,
+  grow-trillion repeating 10 BILLION x).
+- Clutter: mid-video up to 7 text items at once; the tiny lines under the counter can't be read on a phone. Rule: at most
+  ~4 text items, one readable line under the counter, never a popup and a caption at the same time. (Cleanup of the five
+  unposted Shorts handed to a separate session Oct 25.) Cleaner text won't fix a weak question, but it can't hurt.
+- Posting order suggested Oct 25 for the five finished Shorts: tsunami-nyc, sun-explodes, grow-trillion, rain-1000-years,
+  quake-grows (most universal question first; formula repeats last).
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
