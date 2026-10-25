@@ -85,6 +85,20 @@
 - Black-hole-fall: 46% swiped away at once (frame 0 is a muddy brown haze with a flat grey astronaut: low contrast),
   but people who stayed watched 75%. Gojo is the opposite: the name gets people to stay (71%), but they leave before the end (61%).
 
+## Why the scores differ (Oct 25 read of the stats + the first 6 s of each video)
+- **The question decides it, not the picture.** Trillion-years and big-crunch share the scene and opening shots: score
+  56 vs 38. The four winners (black hole passes Earth, your speed doubles, you live 1 trillion years, every woman vanishes)
+  need zero science knowledge and make you wonder what happens to *you*. The recent stalls need knowledge or explaining
+  first (false vacuum decay, the Big Crunch, Jupiter has no ground, friction holds bolts, oxygen is in water and glass).
+  Test for every topic: could a 10-year-old get the question in one second, and does it make them wonder what happens to them?
+- **Hits did not open on action:** black hole, trillion and speed all open on a calm city at dusk. "More action at the
+  start" is not the fix; the question is.
+- **Repeating a formula decays:** doubling: speed 55 -> gravity 48 -> jump 39; time-lapse: trillion 56 -> big crunch 38.
+  The first viewers of a new Short are recent viewers, who have already seen the trick.
+- Momentum (a smaller first test) explains fewer views on newer Shorts, not their lower scores.
+- Look: hits open at dusk/night with lit cities and strong contrast; several stalls open in pale, washed-out daylight
+  (jupiter, oxygen, friction, black-hole-fall's brown haze). Only black-hole-fall clearly lost viewers to it (46% swiped).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
