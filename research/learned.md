@@ -73,6 +73,18 @@
 - Can't read the retention curve pages in the built-in browser (Studio answers "too many requests"); the Advanced-mode
   tables work (daily views, stayed to watch, average viewed per video per day).
 
+- Re-read Oct 25 (Studio data through Oct 23). Day 1 (views / stayed / avg viewed): black-hole-fall 24.3K / **54.3%**
+  (worst ever) / 74.9%; gojo 15.9K / 71.2% / 60.6%. Day 2: false-vacuum 16.8K (half of day 1: no breakout at 73-75%),
+  friction 4.7K. Live Oct 25: black-hole-fall 34K, gojo 24K, false-vacuum 59K, trillion-years 1.57M (now ~70K a day).
+  Channel: 9.39M views, ~380K views and ~580 subs a day (Oct 21-23), down from 994K / 2,685 on Oct 11. No Short
+  went up Oct 24-25.
+- A better single score than either number alone: **day-1 stayed to watch x day-1 average viewed** (roughly: how much of
+  the video an average person shown it watches). Black hole 62, trillion 56, speed 55, women-vanish 52 (445K): the four
+  biggest. Everything else 38-49 (false vacuum 49, moon/electrons/gravity 48-49, gojo 43, black-hole-fall 41, oxygen 41,
+  jupiter/yellowstone 40, jump 39, big crunch 38). Aim for 52+ on day 1.
+- Black-hole-fall: 46% swiped away at once (frame 0 is a muddy brown haze with a flat grey astronaut: low contrast),
+  but people who stayed watched 75%. Gojo is the opposite: the name gets people to stay (71%), but they leave before the end (61%).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
@@ -97,6 +109,8 @@
   seconds, with the biggest moment at the very end (not a big event early followed by aftermath).
 - Put a finish line on screen from frame 0 that the counter races toward (speed-doubles: "light speed in 53 s";
   gravity-doubles: a red badge "EARTH CAVES IN AT 6,000x" under the counter).
+  **But no red badge box (owner, Oct 25: "kinda ass"):** put the finish line in the title, a caption or the counter's
+  own text, never as the red box under the counter. Removed from grow-trillion, sun-explodes, quake-grows, rain, tsunami.
 - Give the escalation a beat: gravity-doubles pops a big gold "4x", "8x"... in the lower middle at each doubling,
   with a camera jolt and a deep boom in the sound.
 - Never let the middle sit still: if the story leaves "you" (e.g. you die), move the camera somewhere new (gravity-doubles
