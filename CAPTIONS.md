@@ -833,13 +833,11 @@ What would you do with 1,000x your IQ? 👇
 
 ## Long video 5. The heat death — `longform/out/heat-death_1920x1080.mp4`
 
-16:9, 6:14, a new scene (an observatory terrace on a ridge above a city; plan `longform/HEAT-DEATH.md`), to be
-narrated by the owner (script `longform/heat-death/SCRIPT.md`, read-along video `longform/out/heat-death_READ-ALONG.mp4`).
-The video promised at the end of the Big Crunch. Opens on a flash-forward of the frozen city under a black hole with
-the title on frame 0. Two numbers on screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its
-temperature, -230 °C down to a hair above absolute zero). 0:06-0:35 shows the whole universe from outside: every
-galaxy racing away, the stars going out, black holes flashing out, then a new Big Bang. Draft without the voice
-(Oct 22): **wait for his recording before uploading.**
+16:9, 3:43, narrated by the owner (his Oct 25 take; the picture is timed to his words). A new scene (an observatory
+terrace on a ridge above a city; plan `longform/HEAT-DEATH.md`, script `longform/heat-death/SCRIPT.md`). The video
+promised at the end of the Big Crunch. Reworked Oct 25 from the retention curves: flash-forward with the title, then
+straight to the terrace with time racing, the Sun swelling by 0:12, a big visible moment every ~45 s. Two numbers on
+screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its temperature). **Upload this file.**
 Thumbnail: `longform/out/heat-death_thumb.png`.
 
 **YouTube title (92 chars)**
@@ -862,18 +860,17 @@ Sources: Adams & Laughlin (1997), "A Dying Universe"; Krauss & Scherrer (2007), 
 
 Big Rip, Big Crunch or heat death: which ending scares you most? 👇
 
-0:00 The heat death (and a new Big Bang?)
-0:35 Tonight, at the observatory
-1:07 The Sun becomes a red giant
-1:22 A white dwarf, and Earth freezes
-1:50 The galaxies leave
-2:20 The last star
-2:59 Dead stars and the black hole
-3:41 Atoms fall apart
-4:10 The last black hole
-4:51 Nothing
-5:16 Penrose's idea
-5:46 Which ending is worst?
+0:00 Watching the universe die
+0:10 The Sun becomes a red giant
+0:18 A white dwarf, and Earth freezes
+0:38 The galaxies leave
+0:55 The last star
+1:20 Dead stars and the black hole
+1:54 Atoms fall apart
+2:09 The last black hole
+2:44 Nothing
+3:01 Penrose's idea
+3:23 Which ending is worst?
 
 #whatif #heatdeath #endoftheuniverse #space #science
 

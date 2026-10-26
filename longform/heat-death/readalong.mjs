@@ -2,7 +2,7 @@
 // right now underneath (big), with the section, the moment in the video and the next line. Silent, so the phone only
 // hears him. Each line starts at its moment in the video (ANCHORS below, from SEC in src/timeline.js); the lines
 // between two anchors follow at ~2.4 words/s, and a gap left before the next anchor shows as "(wait)".
-//   node readalong.mjs   ->  ../out/heat-death_READ-ALONG.mp4   (--times: only print when each line starts)
+//   node readalong.mjs   ->  prints when each line starts (--video: also makes ../out/heat-death_READ-ALONG.mp4)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -19,60 +19,47 @@ const WPS = 2.4, GAP = 0.6;
 
 // line (its first words) -> the video time it starts at
 const ANCHORS = [
-  ['In six minutes', SEC.ff + 0.5],
-  ['This is the heat death', SEC.demo + 0.4],
-  ['Every galaxy drifts', SEC.dDrift - 0.4],
-  ['Every star burns', SEC.dStars - 0.4],
-  ['Every black hole evaporates', SEC.dHoles - 0.2],
-  ['Until there', SEC.dLast - 0.8],
-  ['And then, maybe, something', SEC.dBang - 3.0],   // (the bang goes off as he finishes "happens")
-  ['A brand-new', SEC.dBang + 1.0],
-  ['Right now', SEC.walk + 0.6],
-  ["That's the heat death. No", SEC.walk + 12.4],
-  ['And imagine you could stand', SEC.lapse - 2.6],
-  ['Five billion', SEC.lapse + 3.5],
-  ['It swells', SEC.giant],
-  ['Then it throws', SEC.shed],
-  ["All that's left", SEC.wd - 1.5],
+  ['In five minutes', SEC.ff + 0.5],
+  ['Imagine you could stand', SEC.walk + 0.4],
+  ['Five billion', SEC.giant - 1.5],
+  ['Two hundred', SEC.giant + 4.1],
+  ['Then it blows', SEC.shed],
+  ['...and all', SEC.wd - 1],
   ['This is daytime', SEC.day],
   ['Earth freezes', SEC.freeze],
   ['Even the air', SEC.snow],
   ['Meanwhile', SEC.leave],
-  ['Point a telescope', SEC.scope0 + 0.2],
-  ['Until one day', SEC.gone - 2.2],
+  ['Look through', SEC.scope0],
+  ['Every year', SEC.redder],
+  ['Until it', SEC.gone],
   ['In two trillion', SEC.alone],
-  ['Then, the stars', SEC.out],
-  ['The big, bright', SEC.bright],
+  ['Then the stars', SEC.out],
+  ['The big bright', SEC.bright],
   ['Then the small', SEC.small],
-  ['A hundred trillion', SEC.last - 5.5],
+  ['A hundred trillion', SEC.last - 5],
   ['Our Sun fades', SEC.sunFade],
-  ['A quadrillion', SEC.black],
-  ["But it's not", SEC.dark],
-  ['Every few billion', SEC.dark + 3],
-  ['And for a moment', SEC.crash + 1.5],
-  ['Over ten billion', SEC.fling],
-  ['The rest fall', SEC.fall],
-  ['Imagine Earth falls', SEC.bh],
-  ['Everything falling in', SEC.disk],
+  ['But it', SEC.dark],
+  ['Every so often', SEC.crash - 2.7],
+  ['...and for a moment', SEC.crash + 1],
+  ['Over billions', SEC.fling],
+  ['Imagine Earth falls', SEC.bh + 5.5],
+  ['Everything falling in', SEC.disk + 1],
   ['The last fire', SEC.fire],
   ['And then, even atoms', SEC.atoms],
-  ["If they don't", SEC.atoms + 9.2],
+  ['Ten to the forty', SEC.atoms + 4],
   ['Earth just evaporates', SEC.evap],
-  ["Imagine you're somehow", SEC.float],
+  ['Imagine you', SEC.float],
   ['Now, the only', SEC.holes],
-  ['A black hole the size', SEC.pops],
-  ['Ours ate so much', SEC.ours],
-  ['It lasts a googol', SEC.googol],
+  ['The small ones', SEC.pops + 1],
+  ['Ours ate so much', SEC.googol - 0.5],
   ['As it shrinks', SEC.hotter],
   ['Until...', SEC.until],
   ['That was the last', SEC.nothing],
-  ['Forever', SEC.forever],
-  ['This is the heat death.', SEC.death],
+  ['This is the heat death', SEC.death],
   ['Unless', SEC.unless],
-  ['The Nobel', SEC.penrose],
-  ['So a universe', SEC.tiny],
-  ['Like the moment', SEC.bang - 4],
-  ["That's the heat death.", SEC.end + 2],
+  ['When there', SEC.tiny],
+  ['So the end', SEC.bang - 6],
+  ["That's the heat death", SEC.end + 1],
 ];
 
 // ---- the script: sections and lines from SCRIPT.md ----
@@ -114,7 +101,8 @@ for (let g = 0; g < groups.length - 1; g++) {
 }
 const END = SEC.outro;
 const table = () => { for (const l of lines) console.log(`${mmss(l.at).padStart(5)}  ${(l.at).toFixed(1).padStart(6)}  ${l.text}`); };
-if (process.argv.includes('--times')) { table(); process.exit(0); }   // (just the line table)
+// the owner doesn't want read-along videos anymore (Oct 25): by default just the line table; --video makes one anyway
+if (!process.argv.includes('--video')) { table(); process.exit(0); }
 
 // segments shown in the panel: [from, to, html fields]
 const segs = [{ from: -PRE, to: 0, label: 'GET READY', clock: '', main: 'Starts in a few seconds…', dim: true, next: lines[0].text }];

@@ -13,7 +13,7 @@ import { makeSky, blackbody } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeDemo } from './demo.js';
 import { makeOverlay } from './overlay.js';
-import { state, SEC, VIDEO_DURATION, V_FF, FF_LEN, beatAt, sunDir, clockT, CRASHES, POPS } from './timeline.js';
+import { state, SEC, VIDEO_DURATION, V_FF, FF_LEN, beatAt, sunDir, clockT, CRASHES, POPS, closingAt } from './timeline.js';
 import { DEG, smooth, wobble, clamp, lerp } from './util.js';
 import { makeCompositor } from './compose.js';
 import { SCOPE_GLSL } from './scope.js';
@@ -108,43 +108,51 @@ const BH_DIR = new THREE.Vector3(0.3, 0.5, -0.81).normalize();
 const BH_YAW = Math.atan2(BH_DIR.x, -BH_DIR.z) / DEG, BH_EL = Math.asin(BH_DIR.y) / DEG;
 // each shot: [start, end, keys]; keys: x y z yaw pitch fov (degrees; yaw + turns right, fov vertical), video clock.
 // You stand at the railing at x = 0, z = 0.15, looking west (-z) over the city; the observatory is on the right.
+const S_ = SEC;
 const SHOTS = [
-  // dusk: behind you at the railing, the dome on the right, turning to the sunset over the city
+  // the terrace at sunset in real time (seen only in the closing shot): behind you at the railing, the dome on the
+  // right, turning to the sunset over the city
   [SEC.prom, SEC.lapse, {
-    x: K([5, -1.6], [35, -1.5], [50, -1.4], [64, -1.3]), y: K([5, 2.9], [35, 2.9], [64, 3.0]), z: K([5, 6.6], [35, 6.8], [50, 7.4], [64, 8.2]),
-    yaw: K([5, 24], [35, 22], [44, 14], [54, 6], [64, 0]), pitch: K([5, -6], [35, -6], [64, -5]), fov: K([5, 44], [35, 44], [64, 47]),
+    x: K([-24, -1.6], [-10, -1.5], [6, -1.3]), y: K([-24, 2.9], [6, 3.0]), z: K([-24, 6.6], [-10, 7.2], [6, 8.2]),
+    yaw: K([-24, 22], [-14, 14], [-4, 6], [6, 2]), pitch: K([-24, -6], [6, -5]), fov: K([-24, 44], [6, 47]),
   }],
-  // the days race; the view backs off and lifts to the sky ahead
-  [SEC.lapse, SEC.lock, { x: K([64, -1.3], [69, -1.2]), y: K([64, 3.0], [69, 3.2]), z: K([64, 8.2], [69, 9.5]), yaw: K([64, 0], [69, SUN_YAW + 14]), pitch: K([64, -5], [69, 1]), fov: K([64, 47], [69, 58]) }],
-  // the red giant swelling over the city; it sheds its layers; the white dwarf
-  [SEC.lock, SEC.wd + 4, {
-    x: K([69, -1.2], [87, -1.1]), y: K([69, 3.2], [87, 3.4]), z: K([69, 9.5], [87, 10.5]),
-    yaw: K([69, SUN_YAW + 14], [78, SUN_YAW + 16], [87, SUN_YAW + 18]), pitch: K([69, 1], [75, 4], [80, 7], [87, 5]), fov: K([69, 58], [76, 64], [87, 62]),
+  // the cut from the flash-forward: time already racing; days and nights sweep over the city; the view lifts to the sky
+  [SEC.lapse, SEC.lock, { x: K([S_.lapse, -1.3], [S_.lock, -1.2]), y: K([S_.lapse, 3.0], [S_.lock, 3.2]), z: K([S_.lapse, 8.2], [S_.lock, 9.5]), yaw: K([S_.lapse, 4], [S_.lock, SUN_YAW + 14]), pitch: K([S_.lapse, -5], [S_.lock, 1]), fov: K([S_.lapse, 47], [S_.lock, 58]) }],
+  // the red giant swelling over the city; it blows apart in glowing shells; the white dwarf
+  [SEC.lock, SEC.day - 0.5, {
+    x: K([S_.lock, -1.2], [S_.day - 0.5, -1.1]), y: K([S_.lock, 3.2], [S_.day - 0.5, 3.4]), z: K([S_.lock, 9.5], [S_.day - 0.5, 10.5]),
+    yaw: K([S_.lock, SUN_YAW + 14], [S_.giant + 4, SUN_YAW + 16], [S_.shed + 2, SUN_YAW + 17], [S_.day - 0.5, SUN_YAW + 18]),
+    pitch: K([S_.lock, 1], [S_.giant + 3, 4], [S_.shed + 1.5, 9], [S_.wd + 0.5, 8], [S_.day - 0.5, 5]), fov: K([S_.lock, 58], [S_.giant + 3, 64], [S_.shed + 2, 66], [S_.day - 0.5, 62]),
   }],
   // the black daytime sky, the tiny blinding star; Earth freezes; the air falls as snow
-  [SEC.wd + 4, SEC.leave, {
-    x: K([86.5, -1.1], [95, -1.2], [101, -1.4], [110, -1.4]), y: K([86.5, 3.4], [95, 3.0], [101, 2.8], [110, 2.9]), z: K([86.5, 10.5], [95, 8.5], [101, 6.8], [110, 7.0]),
-    yaw: K([86.5, SUN_YAW + 18], [95, SUN_YAW + 22], [101, 10], [110, 4]), pitch: K([86.5, 5], [95, -1], [101, -5], [110, 2]), fov: K([86.5, 62], [95, 54], [101, 48], [110, 54]),
+  [SEC.day - 0.5, SEC.leave, {
+    x: K([S_.day - 0.5, -1.1], [S_.freeze, -1.2], [S_.snow, -1.4], [S_.leave, -1.4]), y: K([S_.day - 0.5, 3.4], [S_.freeze, 3.0], [S_.snow, 2.8], [S_.leave, 2.9]),
+    z: K([S_.day - 0.5, 10.5], [S_.freeze, 8.5], [S_.snow, 6.8], [S_.leave, 7.0]),
+    yaw: K([S_.day - 0.5, SUN_YAW + 18], [S_.freeze, SUN_YAW + 22], [S_.snow + 0.5, 10], [S_.leave, 4]), pitch: K([S_.day - 0.5, 5], [S_.freeze, -1], [S_.snow + 0.5, -5], [S_.leave, 2]),
+    fov: K([S_.day - 0.5, 62], [S_.freeze, 54], [S_.snow + 0.5, 48], [S_.leave, 54]),
   }],
-  // night: the sky full of stars and the merged galaxy (the telescope view is a 2D insert over this)
-  [SEC.leave, SEC.out, { x: K([110, -1.4], [140, -1.5]), y: K([110, 2.9], [140, 3.0]), z: K([110, 7.0], [140, 8.0]), yaw: K([110, 4], [125, -22], [140, -26]), pitch: K([110, 2], [118, 9], [140, 10]), fov: K([110, 54], [118, 64], [140, 66]) }],
-  // the stars go out over the frozen city; dead stars crash; the dark
+  // night: the merged galaxy, one ball of stars (the telescope view is a 2D insert over this)
+  [SEC.leave, SEC.out, { x: K([S_.leave, -1.4], [S_.out, -1.5]), y: K([S_.leave, 2.9], [S_.out, 3.0]), z: K([S_.leave, 7.0], [S_.out, 8.0]), yaw: K([S_.leave, 4], [S_.scope0, -22], [S_.out, -26]), pitch: K([S_.leave, 2], [S_.scope0, 9], [S_.out, 10]), fov: K([S_.leave, 54], [S_.scope0, 64], [S_.out, 66]) }],
+  // the stars go out over the frozen city (the last one ahead and left); the dying Sun; dead stars crash
   [SEC.out, SEC.bh, {
-    x: K([140, -1.5], [204.5, -1.6]), y: K([140, 3.0], [204.5, 3.1]), z: K([140, 8.0], [170, 8.6], [204.5, 9.0]),
-    yaw: K([140, -26], [152, -16], [160, -10], [165.5, SUN_YAW + 12], [178, SUN_YAW + 14], [186, -10], [196, 2], [204.5, BH_YAW * 0.45]), pitch: K([140, 10], [160, 9], [166, 4], [178, 4], [186, 7], [192, 8], [204.5, 9]), fov: K([140, 66], [160, 62], [168, 56], [178, 56], [186, 64], [204.5, 64]),
+    x: K([S_.out, -1.5], [S_.bh, -1.6]), y: K([S_.out, 3.0], [S_.bh, 3.1]), z: K([S_.out, 8.0], [S_.last + 3, 8.6], [S_.bh, 9.0]),
+    yaw: K([S_.out, -26], [S_.bright + 1, -16], [S_.small + 2, -10], [S_.last + 0.5, -10], [S_.last + 3, SUN_YAW + 12], [S_.black + 1, SUN_YAW + 14], [S_.crash - 1, -10], [S_.crash + 4, 2], [S_.bh, BH_YAW * 0.45]),
+    pitch: K([S_.out, 10], [S_.small + 2, 9], [S_.last + 0.5, 8], [S_.last + 3, 4], [S_.black + 1, 4], [S_.crash - 1, 7], [S_.crash + 4, 8], [S_.bh, 9]),
+    fov: K([S_.out, 66], [S_.small + 2, 62], [S_.last + 3, 56], [S_.black + 1, 56], [S_.crash - 1, 64], [S_.bh, 64]),
   }],
   // the black hole grows overhead; its disk lights the frozen city
   [SEC.bh, SEC.evap, {
-    x: K([204.5, -1.6], [236, -1.8]), y: K([204.5, 3.1], [236, 3.3]), z: K([204.5, 9.0], [220, 9.8], [236, 10.2]),
-    yaw: K([204.5, BH_YAW * 0.45], [215, BH_YAW * 0.5], [236, BH_YAW * 0.3]), pitch: K([204.5, 9], [212, 11], [222, 11], [236, 6]), fov: K([204.5, 64], [214, 64], [236, 60]),
+    x: K([S_.bh, -1.6], [S_.evap, -1.8]), y: K([S_.bh, 3.1], [S_.evap, 3.3]), z: K([S_.bh, 9.0], [S_.fire, 9.8], [S_.evap, 10.2]),
+    yaw: K([S_.bh, BH_YAW * 0.45], [S_.disk, BH_YAW * 0.5], [S_.evap, BH_YAW * 0.3]), pitch: K([S_.bh, 9], [S_.bh + 6, 11], [S_.fire + 3, 11], [S_.evap, 6]), fov: K([S_.bh, 64], [S_.fire, 64], [S_.evap, 60]),
   }],
   // Earth evaporates under you; you float up into the dark
-  [SEC.evap, SEC.float, { x: K([236, -1.8], [245.5, -2.0]), y: K([236, 3.3], [245.5, 2.4]), z: K([236, 10.2], [245.5, 6.0]), yaw: K([236, BH_YAW * 0.3], [245.5, -12]), pitch: K([236, 6], [241, -8], [245.5, 6]), fov: K([236, 60], [245.5, 52]) }],
-  // floating in the dark with the black hole
-  [SEC.float, SEC.unless, {
-    x: K([245.5, -2.0], [255, -1.3], [291, -1.2], [316, -0.8]), y: K([245.5, 2.4], [255, 2.8], [316, 2.8]), z: K([245.5, 6.0], [255, 5.0], [291, 5.0], [316, 4.6]),
-    yaw: K([245.5, -12], [255, BH_YAW - 8], [285.5, BH_YAW - 6], [316, BH_YAW - 2]), pitch: K([245.5, 4], [255, 7], [275, 7], [285.5, 8], [316, 6]),
-    fov: K([245.5, 60], [255, 72], [275, 70], [285.5, 64], [300, 70], [316, 72]),
+  [SEC.evap, SEC.float, { x: K([S_.evap, -1.8], [S_.float, -2.0]), y: K([S_.evap, 3.3], [S_.float, 2.4]), z: K([S_.evap, 10.2], [S_.float, 6.0]), yaw: K([S_.evap, BH_YAW * 0.3], [S_.float, -12]), pitch: K([S_.evap, 6], [S_.evap + 4.5, -8], [S_.float, 4]), fov: K([S_.evap, 60], [S_.float, 60]) }],
+  // floating under the last black hole, to its last flash and the afterglow
+  [SEC.float, SEC.end, {
+    x: K([S_.float, -2.0], [S_.holes + 2, -1.5], [S_.googol, -1.0], [S_.until, -0.4], [S_.void, 0.2]), y: K([S_.float, 2.4], [S_.holes + 2, 2.8], [S_.void, 2.8]),
+    z: K([S_.float, 6.0], [S_.holes + 2, 5.0], [S_.lastLight, 5.0], [S_.void, 4.6]),
+    yaw: K([S_.float, -12], [S_.holes + 2, BH_YAW - 14], [S_.googol, BH_YAW - 6], [S_.until, BH_YAW + 3], [S_.void, BH_YAW + 6]), pitch: K([S_.float, 4], [S_.holes + 2, 7], [S_.hotter, 7], [S_.lastLight, 8], [S_.void, 6]),
+    fov: K([S_.float, 60], [S_.holes + 2, 72], [S_.hotter, 70], [S_.lastLight, 64], [S_.lastLight + 7, 70], [S_.void, 72]),
   }],
 ];
 function shotAt(v) {
@@ -181,7 +189,7 @@ function update(v, vv = v) {
   if (b && !b.quiet && !window.__cover && vv >= FF_LEN) punch = smooth(0, 0.06, b.dt) * Math.exp(-Math.max(0, b.dt - 0.06) * 4);
   let white = 0;
 
-  const demoOn = vv === v && ((v >= SEC.demo && v < SEC.walk) || s.demo2);
+  const demoOn = vv === v && s.demo2;
   if (demoOn) {
     // ---------- the whole universe from outside ----------
     renderPass.scene = demo.scene;
@@ -265,7 +273,11 @@ function update(v, vv = v) {
     for (const p of u.uPop.value) p.w = 0;
     for (const [t, d] of POPS) {
       const dt = v - t;
-      if (dt > -0.05 && dt < 1.2 && pi < 4) u.uPop.value[pi++].copy(v4(d, smooth(-0.05, 0.03, dt) * Math.exp(-Math.max(0, dt) * 5)));
+      if (dt > -0.05 && dt < 1.2 && pi < 4) {
+        const e = smooth(-0.05, 0.03, dt) * Math.exp(-Math.max(0, dt) * 4);
+        u.uPop.value[pi++].copy(v4(d, e));
+        if (e * 0.7 > fxI) { fxI = e * 0.7; look.fxDir.fromArray(d).normalize(); }
+      }
     }
     look.fxCol.setRGB(0.8, 0.88, 1.0).multiplyScalar(fxI * 2.2);
     // the black hole
@@ -309,7 +321,8 @@ function update(v, vv = v) {
   finish.uniforms.uGone.value = s.fadeGal;
   finish.uniforms.uAb.value = punch * 0.5;
   finish.uniforms.uWhite.value = white;
-  finish.uniforms.uTitle.value = window.__cover ? 0 : Math.max(s.title, 0.8 * s.name);
+  const cl = closingAt(vv);
+  finish.uniforms.uTitle.value = window.__cover ? 0 : Math.max(s.title, 0.8 * s.name, cl ? 0.9 * cl.a : 0);
   finish.uniforms.uCounter.value = window.__cover ? 1.3 : (1 - s.flash) * (1 - s.scope) * (1 - s.after) * 0.9;
   overlay(v, s, vv);
   return s;
@@ -333,7 +346,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [2, 10, 20, 31, 40, 66, 75, 90, 102, 120, 150, 186, 210, 240, 260, 286, 300, 330, 341, 350]) renderFrame(t);   // compile everything once
+  for (const t of [2, 8, 16, 24, 30, 40, 52, 70, 96.6, 112, 135, 150, 174, 190, 215, 225]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world };

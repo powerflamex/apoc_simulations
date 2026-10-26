@@ -1,6 +1,6 @@
 # Long video: "What if you watched the universe die?" (the heat death)
 
-16:9 (1920x1080, 30 fps), 6:14, to be narrated by the owner (script: `longform/heat-death/SCRIPT.md`). Third of the
+16:9 (1920x1080, 30 fps), 3:43, narrated by the owner (Oct 25 rework of the 6:14 draft; picture timed to his take) (script: `longform/heat-death/SCRIPT.md`). Third of the
 "how the universe ends" set, promised at the end of the Big Crunch ("That ending is even stranger. And it's the one
 I'm simulating next."): the Big Rip (torn apart), the Big Crunch (crushed), this one (frozen, faded out).
 Its own video with its own title, not "Part 3".
@@ -34,27 +34,30 @@ ones are explainers and the all-endings timelapses (melodysheep, Stargaze). None
   from small, so the cold empty universe may become the next Big Bang. The video says "a wild idea".
 
 ## What the viewer sees and hears, 0:00 to the end
-On screen the whole time: the title for the first ~6 s, the counter **YEARS FROM NOW** (racing, braking at each step;
-past 10^15 as a power of ten) with a **NEXT: ...** line, and from the freeze a second number: **EARTH: -230 °C**, then
-**EMPTY SPACE: -273.1499... °C**. A big word pops at each step. The voice goes quiet for the big moments.
+Reworked Oct 25 from the owner's retention curves (research/learned.md: every long video lost half its viewers in the
+first 30-45 s; the Big Rip lost a third to 25 s of explaining): no universe-from-outside opening (it gave the ending
+away), no calm terrace, one line of explaining in the first 30 s, a big visible moment every ~45 s, nothing dark and
+still for long.
+On screen: the title for the first 6 s, the counter **YEARS FROM NOW** (racing, braking at each step; past 10^15 as a
+power of ten) with one line under it (**NEXT: ...**), from the freeze a second number: **EARTH -230 °C**, then
+**EMPTY SPACE -273.1499... °C**. At each big moment a short gold phrase pops up (no numbers, no small label).
 
-| Time | Picture | Counter / NEXT |
+| Time | Picture | Voice (short) |
 |---|---|---|
-| 0:00-0:06 | **Flash-forward:** the frozen white city under a black hole with a glowing disk. Title on frame 0: "What if you watched the universe die?" / "The last light goes out in a googol years." | 3 × 10^20 years / EARTH -268 °C |
-| 0:06-0:35 | **The whole universe from outside:** a ball of galaxies, ours marked YOU ARE HERE; space speeds up and every other galaxy races away, reddening; ours goes red, then dark; points of light flash and go out (black holes), the last in the middle; black; then one point swells into a new Big Bang (0:30.6). White. | YEARS FROM NOW: today -> 10^100; A NEW UNIVERSE |
-| 0:35-1:04 | The terrace at sunset: people walking and filming, the city's lights coming on below, cars on the boulevards, the dome on the right. | Today / NEXT: THE SUN DIES |
-| 1:04-1:22 | Time races; the Sun swells into a huge red giant over the city, boiling; the sky turns red. | 5 billion years |
-| 1:17-1:35 | It dissolves into glowing shells (red, pink, teal) sweeping across the sky; a tiny blinding white dwarf is left; the sky goes black in daytime, stars out at noon. | 8 billion / NEXT: THE GALAXIES LEAVE |
-| 1:35-1:50 | Earth freezes (EARTH -230 °C), the city goes dark in patches, the air falls as glinting snow. **Silence.** | |
-| 1:50-2:20 | Night: the merged galaxy, one big ball of stars; the coin telescope: a far galaxy redder, fainter, GONE FOR GOOD. | 20 billion -> 2 trillion |
-| 2:20-2:59 | The stars go out, the brightest first, the rest redden; one red star left; it goes out (**silence**). The white-dwarf Sun fades to a dull red dot, then black. | 100 trillion / 1 quadrillion |
-| 2:59-3:24 | The frozen city in the dark; two dead stars crash: a flash lights it all (3:06). | 10^16 -> 10^19 |
-| 3:24-3:41 | A black hole grows overhead, its disk lighting the frozen city orange. **Silence.** | 10^20 / NEXT: ATOMS |
-| 3:41-4:05 | Atoms fall apart: the terrace, the city and you crumble into rising sparks. **Silence.** | 10^40 / EMPTY SPACE |
-| 4:05-4:51 | You float in the dark under the black hole's faint ring (Hawking glow); far black holes flash out; it shrinks, hotter, brighter... the last flash, white (4:45.5). **Silence.** | 10^67 -> 10^100 |
-| 4:51-5:16 | Nothing: black, the last light's afterglow spreading away. "Forever." "The heat death." | 10^100+ |
-| 5:16-5:46 | Penrose: the empty universe from outside, a faint red shell; the camera pulls back until it's one point, which turns white-hot and bursts: a new Big Bang (5:39.5). White. | 10^1000 ... |
-| 5:46-6:14 | White clears onto the terrace at sunset (the end returns to the start). "It just fades out." / "Which ending scares you most?" | |
+| 0:00-0:06 | **Flash-forward:** the frozen city under a black hole with a glowing disk. Title on frame 0. | "In five minutes, you'll watch the last light in the universe go out." |
+| 0:06-0:10 | The terrace at sunset with time already racing: the people blur away, night falls over the lit city, sunrise, day. | "Imagine you could stand right here, and watch the universe die." |
+| 0:10-0:18 | The Sun swells into a huge red giant over the city (big by 0:15); the sky turns red. *A red giant* | "...the Sun swells into a red giant. Two hundred times bigger." |
+| 0:18-0:25 | It blows apart in glowing red, pink and teal shells sweeping the sky; a tiny blinding white dwarf is left; the day sky goes black. *The Sun blows apart / A white dwarf* | "...all that's left is a white dwarf." |
+| 0:25-0:38 | Earth freezes (EARTH -230 °C), the city goes dark in patches, the air falls as glinting snow. *The air freezes* **Silence.** | "Earth freezes... even the air freezes, and falls as snow." |
+| 0:38-0:55 | Night: the merged galaxy, one ball of stars; the coin telescope: a far galaxy redder, fainter, gone. *Gone* | "Look through the telescope..." |
+| 0:55-1:20 | The stars go out, brightest first, down to one red star; it goes out. *The last star* **Silence.** The dying Sun, a dull red dot, goes black. *Our Sun goes dark* | "Then the stars start going out." |
+| 1:20-1:32 | The frozen city in the dark; three dead-star crashes flash and light it up. *Light again* | "...two dead stars crash, and for a moment, there's light again." |
+| 1:32-1:54 | A black hole grows overhead, its disk brightening and lighting the frozen city orange. *The black hole / The last fire* **Silence.** | "Imagine Earth falls in with them." |
+| 1:54-2:09 | Atoms fall apart: the terrace, the city and you crumble into rising sparks. *Atoms fall apart* **Silence.** | "Earth just evaporates. And so would you." |
+| 2:09-2:40 | You float under the black hole's glowing ring; far black holes flash out and light you; the view turns slowly around you as it shrinks, hotter, brighter. *Black holes evaporate / A googol years* | "Ours ate so much, it lasts a googol years." |
+| 2:40-2:54 | The last flash (white), then its afterglow spreading away and reddening. *The last light* **Silence.** | "That was the last light in the universe." |
+| 2:54-3:22 | The empty universe from outside: a faint red shell; the camera pulls back until it is one point, which heats up and bursts: a new Big Bang. *The heat death / A new Big Bang* | "Unless... Roger Penrose... a brand-new Big Bang." |
+| 3:22-3:43 | White clears onto the terrace at sunset (the end returns to the start). "It just fades out." / "Which ending scares you most?" | the question for comments |
 
 Thumbnail: the black hole over the frozen city with **THE HEAT DEATH** in big gold letters (like the Big Rip's and
 the Big Crunch's).
@@ -65,5 +68,6 @@ the Big Crunch's).
   `terrace.js` (terrace, parapet, observatory, coin telescope, lamps), `fx.js` (snow, flash light and evaporation
   shared by every material), `sky.js` (dusk, red giant, shells, white dwarf, stars going out, crashes, black hole,
   last flash), `demo.js` (the universe from outside, twice), `timeline.js` (story, counter, temperature).
-- Voice: `src/voice.js` is empty until the recording; `node readalong.mjs` makes the read-along video from the
-  finished draft. The audio cleanup in `audio.mjs` is the one that worked on his Big Crunch take.
+- Voice: his Oct 25 take (`voice.m4a`, kept local) cut into 51 lines in `src/voice.js` (each cut transcribed alone,
+  his restarts dropped, lines read close together keep his own pause); every SEC moment sits on his words. No
+  read-along videos anymore (owner, Oct 25): `node readalong.mjs` only prints the line timing table. The audio cleanup in `audio.mjs` is the one that worked on his Big Crunch take.

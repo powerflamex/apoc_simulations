@@ -2,13 +2,9 @@
 // (Earth's, then empty space's), the telescope's label, the big word at each step, the white flash, and the closing
 // lines.
 // compose.js paints all of it into the frame.
-import { COUNTERS, TEMPROW, beatAt, SEC } from './timeline.js';
+import { COUNTERS, TEMPROW, beatAt, closingAt, SEC, FF_LEN } from './timeline.js';
 import { clamp, smooth } from './util.js';
 
-const CLOSING = [
-  [SEC.end + 9, SEC.end + 14, 'It just fades out.'],
-  [SEC.end + 15, SEC.outro - 1, 'Which ending scares you most?'],
-];
 
 export function makeOverlay() {
   const counter = document.getElementById('counter');
@@ -44,7 +40,7 @@ export function makeOverlay() {
       if (a > 0) {
         r.value.textContent = r.c.fmt(r.c.value(t));
         if (typeof r.c.label === 'function') { const lb = r.c.label(t); if (r.label.textContent !== lb) r.label.textContent = lb; }
-        const u = r.c.unit(t);
+        const u = v < FF_LEN ? '' : r.c.unit(t);   // (no NEXT line over the flash-forward)
         if (r.unit.textContent !== u) r.unit.textContent = u;
       }
     }
@@ -84,22 +80,17 @@ export function makeOverlay() {
     name.style.opacity = n.toFixed(3);
     name.style.transform = `scale(${(1 + 0.12 * (1 - smooth(6.5, 7.2, v))).toFixed(4)})`;
 
-    // the big word: pops in, holds, fades
+    // the popup: a short phrase (no number, no small label); it rises in at a steady size, holds, fades
     const b = beatAt(t);
-    const a = b && v > 6 ? smooth(0, 0.08, b.dt) * (1 - smooth(2.2, 2.9, b.dt)) * (1 - hide) : 0;
-    stamp.style.opacity = a.toFixed(3); stampk.style.opacity = a.toFixed(3);
+    const a = b && v > 6.6 ? smooth(0, 0.15, b.dt) * (1 - smooth(2.2, 2.9, b.dt)) * (1 - hide) : 0;
+    stamp.style.opacity = a.toFixed(3); stampk.style.opacity = '0';
     if (a > 0) {
-      // (in the opening demonstration they sit higher, clear of the universe's centre and YOU ARE HERE)
-      const hi = v < SEC.walk || (v >= SEC.penrose && v < SEC.end);
-      stamp.style.top = hi ? '215px' : ''; stampk.style.top = hi ? '175px' : '';
       if (stamp.textContent !== b.w) stamp.textContent = b.w;
-      if (stampk.textContent !== b.k) stampk.textContent = b.k;
-      const base = b.w.length > 14 ? 120 : 150;
-      stamp.style.fontSize = `${(base * (1 + 0.25 * Math.exp(-b.dt * 8))).toFixed(1)}px`;
+      stamp.style.fontSize = `${b.w.length > 16 ? 112 : 136}px`;
+      stamp.style.transform = `translateY(${(26 * (1 - smooth(0, 0.3, b.dt))).toFixed(1)}px)`;
     }
 
-    let ct = null;
-    for (const [a0, b0, text] of CLOSING) if (v >= a0 && v <= b0) ct = { text, a: Math.min(clamp((v - a0) / 0.6), clamp((b0 - v) / 0.6)) };
+    const ct = closingAt(v);
     closing.style.opacity = ct ? ct.a.toFixed(3) : '0';
     if (ct && closing.textContent !== ct.text) closing.textContent = ct.text;
 

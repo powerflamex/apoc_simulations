@@ -129,7 +129,7 @@ vec3 space(vec3 v) {
     vec4 c = uPop[i];
     if (c.w <= 0.0) continue;
     float a = acos(clamp(dot(v, normalize(c.xyz)), -1.0, 1.0));
-    sp += vec3(0.85, 0.9, 1.0) * c.w * (exp(-a * a / max(uPx * uPx * 4.0, 1e-9)) * 40.0 + exp(-a * 90.0) * 1.2);
+    sp += vec3(0.85, 0.9, 1.0) * c.w * (exp(-a * a / max(uPx * uPx * 6.0, 1e-9)) * 80.0 + exp(-a * 28.0) * 1.6 + exp(-a * 6.0) * 0.1);
   }
   // ---- the shells of the Sun's outer layers, sweeping out across the sky ----
   if (uNebI > 0.0) {

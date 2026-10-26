@@ -1,9 +1,6 @@
 # Heat death voiceover: read this out loud
 
 **How to record (what worked on the Big Rip and the Big Crunch):**
-- Play `longform/out/heat-death_READ-ALONG.mp4` on the laptop with the sound off and read along to it: the line to say
-  lights up under the picture at its moment, with a 3-2-1 before each one. (Reading off this page works too: I place
-  every line at its own moment either way.)
 - Phone voice recorder, airplane mode. Stand in a closet with clothes hanging around you (no sock, no blanket). Fans
   and AC off if you can. Phone at your cheek, a hand's width away, beside the corner of your mouth.
 - **One file, start to finish.** Mess up? Stop, breathe, and say that whole sentence again from its start. I find
@@ -16,57 +13,21 @@
 
 ### 1. The opening
 
-In six minutes, you'll watch the last light in the universe go out.
+In five minutes, you'll watch the last light in the universe go out.
 
-### 2. The whole universe
+### 2. The Sun
 
-This is the heat death of the universe.
+Imagine you could stand right here, and watch the universe die.
 
-Space keeps growing. Faster and faster. Forever.
+Five billion years from now, the Sun swells into a red giant.
 
-Every galaxy drifts out of sight.
+Two hundred times bigger.
 
-Every star burns out.
+Then it blows off its outer layers...
 
-Every black hole evaporates.
-
-Until there's nothing left. At all.
-
-**[wait 1 second]**
-
-And then, maybe, something impossible happens.
-
-A brand-new Big Bang.
-
-### 3. The observatory
-
-Right now, the universe is growing.
-
-And for the last five billion years, it's been speeding up.
-
-Most scientists think it will never stop.
-
-That's the heat death. No crunch. No rip. Everything just slowly runs out.
-
-Our Sun won't last that long.
-
-But imagine Earth is still here, just like tonight.
-
-And imagine you could stand right here, and watch the whole thing.
-
-### 4. The Sun dies
-
-Five billion years from now, the Sun runs out of fuel.
-
-It swells into a red giant, two hundred times bigger.
-
-Then it throws off its outer layers.
-
-All that's left is its core. A white dwarf, the size of Earth.
+...and all that's left is a white dwarf. The size of Earth.
 
 This is daytime now.
-
-A black sky. And one tiny, blinding star.
 
 Earth freezes. Minus two hundred and thirty degrees.
 
@@ -74,65 +35,55 @@ Even the air freezes, and falls as snow.
 
 **[wait 3 seconds]**
 
-### 5. The galaxies leave
+### 3. The galaxies
 
 Meanwhile, space keeps stretching. Faster and faster.
 
-Point a telescope at a far-off galaxy.
+Look through the telescope.
 
-Every year, it's a little redder. A little fainter.
+Every year, that galaxy gets redder. And fainter.
 
-Until one day, its light can't reach us anymore.
+Until it's gone.
 
-In two trillion years, every galaxy outside our own is gone from the sky.
+In two trillion years, every other galaxy is gone from the sky.
 
-Anyone born then would think our galaxy is the whole universe.
+### 4. The stars
 
-### 6. The stars go out
+Then the stars start going out.
 
-Then, the stars start going out.
+The big bright ones first.
 
-No new ones are born. The gas to make them has run out.
+Then the small red ones, that burn for trillions of years.
 
-The big, bright stars go first.
-
-Then the small ones. Tiny red stars that burn for trillions of years.
-
-A hundred trillion years from now, the last star in the universe goes out.
+A hundred trillion years from now, the last star goes out.
 
 **[wait 3 seconds]**
 
-Our Sun fades too. Dull red. Then black.
+Our Sun fades too. Red. Then black.
 
-A quadrillion years from now, it's a black dwarf. A dead, cold ball.
-
-### 7. The black hole
+### 5. The black hole
 
 But it's not completely dark.
 
-Every few billion years, two dead stars crash into each other.
+Every so often, two dead stars crash...
 
-And for a moment, there's light again.
+...and for a moment, there's light again.
 
-Over ten billion billion years, most of the dead stars get flung out into the dark.
-
-The rest fall into the giant black hole at the center of the galaxy.
+Over billions of billions of years, the rest fall into the black hole at the center of the galaxy.
 
 Imagine Earth falls in with them.
 
-Everything falling in gets squeezed, and heats up, and glows.
+Everything falling in heats up, and glows.
 
 The last fire in the galaxy.
 
 **[wait 3 seconds]**
 
-### 8. Atoms
+### 6. Atoms
 
-And then, even atoms start to fall apart.
+And then, even atoms might fall apart.
 
-Scientists think the protons inside every atom might not last forever.
-
-If they don't, then by ten to the fortieth years, every atom is gone.
+Ten to the forty years from now, every atom is gone.
 
 Earth just evaporates.
 
@@ -142,17 +93,17 @@ And so would you.
 
 Imagine you're somehow still here, floating in the dark.
 
-### 9. The last black hole
+### 7. The last black hole
 
-Now, the only things left in the universe are black holes.
+Now, the only things left are black holes.
 
-Stephen Hawking showed that even they leak. Very, very slowly.
+Even they leak, very slowly, and evaporate.
 
-A black hole the size of a star takes ten to the sixty-seven years to evaporate.
+The small ones go first.
 
-Ours ate so much, it's one of the biggest in the universe.
+Ours ate so much, it lasts a googol years.
 
-It lasts a googol years. That's a one with a hundred zeros.
+That's a one, with a hundred zeros.
 
 As it shrinks, it gets hotter. And brighter.
 
@@ -160,35 +111,31 @@ Until...
 
 **[wait 3 seconds]**
 
-### 10. Nothing
+### 8. Nothing
 
 That was the last light in the universe.
 
-There are no stars left. No planets. No atoms. Nothing.
+No stars. No planets. Not even atoms.
 
-Just a cold, dark emptiness. A tiny fraction of a degree above absolute zero.
-
-Forever.
+Just cold, dark, empty space. Forever.
 
 This is the heat death.
 
 **[wait 3 seconds]**
 
-### 11. Unless
+### 9. Unless
 
 Unless.
 
-The Nobel-winning physicist Roger Penrose has a wild idea.
+Roger Penrose, who won a Nobel Prize, has a wild idea.
 
-When there's nothing left but a little light, there's no way to tell big from small.
+When there's nothing left, there's no way to tell huge from tiny.
 
-So a universe that's huge, and empty, might be just the same as one that's tiny, and hot.
-
-Like the moment before a Big Bang.
+So the end of everything... could be the start of a brand-new Big Bang.
 
 **[wait 3 seconds]**
 
-### 12. The ending
+### 10. The ending
 
 That's the heat death.
 

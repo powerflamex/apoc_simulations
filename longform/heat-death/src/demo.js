@@ -1,13 +1,9 @@
-// The whole universe seen from outside, twice.
-//   The opening (SEC.demo .. SEC.walk): a ball of galaxies (clusters and filaments, the cosmic web) with ours in the
-//   middle, marked. Space grows faster and faster: every other galaxy races away out of sight, their light reddening;
-//   ours is left alone. Its stars burn out (red, then dark). Then here and there a point of light flashes and goes
-//   out (black holes evaporating), the last one in the middle. Black. Then one point appears, swells, and a new Big
-//   Bang bursts out of it (a new universe, the same web turned), into the white.
-//   Penrose's idea (SEC.penrose .. SEC.end): the empty universe, nothing in it but a faint red glow of old light; the
-//   camera pulls back and back until all of it is one tiny point, which turns white-hot and bursts: a new Big Bang.
+// The whole universe seen from outside, for Penrose's idea at the end (SEC.void .. SEC.end): the empty universe,
+// nothing in it but a faint red shell of old light; the camera pulls back and back until all of it is one tiny point,
+// which turns white-hot and bursts: a new Big Bang (a ball of new galaxies, the cosmic web), into the white.
+// (Oct 25: the opening's version of this, which gave the ending away, was cut.)
 import * as THREE from 'three';
-import { SEC, scaleAt } from './timeline.js';
+import { SEC } from './timeline.js';
 import { rng, smooth, clamp, keys } from './util.js';
 
 const R = 100;   // today's radius in scene units
@@ -123,14 +119,6 @@ export function makeDemo() {
   const tex = glowTexture([[0, 'rgba(255,255,255,1)'], [0.08, 'rgba(255,250,235,0.9)'], [0.25, 'rgba(255,220,170,0.35)'], [0.6, 'rgba(255,170,110,0.08)'], [1, 'rgba(255,150,90,0)']]);
   const sprite = (t = tex) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, transparent: true })); scene.add(s); return s; };
   const glow = sprite();
-  const POPS = [];
-  for (let i = 0; i < 22; i++) {
-    const p = ball();
-    const t = SEC.dHoles + 0.15 + (SEC.dLast - 0.5 - SEC.dHoles) * Math.pow(i / 21, 0.9) + (r() - 0.5) * 0.2;
-    POPS.push({ s: sprite(), p: new THREE.Vector3(p[0] * 60, p[1] * 40, p[2] * 60), t, k: 0.5 + 0.6 * r() });
-  }
-  const lastPop = { s: sprite(), p: new THREE.Vector3(0, 0, 0), t: SEC.dLast, k: 2.2 };
-  POPS.push(lastPop);
   // ---- the empty universe for Penrose's idea: a faint shell of old red light ----
   const shellTex = glowTexture([[0, 'rgba(255,90,50,0.0)'], [0.55, 'rgba(255,80,40,0.05)'], [0.86, 'rgba(255,110,60,0.5)'], [0.93, 'rgba(255,140,90,0.25)'], [1, 'rgba(255,100,60,0)']]);
   const shell = sprite(shellTex);
@@ -143,14 +131,13 @@ export function makeDemo() {
     scene,
     // returns where our galaxy is on screen (px) and how strongly to show its label
     frame(v, camera, punch = 0) {
-      const pen = v >= SEC.unless;
-      const after = pen ? v >= SEC.bang : v >= SEC.dBang;
-      const BANG = pen ? SEC.bang : SEC.dBang;
+      const pen = true;
+      const after = v >= SEC.bang;
+      const BANG = SEC.bang;
       // the camera: circling slowly around ours; for Penrose it pulls back and back from the empty universe
-      const th = 0.6 + 0.04 * (v - SEC.demo);
-      const el = 0.3 - 0.008 * (v - SEC.demo);
-      let D = keys([[SEC.demo, 300], [SEC.demo + 4, 240], [SEC.dDrift, 150], [SEC.dHoles, 120], [SEC.dBang, 150], [SEC.walk, 470]], v);
-      if (pen) D = v < BANG ? 260 * Math.exp(4.2 * Math.pow(smooth(SEC.penrose, SEC.bang - 2.5, v), 1.4)) : 290 + 180 * smooth(BANG, SEC.end, v);
+      const th = 0.6 + 0.04 * (v - SEC.void);
+      const el = 0.3 - 0.008 * (v - SEC.void);
+      const D = v < BANG ? 260 * Math.exp(4.2 * Math.pow(smooth(SEC.void, SEC.bang - 7, v), 1.4)) : 290 + 180 * smooth(BANG, SEC.end, v);
       camera.position.set(D * Math.cos(el) * Math.sin(th), D * Math.sin(el), D * Math.cos(el) * Math.cos(th));
       camera.up.set(0, 1, 0);
       camera.lookAt(0, 0, 0);
@@ -171,32 +158,12 @@ export function makeDemo() {
         U.uRed.value = 0; U.uFlyRed.value = 0;
       } else if (pen) {
         U.uFade.value = 0; U.uOursFade.value = 0;
-      } else {
-        U.uA.value = scaleAt(v);
-        U.uFlyRed.value = 1;
-        U.uFade.value = 1 - smooth(SEC.dDrift - 1.5, SEC.dStars + 1, v);
-        // ours: its stars burn out
-        U.uRed.value = smooth(SEC.dStars - 0.5, SEC.dStars + 1.6, v);
-        U.uOursFade.value = 1 - smooth(SEC.dStars + 0.5, SEC.dHoles, v);
-        U.uHot.value = 0;
-      }
-      // the black holes' flashes
-      for (const P of POPS) {
-        const dt = v - P.t;
-        const on = !pen && !after && dt > -0.05 && dt < 1.5;
-        P.s.visible = on;
-        if (!on) continue;
-        const e = smooth(-0.05, 0.04, dt) * Math.exp(-Math.max(0, dt) * (P === lastPop ? 1.6 : 4.5));
-        P.s.position.copy(P.p);
-        P.s.scale.setScalar((P === lastPop ? 120 : 26) * P.k / pxPerUnit * (0.6 + 0.6 * e));
-        P.s.material.opacity = Math.min(1, e);
-        P.s.material.color.setRGB(1, 1, 1).multiplyScalar(Math.max(1, e * 2));
       }
       // the bang: one point appears in the dark, swells, bursts and fills the screen
       let gpx = 0, gi = 0;
       if (!after) {
-        const pre = smooth(BANG - (pen ? 6 : 0.9), BANG, v);
-        gpx = 8 + 140 * pre * pre; gi = (pen ? smooth(BANG - 9, BANG - 6, v) * 0.5 : smooth(BANG - 0.9, BANG - 0.6, v)) * 0.5 + 0.8 * pre;
+        const pre = smooth(BANG - (pen ? 8 : 0.9), BANG, v);
+        gpx = 22 + 60 * pre + 120 * pre * pre; gi = (pen ? smooth(BANG - 11, BANG - 8, v) * 0.9 : smooth(BANG - 0.9, BANG - 0.6, v)) * 0.5 + 0.8 * pre;
         if (!pen && v < BANG - 0.9) gi = 0;
       } else {
         const d = v - BANG;
@@ -208,13 +175,13 @@ export function makeDemo() {
       glow.material.opacity = Math.min(1, gi);
       glow.material.color.setRGB(1, pen && !after ? 0.75 + 0.25 * smooth(BANG - 3, BANG, v) : 1, pen && !after ? 0.6 + 0.4 * smooth(BANG - 3, BANG, v) : 1).multiplyScalar(Math.max(1, gi));
       // Penrose: the faint shell of old light, shrinking to a point as the camera pulls back
-      const sh = pen && !after ? smooth(SEC.penrose - 0.5, SEC.penrose + 2, v) * (1 - smooth(BANG - 4, BANG - 1.5, v)) : 0;
+      const sh = pen && !after ? smooth(SEC.void - 0.5, SEC.void + 2, v) * (1 - smooth(BANG - 9, BANG - 6, v)) : 0;
       shell.visible = sh > 0.002;
       shell.scale.setScalar(2 * R * 2.4);
       shell.material.opacity = sh * 0.9;
 
       // the marker and the label on our galaxy (until its stars are gone)
-      const here = smooth(SEC.demo + 1.2, SEC.demo + 2, v) * (1 - smooth(SEC.dStars + 1, SEC.dStars + 2, v)) * (pen ? 0 : 1);
+      const here = 0;
       ring.visible = here > 0.002;
       ring.quaternion.copy(camera.quaternion);
       ring.scale.setScalar(30 / pxPerUnit);
