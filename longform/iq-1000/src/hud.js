@@ -115,6 +115,13 @@ export function makeHud(stage) {
       const pop = popupAt(v);
       g.globalAlpha = pop ? 1 - smooth(0, 0.15, pop.dt) * (1 - smooth(1.6, 1.9, pop.dt)) : 1;
 
+      // ---------- 0:11 the cube; 0:22 the chess hustler ----------
+      text('43 QUINTILLION WAYS TO SCRAMBLE IT', WW / 2, HH * 0.2, { size: 28, a: fade(v, SEC.cube0 + 0.8, SEC.cube1 - 0.2), align: 'center' });
+      if (ctx.chess) {
+        const kp = ctx.chess.kingWorld(new THREE.Vector3());
+        tag(P(kp.x, kp.y + 0.06, kp.z), 'MATE IN 3', fade(v, SEC.chess0 + 0.6, SEC.mate - 0.1), { dx: 80, dy: -90 });
+      }
+
       // ---------- 0:27 the rain: how fast a drop falls (to you) ----------
       if (ctx.rain && v > SEC.rain && v < SEC.x4) {
         for (let i = 0; i < 400; i++) {
@@ -150,13 +157,14 @@ export function makeHud(stage) {
       }
       // ---------- 1:16 your mind races: math over the sky; the pigeons ----------
       {
-        const a = fade(v, SEC.mind, SEC.pigeons + 1.5, 1.0);
+        const a = fade(v, SEC.mind, 86.2, 1.0);
         if (a > 0) EQS.forEach(([eq, x, y], i) => {
           const ai = a * smooth(SEC.mind + i * 0.5, SEC.mind + i * 0.5 + 1.0, v);
           text(eq, (x + 0.006 * Math.sin(vv * 0.2 + i)) * WW, (y + 0.004 * Math.cos(vv * 0.17 + i) + 0.04) * HH, { size: 38, a: ai * 0.85, italic: true, weight: 500, spacing: 1, font: "'Cambria Math', 'Cambria', Georgia, serif", align: 'center' });
         });
+        tag(P(0, 300, -900), 'THE RIEMANN HYPOTHESIS · UNSOLVED FOR 160 YEARS', fade(v, SEC.mind + 3, 86.2), { dx: 60, dy: 50 });
         const bp = ctx.birds && ctx.birds.pos[3];
-        if (bp) tag(P(bp.x, bp.y, bp.z), `ONE WINGBEAT: ${fmtFeels(f / 6.2)}`, fade(v, SEC.pigeons + 4, SEC.stuck - 0.5), { dx: 70, dy: -110 });
+        if (bp) tag(P(bp.x, bp.y, bp.z), `ONE WINGBEAT: ${fmtFeels(f / 6.2)}`, fade(v, 88.2, SEC.stuck - 0.5), { dx: 70, dy: -110 });
       }
       // ---------- 1:32 stuck: one word takes forever ----------
       {
@@ -164,17 +172,22 @@ export function makeHud(stage) {
         if (a > 0) {
           const w0 = worldT(SEC.stuck + 3), u = clamp((w - w0) / 0.6);
           const word = u < 0.08 ? '' : u < 0.55 ? 'H' + 'h'.repeat(Math.floor((u - 0.08) * 8)) : 'Hi' + (u > 0.95 ? '!' : '');
-          text(`YOU:  “${word}`, WW / 2, HH * 0.6, { size: 44, a, align: 'center', weight: 600, spacing: 1 });
-          g.fillStyle = INK + (0.25 * a) + ')'; g.fillRect(WW / 2 - 160, HH * 0.6 + 36, 320, 5);
-          g.fillStyle = INK + (0.9 * a) + ')'; g.fillRect(WW / 2 - 160, HH * 0.6 + 36, 320 * u, 5);
+          text(`YOU:  “${word}`, WW / 2, HH * 0.34, { size: 44, a, align: 'center', weight: 600, spacing: 1 });
+          g.fillStyle = INK + (0.25 * a) + ')'; g.fillRect(WW / 2 - 160, HH * 0.34 + 36, 320, 5);
+          g.fillStyle = INK + (0.9 * a) + ')'; g.fillRect(WW / 2 - 160, HH * 0.34 + 36, 320 * u, 5);
         }
         text(`MOVING YOUR EYES: ${fmtFeels(0.12 * f)}`, WW / 2, HH * 0.2, { size: 28, a: fade(v, SEC.stuck + 7, SEC.guitar), align: 'center' });
       }
       // ---------- 1:44 the guitar ----------
       tag(P(GUITAR.x - 0.28, 0.95, GUITAR.z + 0.12), `THE LOW STRING SWINGS ${(82.4 / f).toFixed(1)} TIMES A SECOND`, fade(v, SEC.guitar + 1.5, SEC.sink), { dx: -60, dy: -120 });
+      // ---------- 1:52 the cure; 3:00 fusion; 3:20 the rocket ----------
+      tag(P(0.6 + 0.9, 7.6, -12.5), 'A PROTEIN THAT ONLY ATTACKS CANCER', fade(v, SEC.cure0 + 5, SEC.cure1 - 0.2), { dx: -80, dy: -60 });
+      tag(P(-2 + 9, 30 + 6, -70), 'FUSION: THE POWER OF THE SUN', fade(v, SEC.fusion0 + 3.5, SEC.fusion1 - 4.2), { dx: 80, dy: -50 });
+      tag(P(-11.5, 15.5, 3.5), 'A ROCKET TO MARS', fade(v, SEC.rocket0 + 3, SEC.rocket1 - 6.2), { dx: 80, dy: -40 });
+
       // ---------- 1:54 the sound sinks ----------
       {
-        const a = fade(v, SEC.sink + 1, SEC.silent - 0.2);
+        const a = fade(v, SEC.cure1 + 2, SEC.silent - 0.2);
         if (a > 0) {
           const hz = 2000 / f;
           text(hz > 20 ? `THE CITY'S SOUND: ${hz < 100 ? hz.toFixed(1) : Math.round(hz)} Hz` : 'TOO LOW TO HEAR', WW / 2, HH * 0.6, { size: 32, a, align: 'center', color: hz > 20 ? INK : RED });
@@ -204,7 +217,7 @@ export function makeHud(stage) {
         const top = BOLT_TOP, gr = BOLT_GROUND;
         tag(P(lerp(top.x, gr.x, 0.3), lerp(top.y, gr.y, 0.3), lerp(top.z, gr.z, 0.3)), 'LIGHTNING · 2 km AWAY', fade(v, SEC.leader + 3, SEC.stroke - 0.5), { dx: 80, dy: -40 });
         const thunder = 2.0 / 0.343 - Math.max(0, w - W.stroke);   // real seconds until it reaches you
-        if (v > SEC.stroke + 2) tag(P(gr.x, 150, gr.z), `THUNDER: ${Math.round(thunder * f / 60)} MINUTES AWAY`, fade(v, SEC.stroke + 2.5, SEC.cost + 3.8), { dx: 80, dy: -80 });
+        if (v > SEC.stroke + 2) tag(P(gr.x, 150, gr.z), `THUNDER: ${Math.round(thunder * f / 60)} MINUTES AWAY`, fade(v, SEC.stroke + 2.5, SEC.fusion0 + 3.2), { dx: 80, dy: -80 });
       }
       // ---------- 4:13 a thousand times ----------
       {

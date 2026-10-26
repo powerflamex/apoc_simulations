@@ -98,7 +98,7 @@ function makePlaza() {
   for (let n = 0; n < NA; n++) {
     const w = n / SR;
     let l = 0, r = 0;
-    const rain = rainAt(w);
+    const rain = rainAt(w) * (1 - smooth(W.future0, W.future0 + 1.2, w));
     // the crowd: a murmur of voices (less once everyone hurries out of the rain)
     let cv = 0;
     for (let q = 0; q < 6; q++) {
@@ -207,7 +207,8 @@ const CHORDS = [
   [SEC.x1000, [38, 45, 50, 57, 62, 66], 0.85, 1200], // a thousand times: D major
   [SEC.letgo - 1, [38, 45, 50], 0.4, 500],         // let go
   [SEC.letgo + 2, [], 0, 400],
-  [SEC.end, [43, 50, 55, 59, 62, 64], 0.65, 1000], // back: G add6, warm
+  [SEC.future0 + 0.6, [43, 50, 55, 59, 62, 66, 71], 0.8, 1600], // ten years later: Gmaj9, bright and open
+  [SEC.end + 2, [43, 50, 55, 59, 62, 64], 0.6, 1000], // the end: G add6, warm
 ].map(([t, m, g, fc]) => ({ t, f: m.map(N), g, fc }));
 // bright plucks: while you notice things and while your mind races
 const PLUCKS = [[SEC.climb, SEC.x2 + 2, [67, 71, 74, 78, 81, 83]], [SEC.mind, SEC.x16 + 3, [74, 78, 81, 85, 86, 90, 93]], [SEC.x1000 + 1, SEC.letgo - 3, [74, 81, 86, 90]]];
@@ -277,7 +278,7 @@ export function makeSoundtrack(outFile) {
     }
   }
   const padLP = [new SVF(), new SVF()], whoompF = new SVF(), riseF = [new SVF(), new SVF()], hitF = new SVF(), hitSub = new OnePole(30);
-  const heartF = new SVF(), rushF = [new SVF(), new SVF()], ffF = new SVF(), ffSub = new OnePole(35), heatF = new SVF();
+  const heartF = new SVF(), rushF = [new SVF(), new SVF()], ffF = new SVF(), ffSub = new OnePole(35), heatF = new SVF(), rocketF = new SVF(), rocketF2 = new SVF();
   const revL = new Reverb(31), revR = new Reverb(32);
   const ph = new Float64Array(160), padPh = new Float64Array(CHORDS.length * 16), padW = new Float64Array(CHORDS.length);
   let padFc = 400;
@@ -405,6 +406,15 @@ export function makeSoundtrack(outFile) {
         const hum = (Math.sin(TAU * ph[110]) + 0.5 * Math.sin(TAU * ph[111])) * 0.05 * heat * pulse;
         const siz = heatF.run(white(), 5500, 0.6).bp * 0.012 * heat * heat;
         hl += hum + siz; hr += hum + siz * 0.8; hwet += siz;
+      }
+    }
+    // --- ten years later: the rocket lifts off beyond the avenue (a deep, building roar that fades as it climbs) ---
+    {
+      const lt = v - SEC.launch;
+      if (lt > -0.2 && lt < 16) {
+        const g = smooth(-0.2, 1.5, lt) * Math.exp(-Math.max(0, lt - 3) * 0.18);
+        const x = (rocketF.run(white(), 70 + 60 * smooth(0, 4, lt), 0.6).lp * 1.6 + rocketF2.run(white(), 400, 0.7).bp * 0.3) * g * 0.22;
+        hl += x; hr += x * 0.97; hwet += x * 0.3;
       }
     }
     // --- frame 0: the flash-forward opens on a low hit and a held, glassy tone ---

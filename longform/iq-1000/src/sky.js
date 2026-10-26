@@ -13,6 +13,7 @@ export function makeSky() {
     uBoltDir: { value: new THREE.Vector3(0, 0.3, -1).normalize() },
     uDrift: { value: new THREE.Vector2(0, 0) },
     uDim: { value: 0 },
+    uClear: { value: 0 },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms,
@@ -28,7 +29,7 @@ export function makeSky() {
       }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uStorm; uniform float uFlash; uniform float uGlow;
-      uniform vec3 uBoltDir; uniform vec2 uDrift; uniform float uDim;
+      uniform vec3 uBoltDir; uniform vec2 uDrift; uniform float uDim; uniform float uClear;
       varying vec3 vDir;
       float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
       float vn(vec2 p) {
@@ -48,7 +49,7 @@ export function makeSky() {
         vec2 uv = d.xz / (d.y + 0.08) * 0.9 + uDrift;
         float n = fbm(uv * 0.55), n2 = fbm(uv * 1.6 + 4.0);
         float north = smoothstep(0.55, -0.85, d.z);                 // 1 toward -z
-        float cover = clamp(north * 1.15 + uStorm * 0.9 - 0.25, 0.0, 1.0);
+        float cover = clamp(north * 1.15 + uStorm * 0.9 - 0.25, 0.0, 1.0) * (1.0 - 0.75 * uClear);
         float c = smoothstep(0.62 - 0.55 * cover, 0.9 - 0.4 * cover, n + 0.25 * n2);
         c *= smoothstep(-0.02, 0.06, d.y) * 0.85 + 0.15;
         // cloud colour: dark slate inside, sunlit rims where the Sun catches the edges
@@ -64,6 +65,10 @@ export function makeSky() {
         float bd = max(dot(d, uBoltDir), 0.0);
         float lit = pow(bd, 5.0) * 0.45 + 0.04;
         col += vec3(0.75, 0.8, 1.0) * (uFlash * lit * (0.4 + 0.9 * c) * 0.9 + uGlow * pow(bd, 4.0) * 0.12);
+        // ten years later: a clear evening, deep blue above, gold and rose toward the low Sun
+        vec3 dusk = mix(vec3(1.25, 0.62, 0.26), vec3(0.2, 0.3, 0.58), pow(e, 0.5));
+        dusk += uSunCol * (pow(sd, 6.0) * 0.6 + pow(sd, 80.0) * 2.5);
+        col = mix(col, mix(dusk, col, c * 0.5), uClear);
         if (d.y < 0.0) col = mix(col, vec3(0.22, 0.24, 0.27), smoothstep(0.0, -0.05, d.y));
         gl_FragColor = vec4(col, 1.0);
       }`,

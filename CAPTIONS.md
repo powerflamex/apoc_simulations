@@ -786,50 +786,48 @@ Which ending would you rather live through? 👇
 
 ## Long video. IQ 1,000x — `longform/out/iq-1000_1920x1080.mp4`
 
-16:9, 5:27, narrated by the owner (his Oct 25 take), a new city plaza with a storm coming in (plan `longform/IQ-1000.md`). Your IQ keeps doubling and your
-brain runs faster with it, so the world slows down around you. Reworked Oct 25 for retention: flash-forward, a 4 s
-look at your iqmaxx.ing test result, the world visibly slowing by 0:17, then a big visible moment every ~45-60 s
-(slow rain, the ball, the pigeons, silence, the frozen flythrough, the lightning, your brain heating up red, the bubble
-popping, everything rushing back). His voice is in (restarts skipped, every cut checked); the picture is timed to his
-take. **Upload this file.**
-Thumbnail: `longform/out/iq-1000_thumb.png` (the frozen lightning and the hanging rain, **YOUR IQ 102,400**).
+16:9, 5:38, a city plaza with a storm coming in (plan `longform/IQ-1000.md`). Rebuilt Oct 25 around what a genius would
+DO (owner: "the whole appeal of IQ is solving problems"): a Rubik's cube in 3 s, checkmate against the park hustler,
+the kid saved, the Riemann hypothesis, a cure for cancer, fusion, a rocket to Mars, everything explained, then TEN
+YEARS LATER the city running on what you invented. The slow-time effects stay on the side (slow rain, silence, the
+lightning crawling, the bubble popping) and your brain heating up is the cost. Draft without the voice: **record
+`longform/iq-1000/SCRIPT.md`, then the voice goes in.** Thumbnail: `longform/out/iq-1000_thumb.png`.
 
-**YouTube title (61 chars)**
-What If Your IQ Was 1,000x Higher? The Whole World Would Stop
+**YouTube title (67 chars)**
+What If Your IQ Was 1,000x Higher? You'd Fix Everything in a Minute
 
 **YouTube description**
-Your IQ starts doubling, and your brain speeds up with it. So to you, the whole world slows down. It starts on an ordinary afternoon on a city plaza, right after you take the IQ test on iqmaxx.ing and score 100.
+Your IQ starts doubling, and your brain speeds up with it. It starts on an ordinary afternoon on a city plaza, right after you take the IQ test on iqmaxx.ing and score 100.
 
-Smarter than Einstein in seconds. Then the smartest person on Earth (IQ 195, 1 in 8 billion).
-2x: the whole plaza in slow motion. 4x: even the rain falls slowly.
-8x: a car moves at walking speed, and you have time to catch a kid's ball before he runs into the road.
-Your body doesn't speed up: one word takes more than ten seconds to say.
-128x: every sound in the city sinks too low to hear, and the rain just hangs in the air.
-256x: you watch a lightning bolt crawl down the sky.
-1,000x: one second feels like 17 minutes. Your heart beats once every 14 minutes, and a soap bubble takes half a minute to pop.
+A Rubik's cube in three seconds. Checkmate against the park's chess hustler. The smartest person on Earth.
+You see a kid about to chase his ball into traffic, and you have time to walk over and catch it.
+The Riemann hypothesis, unsolved for 160 years: solved.
+A cure for cancer. Fusion: clean energy for everyone. A rocket to Mars.
+At 1,000x you understand everything... and one second feels like 17 minutes.
 
-The catch: your brain runs on about 20 watts. A thousand times the thinking would burn about 20,000 and heat your brain toward 42 °C in about 17 felt minutes, about one second of real time. Everything in the video happens in about 30 seconds of real time.
+Thinking that fast has side effects: the world slows down, the rain hangs in the air, the city goes silent, you watch lightning crawl down the sky. And your brain, burning 20,000 watts, starts to cook.
+
+Ten years later, the city runs on what you invented.
 
 What's your real IQ? Take the test: https://iqmaxx.ing
 
-What would you do with 1,000x your IQ? 👇
+What would you solve with 1,000x your IQ? 👇
 
 0:00 1,000 times smarter
 0:06 The test
-0:17 The world slows down
-0:27 The rain
-0:42 The ball
-1:16 Your mind races
-1:32 Stuck in your body
-1:54 The sound sinks
+0:11 A Rubik's cube in 3 seconds
+0:22 Checkmate
+0:42 Saving the kid
+1:16 The hardest problem in math
+1:52 A cure for cancer
 2:20 Frozen
-2:40 Lightning
-3:04 Your brain heats up
-4:10 1,000 times
+2:40 Lightning, and fusion
+3:20 A rocket to Mars
+4:10 Everything, explained
 4:45 Letting go
-4:55 Back to 100
+4:56 Ten years later
 
-#whatif #iq #simulation #science #brain
+#whatif #iq #simulation #science #genius
 
 ## Long video 5. The heat death — `longform/out/heat-death_1920x1080.mp4`
 

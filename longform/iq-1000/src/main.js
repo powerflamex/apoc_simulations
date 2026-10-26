@@ -22,6 +22,10 @@ import { makeBolt, BOLT_TOP, BOLT_GROUND } from './bolt.js';
 import { makeFountain, makeBall, makeGuitar, makeWand, makeHand } from './props.js';
 import { makeHud } from './hud.js';
 import { makePhone } from './phone.js';
+import { makeCube } from './cube.js';
+import { makeChess } from './chess.js';
+import { makeHolo } from './holo.js';
+import { makeFuture } from './future.js';
 import { makeOverlay } from './overlay.js';
 import { state, SEC, W, VIDEO_DURATION, V_FF, FF_LEN, beatAt, worldT, DOUBLINGS } from './timeline.js';
 import { YOU0, YOU1, EYE, GUITAR } from './layout.js';
@@ -69,6 +73,9 @@ scene.add(sky.mesh);
 
 // light: the afternoon Sun behind you (south-west), the sky, and the lightning
 const SUN = new THREE.Vector3(-0.45, 0.62, 0.64).normalize();
+// ten years later: a clear golden evening, the Sun low in the west
+const SUN_DUSK = new THREE.Vector3(-0.97, 0.12, 0.2).normalize();
+const sunDir = new THREE.Vector3();
 const sun = new THREE.DirectionalLight(0xfff0dc, 3.0);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
@@ -100,6 +107,10 @@ const wand = makeWand(scene);
 const hand = makeHand(scene, ball.mesh.material);
 const hud = makeHud(stage);
 const phone = makePhone(camera);
+const cube = makeCube(camera);
+const chess = makeChess(scene);
+const holo = makeHolo(scene);
+const future = makeFuture(scene);
 const overlay = makeOverlay();
 
 const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
@@ -166,39 +177,43 @@ const K = (...pairs) => pairs;
 // where you look (degrees; yaw + turns right, 0 = north up the avenue; fov vertical), video clock. Your eyes follow
 // these keys; where they stand comes from your body (eyePos), except while your mind's eye glides.
 const LOOK = {
-  // the phone (6-10.5) -> the walkers in slow motion -> up into the rain -> the couple arguing -> the kid and the ball
-  // -> the car passing -> math in the sky and the pigeons -> the kid ("hi") -> the guitar -> the street going silent
-  yaw: K([6, -4], [10.5, -6], [16, -26], [20, -18], [26, 10], [28, 4], [31, 0], [34, 30], [36, 66], [41, 66], [43.5, 36],
+  // the phone (6-10.5) -> the cube in your hands -> the walkers in slow motion -> the chess board -> up into the rain ->
+  // the couple arguing -> the kid and the ball -> the car passing -> math in the sky and the pigeons -> the kid ("hi")
+  // -> the guitar -> up at the cure building itself over the café -> the street going silent
+  yaw: K([6, -4], [10.5, -4], [11.5, -2], [15.6, -2], [17.5, -14], [20.5, -22], [22.5, 44], [30.5, 46], [32, 10], [34, 0],
+    [36, 66], [41, 66], [43.5, 36],
     [50, 26], [57, 14], [63.5, 9], [66, -26], [70, -6], [74, 10], [78, -4], [82, -40], [85, -62], [89, -40], [92, 30],
-    [97, 58], [102, 60], [106, 84], [108, 87], [113, 87], [117, 70], [127, 58], [133, 24], [137, 4], [140, -2]),
-  pitch: K([6, -3], [10, -2], [12, 0], [26, 1], [28, 18], [30, 24], [32, 20], [34, 4], [41, 2], [43.5, 0], [47, -14], [55, -26],
+    [97, 58], [102, 60], [106, 84], [108, 87], [111, 87], [115, 2], [127, 4], [133, 4], [137, 2], [140, -2]),
+  pitch: K([6, -3], [10.5, -4], [11.5, -9], [15.6, -9], [17.5, -1], [20.5, 0], [22.5, -19], [30.5, -18], [32, 8], [33.5, 22],
+    [35, 4], [41, 2], [43.5, 0], [47, -14], [55, -26],
     [60, -33], [63.5, -36], [66, -12], [70, -4], [76, 10], [79, 28], [82, 18], [85, 14], [89, 16], [92, -10], [97, -24],
-    [102, -22], [106, -6], [113, -6], [117, 0], [127, 2], [133, 6], [140, 6]),
-  fov: K([6, 50], [12, 50], [28, 56], [32, 54], [34, 50], [36, 46], [41, 46], [43.5, 52], [63.5, 56], [70, 50], [79, 60],
-    [85, 54], [92, 46], [102, 44], [106, 24], [108, 20], [113, 20], [117, 40], [127, 46], [133, 50], [140, 50]),
+    [102, -22], [106, -6], [111, -6], [115, 24], [127, 24], [133, 8], [140, 6]),
+  fov: K([6, 50], [11.5, 48], [16, 50], [20.5, 50], [22.5, 46], [30.5, 46], [33.5, 56], [36, 46], [41, 46], [43.5, 52], [63.5, 56], [70, 50], [79, 60],
+    [85, 54], [92, 46], [102, 44], [106, 24], [108, 20], [111, 20], [115, 54], [127, 54], [133, 50], [140, 50]),
 };
-// the mind's eye: out of your body, through the hanging rain, up the avenue to the lightning; then (your brain heating
-// up) a tour of the frozen plaza: the crosswalk, the fountain's arcs, the café, the guitarist, back to you; then a slow
-// drift around the bubble as it pops; back into your eyes as you let go
+// the mind's eye: out of your body, through the hanging rain, up the avenue to the lightning; the fusion reactor
+// igniting over the avenue; round to the rocket over the fountain and its path up to Mars (your brain heating up);
+// back to you; then a slow drift around the bubble as it pops; back into your eyes as you let go
 const E = { x: YOU1.x, y: EYE, z: YOU1.z };
 const GLIDE = {
-  x: K([140, E.x], [145, 0.9], [150, 1.2], [156, -2.6], [163, -3.4], [170, -3.0], [180, -2.6], [186, -9.0], [191, -12.4],
-    [197, -8.8], [204, -7.4], [210, -3.0], [216, 4.0], [222, 7.4], [229, 6.4], [236, 3.0], [244, E.x + 0.05], [250, E.x], [262, 1.0], [274, -0.25], [283, E.x], [285, E.x]),
-  y: K([140, E.y], [145, 2.2], [150, 2.6], [156, 2.0], [163, 3.4], [170, 4.6], [180, 5.2], [186, 3.4], [191, 1.8],
-    [197, 1.5], [204, 1.3], [210, 2.8], [216, 2.6], [222, 1.8], [229, 1.6], [236, 1.8], [244, E.y], [250, E.y], [262, 1.72], [274, 1.62], [283, E.y], [285, E.y]),
-  z: K([140, E.z], [145, E.z + 1.0], [150, -1.0], [156, -5.2], [163, -9.0], [170, -11.5], [180, -13.0], [186, -10.5], [191, -8.6],
-    [197, -2.4], [204, 0.4], [210, 2.6], [216, 1.6], [222, 0.4], [229, -2.4], [236, -2.4], [244, E.z], [250, E.z], [262, -3.85], [274, -3.75], [283, E.z], [285, E.z]),
-  yaw: K([140, -2], [145, -14], [150, -30], [156, 25], [163, 8], [170, 2], [180, -1], [186, -90], [191, -175], [197, -150],
-    [204, -128], [210, -70], [216, 60], [222, 72], [229, 250], [236, 300], [244, 357], [250, 357], [262, 337], [274, 377], [283, 358], [285, 357]),
-  pitch: K([140, 6], [145, -12], [150, -16], [156, -2], [163, 8], [170, 14], [180, 16], [186, 4], [191, -4], [197, -2],
-    [204, 4], [210, -12], [216, -10], [222, -6], [229, -8], [236, -8], [244, 6], [250, 8], [262, 4], [274, 6], [283, 7], [285, 7]),
-  fov: K([140, 50], [150, 56], [163, 50], [170, 44], [180, 42], [186, 50], [204, 54], [216, 56], [229, 52], [244, 50], [250, 50], [262, 46], [274, 46], [285, 50]),
+  x: K([140, E.x], [145, 0.9], [150, 1.2], [156, -2.6], [163, -3.4], [170, -3.0], [180, -2.6], [186, -2.2], [194, -2.0],
+    [200, -4.0], [207, -3.5], [214, -3.0], [222, 5.5], [229, 6.4], [236, 3.0], [244, E.x + 0.05], [250, E.x], [262, 1.0], [274, -0.25], [283, E.x], [285, E.x]),
+  y: K([140, E.y], [145, 2.2], [150, 2.6], [156, 2.0], [163, 3.4], [170, 4.6], [180, 5.2], [186, 7.5], [194, 9.0],
+    [200, 3.0], [207, 2.2], [214, 2.0], [222, 2.0], [229, 1.6], [236, 1.8], [244, E.y], [250, E.y], [262, 1.72], [274, 1.62], [283, E.y], [285, E.y]),
+  z: K([140, E.z], [145, E.z + 1.0], [150, -1.0], [156, -5.2], [163, -9.0], [170, -11.5], [180, -13.0], [186, -6.0], [194, -2.0],
+    [200, -4.6], [207, -5.0], [214, -5.0], [222, -1.8], [229, -2.4], [236, -2.4], [244, E.z], [250, E.z], [262, -3.85], [274, -3.75], [283, E.z], [285, E.z]),
+  yaw: K([140, -2], [145, -14], [150, -30], [156, 25], [163, 8], [170, 2], [180, -1], [186, -1], [194, 0], [200, -137],
+    [207, -140], [214, -146], [222, -112], [229, -110], [236, -60], [244, -3], [250, -3], [262, -23], [274, 17], [283, -2], [285, -3]),
+  pitch: K([140, 6], [145, -12], [150, -16], [156, -2], [163, 8], [170, 14], [180, 16], [186, 20], [194, 17], [200, 14],
+    [207, 30], [214, 40], [222, -8], [229, -8], [236, -8], [244, 6], [250, 8], [262, 4], [274, 6], [283, 7], [285, 7]),
+  fov: K([140, 50], [150, 56], [163, 50], [170, 44], [180, 42], [186, 44], [194, 40], [200, 56], [207, 62], [214, 62], [222, 52], [229, 52], [244, 50], [250, 50], [262, 46], [274, 46], [285, 50]),
 };
-// back in your eyes: everything rushes back, the kid takes his ball, your phone, the plaza in the rain
+// back in your eyes: everything rushes back, the kid takes his ball; TEN YEARS LATER: up the avenue at the new city and
+// the rocket climbing; your phone; the question
 const LATE = {
-  yaw: K([285, -3], [291, 4], [295, 40], [300, 60], [304, 50], [306, 32], [316, 30], [320, 10], [332, 2]),
-  pitch: K([285, 7], [291, 2], [295, -14], [300, -22], [304, -18], [306, -8], [316, -8], [320, 2], [332, 4]),
-  fov: K([285, 50], [291, 54], [300, 50], [332, 54]),
+  yaw: K([285, -3], [291, 4], [294, 40], [295.8, 40], [297.5, 4], [305, 0], [312, -1], [318, 16], [328, 16], [331, 4], [336, 2]),
+  pitch: K([285, 7], [291, 2], [294, -14], [295.8, -14], [297.5, 8], [305, 12], [312, 20], [318, -6], [328, -6], [331, 12], [336, 12]),
+  fov: K([285, 50], [291, 54], [295.8, 50], [297.5, 52], [312, 50], [336, 52]),
 };
 // the flash-forward: gliding through the frozen street (the scene at V_FF + t)
 const FF = {
@@ -265,7 +280,7 @@ function update(v, vv = v) {
   yaw += rush * 0.8 * Math.sin(vv * 23); pitch += rush * 0.6 * Math.sin(vv * 19 + 1);
   fov *= 1 - 0.03 * punch + 0.08 * rush;
   // the thumbnail: from the curb, up the avenue at the lightning, the hanging rain all around (node render.mjs --cover 181)
-  if (window.__cover) { x = -1.5; y = 1.45; z = -4.2; yaw = -9; pitch = 16; roll = 0; fov = 44; }
+  if (window.__cover) { x = 0.2; y = 1.5; z = -3.2; yaw = -4; pitch = 15; roll = 0; fov = 52; }
   camera.position.set(x, y, z);
   camera.rotation.set(pitch * DEG, -yaw * DEG, roll * DEG);
   camera.fov = fov;
@@ -275,10 +290,12 @@ function update(v, vv = v) {
 
   // ---------- light ----------
   const dim = s.sunDim;
-  sun.position.copy(SUN).multiplyScalar(150).add(tmp.set(0, 0, -10));
+  sunDir.copy(SUN).lerp(SUN_DUSK, s.future).normalize();
+  sun.position.copy(sunDir).multiplyScalar(150).add(tmp.set(0, 0, -10));
   sun.target.position.set(0, 0, -10);
   sun.intensity = 3.6 * (1 - 0.85 * dim);
-  sun.color.setRGB(1, 0.94, 0.86);
+  sun.color.setRGB(1, 0.94, 0.86).lerp(tmpC.setRGB(1.0, 0.62, 0.32), s.future);
+  if (s.future > 0) sun.intensity = lerp(sun.intensity, 2.6, s.future);
   hemi.intensity = lerp(0.85, 0.55, dim) + 1.3 * s.flash;
   hemi.color.setRGB(0.75, 0.83, 0.95).lerp(tmpC.setRGB(0.55, 0.6, 0.7), dim);
   boltLight.intensity = 9 * s.flash + 0.25 * s.channel;
@@ -286,7 +303,7 @@ function update(v, vv = v) {
   scene.fog.density = (0.00042 + 0.0011 * s.rain) * (window.__cover ? 0.35 : 1);
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
-  u.uSunDir.value.copy(SUN); u.uStorm.value = 0.25 + 0.75 * dim; u.uDim.value = dim; u.uFlash.value = s.flash; u.uGlow.value = s.channel;
+  u.uSunDir.value.copy(sunDir); u.uClear.value = s.future; u.uSunCol.value.setRGB(1, 0.92, 0.8).lerp(tmpC.setRGB(1.2, 0.55, 0.25), s.future); u.uStorm.value = 0.25 + 0.75 * dim; u.uDim.value = dim; u.uFlash.value = s.flash; u.uGlow.value = s.channel;
   u.uBoltDir.value.copy(tmp.copy(BOLT_TOP).lerp(BOLT_GROUND, 0.35).sub(camera.position).normalize());
   u.uDrift.value.set(w * 0.004, w * 0.0025);
   // the wet street: darker and glossy once it rains
@@ -300,7 +317,11 @@ function update(v, vv = v) {
   traffic.frame(w);
   rain.frame(s, camera, RH);
   birds.frame(w);
-  bubbles.frame(w, s, SUN);
+  bubbles.frame(w, s, sunDir);
+  cube.frame(vv);
+  chess.frame(v);
+  holo.frame(v, s, camera);
+  future.frame(v, s);
   bolt.frame(s);
   fountain.frame(w, s);
   ball.frame(w);
@@ -341,7 +362,7 @@ function update(v, vv = v) {
   finish.uniforms.uTitle.value = window.__cover ? 1.2 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9;
   phone.frame(vv);
-  hud.frame(camera, s, v, vv, { rain, birds, dangerX: traffic.dangerX, heroPos: bubbles.heroPos });
+  hud.frame(camera, s, v, vv, { rain, birds, chess, dangerX: traffic.dangerX, heroPos: bubbles.heroPos });
   overlay(v, s, vv);
   return s;
 }

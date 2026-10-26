@@ -79,6 +79,8 @@ STAY.push({ x: COUPLE_B.x, z: COUPLE_B.z, yaw: Math.atan2(COUPLE_A.x - COUPLE_B.
 // a man reading on the bench, a woman leaning on a bollard with a coffee
 STAY.push({ x: -1.8, z: -3.75, yaw: 0, kind: 'read', seed: 8 });
 STAY.push({ x: 15.5, z: -3.6, yaw: -2.6, kind: 'coffee', seed: 9 });
+// the chess hustler at the park table beside you (chess.js), on his stool across the board
+STAY.push({ x: 1.25 + 0.56 * 0.736, z: 0.45 - 0.56 * 0.677, yaw: -0.83, kind: 'chess', seed: 11 });
 
 // the special people
 const KID = SLOTS.length + STAY.length, MOM = KID + 1, GUIT = KID + 2, BUBB = KID + 3, SELF = KID + 4;
@@ -141,7 +143,7 @@ export function kidPredict(dt) {   // where he would have run (into the road)
 // fills the crowd's poses for world time w
 export function peopleFrame(w, s, crowd, cache, umbrellas) {
   let i = 0;
-  const rainOn = smooth(W.rain + 0.3, W.rain + 1.6, w);
+  const rainOn = smooth(W.rain + 0.3, W.rain + 1.6, w) * (1 - (s.future || 0));
   let ui = 0;
   for (const sl of SLOTS) {
     const L = sl.L;
@@ -187,6 +189,11 @@ export function peopleFrame(w, s, crowd, cache, umbrellas) {
     else if (st.kind === 'argue') { o.armL = 0.6 + 0.5 * Math.max(0, Math.sin(w * 2.2)); o.armR = 0.7 + 0.6 * Math.max(0, Math.sin(w * 2.2 + 1.3)); o.pitch = 0.06 * Math.sin(w * 2.2); }
     else if (st.kind === 'argue2') { o.armL = 0.3; o.armR = 0.9 + 0.3 * Math.sin(w * 1.1); o.yaw += 0.3 * Math.sin(w * 0.4); }
     else if (st.kind === 'read') { o.sit = 1; o.armL = 0.85; o.armR = 0.85; o.look = -0.5; }
+    else if (st.kind === 'chess') {
+      // leaning over the board; checkmate: hands to his head
+      const k = smooth(W.mate + 0.5, W.mate + 1.2, w);
+      o.sit = 1; o.armL = lerp(0.55, 1.65, k); o.armR = lerp(0.65, 1.65, k); o.look = lerp(-0.45, 0.1, k); o.pitch = 0.12 * (1 - k);
+    }
     else if (st.kind === 'coffee') { o.armR = 0.9 + 0.25 * Math.max(0, Math.sin(w * 0.6)); o.look = 0.05; }
     // rain: the waiters and the couple cover their heads
     if (rainOn > 0 && (st.kind === 'wait' || st.kind.startsWith('argue') || st.kind === 'coffee')) {
@@ -244,6 +251,8 @@ export function peopleFrame(w, s, crowd, cache, umbrellas) {
     if (cache[SELF] !== -1) { cache[SELF] = -1; crowd.color(SELF, 0x2c3e50, 0x1b2631, 0xd9a27c, 0x2e2018); }
     crowd.pose(SELF, s.self ? { x: YOU1.x, y: 0, z: YOU1.z, yaw: Math.PI - 0.5, s: 1.0, armR: 0.85, armL: 0.05, look: -0.1 } : { visible: false, x: 0, y: 0, z: 0 });
   }
+  // ten years later: the kid, his mother, the guitarist and the bubble artist have long gone home
+  if (s.future > 0.5) for (const i of [KID, MOM, GUIT, BUBB]) crowd.pose(i, { visible: false, x: 0, y: 0, z: 0 });
   crowd.commit();
   if (umbrellas) umbrellas.commit(ui);
 }

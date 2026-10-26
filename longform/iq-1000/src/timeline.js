@@ -46,10 +46,12 @@ export const SEC = {
   ff: 0,            // flash-forward: the frozen plaza, lightning lit over the towers, the bubble popping (title)
   plaza: 6,         // the plaza; your phone: the IQ test you just took on iqmaxx.ing, 100 (gone by 10.5)
   climb: TA,        // "Now it starts doubling"
+  cube0: 11.4, cube1: 15.2,   // a Rubik's cube in your hands, solved in three seconds
   einstein: at(1.6),    // 15.2
   smartest: at(1.95),   // 17.3
   x2: at(2),        // 17.5
   slow: 20.5,       // the world visibly in slow motion
+  chess0: 22, mate: 30.5,     // the park's chess hustler: checkmate
   rain: 27,         // the first drops
   x4: at(4),        // 32: the rain falls slowly
   see: 42.5,        // the kid dribbling: you see the paths ahead
@@ -64,6 +66,7 @@ export const SEC = {
   guitar: 104,      // the guitar's strings swinging
   x32: at(32),      // 108
   sink: 114,        // the sound sinks
+  cure0: 112, cure1: 126,     // a cure for cancer: a glowing molecule builds itself over the plaza
   x64: at(64),      // 128
   hush: 130,        // [silence]
   silent: 134,      // "Silence."
@@ -73,16 +76,20 @@ export const SEC = {
   leader: 168,      // ...crawls down the sky
   x256: at(256),    // 176
   stroke: 178.5,    // the flash (return stroke) [silence]
-  cost: 184,        // your brain heats up: shimmer, red edges, the temperature big; the tour of the frozen plaza
+  fusion0: 180, fusion1: 194, // watching the lightning: fusion, a star in a bottle glowing over the avenue
+  cost: 184,        // your brain heats up: shimmer, red edges, the temperature big
+  rocket0: 200, rocket1: 214, // a rocket to Mars drawn in light over the fountain; its path up past the Moon
   stroke2: 191, stroke3: 204,
   x512: at(512),    // 210
   top: at(1024),    // 250: 1,024x (IQ 102,400)
   x1000: at(1000),  // ~249.7: IQ passes 100,000
+  theory: 250,      // everything, explained: the whole sky becomes one glowing web
   burst: 253,       // a giant soap bubble starts to pop in front of you
   letgo: 285,       // "Or you could let go."
   back: 291,        // back to normal speed
-  end: 295,         // closing lines
-  out: 327,
+  future0: 296, launch: 305, future1: 318,   // TEN YEARS LATER: the plaza rebuilt by what you invented
+  end: 318,         // closing lines (your phone, the question)
+  out: 338,
 };
 export const VIDEO_DURATION = SEC.out;
 // every doubling (2x, 4x ... 1,024x): a ripple runs across the picture
@@ -119,22 +126,25 @@ export const W = Object.fromEntries(Object.entries(SEC).map(([k, v]) => [k, worl
 
 // ---- the big moments: a gold phrase pops up at each one (a phrase, never a number; the soundtrack hits on each) ----
 export const BEATS = [
-  // (the popups land on his words: voice.js)
-  { v: 16.0, say: 'SMARTER THAN EINSTEIN' },
+  // the problems you solve (the story) and, on the side, what your speed does to the world
+  { v: SEC.cube1, say: 'SOLVED IN THREE SECONDS' },
   { v: 17.4, say: 'THE SMARTEST PERSON ON EARTH' },
   { v: SEC.slow, say: 'THE WORLD SLOWS DOWN' },
-  { v: SEC.x4, say: 'THE RAIN SLOWS DOWN' },
+  { v: SEC.mate, say: 'CHECKMATE' },
   { v: SEC.see, say: 'YOU SEE IT COMING' },
-  { v: SEC.catch + 0.4, say: 'CAUGHT' },
-  { v: SEC.pigeons + 2, say: 'EVERY WINGBEAT' },
-  { v: SEC.stuck + 1, say: 'YOUR BODY CAN\'T KEEP UP' },
-  { v: 124.4, say: 'THE SOUND SINKS' },
+  { v: SEC.catch + 0.4, say: 'A LIFE SAVED' },
+  { v: 86, say: 'THE HARDEST PROBLEM IN MATH, SOLVED' },
+  { v: SEC.stuck + 1, say: "YOUR BODY CAN'T KEEP UP" },
+  { v: SEC.cure1, say: 'A CURE FOR CANCER' },
   { v: 133.7, say: 'SILENCE' },
   { v: SEC.frozen + 1.5, say: 'THE RAIN STOPS FALLING' },
   { v: 169.1, say: 'LIGHTNING' },
-  { v: SEC.cost + 15, say: 'YOUR BRAIN IS HEATING UP' },
-  { v: SEC.x1000, say: 'A THOUSAND TIMES SMARTER' },
+  { v: SEC.fusion1 - 4, say: 'A STAR IN A BOTTLE' },
+  { v: SEC.rocket1 - 6, say: 'A ROCKET TO MARS' },
+  { v: 228, say: 'YOUR BRAIN IS HEATING UP' },
+  { v: SEC.theory + 1, say: 'EVERYTHING, EXPLAINED' },
   { v: SEC.back + 0.5, say: 'BACK TO NORMAL' },
+  { v: SEC.future0 + 0.8, say: 'TEN YEARS LATER' },
 ];
 export const POP = 1.9;
 export function beatAt(v) {
@@ -150,12 +160,12 @@ export function popupAt(v) {
 }
 // the one line under the counter: the next milestone
 const NEXT = [
-  [SEC.einstein, 'EINSTEIN'], [SEC.smartest, 'SMARTEST ON EARTH'],
-  ...[2, 4, 8, 16, 32, 64, 128, 256, 512].map((m) => [at(m), `${m}× FASTER`]),
-  [SEC.x1000, '1,000× FASTER'],
+  [SEC.cube1, "A RUBIK'S CUBE"], [17.4, 'SMARTEST ON EARTH'], [SEC.mate, 'BEAT THE HUSTLER'], [SEC.catch, 'SAVE THE KID'],
+  [86, 'THE HARDEST MATH PROBLEM'], [SEC.cure1, 'CURE CANCER'], [SEC.fusion1 - 4, 'ENDLESS CLEAN ENERGY'],
+  [SEC.rocket1 - 6, 'GET TO MARS'], [SEC.theory + 1, 'EXPLAIN EVERYTHING'],
 ];
 export function nextAt(v) {
-  if (v >= SEC.x1000) return '';
+  if (v >= SEC.theory + 1) return '';
   for (const [t, name] of NEXT) if (v < t) return `NEXT: ${name}`;
   return '';
 }
@@ -176,7 +186,7 @@ export const COUNTERS = [
 // the power it burns on the one line under it
 export const RIGHT = [
   { from: SEC.slow, to: SEC.cost, label: '1 SECOND FEELS LIKE', value: (v) => fmtFeels(speed(v)), unit: () => '' },
-  { from: SEC.cost, to: SEC.end, label: 'YOUR BRAIN', value: (v) => `${brainTemp(v).toFixed(2)} °C`, unit: (v) => `${fmtInt(20 * speed(v))} WATTS`, hot: true },
+  { from: SEC.cost, to: SEC.future0, label: 'YOUR BRAIN', value: (v) => `${brainTemp(v).toFixed(2)} °C`, unit: (v) => `${fmtInt(20 * speed(v))} WATTS`, hot: true },
 ];
 
 // ---- the plaza's weather and light, by world time ----
@@ -218,6 +228,13 @@ export function state(v) {
   s.heat = smooth(SEC.cost - 2, SEC.cost + 30, v) * (0.45 + 0.55 * smooth(Math.log(250), Math.log(1024), Math.log(s.f))) * (1 - smooth(SEC.letgo, SEC.back, v));
   // the soap bubble in front of you: its film tears open over ~30 ms (world)
   s.burst = clamp((s.w - W.burst) / 0.03);
+  // TEN YEARS LATER: after you let go, years race by; the storm clears into a golden evening and the plaza fills with
+  // what you invented (future.js)
+  s.future = smooth(SEC.future0, SEC.future0 + 1.2, v);
+  s.futureK = smooth(SEC.future0 + 1, SEC.future1 - 4, v);     // how much of the new city is built
+  s.launch = Math.max(0, v - SEC.launch);                      // seconds since the rocket lit
+  s.rain *= 1 - s.future; s.wet *= 1 - s.future; s.sunDim *= 1 - s.future;
+  s.white = smooth(SEC.future0 - 0.6, SEC.future0, v) * (1 - smooth(SEC.future0, SEC.future0 + 0.9, v));
   // the closing: fade to black at the very end
   s.fadeOut = smooth(SEC.out - 2.5, SEC.out, v);
   s.title = 1 - smooth(6.0, 6.6, v);
