@@ -60,10 +60,11 @@
     font: italic 500 92px/1.15 'Cormorant', serif;
     text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
 
-  #cover { position: absolute; left: 20px; right: 20px; top: 700px; text-align: center; opacity: 0;
+  /* the thumbnail (render.mjs --cover): the channel's cover style, on the right over the plain sky */
+  #cover { position: absolute; right: 70px; top: 300px; width: 1300px; text-align: right; opacity: 0;
     text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
-  #cover .k { font: 700 52px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; }
-  #cover .w { font: 700 200px/1 'Cormorant', serif; color: #f1c978; margin: 16px 0 0; white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; }
+  #cover .k { font: 700 66px/1.12 'Cormorant', serif; letter-spacing: .16em; color: #fbf6ec; font-variant-numeric: lining-nums tabular-nums; }
+  #cover .w { font: 700 300px/1 'Cormorant', serif; color: #ffd27a; margin: 6px 0 0; white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; }
 
   #here { position: absolute; left: 0; top: 0; width: 600px; text-align: center; opacity: 0;
     font: 700 28px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; color: #f1c978;
@@ -97,7 +98,8 @@
   <div id="closing" class="serif"></div>
   <div id="here" class="serif">YOU ARE HERE</div>
   <div id="cover" class="serif">
-    <div class="w">THE HEAT DEATH</div>
+    <div class="k"><div>EARTH,</div><div>7.7 BILLION YEARS FROM NOW</div></div>
+    <div class="w">1,149 °C</div>
   </div>
   <div id="flash"></div>
 </div>

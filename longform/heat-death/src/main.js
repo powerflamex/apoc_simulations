@@ -58,13 +58,13 @@ composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
   uniforms: {
-    tDiffuse: { value: null }, uTime: { value: 0 }, uVig: { value: 0.32 }, uTitle: { value: 0 }, uCounter: { value: 0 },
+    tDiffuse: { value: null }, uCover: { value: 0 }, uTime: { value: 0 }, uVig: { value: 0.32 }, uTitle: { value: 0 }, uCounter: { value: 0 },
     uScope: { value: 0 }, uRed: { value: 0 }, uGone: { value: 0 }, uAb: { value: 0 }, uAspect: { value: W / H }, uWhite: { value: 0 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uTime; uniform float uVig; uniform float uTitle; uniform float uCounter;
-    uniform float uScope; uniform float uRed; uniform float uGone; uniform float uAb; uniform float uAspect; uniform float uWhite;
+    uniform float uScope; uniform float uRed; uniform float uGone; uniform float uAb; uniform float uAspect; uniform float uWhite; uniform float uCover;
     varying vec2 vUv;
     ${SCOPE_GLSL}
     void main() {
@@ -79,6 +79,8 @@ const finish = new ShaderPass({
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.63) / 0.16, 2.0));
       col *= 1.0 - uCounter * 0.45 * exp(-pow((vUv.y - 0.16) / 0.11, 2.0)) * max(smoothstep(0.5, 0.12, vUv.x), smoothstep(0.62, 0.92, vUv.x));
       if (uScope > 0.0) col = mix(col, scopeView(vUv, uAspect, uRed, uGone, uTime), uScope);
+      // the thumbnail: a dark glow behind the text on the right, so it reads at phone size
+      col *= 1.0 - uCover * 0.62 * smoothstep(0.38, 0.8, vUv.x) * exp(-pow((vUv.y - 0.5) / 0.26, 2.0));
       col = mix(col, vec3(1.0), uWhite);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -323,7 +325,8 @@ function update(v, vv = v) {
   finish.uniforms.uWhite.value = white;
   const cl = closingAt(vv);
   finish.uniforms.uTitle.value = window.__cover ? 0 : Math.max(s.title, 0.8 * s.name, cl ? 0.9 * cl.a : 0);
-  finish.uniforms.uCounter.value = window.__cover ? 1.3 : (1 - s.flash) * (1 - s.scope) * (1 - s.after) * 0.9;
+  finish.uniforms.uCover.value = window.__cover ? 1 : 0;
+  finish.uniforms.uCounter.value = window.__cover ? 0.6 : (1 - s.flash) * (1 - s.scope) * (1 - s.after) * 0.9;
   overlay(v, s, vv);
   return s;
 }

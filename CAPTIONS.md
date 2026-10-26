@@ -838,11 +838,13 @@ straight to the terrace with time racing, the Sun swelling by 0:12, a big visibl
 screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its temperature). Oct 25 (owner): under the
 red giant the city and the observatory melt into a lava plain that cools to black rock (Earth's crust survives, nothing
 on it does). **Upload this file.**
-Thumbnail: `longform/out/heat-death_thumb.png` (the red giant over the lava plain; `heat-death_thumb_B.png` is the
-black hole over the frozen plain).
+Thumbnail: `longform/out/heat-death_thumb.png` (Oct 25: the red giant over the lava sea at 0:20, you small at the
+bottom, in the channel's cover style: small caps "EARTH, 7.7 BILLION YEARS FROM NOW" and a giant gold "1,149 °C", the
+numbers on screen at that moment; `node render.mjs --cover 20`). The previous one ("THE HEAT DEATH" over the same
+frame) is `heat-death_thumb_old.png`; the black hole version is `heat-death_thumb_B.png`.
 
-**YouTube title (92 chars)**
-What If You Watched the Universe Die? The Last Light Goes Out in a Googol Years (Heat Death)
+**YouTube title (79 chars)**
+What If You Watched the Universe Die? The Last Light Goes Out in a Googol Years
 
 **YouTube description**
 Most scientists think the universe will never stop growing. Nothing crashes, nothing rips: everything just slowly runs out. This is the heat death. Imagine you could stand on an observatory terrace above a city and watch it all happen.

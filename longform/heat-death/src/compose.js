@@ -10,6 +10,12 @@ export async function makeCompositor(glCanvas, stage) {
     { weight: '500', style: 'normal', featureSettings: '"lnum" 1, "tnum" 1' });
   await num.load();
   document.fonts.add(num);
+  // (and the bold weight, for the thumbnail's label)
+  const numB = new FontFace('CormorantNum',
+    "url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-700-normal.woff2')",
+    { weight: '700', style: 'normal', featureSettings: '"lnum" 1, "tnum" 1' });
+  await numB.load();
+  document.fonts.add(numB);
 
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
