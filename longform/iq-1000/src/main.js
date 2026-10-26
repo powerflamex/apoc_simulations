@@ -26,8 +26,12 @@ import { makeCube } from './cube.js';
 import { makeChess } from './chess.js';
 import { makeHolo } from './holo.js';
 import { makeFuture } from './future.js';
+import { makeMind } from './mind.js';
+import { makeHospital } from './hospital.js';
+import { makeMoney } from './money.js';
+import { makeHeroPigeon } from './heropigeon.js';
 import { makeOverlay } from './overlay.js';
-import { state, SEC, W, VIDEO_DURATION, V_FF, FF_LEN, beatAt, worldT, DOUBLINGS } from './timeline.js';
+import { state, SEC, W, VIDEO_DURATION, V_FF, FF_LEN, beatAt, worldT, DOUBLINGS, cutAt, CUTS, MONEY_V, PIGEON_CLOSE, CHESS_CLOSE } from './timeline.js';
 import { YOU0, YOU1, EYE, GUITAR } from './layout.js';
 import { DEG, smooth, wobble, clamp, lerp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -111,13 +115,18 @@ const cube = makeCube(camera);
 const chess = makeChess(scene);
 const holo = makeHolo(scene);
 const future = makeFuture(scene);
+const mind = makeMind();
+const hospital = makeHospital();
+const money = makeMoney(scene, worldT(MONEY_V));
+const heroPigeon = makeHeroPigeon(scene);
 const overlay = makeOverlay();
 
 const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(1);
 composer.setSize(RW, RH);
-composer.addPass(new RenderPass(scene, camera));
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
 // (a high threshold: only lights, the bolt and the flash glow; bright sky mirrored in the glass doesn't haze over)
 const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.3, 0.4, 1.6);
 composer.addPass(bloom);
@@ -182,31 +191,31 @@ const LOOK = {
   // -> the guitar -> up at the cure building itself over the café -> the street going silent
   yaw: K([6, -4], [10.5, -4], [11.5, -2], [15.6, -2], [17.5, -14], [20.5, -22], [22.5, 44], [30.5, 46], [32, 10], [34, 0],
     [36, 66], [41, 66], [43.5, 36],
-    [50, 26], [57, 14], [63.5, 9], [66, -26], [70, -6], [74, 10], [78, -4], [82, -40], [85, -62], [89, -40], [92, 30],
-    [97, 58], [102, 60], [106, 84], [108, 87], [111, 87], [115, 2], [127, 4], [133, 4], [137, 2], [140, -2]),
+    [50, 26], [57, 14], [63.5, 9], [66, -26], [70, -6], [74, 4], [85.8, 4], [88, 14], [90.8, 24], [97.2, 40],
+    [99, 58], [102, 60], [106, 84], [108, 87], [111, 87], [115, 2], [127, 4], [133, 4], [137, 2], [140, -2]),
   pitch: K([6, -3], [10.5, -4], [11.5, -9], [15.6, -9], [17.5, -1], [20.5, 0], [22.5, -19], [30.5, -18], [32, 8], [33.5, 22],
     [35, 4], [41, 2], [43.5, 0], [47, -14], [55, -26],
-    [60, -33], [63.5, -36], [66, -12], [70, -4], [76, 10], [79, 28], [82, 18], [85, 14], [89, 16], [92, -10], [97, -24],
+    [60, -33], [63.5, -36], [66, -12], [70, -4], [76, 10], [85.8, 30], [88, 26], [90.8, 16], [97.2, -14], [99, -24],
     [102, -22], [106, -6], [111, -6], [115, 24], [127, 24], [133, 8], [140, 6]),
   fov: K([6, 50], [11.5, 48], [16, 50], [20.5, 50], [22.5, 46], [30.5, 46], [33.5, 56], [36, 46], [41, 46], [43.5, 52], [63.5, 56], [70, 50], [79, 60],
-    [85, 54], [92, 46], [102, 44], [106, 24], [108, 20], [111, 20], [115, 54], [127, 54], [133, 50], [140, 50]),
+    [85.8, 62], [90.8, 56], [97.2, 48], [102, 44], [106, 24], [108, 20], [111, 20], [115, 54], [127, 54], [133, 50], [140, 50]),
 };
 // the mind's eye: out of your body, through the hanging rain, up the avenue to the lightning; the fusion reactor
 // igniting over the avenue; round to the rocket over the fountain and its path up to Mars (your brain heating up);
 // back to you; then a slow drift around the bubble as it pops; back into your eyes as you let go
 const E = { x: YOU1.x, y: EYE, z: YOU1.z };
 const GLIDE = {
-  x: K([140, E.x], [145, 0.9], [150, 1.2], [156, -2.6], [163, -3.4], [170, -3.0], [180, -2.6], [186, -2.2], [194, -2.0],
+  x: K([140, E.x], [145, 0.9], [150, 1.2], [156, -2.6], [163, -3.4], [168, -2.6], [172, -2.0], [180, -1.6], [186, -2.2], [194, -2.0],
     [200, -4.0], [207, -3.5], [214, -3.0], [222, 5.5], [229, 6.4], [236, 3.0], [244, E.x + 0.05], [250, E.x], [262, 1.0], [274, -0.25], [283, E.x], [285, E.x]),
-  y: K([140, E.y], [145, 2.2], [150, 2.6], [156, 2.0], [163, 3.4], [170, 4.6], [180, 5.2], [186, 7.5], [194, 9.0],
+  y: K([140, E.y], [145, 2.2], [150, 2.6], [156, 2.0], [163, 3.4], [168, 60], [172, 125], [180, 132], [186, 7.5], [194, 9.0],
     [200, 3.0], [207, 2.2], [214, 2.0], [222, 2.0], [229, 1.6], [236, 1.8], [244, E.y], [250, E.y], [262, 1.72], [274, 1.62], [283, E.y], [285, E.y]),
-  z: K([140, E.z], [145, E.z + 1.0], [150, -1.0], [156, -5.2], [163, -9.0], [170, -11.5], [180, -13.0], [186, -6.0], [194, -2.0],
+  z: K([140, E.z], [145, E.z + 1.0], [150, -1.0], [156, -5.2], [163, -9.0], [168, -14], [172, -20], [180, -24], [186, -6.0], [194, -2.0],
     [200, -4.6], [207, -5.0], [214, -5.0], [222, -1.8], [229, -2.4], [236, -2.4], [244, E.z], [250, E.z], [262, -3.85], [274, -3.75], [283, E.z], [285, E.z]),
-  yaw: K([140, -2], [145, -14], [150, -30], [156, 25], [163, 8], [170, 2], [180, -1], [186, -1], [194, 0], [200, -137],
+  yaw: K([140, -2], [145, -14], [150, -30], [156, 25], [163, 8], [168, 2], [172, -2], [180, -3], [186, -1], [194, 0], [200, -137],
     [207, -140], [214, -146], [222, -112], [229, -110], [236, -60], [244, -3], [250, -3], [262, -23], [274, 17], [283, -2], [285, -3]),
-  pitch: K([140, 6], [145, -12], [150, -16], [156, -2], [163, 8], [170, 14], [180, 16], [186, 20], [194, 17], [200, 14],
+  pitch: K([140, 6], [145, -12], [150, -16], [156, -2], [163, 8], [168, 10], [172, 9], [180, 9], [186, 20], [194, 17], [200, 14],
     [207, 30], [214, 40], [222, -8], [229, -8], [236, -8], [244, 6], [250, 8], [262, 4], [274, 6], [283, 7], [285, 7]),
-  fov: K([140, 50], [150, 56], [163, 50], [170, 44], [180, 42], [186, 44], [194, 40], [200, 56], [207, 62], [214, 62], [222, 52], [229, 52], [244, 50], [250, 50], [262, 46], [274, 46], [285, 50]),
+  fov: K([140, 50], [150, 56], [163, 50], [168, 54], [172, 56], [180, 54], [186, 44], [194, 40], [200, 56], [207, 62], [214, 62], [222, 52], [229, 52], [244, 50], [250, 50], [262, 46], [274, 46], [285, 50]),
 };
 // back in your eyes: everything rushes back, the kid takes his ball; TEN YEARS LATER: up the avenue at the new city and
 // the rocket climbing; your phone; the question
@@ -220,6 +229,10 @@ const FF = {
   x: K([0, 0.95], [6, 0.55]), y: K([0, 1.55], [6, 1.64]), z: K([0, -2.7], [6, -3.45]),
   yaw: K([0, -12], [6, -5]), pitch: K([0, 10], [6, 8]), fov: K([0, 54], [6, 50]),
 };
+
+// the pigeon in close-up flies north-west over the curb, 2.5 m up (world time: it barely moves at 20x)
+const PIGEON0 = new THREE.Vector3(-2.2, 2.5, -5.4);
+function pigeonPos(w) { const d = w - worldT(PIGEON_CLOSE[0]); return new THREE.Vector3(PIGEON0.x - 2.2 * d, PIGEON0.y + 0.8 * d, PIGEON0.z - 4.5 * d); }
 
 // your body: from where you stand to the curb (it walks in real time: slow to you); you crouch for the ball
 function eyePos(w, out) {
@@ -279,6 +292,17 @@ function update(v, vv = v) {
   const rush = smooth(SEC.letgo, SEC.letgo + 2, v) * (1 - smooth(SEC.back - 1, SEC.back + 1.5, v));
   yaw += rush * 0.8 * Math.sin(vv * 23); pitch += rush * 0.6 * Math.sin(vv * 19 + 1);
   fov *= 1 - 0.03 * punch + 0.08 * rush;
+  // close-ups in the plaza: the chess board (looking down over your side of it), one pigeon in flight
+  if (!ff && v >= CHESS_CLOSE[0] && v < CHESS_CLOSE[1]) {
+    const k = smooth(CHESS_CLOSE[0], CHESS_CLOSE[1], v);
+    x = lerp(0.84, 0.98, k); y = lerp(1.24, 1.12, k); z = lerp(0.84, 0.72, k); yaw = lerp(44, 50, k); pitch = lerp(-36, -42, k); roll = 0; fov = lerp(42, 36, k);
+  }
+  if (!ff && v >= PIGEON_CLOSE[0] && v < PIGEON_CLOSE[1]) {
+    const k = smooth(PIGEON_CLOSE[0], PIGEON_CLOSE[1], v), pp = pigeonPos(w);
+    const a = lerp(1.5, 2.5, k);   // round its right side, front to back
+    x = pp.x + Math.sin(a) * 1.5; y = pp.y + 0.3 - 0.15 * k; z = pp.z + Math.cos(a) * 1.5;
+    yaw = Math.atan2(pp.x - x, -(pp.z - z)) / DEG; pitch = -9; roll = 0; fov = 38;
+  }
   // the thumbnail: from the curb, up the avenue at the lightning, the hanging rain all around (node render.mjs --cover 181)
   if (window.__cover) { x = 0.2; y = 1.5; z = -3.2; yaw = -4; pitch = 15; roll = 0; fov = 52; }
   camera.position.set(x, y, z);
@@ -319,6 +343,8 @@ function update(v, vv = v) {
   birds.frame(w);
   bubbles.frame(w, s, sunDir);
   cube.frame(vv);
+  money.frame(w, s.future, v, MONEY_V);
+  heroPigeon.frame(!ff && v >= PIGEON_CLOSE[0] - 0.5 && v < PIGEON_CLOSE[1] + 0.5, w, pigeonPos(w), 0.45);
   chess.frame(v);
   holo.frame(v, s, camera);
   future.frame(v, s);
@@ -362,7 +388,17 @@ function update(v, vv = v) {
   finish.uniforms.uTitle.value = window.__cover ? 1.2 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9;
   phone.frame(vv);
-  hud.frame(camera, s, v, vv, { rain, birds, chess, dangerX: traffic.dangerX, heroPos: bubbles.heroPos });
+  // ---------- the cutaways: what you're thinking about ----------
+  const cut = ff || window.__cover ? null : cutAt(v);
+  if (cut) {
+    if (cut.kind === 'sick' || cut.kind === 'cured') { hospital.frame(cut.kind, cut.u, v); renderPass.scene = hospital.scene; renderPass.camera = hospital.camera; bloom.strength = 0.35; bloom.threshold = 1.4; bloom.radius = 0.4; }
+    else { mind.frame(cut.kind, cut.u, v); renderPass.scene = mind.scene; renderPass.camera = mind.camera; bloom.strength = cut.kind === 'cells' || cut.kind === 'fusion' ? 0.45 : 0.75; bloom.threshold = 0.9; bloom.radius = 0.5; renderer.toneMappingExposure = 1.0; }
+    finish.uniforms.uCool.value = 0;
+    if (cut.kind !== 'brain') finish.uniforms.uHeat.value = 0;
+  } else { renderPass.scene = scene; renderPass.camera = camera; bloom.threshold = 1.6; bloom.radius = 0.4; }
+  // a quick white blink at every cut in and out
+  { let b = 0; if (!ff) for (const c of CUTS) for (const e of [c.from, c.to]) b = Math.max(b, Math.exp(-Math.abs(v - e) * 14)); s.white = Math.max(s.white || 0, b * 0.55); }
+  hud.frame(camera, s, v, vv, { rain, birds, chess, dangerX: traffic.dangerX, heroPos: bubbles.heroPos, cut: !!cut });
   overlay(v, s, vv);
   return s;
 }

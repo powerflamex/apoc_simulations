@@ -172,7 +172,7 @@ function makePlaza() {
     }
     // the thunder (the bolt 2 km away; it reaches you ~5.8 s after the stroke): a crack, then a long rolling rumble
     {
-      const dt = w - (W.stroke + 2000 / 343);
+      const dt = w - (W.stroke + 1200 / 343);
       if (dt > -0.05 && dt < 9) {
         const crack = env(dt + 0.05, 0.04, 0.35) * thunF[0].run(white(), 900, 0.5).bp * 0.9;
         const roll = (0.6 + 0.4 * Math.sin(dt * 3.1) * Math.sin(dt * 1.3)) * env(dt, 0.25, 2.6);

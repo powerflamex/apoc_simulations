@@ -789,7 +789,9 @@ Which ending would you rather live through? 👇
 16:9, 5:38, a city plaza with a storm coming in (plan `longform/IQ-1000.md`). Rebuilt Oct 25 around what a genius would
 DO (owner: "the whole appeal of IQ is solving problems"): a Rubik's cube in 3 s, checkmate against the park hustler,
 the kid saved, the Riemann hypothesis, a cure for cancer, fusion, a rocket to Mars, everything explained, then TEN
-YEARS LATER the city running on what you invented. The slow-time effects stay on the side (slow rain, silence, the
+YEARS LATER the city running on what you invented. Oct 25 (later): cutaways show each thing as it's said (neon math, the
+cancer ward and the cells, fusion, the rocket at Mars, your brain overheating), bills burst out for the prize, a pigeon
+close-up, a chess close-up and a real lightning bolt. The slow-time effects stay on the side (slow rain, silence, the
 lightning crawling, the bubble popping) and your brain heating up is the cost. Draft without the voice: **record
 `longform/iq-1000/SCRIPT.md`, then the voice goes in.** Thumbnail: `longform/out/iq-1000_thumb.png`.
 
@@ -818,12 +820,16 @@ What would you solve with 1,000x your IQ? 👇
 0:11 A Rubik's cube in 3 seconds
 0:22 Checkmate
 0:42 Saving the kid
-1:16 The hardest problem in math
+1:16 The Riemann hypothesis
+1:26 A million-dollar prize
+1:31 Every wingbeat
 1:52 A cure for cancer
 2:20 Frozen
-2:40 Lightning, and fusion
-3:20 A rocket to Mars
-4:10 Everything, explained
+2:40 Lightning
+3:01 Fusion
+3:22 A rocket to Mars
+3:46 Your brain overheats
+4:12 Everything, explained
 4:45 Letting go
 4:56 Ten years later
 

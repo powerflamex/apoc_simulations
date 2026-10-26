@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { rng } from './util.js';
 
-export const BOLT_TOP = new THREE.Vector3(-70, 1250, -2150), BOLT_GROUND = new THREE.Vector3(-10, 0, -1980);
+export const BOLT_TOP = new THREE.Vector3(-90, 980, -1300), BOLT_GROUND = new THREE.Vector3(-10, 0, -1180);
 
 export function makeBolt(scene) {
   const r = rng(4242);
@@ -14,12 +14,12 @@ export function makeBolt(scene) {
   let maxArr = 0;
   function walk(from, dir, length, arr0, main, depth) {
     let p = from.clone(), arr = arr0;
-    const n = Math.max(3, Math.round(length / (main ? 28 : 18)));
+    const n = Math.max(4, Math.round(length / (main ? 11 : 8)));
     const step = length / n;
     const d = dir.clone();
     for (let i = 0; i < n; i++) {
       // jagged: each step kinks, but the channel keeps its overall heading
-      const kink = new THREE.Vector3((r() - 0.5) * 1.3, (r() - 0.5) * 0.4, (r() - 0.5) * 0.9);
+      const kink = new THREE.Vector3((r() - 0.5) * 1.6, (r() - 0.5) * 0.5, (r() - 0.5) * 1.1);
       const sd = d.clone().add(kink).normalize();
       if (main) sd.lerp(BOLT_GROUND.clone().sub(p).normalize(), 0.35).normalize();
       const q = p.clone().addScaledVector(sd, step * (0.7 + 0.6 * r()));
@@ -28,7 +28,7 @@ export function makeBolt(scene) {
       segs.push([p.clone(), q.clone(), arr, arr2, main ? 1 : 0.55 / (depth + 1)]);
       maxArr = Math.max(maxArr, arr2);
       // branches fork off downward and sideways
-      if (depth < 2 && r() < (main ? 0.22 : 0.12)) {
+      if (depth < 3 && r() < (main ? 0.11 : 0.07)) {
         const bd = new THREE.Vector3((r() - 0.5) * 2.2, -0.6 - r() * 0.6, (r() - 0.5) * 0.8).normalize();
         walk(q, bd, (main ? 180 : 90) + r() * (main ? 380 : 160), arr2, false, depth + 1);
       }
@@ -70,7 +70,7 @@ export function makeBolt(scene) {
         vec3 side = normalize(cross(dir, toCam));
         float dist = length(cameraPosition - p);
         // at least ~2 px wide whatever the distance
-        float w = max(uWidth * (0.4 + 0.6 * aInfo.z), dist * 0.0016) * 6.0;
+        float w = max(uWidth * (0.4 + 0.6 * aInfo.z), dist * 0.0028) * 7.0 * (0.45 + 0.55 * aInfo.z);
         p += side * aInfo.x * w;
         vSide = aInfo.x; vArr = aInfo.y; vW = aInfo.z;
         gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
@@ -81,7 +81,7 @@ export function makeBolt(scene) {
       void main() {
         // the core and a soft glow across the ribbon
         float x = abs(vSide);
-        float core = smoothstep(0.22, 0.0, x), glow = pow(1.0 - x, 2.0);
+        float core = smoothstep(0.3, 0.0, x), glow = pow(1.0 - x, 3.0);
         // the leader: only what it has reached, its tips the brightest
         float reached = step(vArr, uFront);
         float tip = exp(-(uFront - vArr) / 25.0);
@@ -90,7 +90,7 @@ export function makeBolt(scene) {
         float isMain = step(0.99, vW);
         float stroke = uChannel * (isMain * 1.0 + (1.0 - isMain) * 0.35 * vW / 0.55);
         float I = max(lead, stroke * 3.5);
-        vec3 col = vec3(0.8, 0.84, 1.0) * (core * 6.0 + glow * 0.5) * I;
+        vec3 col = (vec3(1.0, 1.0, 1.05) * core * 9.0 + vec3(0.6, 0.65, 1.0) * glow * 1.2) * I;
         if (dot(col, vec3(1.0)) < 0.002) discard;
         gl_FragColor = vec4(col, 1.0);
       }`,
@@ -99,10 +99,19 @@ export function makeBolt(scene) {
   mesh.frustumCulled = false;
   mesh.renderOrder = -5;
   scene.add(mesh);
+  // the air round the channel glows: a big soft sprite over the bolt, brightest at the strokes
+  const haloTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(180,190,255,0.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(1, 1, 1), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  halo.position.copy(BOLT_TOP).lerp(BOLT_GROUND, 0.45);
+  halo.scale.set(900, 1300, 1);
+  halo.renderOrder = -6;
+  scene.add(halo);
   return {
     mesh,
     frame(s) {
       mesh.visible = s.boltOn > 0.001;
+      halo.visible = mesh.visible;
+      halo.material.opacity = Math.min(1, 0.06 + 0.9 * s.flash + 0.12 * s.channel + 0.15 * s.leader * (s.channel > 0 ? 0 : 1));
       const u = mat.uniforms;
       // the leader front: how far down it has come (it reaches the ground at the stroke)
       u.uFront.value = s.leader * mainLen * 1.02 + (s.channel > 0 ? 1e6 : 0);

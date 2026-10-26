@@ -107,7 +107,7 @@ export function makeHud(stage) {
       g.clearRect(0, 0, WW, HH);
       const w = s.w;
       // (none over the opening title, nor on the cover)
-      if (window.__cover || vv < 6.4) { canvas.style.opacity = '0'; return; }
+      if (window.__cover || vv < 6.4 || ctx.cut) { canvas.style.opacity = '0'; return; }
       canvas.style.opacity = '1';
       const f = s.f;
 
@@ -215,8 +215,8 @@ export function makeHud(stage) {
       // ---------- 2:40 lightning ----------
       {
         const top = BOLT_TOP, gr = BOLT_GROUND;
-        tag(P(lerp(top.x, gr.x, 0.3), lerp(top.y, gr.y, 0.3), lerp(top.z, gr.z, 0.3)), 'LIGHTNING · 2 km AWAY', fade(v, SEC.leader + 3, SEC.stroke - 0.5), { dx: 80, dy: -40 });
-        const thunder = 2.0 / 0.343 - Math.max(0, w - W.stroke);   // real seconds until it reaches you
+        tag(P(lerp(top.x, gr.x, 0.3), lerp(top.y, gr.y, 0.3), lerp(top.z, gr.z, 0.3)), 'LIGHTNING · 1 km AWAY', fade(v, SEC.leader + 3, SEC.stroke - 0.5), { dx: 80, dy: -40 });
+        const thunder = 1.2 / 0.343 - Math.max(0, w - W.stroke);   // real seconds until it reaches you
         if (v > SEC.stroke + 2) tag(P(gr.x, 150, gr.z), `THUNDER: ${Math.round(thunder * f / 60)} MINUTES AWAY`, fade(v, SEC.stroke + 2.5, SEC.fusion0 + 3.2), { dx: 80, dy: -80 });
       }
       // ---------- 4:13 a thousand times ----------

@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { rng, smooth, clamp } from './util.js';
 import { SEC } from './timeline.js';
 
-const CYAN = new THREE.Color(0.55, 0.9, 1.25), GOLD = new THREE.Color(1.5, 1.1, 0.5);
+// white neon (bright enough to bloom), gold when a thing is done
+const CYAN = new THREE.Color(2.6, 2.9, 3.4), GOLD = new THREE.Color(3.2, 2.3, 0.9);
 
 function lineMat(color, opacity = 1) {
   return new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });

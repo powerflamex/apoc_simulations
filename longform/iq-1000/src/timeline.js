@@ -60,9 +60,9 @@ export const SEC = {
   catch: 63.5,      // your hand catches it at the curb
   x8: at(8),        // 64
   mind: 76,         // math over the sky
-  pigeons: 82,      // the pigeons take off
+  pigeons: 90.5,    // the pigeons take off (the close-up of one of them, 91-97)
   x16: at(16),      // 86
-  stuck: 92,        // your body doesn't speed up; "hi" crawling out
+  stuck: 97,        // your body doesn't speed up; "hi" crawling out
   guitar: 104,      // the guitar's strings swinging
   x32: at(32),      // 108
   sink: 114,        // the sound sinks
@@ -92,6 +92,24 @@ export const SEC = {
   out: 338,
 };
 export const VIDEO_DURATION = SEC.out;
+// the cutaways: what you're thinking about, shown (mind.js: neon thoughts on black; hospital.js: the ward)
+export const CUTS = [
+  { kind: 'math', from: 76, to: 85.8 },
+  { kind: 'sick', from: 112, to: 118 },
+  { kind: 'cells', from: 118, to: 123.4 },
+  { kind: 'cured', from: 123.4, to: 127.6 },
+  { kind: 'fusion', from: 181, to: 191 },
+  { kind: 'space', from: 202.5, to: 212 },
+  { kind: 'brain', from: 226, to: 236 },
+  { kind: 'cosmos', from: 252, to: 262 },
+];
+export function cutAt(v) {
+  for (const c of CUTS) if (v >= c.from && v < c.to) return { ...c, u: (v - c.from) / (c.to - c.from) };
+  return null;
+}
+export const MONEY_V = 85.8;   // the million-dollar prize bursts out over the plaza
+export const PIGEON_CLOSE = [91, 97];
+export const CHESS_CLOSE = [22.6, 30.9];
 // every doubling (2x, 4x ... 1,024x): a ripple runs across the picture
 export const DOUBLINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((k) => at(2 ** k));
 export const V_FF = SEC.burst + 4;  // the flash-forward replays the frozen plaza from this moment
@@ -133,16 +151,19 @@ export const BEATS = [
   { v: SEC.mate, say: 'CHECKMATE' },
   { v: SEC.see, say: 'YOU SEE IT COMING' },
   { v: SEC.catch + 0.4, say: 'A LIFE SAVED' },
-  { v: 86, say: 'THE HARDEST PROBLEM IN MATH, SOLVED' },
+  { v: 83.6, say: 'THE HARDEST PROBLEM IN MATH' },
+  { v: 86.6, say: 'A MILLION-DOLLAR PRIZE' },
+  { v: 92.4, say: 'EVERY WINGBEAT' },
   { v: SEC.stuck + 1, say: "YOUR BODY CAN'T KEEP UP" },
-  { v: SEC.cure1, say: 'A CURE FOR CANCER' },
+  { v: 113, say: 'IT KILLS MILLIONS EVERY YEAR' },
+  { v: 124.3, say: 'A CURE FOR CANCER' },
   { v: 133.7, say: 'SILENCE' },
   { v: SEC.frozen + 1.5, say: 'THE RAIN STOPS FALLING' },
   { v: 169.1, say: 'LIGHTNING' },
-  { v: SEC.fusion1 - 4, say: 'A STAR IN A BOTTLE' },
-  { v: SEC.rocket1 - 6, say: 'A ROCKET TO MARS' },
+  { v: 187, say: 'A STAR IN A BOTTLE' },
+  { v: 208, say: 'A ROCKET TO MARS' },
   { v: 228, say: 'YOUR BRAIN IS HEATING UP' },
-  { v: SEC.theory + 1, say: 'EVERYTHING, EXPLAINED' },
+  { v: 252.6, say: 'EVERYTHING, EXPLAINED' },
   { v: SEC.back + 0.5, say: 'BACK TO NORMAL' },
   { v: SEC.future0 + 0.8, say: 'TEN YEARS LATER' },
 ];
