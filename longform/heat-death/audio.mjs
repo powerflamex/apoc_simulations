@@ -242,7 +242,7 @@ export function makeSoundtrack(outFile) {
     }
     if (earth && !closing) {
       // --- the red giant: a low roar swelling with it ---
-      const gk = s.giant * (1 - s.wd);
+      const gk = Math.max(s.giant * (1 - s.wd), 0.85 * s.lava);   // (and the lava's roar while it glows)
       if (gk > 0.002) {
         const wn = white();
         const x = (giantF[0].run(wn, 60 + 140 * gk, 0.6).lp + giantSub.run(white()) * 2.2) * 0.13 * gk;

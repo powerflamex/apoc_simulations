@@ -8,7 +8,7 @@
 //   The buildings: low boxes on the lots close by, and downtown's towers with their windows, lit at night.
 import * as THREE from 'three';
 import { BASIN, GRID, DOWNTOWN, FREEWAYS, TOWERS, hillH } from './layout.js';
-import { patch, FXU } from './fx.js';
+import { patch, FXU, MELTU } from './fx.js';
 import { rng } from './util.js';
 import { rangeH } from './terrain.js';
 
@@ -74,7 +74,7 @@ export function makeBasin(scene) {
   // ---- the ground ----
   const gGeo = new THREE.PlaneGeometry(90000, 64000, 90, 64).rotateX(-Math.PI / 2).translate(0, BASIN, -30000);
   const gMat = patch(new THREE.MeshStandardMaterial({ color: 0x40382c, roughness: 0.95, metalness: 0 }), 'basin-v1',
-    { pars: PARS, color: COLOR, uniforms: BU, scale: 0.02, snowSide: 1 });
+    { pars: PARS, color: COLOR, uniforms: BU, scale: 0.02, snowSide: 1, lava: true });
   const ground = new THREE.Mesh(gGeo, gMat);
   ground.frustumCulled = false; ground.receiveShadow = false;
   scene.add(ground);
@@ -215,7 +215,7 @@ export function makeBasin(scene) {
     near.push({ x, z, w: 14 + R() * 22, d: 12 + R() * 18, h: 8 + R() * 26, c: R() });
   }
   const bMat = patch(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }), 'blocks-v1', {
-    vpars: 'attribute float aSeed; varying float vSeed;', vcode: 'vSeed = aSeed;', pars: 'varying float vSeed;', scale: 0.05,
+    vpars: 'attribute float aSeed; varying float vSeed;', vcode: 'vSeed = aSeed;', pars: 'varying float vSeed;', scale: 0.05, uniforms: MELTU,
     emissive: 'totalEmissiveRadiance += vec3(1.0, 0.72, 0.42) * uLit * step(0.35, fract(vSeed * 13.7)) * 0.12 * (1.0 - step(0.5, uSnow)) * step(0.2, 1.0 - vFxN.y);',
   });
   const blocks = new THREE.InstancedMesh(BOX, bMat, near.length);
@@ -237,7 +237,7 @@ export function makeBasin(scene) {
   const aLook = new THREE.InstancedBufferAttribute(new Float32Array(TOWERS.length * 4), 4);
   TBOX.setAttribute('aBox', aBox); TBOX.setAttribute('aLook', aLook);
   const tMat = patch(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75 }), 'towers-v1', {
-    uniforms: BU, scale: 0.03,
+    uniforms: { ...BU, ...MELTU }, scale: 0.03,
     vpars: 'attribute vec4 aBox; attribute vec4 aLook; varying vec3 vLoc; varying vec4 vBox; varying vec4 vLook; varying vec3 vON;',
     vcode: 'vLoc = position; vBox = aBox; vLook = aLook; vON = normal;',
     pars: `varying vec3 vLoc; varying vec4 vBox; varying vec4 vLook; varying vec3 vON;

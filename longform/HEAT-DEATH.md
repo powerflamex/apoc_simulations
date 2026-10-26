@@ -5,7 +5,8 @@
 I'm simulating next."): the Big Rip (torn apart), the Big Crunch (crushed), this one (frozen, faded out).
 Its own video with its own title, not "Part 3".
 
-Place (new, Oct 22): the stone terrace of an observatory on a ridge, 300 m above a city that spreads west to the
+Place (new, Oct 22; Oct 25: it melts away under the red giant, the owner's call, since nothing on Earth's surface
+would survive it; the rest plays out on the frozen rock plain): the stone terrace of an observatory on a ridge, 300 m above a city that spreads west to the
 horizon (a street grid with a boulevard every mile, freeways, downtown's towers, mountains on the right), the
 observatory's copper dome on the right. People strolling and watching the sunset at the railing. Project:
 `longform/heat-death/`, a new scene; the long-video parts (overlay, counter with a NEXT line, the big word at each
@@ -44,22 +45,22 @@ power of ten) with one line under it (**NEXT: ...**), from the freeze a second n
 
 | Time | Picture | Voice (short) |
 |---|---|---|
-| 0:00-0:06 | **Flash-forward:** the frozen city under a black hole with a glowing disk. Title on frame 0. | "In five minutes, you'll watch the last light in the universe go out." |
+| 0:00-0:06 | **Flash-forward:** the frozen rock plain under a black hole with a glowing disk. Title on frame 0. | "In five minutes, you'll watch the last light in the universe go out." |
 | 0:06-0:10 | The terrace at sunset with time already racing: the people blur away, night falls over the lit city, sunrise, day. | "Imagine you could stand right here, and watch the universe die." |
-| 0:10-0:18 | The Sun swells into a huge red giant over the city (big by 0:15); the sky turns red. *A red giant* | "...the Sun swells into a red giant. Two hundred times bigger." |
-| 0:18-0:25 | It blows apart in glowing red, pink and teal shells sweeping the sky; a tiny blinding white dwarf is left; the day sky goes black. *The Sun blows apart / A white dwarf* | "...all that's left is a white dwarf." |
-| 0:25-0:38 | Earth freezes (EARTH -230 °C), the city goes dark in patches, the air falls as glinting snow. *The air freezes* **Silence.** | "Earth freezes... even the air freezes, and falls as snow." |
+| 0:10-0:18 | The Sun swells into a huge red giant over the city (big by 0:15); the sky turns red; the ground melts into lava, the city and the observatory melt away and you sink onto the molten rock (EARTH 1,200 °C). *A red giant / Earth melts* | "...the Sun swells into a red giant. Two hundred times bigger." |
+| 0:18-0:25 | It blows apart in glowing red, pink and teal shells sweeping the sky over the lava; a tiny blinding white dwarf is left; the day sky goes black; the lava cools to black rock. *A white dwarf* | "...all that's left is a white dwarf." |
+| 0:25-0:38 | Earth freezes (EARTH -230 °C) and the air falls as glinting snow on the black rock. *The air freezes* **Silence.** | "Earth freezes... even the air freezes, and falls as snow." |
 | 0:38-0:55 | Night: the merged galaxy, one ball of stars; the coin telescope: a far galaxy redder, fainter, gone. *Gone* | "Look through the telescope..." |
 | 0:55-1:20 | The stars go out, brightest first, down to one red star; it goes out. *The last star* **Silence.** The dying Sun, a dull red dot, goes black. *Our Sun goes dark* | "Then the stars start going out." |
-| 1:20-1:32 | The frozen city in the dark; three dead-star crashes flash and light it up. *Light again* | "...two dead stars crash, and for a moment, there's light again." |
-| 1:32-1:54 | A black hole grows overhead, its disk brightening and lighting the frozen city orange. *The black hole / The last fire* **Silence.** | "Imagine Earth falls in with them." |
+| 1:20-1:32 | The frozen plain in the dark; three dead-star crashes flash and light it up. *Light again* | "...two dead stars crash, and for a moment, there's light again." |
+| 1:32-1:54 | A black hole grows overhead, its disk brightening and lighting the frozen plain orange. *The black hole / The last fire* **Silence.** | "Imagine Earth falls in with them." |
 | 1:54-2:09 | Atoms fall apart: the terrace, the city and you crumble into rising sparks. *Atoms fall apart* **Silence.** | "Earth just evaporates. And so would you." |
 | 2:09-2:40 | You float under the black hole's glowing ring; far black holes flash out and light you; the view turns slowly around you as it shrinks, hotter, brighter. *Black holes evaporate / A googol years* | "Ours ate so much, it lasts a googol years." |
 | 2:40-2:54 | The last flash (white), then its afterglow spreading away and reddening. *The last light* **Silence.** | "That was the last light in the universe." |
 | 2:54-3:22 | The empty universe from outside: a faint red shell; the camera pulls back until it is one point, which heats up and bursts: a new Big Bang. *The heat death / A new Big Bang* | "Unless... Roger Penrose... a brand-new Big Bang." |
 | 3:22-3:43 | White clears onto the terrace at sunset (the end returns to the start). "It just fades out." / "Which ending scares you most?" | the question for comments |
 
-Thumbnail: the black hole over the frozen city with **THE HEAT DEATH** in big gold letters (like the Big Rip's and
+Thumbnail (Oct 25): the red giant over the lava plain (B: the black hole over the frozen plain); was: the black hole over the frozen city with **THE HEAT DEATH** in big gold letters (like the Big Rip's and
 the Big Crunch's).
 
 ## Build notes

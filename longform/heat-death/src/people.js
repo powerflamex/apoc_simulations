@@ -63,6 +63,6 @@ export function peopleFrame(s, crowd, colorCache) {
 }
 export function youPose(s) {
   const b = s.E < 0.05 ? Math.sin(s.T * 60 * 0.9) * 0.012 : 0;
-  const fl = Math.min(1, (s.youY || 0) / 3);   // floating: arms drift out, the body turns slowly
+  const fl = Math.min(1, Math.max(0, s.youY || 0) / 3);   // floating: arms drift out, the body turns slowly
   return { x: YOU.x, y: s.youY || 0, z: YOU.z + 0.15, yaw: Math.PI - 0.08 + 0.5 * fl * Math.sin(s.v * 0.05), s: 1.0, pitch: b - 0.1 * fl, armL: 0.08 + 0.55 * fl, armR: 0.08 + 0.6 * fl, look: 0.05 + 0.3 * (s.lookUp || 0) };
 }

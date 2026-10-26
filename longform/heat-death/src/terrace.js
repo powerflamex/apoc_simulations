@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TERRACE, OBS, SCOPE, LAMPS } from './layout.js';
-import { patch } from './fx.js';
+import { patch, MELTU } from './fx.js';
 
 const PAVERS = /* glsl */ `
 {
@@ -18,10 +18,10 @@ const PAVERS = /* glsl */ `
 
 export function makeTerrace(scene) {
   const T = TERRACE, O = OBS;
-  const stone = patch(new THREE.MeshStandardMaterial({ color: 0xb3a994, roughness: 0.85 }), 'stone-v1', { color: PAVERS, scale: 0.6 });
-  const wall = patch(new THREE.MeshStandardMaterial({ color: 0xd2cabb, roughness: 0.8 }), 'wall-v2', { scale: 0.4 });
-  const copper = patch(new THREE.MeshStandardMaterial({ color: 0x3c4a44, roughness: 0.38, metalness: 0.65 }), 'copper-v1', { scale: 0.5, snowSide: 0.5 });
-  const metal = patch(new THREE.MeshStandardMaterial({ color: 0x2a2d30, roughness: 0.45, metalness: 0.5 }), 'metal-v1', { scale: 1.5 });
+  const stone = patch(new THREE.MeshStandardMaterial({ color: 0xb3a994, roughness: 0.85 }), 'stone-v1', { color: PAVERS, scale: 0.6, uniforms: MELTU });
+  const wall = patch(new THREE.MeshStandardMaterial({ color: 0xd2cabb, roughness: 0.8 }), 'wall-v2', { scale: 0.4, uniforms: MELTU });
+  const copper = patch(new THREE.MeshStandardMaterial({ color: 0x3c4a44, roughness: 0.38, metalness: 0.65 }), 'copper-v1', { scale: 0.5, snowSide: 0.5, uniforms: MELTU });
+  const metal = patch(new THREE.MeshStandardMaterial({ color: 0x2a2d30, roughness: 0.45, metalness: 0.5 }), 'metal-v1', { scale: 1.5, uniforms: MELTU });
   const add = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; scene.add(m); return m; };
   const box = (x0, x1, y0, y1, z0, z1) => new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
 
@@ -47,7 +47,7 @@ export function makeTerrace(scene) {
   add(new THREE.SphereGeometry(O.tower.r * 0.96, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2).translate(O.tower.x, O.tower.h + 1.1, O.tower.z), copper);
   // its windows and doors: dark glass, warm at night
   const glassMat = patch(new THREE.MeshStandardMaterial({ color: 0x0d1012, roughness: 0.15, metalness: 0.3 }), 'obsglass-v1', {
-    emissive: 'totalEmissiveRadiance += vec3(1.0, 0.68, 0.38) * 0.9 * uLit * (1.0 - step(0.5, uSnow));', scale: 0.5,
+    emissive: 'totalEmissiveRadiance += vec3(1.0, 0.68, 0.38) * 0.9 * uLit * (1.0 - step(0.5, uSnow));', scale: 0.5, uniforms: MELTU,
   });
   const gl = [];
   for (let x = O.x0 + 3.1; x < O.x1 - 1; x += 3.2) gl.push(box(x - 0.9, x + 0.9, 1.2, 4.6, O.z0 + 5.94, O.z0 + 6.0), box(x - 0.9, x + 0.9, 6.4, 10.2, O.z0 + 5.94, O.z0 + 6.0));
@@ -72,7 +72,7 @@ export function makeTerrace(scene) {
     }
     add(mergeGeometries(g), metal);
     const globe = patch(new THREE.MeshStandardMaterial({ color: 0xf2eee4, roughness: 0.4 }), 'globe-v1', {
-      emissive: 'totalEmissiveRadiance += vec3(1.0, 0.85, 0.62) * 3.0 * uLit * (1.0 - step(0.5, uSnow));', scale: 2.0,
+      emissive: 'totalEmissiveRadiance += vec3(1.0, 0.85, 0.62) * 3.0 * uLit * (1.0 - step(0.5, uSnow));', scale: 2.0, uniforms: MELTU,
     });
     add(mergeGeometries(gl2), globe);
   }

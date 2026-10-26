@@ -837,16 +837,20 @@ What would you do with 1,000x your IQ? 👇
 terrace on a ridge above a city; plan `longform/HEAT-DEATH.md`, script `longform/heat-death/SCRIPT.md`). The video
 promised at the end of the Big Crunch. Reworked Oct 25 from the retention curves: flash-forward with the title, then
 straight to the terrace with time racing, the Sun swelling by 0:12, a big visible moment every ~45 s. Two numbers on
-screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its temperature). **Upload this file.**
-Thumbnail: `longform/out/heat-death_thumb.png`.
+screen: YEARS FROM NOW (to a googol and past it) and EARTH / EMPTY SPACE (its temperature). Oct 25 (owner): under the
+red giant the city and the observatory melt into a lava plain that cools to black rock (Earth's crust survives, nothing
+on it does). **Upload this file.**
+Thumbnail: `longform/out/heat-death_thumb.png` (the red giant over the lava plain; `heat-death_thumb_B.png` is the
+black hole over the frozen plain).
 
 **YouTube title (92 chars)**
 What If You Watched the Universe Die? The Last Light Goes Out in a Googol Years (Heat Death)
 
 **YouTube description**
-Most scientists think the universe will never stop growing. Nothing crashes, nothing rips: everything just slowly runs out. This is the heat death. Imagine Earth were still here, and you could stand on an observatory terrace above the city and watch it all happen.
+Most scientists think the universe will never stop growing. Nothing crashes, nothing rips: everything just slowly runs out. This is the heat death. Imagine you could stand on an observatory terrace above a city and watch it all happen.
 
-5 billion years: the Sun swells into a red giant. Then it throws off its outer layers, and all that's left is a white dwarf the size of Earth.
+5 billion years: the Sun swells into a red giant. Earth's surface melts into an ocean of lava, and the city melts with it.
+Then the Sun throws off its outer layers, and all that's left is a white dwarf the size of Earth. The lava cools to black rock.
 Earth freezes to −230 °C. Even the air freezes and falls as snow.
 2 trillion years: every galaxy beyond our own is gone from the sky.
 100 trillion years: the last star in the universe goes out.

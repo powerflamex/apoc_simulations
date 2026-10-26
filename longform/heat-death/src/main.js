@@ -204,7 +204,7 @@ function update(v, vv = v) {
     let yaw = spline(sh.yaw, v) * DEG, pitch = spline(sh.pitch, v) * DEG, roll = 0, fov = spline(sh.fov, v);
     // you float up off the evaporating terrace (the view goes with you)
     const up = 9 * s.rise;
-    s.youY = up;
+    s.youY = up - 1.7 * s.sink;   // (you sink onto the molten rock as the terrace melts away)
     y += up;
     x += wobble(v * 0.3, 1) * 0.04; y += wobble(v * 0.35, 2) * 0.02;
     yaw += wobble(v * 0.25, 3) * 0.25 * DEG * (fov / 50); pitch += wobble(v * 0.28, 4) * 0.2 * DEG * (fov / 50); roll += wobble(v * 0.2, 5) * 0.3 * DEG;
@@ -302,7 +302,7 @@ function update(v, vv = v) {
     // the ambient light: the sky's (dusk, night) while there is air; then starlight, and once the stars are gone a
     // faint cold blue so the frozen city still reads
     hemi.color.copy(look.skyHi).lerp(look.skyLo, 0.4).lerp(tmp.setRGB(0.3, 0.34, 0.46), 1 - s.air);
-    hemi.groundColor.setRGB(0.35, 0.27, 0.2).multiplyScalar(0.3 + 0.7 * (1 - look.night)).lerp(tmp.setRGB(0.12, 0.13, 0.17), 1 - s.air);
+    hemi.groundColor.setRGB(0.35, 0.27, 0.2).multiplyScalar(0.3 + 0.7 * (1 - look.night)).lerp(tmp.setRGB(0.12, 0.13, 0.17), 1 - s.air).lerp(tmp.setRGB(1.0, 0.32, 0.06), Math.min(1, s.lava * 0.9));
     hemi.intensity = lerp(lerp(0.75, 0.3, look.night), 0.5 * s.amb, 1 - s.air) + 0.5 * gi + 0.25 * s.disk;
     scene.fog.color.copy(look.skyLo).multiplyScalar(0.9);
     // no air, no haze: the frozen world is crystal clear

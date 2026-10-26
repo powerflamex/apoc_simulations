@@ -53,7 +53,7 @@ function meshFrom(pos, idx, H, mat) {
 }
 
 export function makeTerrain(scene) {
-  const mat = patch(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }), 'terrain-v1', { grain: true, scale: 0.08, snowSide: 0.55 });
+  const mat = patch(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }), 'terrain-v1', { grain: true, lava: true, scale: 0.08, snowSide: 0.55 });
   // ---- the ridge: a polar grid around you, fine close by ----
   {
     const NR = 170, NA = 260, pos = [], idx = [];

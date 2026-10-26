@@ -154,7 +154,7 @@ export const rate = (v) => Math.max(1e-30, (Math.pow(10, Math.min(300, log10Year
 // quiet: no hit in the soundtrack (the silences)
 export const BEATS = [
   { v: SEC.giant + 2, w: 'A red giant' },
-  { v: SEC.shed + 0.8, w: 'The Sun blows apart' },
+  { v: SEC.giant + 4.6, w: 'Earth melts' },
   { v: SEC.wd + 0.5, w: 'A white dwarf' },
   { v: SEC.snow + 0.6, w: 'The air freezes' },
   // (no popup for the far galaxy going: the telescope's own label says GONE FOR GOOD)
@@ -209,18 +209,19 @@ export const COUNTERS = [
 
 // ---- the temperature: Earth's ground, then (once Earth is gone) empty space ----
 export function tempC(v) {
+  if (v < SEC.shed) return lerp(15, 1200, smooth(SEC.giant + 0.5, SEC.giant + 6, v));   // the red giant: the rock melts
   if (v < SEC.evap + 2) {
-    return lerp(lerp(lerp(15, -230, smooth(SEC.freeze - 0.5, SEC.snow - 0.5, v)), -255, smooth(SEC.out, SEC.last, v)),
+    return lerp(lerp(lerp(1200, -230, smooth(SEC.shed, SEC.snow - 0.5, v)), -255, smooth(SEC.out, SEC.last, v)),
       -271, smooth(SEC.sunFade, SEC.evap, v));
   }
   return null;
 }
 export const TEMPROW = {
-  from: SEC.freeze + 0.3, to: SEC.bang - 2,
+  from: SEC.giant + 1, to: SEC.bang - 2,
   label: (v) => (v < SEC.evap + 2 ? 'EARTH' : 'EMPTY SPACE'),
   value: (v) => {
     const c = tempC(v);
-    if (c !== null) return `${Math.round(c)} °C`;
+    if (c !== null) return `${Math.round(c).toLocaleString('en-US')} °C`;
     // a hair above absolute zero: more nines the longer it goes on (capped so it fits)
     const nines = Math.min(7, Math.max(2, 2 + Math.floor((log10Years(v) - 40) / 12)));
     return `−273.14${'9'.repeat(nines)} °C`;
@@ -299,6 +300,12 @@ export function state(v) {
   // white dwarf: a tiny, blinding point, fading over trillions of years to dull red, then black
   s.giant = smooth(SEC.giant - 1, SEC.giant + 4, v);
   s.giantC = smooth(SEC.giant - 1.5, SEC.giant + 1.5, v);           // its colour and dimming come first
+  // Earth under it: the land melts (dark crust, glowing lava between), the city and the observatory melt away and
+  // you sink onto the molten rock; once the Sun is a white dwarf the lava cools to black rock (snow settles on it)
+  s.rock = smooth(SEC.giant + 0.5, SEC.giant + 4, v);
+  s.meltAway = smooth(SEC.giant + 2, SEC.giant + 6.5, v);
+  s.sink = smooth(SEC.giant + 4.5, SEC.giant + 6.6, v);
+  s.lava = smooth(SEC.giant + 1, SEC.giant + 5, v) * (1 - smooth(SEC.wd, SEC.freeze + 1.5, v));
   s.shed = smooth(SEC.shed, SEC.wd + 1, v);
   s.sunR = 0.00465 * Math.exp(Math.log(0.4 / 0.00465) * Math.pow(s.giant, 0.8)) * (1 - 0.15 * s.shed);
   s.nebula = clamp((v - SEC.shed) / (SEC.freeze + 4 - SEC.shed));    // the shells' phase (expanding past us, fading)

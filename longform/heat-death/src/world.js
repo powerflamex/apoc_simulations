@@ -8,7 +8,7 @@ import { makeTerrace } from './terrace.js';
 import { makeCrowd } from './crowd.js';
 import { NPEOPLE, peopleFrame } from './people.js';
 import { makeGlows } from './glows.js';
-import { FXU, patch } from './fx.js';
+import { FXU, MELTU, patch } from './fx.js';
 import { BASIN, TERRACE } from './layout.js';
 import { rng, clamp } from './util.js';
 
@@ -49,6 +49,8 @@ export function makeWorld(scene) {
       FXU.uSnow.value = s.snow;
       FXU.uDissolve.value = s.dissolve;
       YOU_DIS.value = s.youDis;
+      MELTU.uDissolve.value = s.meltAway;
+      FXU.uRock.value = s.rock; FXU.uLava.value = s.lava;
       FXU.uTime.value = v;
       FXU.uLit.value = look.lights;
       FXU.uFxDir.value.copy(look.fxDir);
