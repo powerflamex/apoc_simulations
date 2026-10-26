@@ -635,6 +635,37 @@ Would you look back at the shrinking universe, or straight down? 👇
 
 Cover: `week 3/black-hole-fall/out/black-hole-fall_v4_cover.png` (`node render.mjs --cover 4.5`: the huge black hole, its disk arching over the top, you falling in at the lower right)
 
+## Next Short. Every punch is 10x stronger — `week 4/punch-10x/out/punch-10x_v4_1080x1920_60fps_tiktok.mp4`
+
+62.4 s. Downtown Los Angeles at golden hour: over your shoulder at a brick wall, the counter racing your punch's power in
+TNT. Punch 1 (0.55 s) cracks the wall, punch 2 goes through it, then every 2 s: a car flies, the bus flips, a ball of
+dust rolls over the street, the shops cave in, an office block bursts into flying pieces, punch 8 goes through five
+towers. The camera climbs: a block, the neighbourhood, a mushroom cloud (almost Hiroshima), downtown, the Tsar Bomba.
+Space: Los Angeles is gone, the shockwave circles the planet, the continent burns, the dinosaur asteroid, the crust
+cracks, the oceans boil; by the Moon: a blast from Earth shatters it; punch 31 blows Earth apart; white, loop.
+(Ideas from two competitor punch videos: ifinity3d's opening, orbit_animation's hit effects.)
+
+**YouTube title (85 chars, emoji counted as 2)**
+What if every punch was 10x stronger? Punch 31 blows up the Earth 👊 #whatif #physics
+
+**YouTube description**
+You punch a wall. Every punch is 10x stronger than the last.
+Punch 2: straight through the bricks.
+Punch 3: a car goes flying. Punch 4: the bus flips.
+Punch 7: a whole office building blows apart.
+Punch 12: a mushroom cloud, almost Hiroshima.
+Punch 16: bigger than the Tsar Bomba, the biggest bomb ever tested.
+Punch 22: as hard as the asteroid that killed the dinosaurs.
+Punch 26: the oceans boil away.
+Punch 28: the Moon shatters.
+Punch 31: Earth blows apart.
+
+How many punches would you throw before you stopped? 👇
+
+#whatif #physics #simulation #shorts
+
+Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 46.8`: Earth from space, the crust cracked open and glowing round Los Angeles, a ring of fire racing out)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
