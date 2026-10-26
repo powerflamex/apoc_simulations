@@ -15,7 +15,7 @@ import { makeYou } from './you.js';
 import { makeSmoke } from './smoke.js';
 import { makeGlows } from './glows.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, vPunch, N_PUNCH, V_LAST, T_SWITCH, R_E, R_MOON, MOON_DIST, AU } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, POP, vPunch, N_PUNCH, V_LAST, T_SWITCH, R_E, R_MOON, MOON_DIST, AU, inSpace, punchAt } from './timeline.js';
 import { IMP } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp, keys, rng } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -54,7 +54,10 @@ const plainMat = (color, rough = 0.9, extra = {}) => new THREE.MeshStandardMater
 const glowMat = (color) => new THREE.MeshBasicMaterial({ color, toneMapped: true });
 const shadowy = (m) => { m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; return m; };
 const ctx = { plainMat, glowMat, shadowy };
-const city = makeCity(scene, ctx);
+// (everything in the city sits in one group, hidden once the city is gone, including in the shots back down in the crater)
+const cityG = new THREE.Group();
+scene.add(cityG);
+const city = makeCity(cityG, ctx);
 const wall = makeWall(scene);
 const you = makeYou(scene);
 const glows = makeGlows(scene, 7000);
@@ -197,6 +200,25 @@ function camAt(v, s) {
     tgt.set(0, cloudH(n) * 0.42, 0);
     fov = 56;
     near = D * 0.002;
+  } else if (sh.k === 'crater') {
+    // down in the crater where Los Angeles was: you, unhurt, still punching; three angles
+    if (sh.i === 0) {
+      // over your shoulder again, like the first frame
+      pos.set(lerp(0.8, 0.66, kl), lerp(2.05, 1.95, kl), lerp(1.6, 1.25, kl));
+      tgt.set(-0.12, 1.55, -8);
+      fov = 60;
+    } else if (sh.i === 1) {
+      // low in front of you, the fist coming at the lens
+      pos.set(lerp(-0.85, -1.05, kl), lerp(0.75, 0.6, kl), lerp(-2.7, -2.35, kl));
+      tgt.set(0.08, 1.45, 0);
+      fov = 64;
+    } else {
+      // wide from the side: you small, the blast racing away to the horizon
+      pos.set(lerp(8.5, 10.5, kl), lerp(1.5, 1.9, kl), lerp(5, 3.5, kl));
+      tgt.set(-3, 1.3, -3);
+      fov = 60;
+    }
+    near = 0.05;
   } else if (sh.k === 'orbit') {
     // space: the planet from above the Pacific, you near the middle; pulling back as the damage spreads
     const alt = keys([[32.35, 1.2e6], [36.5, 3.2e6], [42, 8e6], [48, 1.6e7], [52.35, 2.4e7]], v, true);
@@ -242,7 +264,7 @@ function update(v, cover = -1) {
   you.root.position.set(0.105, 0, 0);
   you.root.rotation.set(0, Math.PI, 0);
   you.punch(s.arm, 0);
-  you.root.visible = v < 30;
+  you.root.visible = v < 30 || shot === 'crater';
   you.root.updateMatrixWorld(true);
 
   // ---------- the camera, shaken by every punch ----------
@@ -280,7 +302,9 @@ function update(v, cover = -1) {
   u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
   u.uTime.value = v;
   u.uSunDir.value.copy(SUN_DIR);
-  u.uSpace.value = smooth(31, 34, v);
+  const crater = shot === 'crater';
+  u.uSpace.value = inSpace(shot) ? 1 : crater ? 0 : smooth(31, 34, v);
+  u.uHell.value = crater ? 1 : 0;
   u.uSunAng.value = 0.0047;
   u.uGlare.value = 1;
   u.uDust.value = smooth(vPunch(9), vPunch(12), v) * 0.5 * (1 - smooth(24, 30, v));
@@ -297,10 +321,10 @@ function update(v, cover = -1) {
   wall.U.uDust.value = smooth(vPunch(5), vPunch(5) + 2, v) * 0.35;
 
   // ---------- light ----------
-  const camNearYou = v < 24.35;
+  const camNearYou = v < 24.35 || crater;
   sunL.castShadow = camNearYou;
   if (camNearYou) {
-    const half = shot === 'aerial' ? 1200 : shot === 'rise' ? 260 : shot === 'street2' ? 70 : 28;
+    const half = shot === 'aerial' ? 1200 : shot === 'rise' ? 260 : shot === 'street2' ? 70 : crater ? 12 : 28;
     const ctrS = shot === 'rise' || shot === 'aerial' ? tmpV.set(0, 0, -half * 0.5) : tmpV.set(0, 0, -half * 0.3);
     sunL.position.copy(ctrS).addScaledVector(SUN_DIR, half * 3);
     sunL.target.position.copy(ctrS);
@@ -313,9 +337,15 @@ function update(v, cover = -1) {
     sunL.position.copy(SUN_DIR).multiplyScalar(1e9);
     sunL.target.position.set(0, 0, 0); sunL.target.updateMatrixWorld();
   }
-  const space = smooth(31, 34, v);
+  const space = inSpace(shot) ? 1 : crater ? 0 : smooth(31, 34, v);
   hemi.intensity = lerp(1.5, 0.05, space);
   sunL.intensity = 3.4;
+  hemi.color.set(0x9ab8ee); hemi.groundColor.set(0x8a6a52);
+  if (crater) {
+    // lit from below by the molten crater and the burning horizon, the Sun a dim red disc through the dust
+    hemi.color.setRGB(0.35, 0.16, 0.1); hemi.groundColor.setRGB(1.0, 0.38, 0.12); hemi.intensity = 1.6;
+    sunL.intensity = 1.1; sunL.color.setRGB(1.0, 0.45, 0.25);
+  } else sunL.color.set(0xffd2a0);
   renderer.toneMappingExposure = lerp(1.05, 1.0, space);
 
   // ---------- the city, the wall, the blasts ----------
@@ -324,11 +354,55 @@ function update(v, cover = -1) {
   smoke.mat.uniforms.uSun.value.copy(SUN_DIR);
   const cityOn = v < 30;
   earth.earthG.visible = true;
-  ground.disk.visible = v < 32.35;
-  earth.globeU.uHole.value = v < 32.35 ? 400e3 / R_E : 0;
+  ground.disk.visible = !inSpace(shot);
+  earth.globeU.uHole.value = !inSpace(shot) ? 400e3 / R_E : 0;
+  cityG.visible = cityOn;
   if (cityOn) city.frame(v, s, glows, smoke, camY);
   wall.frame(v, 20.4, smoke, glows);
-  const flashK = fx.frame(v, smoke, glows, camera.position);
+  let flashK = fx.frame(v, smoke, glows, camera.position, crater);
+  // ---------- down in the crater: embers in the air, smoke drifting, and each punch's blast tearing outward ----------
+  if (crater) {
+    scene.fog.color.setRGB(0.42, 0.16, 0.07);
+    scene.fog.density = 0.00035;
+    glows.mat.uniforms.uFogD.value = 0.00035;
+    const Re = rng(808);
+    for (let k = 0; k < 140; k++) {
+      const x0 = (Re() - 0.5) * 60, z0 = (Re() - 0.5) * 60 - 8, y0 = Re() * 14, sp = 0.5 + Re() * 1.5, ph = Re() * 10;
+      const y = (y0 + v * sp) % 16, x = x0 + Math.sin(v * 0.7 + ph) * 1.5 + v * 1.2, z = z0 + Math.cos(v * 0.5 + ph);
+      const tw = 0.6 + 0.4 * Math.sin(v * 9 + ph * 7);
+      glows.add(((x + 30) % 60) - 30, y, z, 0.05 + 0.08 * Re(), 2.6 * tw, 0.9 * tw, 0.2 * tw);
+    }
+    const n = punchAt(v + 0.001).n, t = v - vPunch(n);
+    if (n >= 17 && t >= 0 && t < 2) {
+      // the flash at the fist, a white-hot shell racing out over the ground, a wall of fire and dust behind it
+      const k = Math.exp(-t / 0.12);
+      glows.add(IMP.x, IMP.y, IMP.z - 0.25, 0.35 + 1.2 * (1 - k), 1.4 * k, 1.2 * k, 1.0 * k);
+      flashK = Math.max(flashK, 0.35 * k);
+      const R = 25 + 2600 * Math.pow(smooth(0, 1.5, t), 0.7);
+      if (fx.shells.count < 8) {
+        const i = fx.shells.count++;
+        m4.compose(tmpV.set(IMP.x, 0, IMP.z), q4.identity(), s4.set(R, R * 0.6, R));
+        fx.shells.setMatrixAt(i, m4);
+        fx.shells.geometry.attributes.aA.setX(i, 1.0 * (1 - smooth(0.9, 2, t)));
+        fx.shells.instanceMatrix.needsUpdate = true; fx.shells.geometry.attributes.aA.needsUpdate = true;
+      }
+      const Rp = rng(n * 77);
+      for (let j = 0; j < 90; j++) {
+        const a = (j / 90) * Math.PI * 2 + Rp() * 0.05;
+        const rr = R * (0.94 + 0.08 * Rp());
+        const pr = Math.max(3, R * 0.05) * (0.7 + 0.6 * Rp());
+        smoke.puff(IMP.x + Math.sin(a) * rr, pr * 0.5, IMP.z - Math.cos(a) * rr, pr, 0.75 * smooth(0.05, 0.25, t) * (1 - smooth(1.2, 2, t)), 0.35 + 0.2 * Rp(), 1.3 * Math.exp(-t / 0.6) + 0.35, Rp());
+      }
+      // glowing rock thrown out of the ground ahead of the fist
+      for (let j = 0; j < 70; j++) {
+        const a = -Math.PI / 2 + (Rp() - 0.5) * 2.2, sp = 20 + Rp() * 90, up = 5 + Rp() * 25;
+        const x = IMP.x + Math.cos(a) * sp * t, z = IMP.z + Math.sin(a) * sp * t, y = 0.5 + up * t - 4.9 * t * t;
+        if (y < 0) continue;
+        glows.add(x, y, z, 0.25 + 0.5 * Rp(), 2.6, 0.9, 0.25);
+      }
+    }
+    blastL.intensity = 0;
+  }
   // the blast's light on everything near it
   blastL.position.set(IMP.x, IMP.y + 1, IMP.z - 2);
   blastL.intensity = flashK * 60 * (v < 13 ? 1 : 0);
@@ -360,7 +434,7 @@ function update(v, cover = -1) {
     earth.atmoU.uOn.value *= 1 - 0.7 * DMG.uMolten.value;
     DMG.uFlash.value = flashE * 0.25;
     // the flash and the glowing debris thrown up into space on each big punch (punch 17 on)
-    for (let n = 17; n <= N_PUNCH; n++) {
+    for (let n = 17; n <= N_PUNCH && !crater; n++) {
       const t = v - vPunch(n);
       if (t < 0 || t > 6) continue;
       const big = Math.pow(1.3, Math.min(n, 26) - 17);
@@ -480,7 +554,7 @@ function update(v, cover = -1) {
     finish.uniforms.uLines.value = window.__cover ? 0 : lines;
     finish.uniforms.uImpact.value = window.__cover ? 0 : impact;
     finish.uniforms.uSeed.value = seed * 7.3;
-    const ctr = v < 30 ? tmpV.set(IMP.x, v < 12.3 ? IMP.y : 30, IMP.z - (v < 12.3 ? 0.5 : 40)) : v4.set(0, 0, 0);
+    const ctr = crater ? tmpV.set(IMP.x, IMP.y, IMP.z) : v < 30 ? tmpV.set(IMP.x, v < 12.3 ? IMP.y : 30, IMP.z - (v < 12.3 ? 0.5 : 40)) : v4.set(0, 0, 0);
     if (v > 54 && v < 58.35) ctr.copy(MOON_C);
     ctr.project(camera);
     finish.uniforms.uCenter.value.set(clamp(ctr.x * 0.5 + 0.5, 0.05, 0.95), clamp(ctr.y * 0.5 + 0.5, 0.05, 0.95));
@@ -509,7 +583,7 @@ function update(v, cover = -1) {
     v4.set(0, 2, 0).project(camera);
     const sx = (v4.x * 0.5 + 0.5) * W, sy = (-v4.y * 0.5 + 0.5) * H;
     const vis = v4.z < 1 && sx > 80 && sx < W - 80 && sy > 200 && sy < H - 80;
-    const on = smooth(16.6, 17.2, v) * (1 - smooth(46, 47, v));
+    const on = smooth(16.6, 17.2, v) * (1 - smooth(46, 47, v)) * (crater ? 0 : 1);
     const a = window.__cover || !vis ? 0 : on * (1 - s.flash);
     youEl.style.opacity = a.toFixed(3);
     if (a > 0) { youEl.style.left = `${(sx - 120).toFixed(1)}px`; youEl.style.top = `${(sy - 112).toFixed(1)}px`; }

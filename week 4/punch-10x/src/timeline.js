@@ -56,11 +56,18 @@ export const SHOTS = [
   { k: 'rise', a: 12.35, b: 16.35 },
   { k: 'aerial', a: 16.35, b: 24.35 },
   { k: 'high', a: 24.35, b: 32.35 },
-  { k: 'orbit', a: 32.35, b: 52.35 },
+  // punches 17, 19, 21: back down to you, in the crater where Los Angeles was; 18 and 20 from space
+  { k: 'crater', a: 32.35, b: 34.35, i: 0 },
+  { k: 'orbit', a: 34.35, b: 36.35 },
+  { k: 'crater', a: 36.35, b: 38.35, i: 1 },
+  { k: 'orbit', a: 38.35, b: 40.35 },
+  { k: 'crater', a: 40.35, b: 42.35, i: 2 },
+  { k: 'orbit', a: 42.35, b: 52.35 },
   { k: 'moon', a: 52.35, b: 58.35 },
   { k: 'final', a: 58.35, b: 99 },
 ];
 export const shotAt = (v) => SHOTS.find((x) => v < x.b) || SHOTS[SHOTS.length - 1];
+export const inSpace = (k) => k === 'orbit' || k === 'moon' || k === 'final';
 
 // ---- what each punch does (say: the gold popup; note: the line under the counter) ----
 export const PUNCHES = [];
@@ -99,8 +106,8 @@ export const CAPTIONS = [
   [18.45, 20.45, 'Windows break a mile away.'],
   [24.45, 26.45, 'The cloud is 10 miles high.'],
   [28.45, 30.45, 'The fireball is 3 miles wide.'],
-  [36.45, 38.45, 'The shockwave circles the planet.'],
-  [40.45, 42.45, 'The whole continent is burning.'],
+  [36.45, 38.3, 'You don’t feel a thing.'],
+  [40.45, 42.3, 'Everything to the horizon is on fire.'],
   [46.45, 48.45, 'And you keep punching.'],
   [48.6, 50.45, 'More than the Sun gives off in a second.'],
   [52.45, 54.45, 'Now you aim at the Moon.'],

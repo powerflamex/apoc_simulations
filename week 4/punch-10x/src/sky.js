@@ -6,14 +6,14 @@ import * as THREE from 'three';
 export function makeSky() {
   const uniforms = {
     uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uAlt: { value: 0 }, uDip: { value: 0 }, uPx: { value: 0.001 }, uTime: { value: 0 },
-    uDust: { value: 0 }, uSpace: { value: 0 }, uGlare: { value: 1 }, uSunAng: { value: 0.0046 },
+    uDust: { value: 0 }, uSpace: { value: 0 }, uGlare: { value: 1 }, uSunAng: { value: 0.0046 }, uHell: { value: 0 },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms, side: THREE.BackSide, depthWrite: false, depthTest: false,
     vertexShader: /* glsl */ `varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0); }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uSunDir; uniform float uAlt; uniform float uDip; uniform float uPx; uniform float uTime; uniform float uDust; uniform float uSpace;
-      uniform float uGlare; uniform float uSunAng;
+      uniform float uGlare; uniform float uSunAng; uniform float uHell;
       varying vec3 vD;
       float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
       vec3 stars(vec3 d) {
@@ -66,6 +66,8 @@ export function makeSky() {
         float g = exp(-pow(th / (1.3 * a), 2.0)) * 0.8 + exp(-pow(th / (3.2 * a), 2.0)) * 0.12 + pow(max(cs, 0.0), 160.0) * 0.5 * air;
         sky += vec3(1.0, 0.92, 0.8) * g * uGlare;
         sky = mix(sky, vec3(0.5, 0.47, 0.42), uDust * air * 0.5);
+        // under the burning dust after the big blasts: glowing orange low down, near black overhead
+        sky = mix(sky, mix(vec3(0.75, 0.26, 0.08), vec3(0.07, 0.03, 0.025), smoothstep(-0.04, 0.45, h)), uHell);
         gl_FragColor = vec4(sky, 1.0);
       }`,
   });

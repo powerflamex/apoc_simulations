@@ -54,7 +54,7 @@ export function makeFx(scene) {
   return {
     shells,
     // camD: camera distance from you (puff budgets); returns the strength of the flash this frame (for the post)
-    frame(v, smoke, glows, camPos) {
+    frame(v, smoke, glows, camPos, inCrater = false) {
       let ns = 0, flash = 0;
       const shell = (x, y, z, r, a, flat = 1) => {
         if (ns >= NS || a < 0.003 || r <= 0) return;
@@ -143,7 +143,7 @@ export function makeFx(scene) {
             }
           }
           // fireball and mushroom cloud (punch 12 on): a glowing ball that rises and turns to smoke, the stem, the cap
-          if (n >= 12 && t < 22) {
+          if (n >= 12 && t < 22 && !inCrater) {
             const H = cloudH(n), Rf = fireR(n);
             const hc = H * (1 - Math.exp(-t / 1.1));
             const glowK = Math.exp(-t / 1.2);

@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, V_LAST, vPunch, N_PUNCH, shotAt } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, V_LAST, vPunch, N_PUNCH, shotAt, inSpace } from './src/timeline.js';
 import { V_RUN } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -72,7 +72,7 @@ export function makeSoundtrack(outFile) {
 
   // ---- scheduled events ----
   const punches = [];
-  for (let n = 1; n <= N_PUNCH; n++) punches.push({ n, v: vPunch(n), big: clamp((n - 2) / 14), huge: clamp((n - 11) / 8), space: shotAt(vPunch(n) + 0.1).k === 'orbit' || shotAt(vPunch(n) + 0.1).k === 'moon' || shotAt(vPunch(n) + 0.1).k === 'final' ? 1 : 0 });
+  for (let n = 1; n <= N_PUNCH; n++) punches.push({ n, v: vPunch(n), big: clamp((n - 2) / 14), huge: clamp((n - 11) / 8), space: inSpace(shotAt(vPunch(n) + 0.1).k) ? 1 : 0 });
   // debris pattering down after the hits near you: soft low taps
   const taps = [];
   for (const p of punches) {
@@ -97,14 +97,15 @@ export function makeSoundtrack(outFile) {
   const tapF = new SVF(), roarF = [new SVF(), new SVF()], roarSub = new OnePole(55), metalF = [new SVF(), new SVF()];
   const glassF = [new SVF(), new SVF()], alarmF = new SVF(), windF = [new SVF(), new SVF()], windSub = new OnePole(70);
   const padLP = new OnePole(500), endF = new SVF(), endSub = new OnePole(40);
-  const muffL = new OnePole(12000), muffR = new OnePole(12000);
+  const muffL = new OnePole(12000), muffR = new OnePole(12000), spaceS = new OnePole(12);
   const revL = new Reverb(3), revR = new Reverb(4);
   const ph = new Float64Array(96);
 
   for (let n = -N0; n < N; n++) {
     const v = n / SR;
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;   // d*: not muffled in space (the drone, the deep booms)
-    const space = smooth(31.5, 34, v);
+    // in space everything outside is dull and distant; the cuts back down to you in the crater bring the roar back
+    const space = spaceS.run(v < 31.5 ? 0 : inSpace(shotAt(v).k) ? 1 : 0);
 
     // --- the street: traffic and people talking, until the blasts take it ---
     const life = 1 - smooth(vPunch(5), vPunch(7), v);

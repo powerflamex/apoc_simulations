@@ -181,6 +181,9 @@ const LOOK = /* glsl */ `
       emis += vec3(2.4, 0.75, 0.18) * fs * sc * uFire * (0.6 + 0.4 * sin(uTime * 7.0 + gh(floor(p * 0.05 / fsc)) * 30.0)) * (0.4 + 0.6 * smoothstep(sr * 0.5, sr, rq));
       float cr = (1.0 - smoothstep(uCraterR * 0.85, uCraterR, rq)) * step(0.5, uCraterR);
       col = mix(col, vec3(0.08, 0.065, 0.055) * (0.6 + 0.6 * gn(p * 0.3)) * (1.0 - farK), cr);
+      // the crater floor: cracked rock with molten seams glowing through
+      float vein = (1.0 - smoothstep(0.0, 0.035, abs(gn(p * 0.045) - 0.5))) * (0.5 + 0.5 * gn(p * 0.4));
+      emis += vec3(2.2, 0.55, 0.12) * vein * cr * uFire * 0.9;
       emis += vec3(2.0, 0.6, 0.15) * (1.0 - smoothstep(0.0, uCraterR * 0.08 + 0.5, abs(rq - uCraterR * 0.9))) * step(0.5, uCraterR) * uFire;
     }
     col = mix(col, vec3(0.45, 0.42, 0.38) * (1.0 - farK), uDust * 0.6 * (1.0 - smoothstep(3000.0, 9000.0, r)));
