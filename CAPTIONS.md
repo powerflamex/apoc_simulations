@@ -438,14 +438,15 @@ What if an earthquake hit magnitude 18? At 18.4, Earth breaks apart 🌎 #whatif
 You're on California Street in San Francisco. Every step up the magnitude scale is 32 times more energy, and this earthquake never stops climbing.
 
 Magnitude 7: as strong as the 1989 quake here.
-8: stronger than 1906. The street rolls like waves.
-9.5: the strongest ever recorded (Chile, 1960). The Bay Bridge falls.
+8: the street rolls like the sea.
+9.5: the strongest ever recorded. The Bay Bridge falls.
 10: never happened on Earth. The street splits open.
 11: the ground shakes harder than gravity, and everything is thrown into the air.
 12: as much energy as the asteroid that killed the dinosaurs.
-14.5: more than the Sun gives off in a second.
-15.2: enough to boil every ocean.
-18.4: more energy than holds Earth together. The planet comes apart.
+13: California tears apart. 14: the cracks race across the continent.
+15: as much energy as the Sun gives off in 5 seconds.
+16: enough to boil every ocean. 17: the crust shatters.
+18.4: Earth breaks apart.
 
 What magnitude would you survive? 👇
 
