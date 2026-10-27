@@ -10,7 +10,7 @@ import { makeOverlay } from './overlay.js';
 import { H } from './heat.js';
 import { BU } from './buildings.js';
 import { state, beatAt, popupAt, POP, VIDEO_DURATION, LOOP, V_FLASH, V_BLAST, T_FLASH, T_BLAST, storyT } from './timeline.js';
-import { CAM, SUN_PATH, arcXZ, Y } from './layout.js';
+import { CAM, CAM0, SUN_PATH, arcXZ, Y, sandY } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -103,15 +103,17 @@ function spline(list, t) {
   const u = (t - t0) / (t1 - t0), u2 = u * u, u3 = u2 * u;
   return (2 * u3 - 3 * u2 + 1) * p0 + (u3 - 2 * u2 + u) * m0 + (-2 * u3 + 3 * u2) * p1 + (u3 - u2) * m1;
 }
-// The camera (video time). You stand on the promenade (a little raised) looking down the beach to the Sun over the
-// far end. When the people run it holds; as things catch fire it drifts forward along the promenade and turns to the
-// avenue (the cars, the towers), back to the sea as it boils; then it rises like a drone over the beach to watch the
-// sea drain away, higher over the burning city as the towers fall, and finally tilts up into the fireball.
-const PHI = [[-4, 0.0017], [9, 0.0017], [16, 0.0021], [24, 0.0025], [32, 0.003], [40, 0.0036], [48, 0.0046], [56, 0.006], [64, 0.0065]];
-const DD = [[-4, CAM.d], [9, CAM.d], [18, CAM.d - 1], [26, CAM.d - 2.5], [34, CAM.d - 10], [42, CAM.d - 40], [50, CAM.d - 60], [58, CAM.d - 70], [64, CAM.d - 72]];
-const HH = [[-4, CAM.h], [9, CAM.h], [20, CAM.h + 0.6], [28, CAM.h + 2], [33, CAM.h + 8], [38, 30], [44, 70], [50, 120], [56, 170], [64, 200]];
-const YAW = [[-4, 40], [9, 40], [13, 32], [17, 8], [21, -30], [24.5, -38], [27.5, 0], [31, 26], [34, 18], [38, 10], [42, 6], [46, 4], [48.7, 6], [51, 48], [54.6, 56], [57.4, -12], [60, -10], [64, -6]];
-const PITCH = [[-4, -6], [9, -6], [14, -6], [21, -5], [25, -3], [28, -8], [32, -9], [36, -12], [42, -14], [46, -6], [48.7, 4], [51, -2], [54.6, 0], [57.4, 20], [60, 34], [64, 40]];
+// The camera (video time). You open standing on the sand in the middle of the crowd, at eye height, looking out to sea
+// and the Sun; the people run up the beach past you as the light lands, the towels and umbrellas around you smoke and
+// catch fire. Then you rise and pull back onto the promenade (just after 0:12), turn to the avenue (the cars, the
+// towers), back to the sea as it boils; then it rises like a drone over the beach to watch the sea drain away, higher
+// over the burning city as the towers fall, and finally tilts up into the fireball.
+const SAND = CAM0.eye + sandY(CAM0.d) - Y.prom;   // eye height on the sand, above the promenade's level
+const PHI = [[-4, 0.0017], [9, 0.0017], [12, 0.0017], [16, 0.0021], [24, 0.0025], [32, 0.003], [40, 0.0036], [48, 0.0046], [56, 0.006], [64, 0.0065]];
+const DD = [[-4, CAM0.d + 1.4], [0, CAM0.d + 1], [8, CAM0.d - 1], [11, CAM0.d - 1.6], [13.5, CAM0.d + 1], [16, CAM0.d + 20], [18.5, CAM.d - 1], [26, CAM.d - 2.5], [34, CAM.d - 10], [42, CAM.d - 40], [50, CAM.d - 60], [58, CAM.d - 70], [64, CAM.d - 72]];
+const HH = [[-4, SAND], [0, SAND], [8, SAND], [11, SAND], [13.5, CAM.h - 0.6], [16, CAM.h + 0.6], [20, CAM.h + 0.6], [28, CAM.h + 2], [33, CAM.h + 8], [38, 30], [44, 70], [50, 120], [56, 170], [64, 200]];
+const YAW = [[-4, CAM0.yaw], [0, CAM0.yaw], [8, CAM0.yaw - 1], [11, CAM0.yaw - 3], [13.5, 40], [17, 8], [21, -30], [24.5, -38], [27.5, 0], [31, 26], [34, 18], [38, 10], [42, 6], [46, 4], [48.7, 6], [51, 48], [54.6, 56], [57.4, -12], [60, -10], [64, -6]];
+const PITCH = [[-4, -6], [0, -6], [8, -6], [11, -6.5], [14, -10], [17, -7], [21, -5], [25, -3], [28, -8], [32, -9], [36, -12], [42, -14], [46, -6], [48.7, 4], [51, -2], [54.6, 0], [57.4, 20], [60, 34], [64, 40]];
 
 const sunDirAt = (T) => {
   const k = clamp((T - T_FLASH) / (T_BLAST - T_FLASH));
@@ -132,6 +134,8 @@ function update(v, cover = -1) {
   const s = state(v);
   if (cover >= 0) s.flash = Math.max(s.flash, cover);
   const T = s.T;
+  const open = 1 - smooth(14, 22, v);     // the opening's harder, more colourful look (back to the old grade by 0:22)
+  const hot = smooth(500, 600, T) * open;  // the light gets harsher through the opening
 
   // ---------- camera ----------
   const phi = spline(PHI, v), d = spline(DD, v);
@@ -170,7 +174,7 @@ function update(v, cover = -1) {
   u.uLit.value = s.lit;
   u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
   u.uTime.value = v; u.uT.value = v * 0.6 + T * 0.0004;
-  u.uWhite.value = s.lit * (0.18 + 0.15 * smooth(700, 4000, T)) * (1 - 0.4 * s.hazeSteam);
+  u.uWhite.value = s.lit * (0.18 + 0.15 * smooth(700, 4000, T)) * (1 - 0.4 * s.hazeSteam) * (1 - 0.65 * open);
   u.uDark.value = smooth(1200, 5000, T) * (1 - smooth(V_BLAST - 2, V_BLAST, v));
   u.uSmoke.value = smooth(620, 1500, T) * 0.6 * (1 - 0.5 * s.melt);
   u.uHaze.value = s.hazeSteam * 0.3;
@@ -186,16 +190,16 @@ function update(v, cover = -1) {
   // the light: warm and low before; after the flash a white-blue glare, harder and hotter as it grows
   const pre = 1 - s.lit;
   sun.color.setRGB(1.0, 0.86, 0.66).lerp(tmpC.setRGB(0.95, 0.97, 1.0), s.lit).lerp(tmpC.setRGB(1.0, 0.85, 0.65), s.hazeSteam * 0.4);
-  sun.intensity = (pre * 2.9 + s.lit * (4.2 + 1.2 * smooth(600, 3000, T)) + fl * 6) * (1 - 0.7 * smooth(1500, 6000, T));
+  sun.intensity = (pre * 2.9 + s.lit * (4.2 + 1.2 * smooth(600, 3000, T)) * (1 + 0.5 * hot) + fl * 6) * (1 - 0.7 * smooth(1500, 6000, T));
   const sp = camera.position;
   sun.position.set(sp.x + sd.x * 1500, sd.y * 1500, sp.z + sd.z * 1500);
   sun.target.position.set(sp.x - 55 * Math.sin(yaw), 0, sp.z - 55 * Math.cos(yaw));
   sun.shadow.camera.updateProjectionMatrix();
   world.hemi.color.setRGB(0.55, 0.7, 0.95).lerp(tmpC.setRGB(0.95, 0.95, 1.0), s.lit * 0.7).lerp(tmpC.setRGB(1.0, 0.75, 0.5), smooth(900, 4000, T) * 0.6);
   world.hemi.groundColor.setRGB(0.75, 0.62, 0.48).lerp(tmpC.setRGB(1.0, 0.45, 0.15), s.glow * 0.7);
-  world.hemi.intensity = (0.55 + 0.25 * s.lit) * (1 - 0.6 * smooth(1500, 6000, T));
+  world.hemi.intensity = (0.55 + 0.25 * s.lit * (1 - open) - 0.12 * hot) * (1 - 0.6 * smooth(1500, 6000, T));   // (less fill: harsh black shadows)
   // the fog: morning haze, then smoke and steam
-  scene.fog.color.setRGB(0.8, 0.85, 0.92).lerp(tmpC.setRGB(0.95, 0.95, 1.0), s.lit * 0.6).lerp(tmpC.setRGB(0.75, 0.55, 0.38), smooth(700, 2000, T) * 0.5).lerp(tmpC.setRGB(0.7, 0.45, 0.3), s.hazeSteam * 0.6);
+  scene.fog.color.setRGB(0.8, 0.85, 0.92).lerp(tmpC.setRGB(0.95, 0.95, 1.0), s.lit * 0.6 * (1 - 0.7 * open)).lerp(tmpC.setRGB(0.75, 0.55, 0.38), smooth(700, 2000, T) * 0.5).lerp(tmpC.setRGB(0.7, 0.45, 0.3), s.hazeSteam * 0.6);
   scene.fog.density = 0.00005 + 0.00006 * smooth(700, 2500, T) + 0.00006 * s.hazeSteam;
   // heat on every surface
   H.uSunW.value.copy(sd);
@@ -210,21 +214,23 @@ function update(v, cover = -1) {
   su.uSunR.value = s.ang;
   su.uSunI.value = (pre * 5 + s.lit * (9 + 4 * smooth(600, 3000, T))) * (1 - 0.5 * s.hazeSteam);
   su.uSunCol.value.setRGB(1.0, 0.88, 0.7).lerp(tmpC.setRGB(1, 1, 1), s.lit);
-  su.uSkyHi.value.setRGB(0.32, 0.52, 0.82).lerp(tmpC.setRGB(0.6, 0.72, 0.95), s.lit * 0.6).lerp(tmpC.setRGB(0.6, 0.38, 0.22), smooth(1200, 5000, T) * 0.8);
-  su.uSkyLo.value.setRGB(0.78, 0.83, 0.9).lerp(tmpC.setRGB(0.9, 0.93, 1.0), s.lit * 0.5).lerp(tmpC.setRGB(0.55, 0.36, 0.22), smooth(1200, 5000, T) * 0.8);
+  su.uSkyHi.value.setRGB(0.32, 0.52, 0.82).lerp(tmpC.setRGB(0.6, 0.72, 0.95), s.lit * 0.6 * (1 - 0.8 * open)).lerp(tmpC.setRGB(0.6, 0.38, 0.22), smooth(1200, 5000, T) * 0.8);
+  su.uSkyLo.value.setRGB(0.78, 0.83, 0.9).lerp(tmpC.setRGB(0.9, 0.93, 1.0), s.lit * 0.5 * (1 - 0.8 * open)).lerp(tmpC.setRGB(0.25, 0.45, 0.72), 0.5 * open).lerp(tmpC.setRGB(0.55, 0.36, 0.22), smooth(1200, 5000, T) * 0.8);
   su.uPx.value = u.uPx.value;
   su.uGlow.value = s.glow;
 
+  world.fire.mat.uniforms.uOcc.value = 0.8 * open;
+  world.smoke.mat.uniforms.uLight.value.setScalar(1 + 0.5 * open);   // (the steam off the surf reads white in the glare)
   world.frame(v, s, camera);
 
-  renderer.toneMappingExposure = (1.0 - 0.2 * s.lit + 0.1 * smooth(900, 3000, T)) * (1 + fl * 2.5);
+  renderer.toneMappingExposure = (1.0 - 0.2 * s.lit - 0.25 * hot + 0.1 * smooth(900, 3000, T)) * (1 + fl * 2.5);
   bloom.strength = 0.28 + 0.15 * s.lit + 0.12 * s.glow + 0.6 * s.blast;
   bloom.threshold = 1.6 + 0.6 * smooth(1500, 6000, T);
   finish.uniforms.uTime.value = v;
-  finish.uniforms.uHeat.value = smooth(560, 900, T) * 0.5 + 0.5 * s.glow + bl;
+  finish.uniforms.uHeat.value = Math.max(smooth(560, 900, T) * 0.5, smooth(503, 560, T) * 0.4) + 0.5 * s.glow + bl;   // the sand shimmers
   finish.uniforms.uAb.value = punch * 1.2 + fl * 1.5 + bl * 1.5;
-  finish.uniforms.uBleach.value = s.lit * 0.22 * (1 - 0.6 * s.glow);
-  finish.uniforms.uWarm.value = s.glow * 0.55;
+  finish.uniforms.uBleach.value = s.lit * 0.22 * (1 - 0.6 * s.glow) * (1 - 0.8 * open);
+  finish.uniforms.uWarm.value = Math.max(s.glow * 0.55, 0.22 * smooth(540, 620, T) * open);   // the fire's orange
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
 

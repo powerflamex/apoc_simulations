@@ -11,7 +11,7 @@ import { makeCrowd } from './crowd.js';
 import { makeFire } from './fire.js';
 import { makeSmoke } from './smoke.js';
 import { PEOPLE, personPose } from './people.js';
-import { TOWERS, arcXZ, RC, PHI0, PHI1, hills, Y, toArc } from './layout.js';
+import { TOWERS, arcXZ, RC, PHI0, PHI1, hills, Y, toArc, CAM0 } from './layout.js';
 import { patchHeat } from './heat.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
@@ -56,6 +56,7 @@ export function makeWorld(scene) {
   const R0 = rng(321);
   // smoke and steam sources fixed up front
   const HILL = Array.from({ length: 70 }, () => { const phi = PHI0 + R0() * (PHI1 - PHI0); const d = 420 + R0() * 900; const c = arcXZ(phi, d); return { x: c.x, z: c.z, y: Y.walk + hills(d, phi), t0: 640 + R0() * 500, seed: R0() }; });
+  const SURF = Array.from({ length: 180 }, () => ({ phi: CAM0.phi + 0.004 + Math.pow(R0(), 1.3) * 0.07, d: -2 - R0() * 22, seed: R0() }));
   const STEAM = Array.from({ length: 160 }, () => ({ a: R0(), b: R0(), seed: R0() }));
 
   return {
@@ -75,7 +76,16 @@ export function makeWorld(scene) {
 
       props.frame(v, s, fire, smoke, cam);
       traffic.frame(v, s, fire, smoke, cam);
-      PEOPLE.forEach((p, i) => crowd.pose(i, personPose(p, T)));
+      // (the people move on their own, near-real-time clock; bare skin reddens in the light)
+      PEOPLE.forEach((p, i) => crowd.pose(i, personPose(p, s.P)));
+      if (s.skin !== skinK) {
+        skinK = s.skin;
+        PEOPLE.forEach((p, i) => {
+          const [shirt, pants, skin, hair, sleeves] = p.col;
+          const sk = tmpC.set(skin).lerp(BURN, 0.55 * skinK).getHex();
+          crowd.color(i, shirt === skin ? sk : shirt, pants, sk, hair, sleeves);
+        });
+      }
       crowd.commit();
       towers.frame((i) => goneAt(i, T));
 
@@ -130,6 +140,16 @@ export function makeWorld(scene) {
           smoke.puff(x + ph * 20, -s.drop + rr * 0.4 + ph * (20 + dist * 0.03), z, rr, 0.07 * st * Math.sin(Math.PI * ph), 0.97, 0.0, p.seed);
         }
       }
+      // the opening: the first wisps of steam lift off the surf in front of you
+      if (s.surf > 0.01 && s.boil < 0.5) {
+        for (let k = 0; k < SURF.length; k++) {
+          const q = SURF[k];
+          const c = arcXZ(q.phi, q.d);
+          const ph = (v * (0.12 + q.seed * 0.1) + q.seed) % 1;
+          const rr = (3 + q.seed * 4) * (1 + ph * 1.4);
+          smoke.puff(c.x + ph * 4, -s.drop + rr * 0.3 + ph * 4, c.z, rr, 0.4 * s.surf * (1 - 2 * Math.max(0, s.boil)) * Math.sin(Math.PI * ph), 0.95, 0.0, q.seed);
+        }
+      }
       fire.mat.uniforms.uTime.value = t;
       smoke.mat.uniforms.uTime.value = t;
       fire.end(); smoke.end();
@@ -137,3 +157,5 @@ export function makeWorld(scene) {
   };
 }
 const ta = {};
+const tmpC = new THREE.Color(), BURN = new THREE.Color(0.78, 0.2, 0.12);
+let skinK = -1;

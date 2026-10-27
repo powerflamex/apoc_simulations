@@ -63,7 +63,7 @@ export function makeTraffic(scene, ctx) {
     frame(v, s, fire, smoke, cam) {
       const T = s.T;
       CARS.forEach((c, i) => {
-        const { s: ss, u } = carS(c, T);
+        const { s: ss, u } = carS(c, s.P);           // (moving on the people's clock)
         const phi = ss / c.r;
         const xz = arcXZ(phi, c.lane.d);
         const dc = Math.hypot(xz.x - cam.position.x, xz.z - cam.position.z);

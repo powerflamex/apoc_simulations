@@ -6,7 +6,7 @@
 // Burning is keyed per object from its own seed (ignite at story time), so it spreads rather than all at once.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { PALMS, KIOSKS, LAMPS, UMBRELLAS, TOWELS, CHAIRS, NETS, PEAKS, arcXZ, landY, RC } from './layout.js';
+import { PALMS, KIOSKS, LAMPS, UMBRELLAS, TOWELS, CHAIRS, NETS, PEAKS, arcXZ, landY, RC, CAM0_XZ } from './layout.js';
 import { patchHeat } from './heat.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
@@ -64,7 +64,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
   const canopies = shadowy(new THREE.InstancedMesh(canopyGeo, canopyMat, UMBRELLAS.length + KIOSKS.length * 4));
   const poles = shadowy(new THREE.InstancedMesh(poleGeo, charred(plainMat(0xdedede, 0.4, { metalness: 0.5 }), 'pole', 0.5), UMBRELLAS.length + KIOSKS.length * 4 + LAMPS.length + NETS.length * 2));
   const umb = [];
-  UMBRELLAS.forEach((u) => { const c = arcXZ(u.phi, u.d); umb.push({ x: c.x, y: landY(u.d), z: c.z, h: u.h, col: u.col, tilt: u.tilt, seed: u.seed, phi: u.phi, d: u.d }); });
+  UMBRELLAS.forEach((u) => { const c = arcXZ(u.phi, u.d); umb.push({ x: c.x, y: landY(u.d), z: c.z, h: u.h, col: u.col, tilt: u.tilt, seed: u.seed, phi: u.phi, d: u.d, near: Math.hypot(c.x - CAM0_XZ.x, c.z - CAM0_XZ.z) < 150 }); });
   KIOSKS.forEach((k) => {
     for (let j = 0; j < 4; j++) {
       const c = arcXZ(k.phi + (j < 2 ? -1 : 1) * 4.5 / (RC + 92), 92 + (j % 2) * 2.5 + 1.5);
@@ -73,6 +73,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
   });
   umb.forEach((u, i) => canopies.setColorAt(i, tmpC.set(u.col)));
   const towelGeo = new THREE.BoxGeometry(0.9, 0.012, 1.8).translate(0, 0.006, 0);
+  const towelAt = TOWELS.map((t) => { const c = arcXZ(t.phi, t.d); return { x: c.x, y: landY(t.d), z: c.z, near: Math.hypot(c.x - CAM0_XZ.x, c.z - CAM0_XZ.z) < 120 }; });
   const towels = shadowy(new THREE.InstancedMesh(towelGeo, charred(plainMat(0xffffff, 0.95), 'towel'), TOWELS.length));
   TOWELS.forEach((t, i) => {
     const c = arcXZ(t.phi, t.d);
@@ -215,8 +216,9 @@ export function makeProps(scene, { plainMat, shadowy }) {
       crowns.instanceMatrix.needsUpdate = true; if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
       // umbrellas: the canopy scorches, flares, and burns away
       umb.forEach((u, i) => {
-        const t0 = T_IGN(u.seed, 570, 660);
-        const k = clamp((T - t0) / 35);
+        // the ones around you go up together on the beat (~30× brighter, 9:15), the rest of the beach after them
+        const t0 = u.near ? T_IGN(u.seed, 553, 575) : T_IGN(u.seed, 560, 660);
+        const k = clamp((T - t0) / (u.near ? 150 : 120));
         const left = 1 - smooth(0.35, 1, k);
         e.set(u.tilt, u.seed * 6, 0); q.setFromEuler(e);
         m4.compose(p.set(u.x, u.y, u.z), q, sc.set(1, u.h, 1));
@@ -224,20 +226,46 @@ export function makeProps(scene, { plainMat, shadowy }) {
         const top = new THREE.Vector3(0, u.h, 0).applyQuaternion(q).add(p);
         if (left > 0.02) { m4.compose(top, q, sc.set(left, left, left)); canopies.setMatrixAt(i, m4); } else canopies.setMatrixAt(i, hide);
         canopies.setColorAt(i, tmpC.set(u.col).lerp(new THREE.Color(0.2, 0.15, 0.1), smooth(t0 - 60, t0 + 5, T) * 0.6).lerp(new THREE.Color(0.04, 0.03, 0.03), smooth(0.05, 0.5, k)));
-        const burning = k > 0 && k < 1 ? Math.sin(Math.PI * k) : 0;
+        const burning = k > 0 && k < 1 ? Math.sin(Math.PI * Math.pow(k, 0.55)) : 0;
+        const dc = Math.hypot(u.x - cam.position.x, u.z - cam.position.z);
+        // before it catches: the canopy smokes (thin grey wisps off the top)
+        const smo = smooth(t0 - 40, t0, T) * (1 - smooth(0.2, 0.6, k));
+        // (not right next to you: up close a puff reads as a grey ball, not smoke)
+        if (smo > 0.02 && dc < 160 && dc > 16) for (let j = 0; j < 8; j++) {
+          const ph = (v * 0.9 + u.seed * 7 + j / 8) % 1;
+          smoke.puff(top.x + ph * 0.8, top.y + 0.1 + ph * 3.5, top.z, 0.22 + ph * 0.5, 0.14 * smo * Math.sin(Math.PI * ph), 0.32, 0.0, u.seed + j);
+        }
         if (burning > 0) {
-          const dc = Math.hypot(u.x - cam.position.x, u.z - cam.position.z);
           if (dc < 1500) {
             fire.add(top.x, top.y - 0.35, top.z, 1.8 * left + 0.4, 1.8 + 0.8 * burning, burning, u.seed);
+            if (dc < 60) fire.add(top.x + 0.4, top.y - 0.4, top.z - 0.3, 1.4 * left + 0.3, 1.4 + 0.6 * burning, burning * 0.8, u.seed + 0.27);
             fire.add(u.x + 0.6, u.y, u.z, 0.6, 0.7, burning * 0.6, u.seed + 0.5);   // what fell burns on the sand
-            if (i % 3 === 0) smoke.puff(top.x, top.y + 2 + ((v * 2 + u.seed * 5) % 4), top.z, 1.6, 0.2 * burning, 0.1, 0.5 * burning, u.seed);
+            if (i % 3 === 0 && dc > 28) for (let j = 0; j < 3; j++) {
+              const ph = (v * 0.5 + u.seed * 5 + j / 3) % 1;
+              smoke.puff(top.x + ph * 1.5, top.y + 1 + ph * 6, top.z, 0.7 + ph * 1.2, 0.2 * burning * Math.sin(Math.PI * ph), 0.1, 0.5 * burning * (1 - ph), u.seed + j);
+            }
           }
         }
       });
       canopies.instanceMatrix.needsUpdate = true; poles.instanceMatrix.needsUpdate = true;
       if (canopies.instanceColor) canopies.instanceColor.needsUpdate = true;
-      // towels and chairs: scorch to black (they burn low)
-      TOWELS.forEach((t, i) => towels.setColorAt(i, tmpC.set(t.col).lerp(new THREE.Color(0.04, 0.03, 0.03), smooth(T_IGN(t.seed, 560, 640), T_IGN(t.seed, 560, 640) + 30, T))));
+      // towels: they smoke first (the dark ones soonest), then burn low with small flames and are left black
+      TOWELS.forEach((t, i) => {
+        const a = towelAt[i];
+        const t0 = a.near ? T_IGN(t.seed, 540, 560) : T_IGN(t.seed, 555, 640);
+        const k = clamp((T - t0) / 120);
+        towels.setColorAt(i, tmpC.set(t.col).lerp(new THREE.Color(0.25, 0.17, 0.1), smooth(t0 - 35, t0, T) * 0.5).lerp(new THREE.Color(0.04, 0.03, 0.03), smooth(0, 0.6, k)));
+        if (!a.near) return;
+        const dc = Math.hypot(a.x - cam.position.x, a.z - cam.position.z);
+        if (dc > 120) return;
+        const smo = smooth(t0 - 38, t0, T) * (1 - smooth(0.5, 1, k)) * smooth(10, 14, dc);   // (none right next to you)
+        if (smo > 0.02) for (let j = 0; j < 3; j++) {
+          const ph = (v * 0.8 + t.seed * 5 + j / 3) % 1;
+          smoke.puff(a.x + (j - 1) * 0.35 + ph * 0.6, a.y + 0.1 + ph * 2.4, a.z, 0.12 + ph * 0.4, 0.45 * smo * Math.sin(Math.PI * ph), 0.3, 0.2 * k, t.seed + j);
+        }
+        const burning = k > 0 && k < 1 ? Math.sin(Math.PI * Math.pow(k, 0.5)) : 0;
+        if (burning > 0) for (let j = 0; j < 3; j++) fire.add(a.x + (j - 1) * 0.45, a.y, a.z + (j - 1) * 0.3, 0.7, 0.55 + 0.45 * burning, burning, t.seed + j * 0.31);
+      });
       if (towels.instanceColor) towels.instanceColor.needsUpdate = true;
     },
   };

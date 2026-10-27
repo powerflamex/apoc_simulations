@@ -10,8 +10,11 @@ export function makeFire(scene, max = 3000) {
   const aK = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);   // height, strength, seed
   geo.setAttribute('aC', aC); geo.setAttribute('aK', aK);
   const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uGain: { value: 1 } },
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    // uOcc: 0 = pure glow added onto the frame; up to 1 the flame also covers what's behind it (so it reads orange,
+    // not white, over bright sand in the daylight)
+    uniforms: { uTime: { value: 0 }, uGain: { value: 1 }, uOcc: { value: 0 } },
+    transparent: true, depthWrite: false, blending: THREE.CustomBlending,
+    blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
     vertexShader: /* glsl */ `
       attribute vec4 aC; attribute vec3 aK; varying vec2 vUv; varying vec3 vK;
       void main() {
@@ -23,7 +26,7 @@ export function makeFire(scene, max = 3000) {
         gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform float uGain; varying vec2 vUv; varying vec3 vK;
+      uniform float uTime; uniform float uGain; uniform float uOcc; varying vec2 vUv; varying vec3 vK;
       float h2(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
       float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
         return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
@@ -40,7 +43,7 @@ export function makeFire(scene, max = 3000) {
         float core = smoothstep(0.55, 1.0, dens) * (1.0 - y);
         vec3 col = mix(vec3(0.9, 0.12, 0.02), vec3(1.0, 0.5, 0.08), smoothstep(0.1, 0.5, dens));
         col = mix(col, vec3(1.0, 0.75, 0.3), core);
-        gl_FragColor = vec4(col * dens * vK.y * uGain * 1.1, 1.0);
+        gl_FragColor = vec4(col * dens * vK.y * uGain * 1.1, clamp(dens * vK.y * uOcc * 1.6, 0.0, 1.0));
       }`,
   });
   const mesh = new THREE.InstancedMesh(geo, mat, max);

@@ -9,7 +9,7 @@
 // Story time T throughout (the video speeds up later; people move in real seconds).
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
-import { arcXZ, toArc, landY, TOWERS, PALMS, UMBRELLAS, KIOSKS, LAMPS, CHAIRS, TOWELS, NETS, RC, D, LANES } from './layout.js';
+import { arcXZ, toArc, landY, TOWERS, PALMS, UMBRELLAS, KIOSKS, LAMPS, CHAIRS, TOWELS, NETS, RC, D, LANES, CAM0, CAM0_XZ, camFront } from './layout.js';
 import { CARS, carS } from './traffic.js';
 import { T_FLASH } from './timeline.js';
 
@@ -28,6 +28,7 @@ for (const u of UMBRELLAS) { const c = arcXZ(u.phi, u.d); OBS.push([c.x, c.z, 0.
 for (const k of KIOSKS) { const c = arcXZ(k.phi, k.d); OBS.push([c.x, c.z, 3.1]); for (let j = 0; j < 4; j++) { const cc = arcXZ(k.phi + (j < 2 ? -1 : 1) * 4.5 / (RC + 92), 92 + (j % 2) * 2.5 + 1.5); OBS.push([cc.x, cc.z, 0.6]); } }
 for (const l of LAMPS) { const c = arcXZ(l.phi, l.d); OBS.push([c.x, c.z, 0.4]); }
 for (const ch of CHAIRS) { const c = arcXZ(ch.phi, ch.d); OBS.push([c.x, c.z, 0.45]); }
+OBS.push([CAM0_XZ.x, CAM0_XZ.z, 1.5]);           // where you stand in the opening: nobody runs through the camera
 for (const n of NETS) { const c = arcXZ(n.phi, n.d); const a = { x: Math.cos(n.phi), z: Math.sin(n.phi) }; for (let k = -4.5; k <= 4.5; k += 0.75) OBS.push([c.x + a.x * k, c.z + a.z * k, 0.35]); }
 // the obstacle grid (10 m cells)
 const GRID = new Map();
@@ -166,6 +167,18 @@ function track(p, i) { const T = T0 + i * DT; where(p, T, tw); return tw; }
     const c = arcXZ(ch.phi, ch.d);
     add({ ...base(ch.phi, ch.d), x0: c.x, z0: c.z, yaw: ch.yaw + Math.PI / 2 - ch.phi + Math.PI, sitting: true, chair: true, sea: ch.d < 30 && R() < 0.4 });
   }
+  // the opening: a thick crowd all around you on the sand, most of them in front of you (between you and the sea),
+  // a few just off to the right; at the flash they shield their faces and run up the beach past you
+  for (let k = 0, n = 0; k < 4000 && n < 46; k++) {
+    const r = 2.6 + Math.pow(R(), 0.8) * 30;
+    const l = (R() * 1.25 - 0.45) * (0.5 * r + 1.2);
+    const c = camFront(r, l), a = toArc(c.x, c.z, {});
+    if (a.d < 6) continue;
+    const kind = R();
+    const g = add({ ...base(a.phi, a.d), kid: R() < 0.14, sitting: kind < 0.22, sand: kind < 0.22, lying: kind > 0.92, slow: kind > 0.92 ? 1.3 : 1, phone: R() < 0.2, sea: false,
+      yaw: R() < 0.55 ? -CAM0.yaw * Math.PI / 180 + (R() - 0.5) * 1.6 : R() * 6.283 });   // (most face you)
+    if (g) { n++; if (g.kid) g.s = 0.6 + R() * 0.12; }
+  }
   // right below you on the sand: a close cluster (so frame 0 is full of people)
   for (let k = 0, n = 0; k < 1500 && n < 34; k++) {
     const phi = 0.0022 + R() * 0.007, d = 58 + R() * 26;
@@ -283,7 +296,7 @@ export function personPose(p, T) {
   o.walk = p.ph + (tr < 0.7 ? p.ur * tr * tr / 1.4 : p.ur * (tr - 0.35)) / 1.15 * Math.PI;
   o.stride = 1.6 * clamp(w0.u / p.ur);
   // one arm stays up over the eyes (some), the other pumps
-  o.armL = p.seed < 0.5 ? 1.45 : 0; o.armR = 0;
+  o.armL = p.seed < 0.8 ? 1.45 : 0; o.armR = p.seed > 0.65 && p.seed < 0.8 ? 1.3 : 0;
   o.pitch = 0.12;
   if (p.swimmer) { o.y = -1.15; o.stride = 0.2; }
   // into the sea: wading (sinking with the sea floor), then a dive, and under

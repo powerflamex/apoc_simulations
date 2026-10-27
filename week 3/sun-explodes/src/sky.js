@@ -43,7 +43,7 @@ void main() {
   vec3 top = vec3(0.04, 0.16, 0.52);
   vec3 low = mix(vec3(0.5, 0.66, 0.86), vec3(1.0, 0.82, 0.6), pow(az, 10.0) * (1.0 - smoothstep(0.0, 0.25, hh)));
   vec3 c = mix(low, top, pow(smoothstep(0.0, 0.6, hh), 0.6));
-  c += vec3(1.0, 0.82, 0.58) * (pow(max(cs, 0.0), 90.0) * 0.55 + pow(max(cs, 0.0), 900.0) * 2.2);
+  c += vec3(1.0, 0.82, 0.58) * (pow(max(cs, 0.0), 90.0) * 0.3 + pow(max(cs, 0.0), 900.0) * 2.2);
   // after the flash: everything washes out toward white-blue (a far brighter, hotter light), the glare spreads
   vec3 bleach = mix(vec3(0.85, 0.9, 1.0), vec3(0.35, 0.55, 0.95), smoothstep(0.05, 0.6, hh)) * (1.0 + 0.6 * pow(max(cs, 0.0), 3.0));
   c = mix(c, bleach, uWhite);

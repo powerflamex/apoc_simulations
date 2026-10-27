@@ -60,7 +60,7 @@ export function makeGround(scene) {
           float inArc = step(${(PHI0 - 0.02).toFixed(3)}, phi) * step(phi, ${(PHI1 + 0.04).toFixed(3)});
           vec3 col;
           float n = fbm2(vWP.xz * 0.35);
-          vec3 sand = vec3(0.78, 0.68, 0.52) * (0.9 + 0.16 * n) * (0.95 + 0.08 * n21(vWP.xz * 3.1));
+          vec3 sand = vec3(0.8, 0.65, 0.45) * (0.9 + 0.16 * n) * (0.95 + 0.08 * n21(vWP.xz * 3.1));
           if (d < ${D.wall.toFixed(1)} || inArc < 0.5) {
             col = sand;
             // wet sand near the water, and the sea floor (wet mud near the water's edge, drying lighter and cracked)

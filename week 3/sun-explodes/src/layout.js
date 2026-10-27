@@ -77,6 +77,16 @@ export function groundY(x, z) {
 
 // ---- the camera's start ----
 export const CAM = { phi: 0.0017, d: 88.6, h: 4.0 };
+// the opening: you stand on the sand in the middle of the crowd at eye height, looking out to sea and the Sun
+// (yaw: degrees right of straight down the beach); the camera then rises and pulls back to CAM on the promenade
+export const CAM0 = { phi: 0.0017, d: 56, eye: 1.75, yaw: 50 };
+export const CAM0_XZ = arcXZ(CAM0.phi, CAM0.d);
+// a point r metres in front of the opening camera and l to its right (world x, z)
+export function camFront(r, l) {
+  const a = CAM0.yaw * Math.PI / 180;
+  const fx = Math.sin(a), fz = -Math.cos(a), rx = Math.cos(a), rz = Math.sin(a);
+  return { x: CAM0_XZ.x + fx * r + rx * l, z: CAM0_XZ.z + fz * r + rz * l };
+}
 
 // ---- the Sun's path over the 4 hours (from just after 7:40 a.m.): low over the far end of the beach, climbing and
 // moving left (north) ----
@@ -137,10 +147,29 @@ export const PALMS = [], KIOSKS = [], LAMPS = [], UMBRELLAS = [], TOWELS = [], N
     if (UMBRELLAS.some((u) => Math.abs((u.phi - phi) * (RC + d)) < 3.2 && Math.abs(u.d - d) < 3.2)) continue;
     UMBRELLAS.push({ phi, d, seed: R(), col: [0xe8483a, 0xf3c52f, 0x2f8fd8, 0x29a36a, 0xff7f2a, 0xf2f2f2, 0x1f4fa8, 0xd93c8c][Math.floor(R() * 8)], h: 2.2 + R() * 0.25, tilt: (R() - 0.5) * 0.3 });
   }
+  // clear the spot where you stand and the line the camera pulls back along (no pole in your face, no canopy to fly
+  // through), then set a few right in front of you, so you watch them smoke and catch fire up close
+  const camS = CAM0.phi * RC;
+  for (let i = UMBRELLAS.length - 1; i >= 0; i--) {
+    const u = UMBRELLAS[i], c = arcXZ(u.phi, u.d);
+    if (Math.hypot(c.x - CAM0_XZ.x, c.z - CAM0_XZ.z) < 5 || (Math.abs(u.phi * RC - camS) < 4 && u.d > 46)) UMBRELLAS.splice(i, 1);
+  }
+  const NEAR_COL = [0xe8483a, 0x2f8fd8, 0xf3c52f, 0xff7f2a, 0x29a36a];
+  [[8.5, 2.4], [12, -3.2], [17, 4.5], [22, -1.5], [27, 3.0]].forEach(([r, l], k) => {
+    const c = camFront(r, l), a = toArc(c.x, c.z, {});
+    for (let i = UMBRELLAS.length - 1; i >= 0; i--) { const o = arcXZ(UMBRELLAS[i].phi, UMBRELLAS[i].d); if (Math.hypot(o.x - c.x, o.z - c.z) < 3.4) UMBRELLAS.splice(i, 1); }
+    UMBRELLAS.push({ phi: a.phi, d: a.d, seed: 0.05 + 0.18 * k, col: NEAR_COL[k], h: 2.3, tilt: (k % 2 ? -1 : 1) * 0.1, near: true });
+  });
   for (const u of UMBRELLAS) {
+    if (u.near) continue;
     if (R() < 0.8) TOWELS.push({ phi: u.phi + (R() - 0.5) * 2.4 / (RC + u.d), d: u.d + (R() < 0.5 ? -1 : 1) * (1.3 + R()), yaw: R() * 3.14, col: [0xffffff, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4][Math.floor(R() * 6)], seed: R() });
     if (R() < 0.6) CHAIRS.push({ phi: u.phi + (R() - 0.5) * 2 / (RC + u.d), d: u.d + (R() - 0.5) * 2, yaw: Math.PI + (R() - 0.5) * 0.8, seed: R() });
   }
+  // towels laid out on the sand right in front of you
+  [[3.6, 0.6, 0.3, 0xe94f37], [5.2, -1.4, 1.2, 0x3b8ed0], [6.8, 1.9, 2.2, 0xf6c445], [9.5, -0.6, 0.6, 0xffffff], [11, 1.2, 1.9, 0xff9ec4], [14, -2.4, 0.9, 0x6dbf73]].forEach(([r, l, yaw, col], k) => {
+    const c = camFront(r, l), a = toArc(c.x, c.z, {});
+    TOWELS.push({ phi: a.phi, d: a.d, yaw, col, seed: 0.1 + 0.15 * k, near: true });
+  });
   NETS.push({ phi: 0.0125, d: 66, seed: 1 }, { phi: 0.031, d: 70, seed: 2 }, { phi: 0.052, d: 62, seed: 3 });
 }
 

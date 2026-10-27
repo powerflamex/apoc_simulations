@@ -74,7 +74,7 @@ export function shoreOut(h) {
 // ---- the clock: video time v -> story time T (s since the explosion) ----
 // real time until the light lands and people react, then faster and faster (time-lapse)
 const CLOCK = [
-  [-4, 494.3], [0, 498.3], [1.7, 500], [3, 501.3], [5.5, 503.9], [7.5, 507], [9.5, 516], [11.5, 545], [14, 600],
+  [-4, 494.3], [0, 498.3], [1.7, 500], [3, 501.5], [5, 506], [7, 524], [9, 556], [11.5, 595], [14, 635],
   [17, 680], [20, 770], [23, 870], [26, 1000], [29, 1170], [32, 1420], [35, 1800], [38, 2400], [41, 3200],
   [44, 4200], [47, 5250], [50, 6500], [53, 7900], [56, 9500], [59, 11300], [61.5, 13100], [63.1, T_BLAST], [64, T_BLAST + 300],
 ];
@@ -99,6 +99,9 @@ function pchip(keys) {
 }
 const logClock = pchip(CLOCK.map(([v, T]) => [v, Math.log(T - 480)]));
 export const storyT = (v) => 480 + Math.exp(logClock(v));
+// the people (and the braking cars) keep moving at close to real speed while the clock races: real time until the light
+// lands, then a gentle speed-up (1× -> 2× at 10 s -> 3× at 15 s), so the crowd runs past you instead of zipping off
+export const peopleT = (v) => (v <= 1.7 ? storyT(v) : 500 + (v - 1.7) + 0.1 * Math.max(0, v - 5) ** 2);
 // video time when the story reaches T (bisection)
 export function vOfT(T) {
   let a = -4, b = 64;
@@ -116,7 +119,7 @@ export const T_F1600 = reach((T) => toF(tEq(fluxLag(T))), 1600);
 // ---- the beats: a big gold number pops up, with a jolt and a boom ----
 export const BEATS = [
   { v: V_FLASH + 0.05, label: 'THE SUN IS NOW', text: '9× BRIGHTER', say: 'THE LIGHT ARRIVES' },
-  { T: reach(bright, 50), label: 'THE SUN IS NOW', text: '50× BRIGHTER', say: 'THE BEACH CATCHES FIRE' },
+  { T: reach(bright, 30), label: 'THE SUN IS NOW', text: '30× BRIGHTER', say: 'THE BEACH CATCHES FIRE' },
   { T: T_F1600, label: 'IN THE SUNLIGHT', text: '1,600°F', small: true, say: '' },
   { T: reach(bright, 1000), label: 'THE SUN IS NOW', text: '1,000× BRIGHTER', small: true, say: 'IT KEEPS GROWING' },
   { T: reach(seaDrop, 1), label: 'THE SEA HAS DROPPED', text: '1 METER', small: true, say: 'THE SEA BOILS AWAY' },
@@ -143,14 +146,15 @@ export function popupAt(v) {
 // ---- captions (video time): in the gaps between the popups, never on screen with one ----
 export const CAPTIONS = [
   [0.0, 1.6, 'Its light takes 8 min 20 s to reach you.'],
-  [4.6, 7.2, 'Your skin starts burning in seconds.'],
-  [7.4, 9.8, 'Everyone runs for shade.'],
-  [10.0, 12.6, 'The fireball grows 10,000 km every second.'],
+  [3.6, 6.0, 'Your skin starts burning in seconds.'],
+  [6.2, 8.8, 'Everyone runs for shade.'],
+  [10.9, 13.3, 'The fireball grows 10,000 km every second.'],
+  [13.5, 15.3, 'The sea starts to steam.'],
   [15.5, 18.2, 'In the sun the street hits 1,600°F.'],
   [18.4, 21.0, 'Every car on the avenue burns.'],
   [21.2, 23.8, 'Windows sag. Aluminum melts.'],
   [24.0, 26.4, 'Now the rock itself glows.'],
-  [26.6, 28.45, 'The sea starts to steam.'],
+  [26.6, 28.45, 'Now the whole bay steams.'],
   [30.4, 32.8, 'The blast is still almost 4 hours away.'],
   [34.0, 36.55, 'The beach melts into glass.'],
   [38.5, 41.0, 'The towers sag and fall.'],
@@ -187,11 +191,11 @@ export const fmtBright = (T) => {
 };
 export const COUNTERS = [
   {
-    from: -10, to: T_SWITCH + 2, label: (v) => (v < 8.6 ? 'SINCE THE SUN EXPLODED' : 'SINCE THE SUN EXPLODED · TIME-LAPSE'),
+    from: -10, to: T_SWITCH + 2, label: (v) => (v < 5 ? 'SINCE THE SUN EXPLODED' : 'SINCE THE SUN EXPLODED · TIME-LAPSE'),
     fmt: (T) => fmtClock(T),
     value: (v) => storyT(Math.min(v, V_BLAST)),
     unit: (v) => fmtBright(storyT(Math.min(v, V_BLAST))),
-    lapse: (v) => smooth(8.5, 9.5, v),
+    lapse: (v) => smooth(4.9, 5.9, v),
   },
 ];
 
@@ -200,6 +204,7 @@ export function state(v) {
   const s = { v };
   const T = storyT(v);
   s.T = T;
+  s.P = peopleT(v);                   // the clock the people and the cars move on
   s.bright = bright(T);
   s.ang = angR(T);
   s.flux = fluxLag(T);
@@ -211,12 +216,14 @@ export function state(v) {
   s.lit = smooth(V_FLASH - 0.03, V_FLASH + 0.03, v);
   // fire and heat, by story time (min after the explosion)
   const m = T / 60;
-  s.smolder = smooth(9.0, 10.5, m);   // dark things smoke
-  s.burn = smooth(9.8, 12.5, m);      // umbrellas, palms, awnings, towels burn
+  s.smolder = smooth(510, 548, T);    // towels and umbrellas smoke (8:30 - 9:08)
+  s.burn = smooth(550, 640, T);       // umbrellas, palms, awnings, towels burn (from ~30× brighter)
+  s.skin = smooth(500.5, 530, T);     // bare skin reddens
   s.cars = smooth(11.5, 14.5, m);     // cars burn
   s.win = smooth(13.5, 17, m);        // windows go
   s.glow = smooth(14, 26, m);         // sunlit surfaces glow
   s.steam = smooth(16, 24, m);        // the sea steams
+  s.surf = smooth(578, 640, T);       // first wisps off the surf (the opening)
   s.boil = smooth(22, 32, m);         // the sea boils
   s.glass = smooth(28, 50, m);        // the sand fuses into glass
   s.sag = smooth(55, 80, m);          // the towers sag

@@ -586,9 +586,10 @@ Cover: `week 3/gojo/out/gojo_v4_cover.png` (`node render.mjs --cover 57`: Gojo f
 
 ## Next Short. The Sun explodes — `week 3/sun-explodes/out/sun-explodes_v4_1080x1920_60fps_tiktok.mp4`
 
-64.6 s. Copacabana, Rio, at 7:40 a.m., the beach full of people. The Sun exploded 8:18 ago; its light lands at 1.7 s
-(9x brighter), everyone flinches and runs (into the sea or into the towers). Time-lapse: umbrellas and palms burn, the
-street hits 1,600°F, every car burns, the rock glows, the sea steams and boils away (1 m, 10 m, 100 m: the bay floor is
+64.6 s. Copacabana, Rio, at 7:40 a.m.: you stand on the sand in the middle of the crowd. The Sun exploded 8:18 ago; its
+light lands at 1.7 s (9x brighter), everyone shields their face and runs up the beach past you (or into the sea), shadows
+go black, skin reddens, the towels and umbrellas around you smoke and catch fire at 0:09 (30x), the surf starts to steam
+by 0:13 as you rise and pull back. Time-lapse: palms burn, the street hits 1,600°F, every car burns, the rock glows, the sea steams and boils away (1 m, 10 m, 100 m: the bay floor is
 bared out to the horizon), the towers sag and fall, the fireball swallows Mercury and Venus and fills half the sky; the
 blast hits Earth at 4:08:13; white, loop. (A pretend explosion: the Sun is too small to really go supernova.)
 
@@ -599,7 +600,7 @@ What if the Sun exploded? Its light takes 8 min 20 s to reach you ☀️ #whatif
 The Sun explodes. Its light takes 8 minutes 20 seconds to reach you. Then:
 
 9x brighter: your skin burns in seconds. Everyone runs.
-50x: umbrellas and palm trees catch fire.
+30x: the towels and umbrellas catch fire. The sea starts to steam.
 The street hits 1,600°F. Every car burns.
 1,000x: the rock itself glows. The sea starts to boil.
 The sea drops 1 meter, then 10, then 100, and the ocean drains to the horizon.
