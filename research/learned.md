@@ -149,6 +149,15 @@
   place stay best (women 75, electrons 74, gojo/trillion/gravity 71, earth-stops 70, oxygen/friction 68); frames where
   the subject is far away, small or abstract stay worst (tsunami 54, black-hole-fall 54, jupiter/jump 61, yellowstone 62,
   false vacuum 66). Rule: on frame 0 the danger must look big and close, with people near the camera.
+- **Oct 26 read (Studio data through Oct 25).** tsunami-nyc day 1: 8.0K views, 54.1% stayed, 60.9% viewed (13.1K live
+  Oct 26). grow-trillion: 28.5K live on its first day (Oct 26), the best first day since false-vacuum; its stay/viewed
+  numbers come in ~Oct 28. Heat death (long, posted Oct 26): 153 views so far. Big Crunch long: 709 views, 32% viewed.
+  Lifetime watched %: black-hole-fall 73.5% (its middle held; it lost people only at the start), gojo 59%, friction 59%.
+- **Shorts retention curves: the whole difference is in the first ~15 s.** Trillion-years (1.6M): 133% at 0 (replays)
+  -> 84% at 0:12 -> 77% at 0:18 -> flat ~72% to 0:45. Tsunami: 140% -> 66% at 0:12 -> 59% at 0:18 -> flat ~52-55% to
+  the end (even rising a little when the wave hits). Both middles hold; the gap at 0:18 is the gap at the end.
+  What happens in those 15 s: trillion jumps 1 min -> 1 hour -> 1 day -> 1 month -> 1 year with the sky visibly changing;
+  tsunami's wave stays far away and only grows 600 -> 700 ft. Rule: in the first 15 s, a visibly bigger step every ~3 s.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
