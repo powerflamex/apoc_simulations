@@ -788,17 +788,16 @@ Which ending would you rather live through? 👇
 
 ## Long video. IQ 1,000x — `longform/out/iq-1000_1920x1080.mp4`
 
-16:9, 5:38, a city plaza with a storm coming in (plan `longform/IQ-1000.md`). Rebuilt Oct 25 around what a genius would
+16:9, 5:34, narrated by the owner (his Oct 26 take), a city plaza with a storm coming in (plan `longform/IQ-1000.md`). Rebuilt Oct 25 around what a genius would
 DO (owner: "the whole appeal of IQ is solving problems"): a Rubik's cube in 3 s, checkmate against the park hustler,
 the kid saved, the Riemann hypothesis, a cure for cancer, fusion, a rocket to Mars, everything explained, then TEN
 YEARS LATER the city running on what you invented. Oct 25 (later): cutaways show each thing as it's said (neon math, the
 cancer ward and the cells, fusion, the rocket at Mars, your brain overheating), bills burst out for the prize, a pigeon
 close-up, a chess close-up and a real lightning bolt. The slow-time effects stay on the side (slow rain, silence, the
-lightning crawling, the bubble popping) and your brain heating up is the cost. Draft without the voice: **record
-`longform/iq-1000/SCRIPT.md`, then the voice goes in.** Thumbnail: `longform/out/iq-1000_thumb.png`.
+lightning crawling, the bubble popping) and your brain heating up is the cost. His voice is in (every cut checked, the finished voice transcribed). **Upload this file.** Thumbnail: `longform/out/iq-1000_thumb.png`.
 
-**YouTube title (67 chars)**
-What If Your IQ Was 1,000x Higher? You'd Fix Everything in a Minute
+**YouTube title (62 chars)**
+What If Your IQ Was 1,000x Higher? You'd Have 1 Second to Live
 
 **YouTube description**
 Your IQ starts doubling, and your brain speeds up with it. It starts on an ordinary afternoon on a city plaza, right after you take the IQ test on iqmaxx.ing and score 100.
@@ -809,7 +808,7 @@ The Riemann hypothesis, unsolved for 160 years: solved.
 A cure for cancer. Fusion: clean energy for everyone. A rocket to Mars.
 At 1,000x you understand everything... and one second feels like 17 minutes.
 
-Thinking that fast has side effects: the world slows down, the rain hangs in the air, the city goes silent, you watch lightning crawl down the sky. And your brain, burning 20,000 watts, starts to cook.
+Thinking that fast has side effects: the world slows down, the rain hangs in the air, the city goes silent, you watch lightning crawl down the sky. And your brain, burning 20,000 watts, starts to cook: in about one second of real time, it would be over. To you, that second feels like 17 minutes.
 
 Ten years later, the city runs on what you invented.
 
@@ -823,17 +822,17 @@ What would you solve with 1,000x your IQ? 👇
 0:22 Checkmate
 0:42 Saving the kid
 1:16 The Riemann hypothesis
-1:26 A million-dollar prize
+1:21 A million-dollar prize
 1:31 Every wingbeat
 1:52 A cure for cancer
 2:20 Frozen
 2:40 Lightning
 3:01 Fusion
 3:22 A rocket to Mars
-3:46 Your brain overheats
-4:12 Everything, explained
+3:40 Your brain overheats
+4:08 Everything, explained
 4:45 Letting go
-4:56 Ten years later
+4:55 Ten years later
 
 #whatif #iq #simulation #science #genius
 

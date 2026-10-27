@@ -295,7 +295,7 @@ function update(v, vv = v) {
   // close-ups in the plaza: the chess board (looking down over your side of it), one pigeon in flight
   if (!ff && v >= CHESS_CLOSE[0] && v < CHESS_CLOSE[1]) {
     const k = smooth(CHESS_CLOSE[0], CHESS_CLOSE[1], v);
-    x = lerp(0.84, 0.98, k); y = lerp(1.24, 1.12, k); z = lerp(0.84, 0.72, k); yaw = lerp(44, 50, k); pitch = lerp(-36, -42, k); roll = 0; fov = lerp(42, 36, k);
+    x = lerp(2.44, 2.58, k); y = lerp(1.24, 1.12, k); z = lerp(3.24, 3.12, k); yaw = lerp(44, 50, k); pitch = lerp(-36, -42, k); roll = 0; fov = lerp(42, 36, k);
   }
   if (!ff && v >= PIGEON_CLOSE[0] && v < PIGEON_CLOSE[1]) {
     const k = smooth(PIGEON_CLOSE[0], PIGEON_CLOSE[1], v), pp = pigeonPos(w);
@@ -343,7 +343,7 @@ function update(v, vv = v) {
   birds.frame(w);
   bubbles.frame(w, s, sunDir);
   cube.frame(vv);
-  money.frame(w, s.future, v, MONEY_V);
+  money.frame(w, s.future > 0.2 ? 1 : 0, v, MONEY_V);
   heroPigeon.frame(!ff && v >= PIGEON_CLOSE[0] - 0.5 && v < PIGEON_CLOSE[1] + 0.5, w, pigeonPos(w), 0.45);
   chess.frame(v);
   holo.frame(v, s, camera);

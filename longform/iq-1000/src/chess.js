@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { smooth } from './util.js';
 import { SEC } from './timeline.js';
 
-export const CHESS = { x: 1.25, z: 0.45, top: 0.76 };
+export const CHESS = { x: 2.85, z: 2.85, top: 0.76 };   // (behind you and to the right: out of the shots up the street)
 const SQ = 0.055;   // a square
 
 // the position a few moves into a game: [file 0-7, rank 0-7, piece, white?]

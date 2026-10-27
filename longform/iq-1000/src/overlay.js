@@ -5,8 +5,8 @@ import { COUNTERS, RIGHT, popupAt, SEC } from './timeline.js';
 import { clamp, smooth } from './util.js';
 
 const CLOSING = [
-  [SEC.end + 1, SEC.end + 10.5, 'Take the test: iqmaxx.ing'],
-  [SEC.end + 11.5, SEC.out - 1.5, 'What would you do with 1,000× your IQ?'],
+  [SEC.end + 1, SEC.end + 7.8, 'Take the test: iqmaxx.ing'],
+  [SEC.end + 8.3, SEC.out - 1.5, 'What would you do with 1,000× your IQ?'],
 ];
 
 export function makeOverlay() {

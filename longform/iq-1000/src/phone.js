@@ -98,7 +98,7 @@ export function makePhone(camera) {
     frame(v) {
       // (a quick look at the start, then again near the end)
       const a = smooth(6.1, 6.8, v) * (1 - smooth(9.7, 10.8, v));
-      const b = smooth(SEC.end + 0.1, SEC.end + 1.2, v) * (1 - smooth(SEC.end + 10.2, SEC.end + 11.6, v));
+      const b = smooth(SEC.end + 0.1, SEC.end + 1.2, v) * (1 - smooth(SEC.end + 7.6, SEC.end + 8.8, v));
       const k = Math.max(a, b);
       group.visible = k > 0.001;
       if (!group.visible) return;

@@ -80,7 +80,7 @@ STAY.push({ x: COUPLE_B.x, z: COUPLE_B.z, yaw: Math.atan2(COUPLE_A.x - COUPLE_B.
 STAY.push({ x: -1.8, z: -3.75, yaw: 0, kind: 'read', seed: 8 });
 STAY.push({ x: 15.5, z: -3.6, yaw: -2.6, kind: 'coffee', seed: 9 });
 // the chess hustler at the park table beside you (chess.js), on his stool across the board
-STAY.push({ x: 1.25 + 0.56 * 0.736, z: 0.45 - 0.56 * 0.677, yaw: -0.83, kind: 'chess', seed: 11 });
+STAY.push({ x: 2.85 + 0.56 * 0.736, z: 2.85 - 0.56 * 0.677, yaw: -0.83, kind: 'chess', seed: 11 });
 
 // the special people
 const KID = SLOTS.length + STAY.length, MOM = KID + 1, GUIT = KID + 2, BUBB = KID + 3, SELF = KID + 4;

@@ -46,13 +46,13 @@ export const SEC = {
   ff: 0,            // flash-forward: the frozen plaza, lightning lit over the towers, the bubble popping (title)
   plaza: 6,         // the plaza; your phone: the IQ test you just took on iqmaxx.ing, 100 (gone by 10.5)
   climb: TA,        // "Now it starts doubling"
-  cube0: 11.4, cube1: 15.2,   // a Rubik's cube in your hands, solved in three seconds
+  cube0: 12.2, cube1: 15.2,   // a Rubik's cube in your hands, solved in three seconds
   einstein: at(1.6),    // 15.2
   smartest: at(1.95),   // 17.3
   x2: at(2),        // 17.5
   slow: 20.5,       // the world visibly in slow motion
   chess0: 22, mate: 30.5,     // the park's chess hustler: checkmate
-  rain: 27,         // the first drops
+  rain: 30.0,         // the first drops
   x4: at(4),        // 32: the rain falls slowly
   see: 42.5,        // the kid dribbling: you see the paths ahead
   walk: 45,         // you start walking to the curb
@@ -89,7 +89,7 @@ export const SEC = {
   back: 291,        // back to normal speed
   future0: 296, launch: 305, future1: 318,   // TEN YEARS LATER: the plaza rebuilt by what you invented
   end: 318,         // closing lines (your phone, the question)
-  out: 338,
+  out: 334,
 };
 export const VIDEO_DURATION = SEC.out;
 // the cutaways: what you're thinking about, shown (mind.js: neon thoughts on black; hospital.js: the ward)
@@ -151,7 +151,7 @@ export const BEATS = [
   { v: SEC.mate, say: 'CHECKMATE' },
   { v: SEC.see, say: 'YOU SEE IT COMING' },
   { v: SEC.catch + 0.4, say: 'A LIFE SAVED' },
-  { v: 83.6, say: 'THE HARDEST PROBLEM IN MATH' },
+  { v: 79.6, say: 'THE HARDEST PROBLEM IN MATH' },
   { v: 86.6, say: 'A MILLION-DOLLAR PRIZE' },
   { v: 92.4, say: 'EVERY WINGBEAT' },
   { v: SEC.stuck + 1, say: "YOUR BODY CAN'T KEEP UP" },
