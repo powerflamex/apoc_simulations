@@ -158,6 +158,12 @@
   the end (even rising a little when the wave hits). Both middles hold; the gap at 0:18 is the gap at the end.
   What happens in those 15 s: trillion jumps 1 min -> 1 hour -> 1 day -> 1 month -> 1 year with the sky visibly changing;
   tsunami's wave stays far away and only grows 600 -> 700 ft. Rule: in the first 15 s, a visibly bigger step every ~3 s.
+- **Oct 27 read (Studio data through Oct 26).** grow-trillion day 1: 31.7K views, 65.7% stayed, 74.6% watched = score 49
+  (best since false-vacuum; 42.8K live on Oct 27). It followed every rule: you big and close on frame 0, busy street,
+  a plain giant number, a visibly bigger step every ~3 s. tsunami after 2 days: 54.7% stayed, 61.4% watched (18.6K live).
+  Heat death long, day 1: 297 views, 36.5% watched (1:21 of 3:44), 4.0% clicked (too early to judge; curve not out yet).
+  quake-grows posted Oct 27. Backlog checked Oct 27: sun-explodes (first 15 s rebuilt Oct 26: people close, light at
+  0:03, fire by 0:09, the sea steaming by 0:15), punch-10x, rain-1000-years all pass the first-15-s rule.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
