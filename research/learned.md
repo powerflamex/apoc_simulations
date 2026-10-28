@@ -164,6 +164,10 @@
   Heat death long, day 1: 297 views, 36.5% watched (1:21 of 3:44), 4.0% clicked (too early to judge; curve not out yet).
   quake-grows posted Oct 27. Backlog checked Oct 27: sun-explodes (first 15 s rebuilt Oct 26: people close, light at
   0:03, fire by 0:09, the sea steaming by 0:15), punch-10x, rain-1000-years all pass the first-15-s rule.
+- grow-trillion (65.7% stayed, best in a week) opens with the owner's Squidward scream in the first second; rain has his
+  "Noooo" at 0:03. A loud human reaction right at the start may help people stop scrolling: worth using again.
+- Topic check Oct 27, "marble-sized black hole hits Earth": only old explainers/sims (Kurzgesagt "black hole in your
+  pocket" 16M, 11 y; Pavel Ševeček "a black hole flew by Earth" 2.2M, 2 y). No recent "you are there" Short.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
