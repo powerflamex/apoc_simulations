@@ -1,0 +1,38 @@
+# Long video: "What if a black hole passed Earth?"
+
+16:9 (1920x1080, 30 fps), about 5:40, **no voiceover** (owner, Oct 26). A new project (`longform/black-hole-pass/`):
+new scenes (a night avenue with giant screens, a jammed highway to the airport, a subway platform, space), only the
+shared blocks reused (people, cars, the render/compositor code, the lensing math and facade shader of the Short).
+
+## Why this topic (Oct 26 YouTube check, `research/longform_topics_2026-10-26.md`)
+The owner picked "stop time" first, but it is taken (IFOLOGY 593K in 10 days + ~8 copies), like every superpower.
+A black hole passing Earth is the channel's biggest Short (1.9M) and no long version has more than 443 views.
+
+## What carries it without a voice (owner: "make it more engaging")
+- **A goal: survive.** You keep trying (get out of the city, the last flight, the subway) and keep almost making it.
+- **Your phone tells the story:** text messages from Mom, Dad and your friend Jay, and emergency alerts, as
+  notification cards top right.
+- **The giant screens explain the science:** headlines and LIVE pictures from space on the avenue's screens.
+- **A counter racing all the way:** BLACK HOLE · miles away, with the time left under it. Then YOUR WEIGHT.
+- **A bigger moment every ~45 s,** each one closer to you: Neptune, Saturn, Jupiter, the flights, the Moon, the
+  flood, gravity flipping, the fall in.
+
+## Order, as the viewer sees it
+| Video | Where | What happens |
+|---|---|---|
+| 0:00 | avenue | Flash-forward: cars and people falling up into the sky, the hole with its glowing disk overhead. Title + counter. |
+| 0:05 | avenue, night | "56 DAYS LEFT". A busy night: crowds, cabs, giant screens. Every phone buzzes: EMERGENCY ALERT. |
+| 0:12 | | You look up: a spot where the stars bend. Mom: "are you seeing this??" The screens switch to the news. |
+| 0:24 | space (LIVE) | Neptune is stretched and torn apart. |
+| 0:37 | avenue | Panic; NASA: it will pass between Earth and the Moon. |
+| 0:50 | avenue | "19 DAYS LEFT". Suitcases, gridlock, EVACUATE COASTAL CITIES. Dad: "got us 3 seats. flight 9pm". |
+| 1:02 | space (LIVE) | Saturn's rings are dragged into a spiral and swallowed. |
+| 1:18 | avenue | Now you can see it: a dark spot with a faint ring. Mom: "leave NOW". |
+| 1:35 | highway, dusk | "8 DAYS LEFT". The road to the airport is jammed for miles. |
+| 1:46 | space (LIVE) | Jupiter is torn into a glowing streak; the disk flares. |
+| 2:00 | highway | Jupiter's streak in the sky. "UA 802 CANCELLED". People leave their cars and walk. |
+| 2:30 | avenue | "1 HOUR LEFT". The hole overhead, its disk lighting the street orange; the Moon starts to stretch. ALERT: TAKE SHELTER UNDERGROUND. You run for the subway. |
+| 3:20 | subway | "30 MINUTES LEFT". Crowded platform, rumbling, flickering lights. The ocean is pulled toward the hole: water bursts down the stairs and floods the tracks. Lights out. You climb out. |
+| 4:12 | avenue | "7 MINUTES LEFT". Flooded street, the Moon a glowing ring. YOUR WEIGHT drops. Water, cars, people fall up. "i love you" - Not Delivered. The horizon peels up. |
+| 5:00 | space | You fall up into it: Earth's debris stream behind you, the ring of light, white. |
+| 5:30 | white | "Would you have made it?" |
