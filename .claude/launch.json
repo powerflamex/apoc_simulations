@@ -85,6 +85,39 @@
       "env": {
         "PORT": "5186"
       }
+    },
+    {
+      "name": "sun-explodes",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/sun-explodes/server.mjs"
+      ],
+      "port": 5195,
+      "env": {
+        "PORT": "5195"
+      }
+    },
+    {
+      "name": "iq-1000",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "longform/iq-1000/server.mjs"
+      ],
+      "port": 5195,
+      "env": {
+        "PORT": "5195"
+      }
+    },
+    {
+      "name": "punch-10x",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 4/punch-10x/server.mjs"
+      ],
+      "port": 5197,
+      "env": {
+        "PORT": "5197"
+      }
     }
   ]
 }

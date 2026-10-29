@@ -13,7 +13,7 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 - **Your phone tells the story:** text messages from Mom, Dad and your friend Jay, and emergency alerts, as
   notification cards top right.
 - **The giant screens explain the science:** headlines and LIVE pictures from space on the avenue's screens.
-- **A counter racing all the way:** BLACK HOLE · miles away, with the time left under it. Then YOUR WEIGHT.
+- **A counter racing all the way:** BLACK HOLE · miles away (a chapter stamp says the time left). Then YOUR WEIGHT.
 - **A bigger moment every ~45 s,** each one closer to you: Neptune, Saturn, Jupiter, the flights, the Moon, the
   flood, gravity flipping, the fall in.
 
@@ -30,10 +30,10 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 | 1:18 | avenue | Now you can see it: a dark spot with a faint ring. Mom: "leave NOW". |
 | 1:35 | highway, dusk | "8 DAYS LEFT". The road to the airport is jammed for miles. |
 | 1:46 | space (LIVE) | Jupiter is torn into a glowing streak; the disk flares. |
-| 2:00 | highway | Jupiter's streak in the sky. "UA 802 CANCELLED". People leave their cars and walk. |
-| 2:30 | avenue | "1 HOUR LEFT". The hole overhead, its disk lighting the street orange; the Moon starts to stretch. ALERT: TAKE SHELTER UNDERGROUND. You run for the subway. |
+| 2:00 | highway | Jupiter's streak in the sky. "Flight 802: CANCELLED". People leave their cars and walk. |
+| 2:30 | avenue | "1 HOUR LEFT". The hole overhead, its disk lighting the street orange; the Moon is pulled into a shard. ALERT: TAKE SHELTER UNDERGROUND. You run for the subway. |
 | 3:20 | subway | "30 MINUTES LEFT". Crowded platform, rumbling, flickering lights. The ocean is pulled toward the hole: water bursts down the stairs and floods the tracks. Lights out. You climb out. |
-| 4:12 | avenue | "7 MINUTES LEFT". Flooded street, the Moon a glowing ring. YOUR WEIGHT drops. Water, cars, people fall up. "i love you" - Not Delivered. The horizon peels up. |
+| 4:12 | avenue | "7 MINUTES LEFT". Flooded street, the Moon gone into the disk. YOUR WEIGHT drops. Water, cars, people fall up. "i love you" - Not Delivered. The horizon peels up. |
 | 5:00 | space | You fall up into it: Earth's debris stream behind you, the ring of light, white. |
 | 5:30 | white | "Would you have made it?" |
 
