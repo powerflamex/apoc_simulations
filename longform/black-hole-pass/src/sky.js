@@ -132,8 +132,8 @@ vec3 space(vec3 d) {
   c += starLayer(d, 115.0, 0.32, 41.0, 3.2);
   c += starLayer(d, 180.0, 0.26, 87.0, 1.6);
   return c * uStarVis
-    + body(d, uMoonDir, uMoonTail, uMoonStretch, uMoonFade, 0.016, vec3(1.0, 0.97, 0.9), vec3(1.0, 0.75, 0.5), 0.0)
-    + body(d, uJupDir, uJupTail, uJupStretch, uJupFade, 0.0035, vec3(0.95, 0.8, 0.62), vec3(1.0, 0.6, 0.3), 1.0);
+    + body(d, uMoonDir, uMoonTail, uMoonStretch, uMoonFade, 0.024, vec3(1.0, 0.97, 0.9), vec3(1.0, 0.75, 0.5), 0.0)
+    + body(d, uJupDir, uJupTail, uJupStretch, uJupFade, 0.005, vec3(0.95, 0.8, 0.62), vec3(1.0, 0.6, 0.3), 1.0);
 }
 
 // Accretion disk emission at disk-plane point p (BH frame, r_s = 1).

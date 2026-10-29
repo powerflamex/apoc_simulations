@@ -43,7 +43,7 @@ const K = (...p) => p;
 // Each visit is a list of keys [v, x, z, yaw, pitch, fov]; y is your eye height unless a key sets it (the stairs).
 const VISITS = [
   // the flash-forward: things falling up all around, the hole overhead (shown at V_FF + v; keys in story time)
-  { from: 286, to: 291, keys: [[286, 13.0, -14.8, -12, 20, 66], [291, 13.0, -14.8, -4, 26, 64]] },
+  { from: 295.6, to: 300.6, keys: [[295.6, 13.0, -14.8, -4, 11, 72], [300.6, 13.0, -14.8, -2, 18, 72]] },
   // a normal night; the alert; up at the sky; back down to the big screen, zooming in on its LIVE picture
   { from: 5, to: 24, keys: [
     [5, 13.4, 7.0, -30, 6, 58], [8.6, 13.4, 3.4, -18, 2, 58], [10.5, 13.4, 3.0, 8, -8, 56], [12.0, 13.4, 3.0, 0, 6, 56],
@@ -60,17 +60,17 @@ const VISITS = [
     [91, -13.2, -8.4, 120, 2, 60], [95, -13.0, -4.0, 168, 0, 62]] },
   // the last hour: orange light from the disk; up at it and the Moon stretching; the alert; run for the subway; down
   { from: 150, to: 200, keys: [
-    [150, 13.0, 4.0, -14, 10, 60], [154, 13.0, 3.0, -8, 18, 58], [158, 13.0, 2.6, -14, 30, 52], [163, 13.0, 2.4, -22, 33, 48],
-    [168, 13.0, 2.4, -24, 33, 46], [173, 13.0, 2.4, -10, 22, 54], [177, 13.0, 2.4, -2, 4, 58], [179, 13.0, 2.4, 6, -6, 58],
+    [150, 13.0, 13.0, -14, 10, 60], [154, 13.0, 11.0, -6, 22, 56], [158, 13.0, 10.4, -8, 30, 46], [162, 13.0, 10.0, -6, 37, 40],
+    [169, 13.0, 10.0, -5, 38, 38], [173, 13.0, 8.0, -10, 22, 54], [177, 13.0, 2.4, -2, 4, 58], [179, 13.0, 2.4, 6, -6, 58],
     [182.5, 13.0, 1.6, -10, 0, 60], [186, 13.6, -6.0, -6, -2, 62], [189.5, 14.4, -14.5, -2, -6, 62], [192.5, 14.65, -19.6, 0, -16, 62],
-    [196.5, 14.65, -24.0, 0, -12, 62, -2.0], [200, 14.65, -27.0, 0, -6, 62, -4.0]] },
+    [196.5, 14.65, -24.0, 0, -22, 62, -2.0], [200, 14.65, -27.0, 0, -14, 62, -4.0]] },
   // the end: up the stairs (facing south), turn round: the flooded avenue under the hole; gravity flips; the horizon
   // peels up; you're lifted
   { from: 252, to: 300, keys: [
     [252, 14.65, -27.2, 180, 10, 62, -3.6], [254.2, 14.65, -22.0, 180, 4, 62, -0.5], [255.4, 14.65, -19.6, 180, 0, 62],
-    [258, 14.2, -17.5, 30, 14, 60], [261, 13.6, -16.0, -6, 26, 58], [265, 13.4, -15.4, -12, 8, 58], [270, 13.2, -15.0, 10, 10, 60],
-    [274, 13.0, -14.0, -8, 24, 64], [279, 13.0, -14.6, -4, 30, 62], [284, 13.0, -14.8, -30, 12, 62], [289, 13.0, -14.8, 4, 16, 64],
-    [293, 13.0, -14.8, 0, 30, 66], [300, 13.0, -14.8, -2, 72, 72]] },
+    [258, 14.2, -17.5, 30, 10, 60], [261, 13.6, -16.0, -6, 16, 56], [265, 13.4, -15.4, -14, 4, 58], [270, 13.2, -15.0, 8, 8, 60],
+    [274, 13.0, -14.0, -8, 14, 64], [279, 13.0, -14.6, -4, 16, 62], [284, 13.0, -14.8, -26, 8, 62], [289, 13.0, -14.8, 2, 12, 64],
+    [293, 13.0, -14.8, 0, 18, 66], [300, 13.0, -14.8, -2, 50, 72]] },
 ];
 const EYE = 1.66;
 
@@ -201,7 +201,7 @@ export function makeStreet(renderer) {
       post.position.set(x, 0.85, z1); scene.add(post);
     }
     // the stairwell is lit from below
-    const pl = new THREE.PointLight(0xdfe8ff, 6, 9, 1.6);
+    const pl = new THREE.PointLight(0xdfe8ff, 26, 12, 1.4);
     pl.position.set((x0 + x1) / 2, -depth + 0.6, z0 - 2.5); scene.add(pl);
   }
 
@@ -550,9 +550,10 @@ export function makeStreet(renderer) {
       camera.updateMatrixWorld();
 
       // ---- sky ----
-      const bhEl = lerp(31, 44, smooth(5, 200, t)) + 14 * smooth(252, 300, t);
+      // high over the avenue at first; at the end it comes down the sky and looms over the end of the avenue
+      const bhEl = lerp(31, 37, smooth(5, 200, t)) - 6 * smooth(240, 262, t);
       dirFromAzEl(-2 * DEG, bhEl * DEG, bhDir);
-      dirFromAzEl(-38 * DEG, 24 * DEG, moon0);
+      dirFromAzEl(-10 * DEG, 45 * DEG, moon0);   // (above the avenue, where the buildings don't hide it)
       const prog = Math.pow(smooth(158, 256, t), 1.6);
       slerpDir(moon0, bhDir, prog * 0.92, moonDir);
       tail.copy(bhDir).sub(moon0).normalize();
@@ -564,7 +565,7 @@ export function makeStreet(renderer) {
       u.uSunDir.value.set(0.2, -0.4, 1).normalize();
       u.uBhDir.value.copy(bhDir);
       u.uBhD.value = s.bhD;
-      u.uDisk.value = s.disk;
+      u.uDisk.value = Math.min(s.disk, 1.05);
       u.uMoonDir.value.copy(moonDir);
       u.uMoonTail.value.copy(tail);
       u.uMoonStretch.value = s.moonStretch;
@@ -577,20 +578,20 @@ export function makeStreet(renderer) {
       G.uCurlOrigin.value.set(x, z);
       G.uCurlDir.value.set(0, -1);
       // the grid: lights go out building by building in the last hour and at the end
-      G.uLightsOut.value = 0.12 * smooth(150, 200, t) + 0.5 * smooth(252, 256, t) + 0.4 * smooth(270, 292, t);
+      G.uLightsOut.value = 0.12 * smooth(150, 200, t) + 0.3 * smooth(267, 271, t) + 0.5 * smooth(272, 292, t);
 
       // ---- light ----
       const disk = s.disk;
       diskLight.position.copy(bhDir).multiplyScalar(200).add(camera.position);
       diskLight.target.position.copy(camera.position);
-      diskLight.intensity = 2.2 * smooth(0.3, 1.8, disk);
-      hemi.intensity = 0.5 + 0.35 * smooth(0.3, 1.8, disk);
+      diskLight.intensity = 2.2 * smooth(0.3, 1.8, disk) + 2.5 * smooth(252, 280, t);
+      hemi.intensity = 0.5 + 0.35 * smooth(0.3, 1.8, disk) + 0.9 * smooth(252, 280, t);
       hemi.color.setRGB(0.2, 0.25, 0.35).lerp(tmpC.setRGB(0.55, 0.36, 0.22), smooth(0.4, 1.8, disk));
       scene.fog.color.setRGB(0.04, 0.05, 0.08).lerp(tmpC.setRGB(0.16, 0.08, 0.04), smooth(0.4, 1.8, disk));
       scene.fog.density = 0.0011 * (1 - 0.6 * s.curl);
       // the lamps nearest you light the street; they die with the grid
       const near = LAMPS.map((l, i) => [i, Math.hypot(l.x - camera.position.x, l.z - camera.position.z)]).sort((a, b) => a[1] - b[1]).slice(0, lampLights.length);
-      const lampOn = 1 - smooth(252, 254, t);
+      const lampOn = t < 268 ? 1 : t < 271 ? (Math.sin(t * 53) > 0 ? 1 : 0) : 0;
       near.forEach(([i], j) => { const l = LAMPS[i]; lampLights[j].position.set(l.x - l.side * 2.0, 7.4, l.z); lampLights[j].intensity = 42 * lampOn; });
       heads.visible = lampOn > 0.01;
       for (const tl of tls) { const red = t >= 38 || Math.floor(t / 12) % 2 === 0; tl.r.visible = red && lampOn > 0; tl.g.visible = !red && lampOn > 0; }
@@ -602,7 +603,7 @@ export function makeStreet(renderer) {
       updatePeople(v, s);
       updateFlood(s);
       const sc = screens.frame(v, s);
-      sc.lights.forEach((l, i) => { const p = screenLights[i]; if (!p) return; p.position.copy(l.pos); p.color.copy(l.color); p.intensity = l.power * 160 * (1 - smooth(252, 254, t)); });
+      sc.lights.forEach((l, i) => { const p = screenLights[i]; if (!p) return; p.position.copy(l.pos); p.color.copy(l.color); p.intensity = l.power * 160 * lampOn; });
       return { bhDir };
     },
   };

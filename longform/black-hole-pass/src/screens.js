@@ -36,7 +36,7 @@ const ADS = [
 
 // what each screen shows at video time v (the flash-forward screens are dark)
 function content(id, v, t) {
-  if (t >= 252) return { kind: 'dead' };
+  if (t >= 268) return { kind: 'dead' };
   if (id === 'tick') {
     if (t < 9.2) return { kind: 'tick', text: 'TONIGHT: CLEAR SKIES · 64°F · SUBWAY SERVICE NORMAL · ', bg: '#101820', fg: '#e8eef5' };
     if (t < 50) return { kind: 'tick', text: 'BREAKING · BLACK HOLE ENTERS THE SOLAR SYSTEM · NEPTUNE DESTROYED · NASA: ITS PATH PASSES BETWEEN EARTH AND THE MOON · ', bg: '#a8000c', fg: '#ffffff' };
@@ -176,7 +176,7 @@ export function makeScreens(scene, patch) {
   // the main screen's building (low, so the sky above it stays open) and the LIVE picture
   {
     const bm = patch(new THREE.MeshStandardMaterial({ color: 0x2a2826, roughness: 0.85 }));
-    const b = new THREE.Mesh(new THREE.BoxGeometry(70, 40, 30).translate(0, 20, 0), bm);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(70, 33, 30).translate(0, 16.5, 0), bm);
     b.position.set(0, 0, -86.5 - 15.3); scene.add(b);
   }
   const main = list[0];
@@ -202,9 +202,9 @@ export function makeScreens(scene, patch) {
         if (key !== sc.key) { sc.key = key; draw(sc.g, sc.d.cw, sc.d.ch, c, v); sc.tex.needsUpdate = true; }
         sc.c = c;
         // a glitch as the power dies
-        sc.mesh.visible = !(t >= 250 && t < 252 && Math.sin(t * 61 + sc.d.x) > 0.2);
+        sc.mesh.visible = !(t >= 265 && t < 268 && Math.sin(t * 61 + sc.d.x) > 0.2);
       }
-      feed.visible = !!feedAt(v) && t < 252 && !!feedMat.map;
+      feed.visible = !!feedAt(v) && !!feedMat.map;
       lights.forEach((l) => {
         const sc = list[l.i], tt = tint(sc.c);
         l.pos.copy(sc.mesh.position);

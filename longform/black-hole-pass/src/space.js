@@ -422,7 +422,7 @@ export function makeSpace(renderer, { w = 1920, h = 1080 } = {}) {
     // look back at Earth (304-309), then ahead at the hole
     const back = smooth(301.5, 303.5, v) * (1 - smooth(309, 311.5, v));
     const ahead = tmp.set(0, 0, 0);
-    const behind = tmp2.set(5.0, -2.0, dist + 12);
+    const behind = tmp2.set(6.5, -2.2, dist + 4);
     const target = ahead.lerp(behind, back);
     camera.up.set(0, 1, 0);
     camera.lookAt(target);
@@ -431,11 +431,11 @@ export function makeSpace(renderer, { w = 1920, h = 1080 } = {}) {
     // Earth: behind you, being pulled into a stream that runs past you into the hole
     planet.visible = true;
     pUniforms.uKind.value = 3;
-    planet.position.set(7.5, -3.0, dist + 15 - 5 * u);
-    planet.scale.setScalar(2.0);
+    planet.position.set(9.0, -3.0, dist + 6 - 2 * u);
+    planet.scale.setScalar(2.6);
     pUniforms.uAxis.value.copy(tmp.copy(hole).sub(planet.position).normalize());
-    pUniforms.uStretch.value = lerp(0.55, 1.0, u);
-    pUniforms.uDissolve.value = lerp(0.25, 0.75, u);
+    pUniforms.uStretch.value = lerp(0.8, 1.0, u);
+    pUniforms.uDissolve.value = lerp(0.35, 0.8, u);
     pUniforms.uHeat.value = 0.6;
     // its debris stream: from Earth to the hole, around you
     build('earth-fall');

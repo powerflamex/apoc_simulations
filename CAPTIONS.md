@@ -885,6 +885,44 @@ Big Rip, Big Crunch or heat death: which ending scares you most? 👇
 
 #whatif #heatdeath #endoftheuniverse #space #science
 
+## Long video 6. A black hole passes Earth — `longform/out/black-hole-pass_1920x1080.mp4`
+
+16:9, 5:40, **no voice** (owner, Oct 26): the phone (texts from Mom, Dad and Jay, emergency alerts), the avenue's giant
+screens (headlines, LIVE pictures from space) and short captions tell it. New scenes (a night avenue, the highway to
+the airport, a subway platform, space with the lensing done per pixel; plan `longform/BLACK-HOLE-PASS.md`). Topic
+picked from the Oct 26 YouTube check (`research/longform_topics_2026-10-26.md`): the channel's biggest Short, and no
+long version over 443 views. **Upload this file.**
+Thumbnail: `longform/out/black-hole-pass_thumb.png` (the last hour, 2:48: the Moon torn into a glowing shard pointing at the
+black hole over the avenue; small caps "THE BLACK HOLE ARRIVES IN" and a giant gold "1 HOUR";
+`node render.mjs --cover 168` in `longform/black-hole-pass/`).
+
+**YouTube title (62 chars)**
+What If a Black Hole Passed Earth? You Have 56 Days to Survive
+
+**YouTube description**
+A black hole enters the solar system at 2 million mph. It gives off no light: all you can see is the stars bending around it. You have 56 days.
+
+It tears Neptune apart, swallows Saturn's rings and stretches Jupiter into a glowing streak.
+The roads to the airport jam for miles, and then every flight is grounded.
+In the last hour it tears at the Moon, and the ocean is pulled toward it and floods the subway.
+With 7 minutes left your weight drops to zero: water, cars and people fall up, and the horizon peels up into the sky.
+Then you fall in. Near the edge, time slows down so much that one of your seconds is years on Earth.
+
+Would you have made it? Where would you have gone? 👇
+
+0:00 56 days left
+0:24 Neptune is torn apart
+0:50 19 days left: the evacuation
+1:02 Saturn's rings
+1:35 8 days left: the last flight
+1:46 Jupiter
+2:30 1 hour left
+3:20 30 minutes left: the subway floods
+4:12 7 minutes left: gravity flips
+5:00 Falling in
+
+#whatif #blackhole #space #simulation #science
+
 ## Posting plan
 - One a day: Earth stops orbiting → Sun vanishes → black hole → asteroid → Earth spins faster. From Earth spins faster on, each video goes on YouTube and TikTok the same day.
 - Upload and schedule them all at once (YouTube Studio and TikTok on desktop both let you pick a future time).

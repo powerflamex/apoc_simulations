@@ -83,8 +83,8 @@ function update(v) {
     if (f) feed.render(f.what, f.u, v);
     street.frame(v, s);
     renderPass.scene = street.scene; renderPass.camera = street.camera;
-    exposure = 1.15;
-    bloom.threshold = 1.0; bloom.strength = 0.4 + 0.15 * s.disk;
+    exposure = 1.15 * (1 - 0.12 * smooth(290, 300, s.t)) * (1 + 0.25 * smooth(284, 290, s.t));
+    bloom.threshold = 1.0; bloom.strength = 0.4 + 0.08 * Math.min(s.disk, 1.5);
   } else if (shot.scene === 'space' || shot.scene === 'fall') {
     space.prepare(shot.scene === 'fall' ? 'fall' : shot.what, shot.u, v);
     renderPass.scene = space.lensScene; renderPass.camera = space.lensCamera;
@@ -98,7 +98,7 @@ function update(v) {
   } else if (shot.scene === 'subway') {
     subway.frame(v, s);
     renderPass.scene = subway.scene; renderPass.camera = subway.camera;
-    exposure = 1.1;
+    exposure = 0.85;
     bloom.threshold = 1.0; bloom.strength = 0.45;
   } else {
     renderPass.scene = blank; renderPass.camera = blankCam;
@@ -110,7 +110,7 @@ function update(v) {
   if (v >= 300) blink = 0;
   s.blink = window.__cover ? 0 : blink;
   finish.uniforms.uAb.value = (s.quake || 0) * 0.5;
-  finish.uniforms.uTitle.value = window.__cover ? 1.1 : v < FF_LEN ? 1 - smooth(4.3, 5.0, v) : 0;
+  finish.uniforms.uTitle.value = window.__cover ? 0.2 : v < FF_LEN ? 1 - smooth(4.3, 5.0, v) : 0;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9 * (1 - Math.max(s.white, s.black));
   overlay(v, s);
   return s;

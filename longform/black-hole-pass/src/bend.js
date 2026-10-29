@@ -19,7 +19,7 @@ uniform vec2 uCurlDir;
 vec3 bendWorld(vec3 p) {
   vec2 o = p.xz - uCurlOrigin;
   float dist = length(o);
-  float d = max(dist - 110.0, 0.0);
+  float d = max(dist - 45.0, 0.0);
   float facing = dot(o / max(dist, 1e-3), uCurlDir);
   // the world bowls up around the hole: sides rise most, a valley stays open beneath it
   float w = 0.3 + 0.7 * (1.0 - pow(max(facing, 0.0), 14.0));

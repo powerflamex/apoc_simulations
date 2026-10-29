@@ -20,7 +20,7 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 ## Order, as the viewer sees it
 | Video | Where | What happens |
 |---|---|---|
-| 0:00 | avenue | Flash-forward: cars and people falling up into the sky, the hole with its glowing disk overhead. Title + counter. |
+| 0:00 | avenue | Flash-forward: the avenue curling up into the sky toward the hole, things falling up. Title + BLACK HOLE · MILES AWAY racing down from 51,022. |
 | 0:05 | avenue, night | "56 DAYS LEFT". A busy night: crowds, cabs, giant screens. Every phone buzzes: EMERGENCY ALERT. |
 | 0:12 | | You look up: a spot where the stars bend. Mom: "are you seeing this??" The screens switch to the news. |
 | 0:24 | space (LIVE) | Neptune is stretched and torn apart. |
@@ -36,3 +36,8 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 | 4:12 | avenue | "7 MINUTES LEFT". Flooded street, the Moon a glowing ring. YOUR WEIGHT drops. Water, cars, people fall up. "i love you" - Not Delivered. The horizon peels up. |
 | 5:00 | space | You fall up into it: Earth's debris stream behind you, the ring of light, white. |
 | 5:30 | white | "Would you have made it?" |
+
+## Built (Oct 28)
+Rendered and checked: `longform/out/black-hole-pass_1920x1080.mp4` (5:40), thumbnail `longform/out/black-hole-pass_thumb.png`,
+posting copy in `CAPTIONS.md`. Render: `bash ../../render-gate.sh black-hole-pass-long node render.mjs --upload
+../out/black-hole-pass_1920x1080.mp4` in `longform/black-hole-pass/` (~14 min drawing + ~5 min upload copy).

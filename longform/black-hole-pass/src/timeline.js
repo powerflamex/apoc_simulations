@@ -7,7 +7,7 @@ import { smooth, clamp, lerp } from './util.js';
 export const STORY_START = 0;
 export const VIDEO_DURATION = 340;
 export const FF_LEN = 5.0;
-export const V_FF = 286.0;
+export const V_FF = 295.6;
 
 // which scene is on screen
 export const SHOTS = [
@@ -20,8 +20,8 @@ export const SHOTS = [
   [95, 106, 'highway'],
   [106, 120, 'space', 'jupiter'],
   [120, 150, 'highway'],
-  [150, 200, 'street'],
-  [200, 252, 'subway'],
+  [150, 197.6, 'street'],
+  [197.6, 252, 'subway'],
   [252, 300, 'street'],
   [300, 331, 'fall'],
   [331, VIDEO_DURATION, 'end'],
@@ -62,8 +62,8 @@ const W0 = 160;
 export const weightAt = (v) => W0 * (1 - smooth(257, 271, v)) - 70 * smooth(271, 284, v) - 300 * smooth(284, 299, v);
 const fmtInt = (x) => Math.round(x).toLocaleString('en-US');
 export const COUNTERS = [
-  { from: 0, to: 5, label: 'YOUR WEIGHT', value: (v) => weightAt(V_FF + v), fmt: (x) => fmtInt(Math.max(x, 0)), unit: (v) => (weightAt(V_FF + v) > 0 ? 'POUNDS' : 'POUNDS · FALLING UP') },
-  { from: 5, to: 257, label: 'BLACK HOLE', value: milesAt, fmt: fmtInt, unit: () => 'MILES AWAY' },
+  // (on from frame 0, already racing: the flash-forward shows the hole ~50,000 miles away and closing fast)
+  { from: -1, to: 257, label: 'BLACK HOLE', value: milesAt, fmt: fmtInt, unit: () => 'MILES AWAY' },
   { from: 257, to: 300, label: 'YOUR WEIGHT', value: weightAt, fmt: (x) => fmtInt(Math.max(x, 0)), unit: (v) => (weightAt(v) > 0 ? 'POUNDS' : 'POUNDS · FALLING UP') },
   { from: 302, to: 327, label: 'ONE SECOND FOR YOU', value: (v) => Math.pow(10, lerp(0, 9.3, smooth(304, 326, v))), fmt: (x) => (x < 60 ? `${x.toFixed(x < 10 ? 1 : 0)} s` : x < 3600 ? `${Math.round(x / 60)} min` : x < 86400 * 2 ? `${Math.round(x / 3600)} hours` : x < 86400 * 730 ? `${Math.round(x / 86400)} days` : `${fmtInt(x / 31557600)} years`), unit: () => 'PASSES ON EARTH' },
 ];
@@ -148,11 +148,11 @@ export function state(v) {
   s.ch = c.i;
   // the hole in the sky: how big (lens strength; the sky shader's distance in hole radii, smaller = bigger), its disk
   // (dim until it has eaten Neptune, brighter after Saturn and Jupiter, blazing in the last hour)
-  s.bhD = t < 50 ? lerp(900, 700, smooth(5, 50, t)) : t < 95 ? lerp(600, 450, smooth(50, 95, t)) : t < 150 ? lerp(420, 340, smooth(95, 150, t))
-    : t < 252 ? lerp(280, 160, smooth(150, 252, t)) : lerp(120, 14, Math.pow(smooth(252, 300, t), 0.8));
+  s.bhD = t < 50 ? lerp(900, 700, smooth(5, 50, t)) : t < 95 ? lerp(600, 450, smooth(50, 95, t)) : t < 150 ? lerp(380, 290, smooth(95, 150, t))
+    : t < 252 ? lerp(150, 95, smooth(150, 252, t)) : lerp(80, 14, Math.pow(smooth(252, 300, t), 0.8));
   s.disk = 0.04 * smooth(30, 40, t) + 0.25 * smooth(68, 80, t) + 0.5 * smooth(110, 125, t) + 0.6 * smooth(150, 170, t) + 0.4 * smooth(252, 290, t);
   // the Moon: stretches in the last hour, a ring when you come out of the subway
-  s.moonStretch = 0.3 * smooth(160, 199, t) + 0.7 * smooth(205, 256, t);
+  s.moonStretch = 0.7 * smooth(159, 172, t) + 0.3 * smooth(205, 256, t);
   s.moonRing = smooth(250, 258, t);
   // the avenue: what's going on
   s.panic = smooth(36, 44, t);
