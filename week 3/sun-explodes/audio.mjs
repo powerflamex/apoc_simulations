@@ -6,12 +6,14 @@
 // crackles), a steam hiss as the sea boils, a final riser that cuts to silence at the white-out. The end runs
 // straight into the start (the loop).
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, BEATS, V_FLASH, V_BLAST, storyT } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
+const SCREAM_AT = V_FLASH + 0.05;   // 1.75 s: the scream starts as the light lands
 const TAU = Math.PI * 2;
 class OnePole { constructor(fc) { this.y = 0; this.set(fc); } set(fc) { this.a = 1 - Math.exp(-TAU * fc / SR); } run(x) { return (this.y += this.a * (x - this.y)); } }
 class SVF {
@@ -131,6 +133,21 @@ export function makeSoundtrack(outFile) {
       const [al, ar] = amb(t);
       L[a + i] = L[a + i] * (1 - k) + al * k;
       R[a + i] = R[a + i] * (1 - k) + ar * k;
+    }
+  }
+  // the owner's scream (sfx/scream.mp3): the crowd screams as the light hits. The file's 0.57 s of silence is cut,
+  // so the scream starts at SCREAM_AT; it is set a little above the mix around it, with a short fade at each end
+  {
+    const pcm = execFileSync('ffmpeg', ['-v', 'error', '-ss', '0.55', '-i', path.join(path.dirname(fileURLToPath(import.meta.url)), 'sfx', 'scream.mp3'),
+      '-t', '2.6', '-f', 'f32le', '-ac', '2', '-ar', String(SR), '-'], { maxBuffer: 1 << 26 });
+    const sc = new Float32Array(pcm.buffer, pcm.byteOffset, pcm.length >> 2);
+    const n0 = Math.round(SCREAM_AT * SR), len = sc.length >> 1;
+    let mix = 0, own = 0;
+    for (let i = 0; i < len; i++) { mix += L[n0 + i] ** 2 + R[n0 + i] ** 2; own += sc[2 * i] ** 2 + sc[2 * i + 1] ** 2; }
+    const g = 1.4 * Math.sqrt(mix / own);
+    for (let i = 0; i < len; i++) {
+      const f = Math.min(1, i / (0.01 * SR), (len - i) / (0.3 * SR));
+      L[n0 + i] += sc[2 * i] * g * f; R[n0 + i] += sc[2 * i + 1] * g * f;
     }
   }
   let peak = 0;
