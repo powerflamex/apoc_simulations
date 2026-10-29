@@ -178,6 +178,13 @@
   end. 37.3% watched overall, 3.7% clicked. The cliff (0:36-0:45) is where the red giant/lava spectacle ends and the picture
   goes dark and quiet (Earth freezes in silence, then the far galaxies fade). Rule for long videos: never go dark and quiet
   right after the first big moment; keep the next big visible thing within ~10 s.
+- punch-10x (owner, Oct 28, early): ~70% stayed, ~70% watched. Its frame 0 is you close up punching a brick wall, a hit
+  in the first half second: the best stay rate since women-vanish/electrons, which fits the "close and already happening" rule.
+- IQ 1000 long video check (Oct 28, 5:34 voiced draft, before posting): the opening works like heat death's (flash-forward,
+  phone 0:06, Rubik's cube 0:12, chess 0:25). Two risky stretches by the heat-death rule: 0:31-1:16, 45 s of the same grey
+  rainy plaza while the ball rolls (the cliff zone was 0:36-0:45), and 2:08-2:40, 32 s of "silence" gliding through the
+  same plaza (the quietest part of the track). Everything after 2:40 cuts every ~10-15 s (lightning, fusion, Mars, the
+  red overheating, the neon web).
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
