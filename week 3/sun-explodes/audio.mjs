@@ -136,7 +136,7 @@ export function makeSoundtrack(outFile) {
     }
   }
   // the owner's scream (sfx/scream.mp3): the crowd screams as the light hits. The file's 0.57 s of silence is cut,
-  // so the scream starts at SCREAM_AT; it is set a little above the mix around it, with a short fade at each end
+  // so the scream starts at SCREAM_AT; it sits about level with the flash's boom, with a short fade at each end
   {
     const pcm = execFileSync('ffmpeg', ['-v', 'error', '-ss', '0.55', '-i', path.join(path.dirname(fileURLToPath(import.meta.url)), 'sfx', 'scream.mp3'),
       '-t', '2.6', '-f', 'f32le', '-ac', '2', '-ar', String(SR), '-'], { maxBuffer: 1 << 26 });
@@ -144,7 +144,7 @@ export function makeSoundtrack(outFile) {
     const n0 = Math.round(SCREAM_AT * SR), len = sc.length >> 1;
     let mix = 0, own = 0;
     for (let i = 0; i < len; i++) { mix += L[n0 + i] ** 2 + R[n0 + i] ** 2; own += sc[2 * i] ** 2 + sc[2 * i + 1] ** 2; }
-    const g = 1.4 * Math.sqrt(mix / own);
+    const g = 1.4 * Math.sqrt(mix / own) * 0.22;   // (8 dB quieter than at first: still the loudest moment, about as loud as the flash's boom)
     for (let i = 0; i < len; i++) {
       const f = Math.min(1, i / (0.01 * SR), (len - i) / (0.3 * SR));
       L[n0 + i] += sc[2 * i] * g * f; R[n0 + i] += sc[2 * i + 1] * g * f;
