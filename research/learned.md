@@ -168,6 +168,16 @@
   "Noooo" at 0:03. A loud human reaction right at the start may help people stop scrolling: worth using again.
 - Topic check Oct 27, "marble-sized black hole hits Earth": only old explainers/sims (Kurzgesagt "black hole in your
   pocket" 16M, 11 y; Pavel Ševeček "a black hole flew by Earth" 2.2M, 2 y). No recent "you are there" Short.
+- **Oct 28 read (Studio data through Oct 27).** grow-trillion: day 1 31.7K (65.7% stayed / 74.6% watched), day 2 17.1K
+  (61.9% / 77.5%): about half, the normal shape for a 49 score (62.6K live Oct 28). quake-grows day 1: 7.6K, 60.6% stayed,
+  **76.2% watched** (score 46; 13.1K live). false-vacuum got a second push on day 6 (5.0K -> 11.8K on Oct 27; 95K live
+  Oct 28), 87% of its views from the Shorts feed: YouTube re-tests Shorts that held people well (73%). punch-10x posted
+  Oct 28 (6.8K live early). tsunami 26K live.
+- **Heat death (long) curve, first 2 days (862 views, small sample):** 99% -> 83% at 0:04 -> 66% at 0:30 (the Big Rip had
+  51% at 0:29: the new opening worked) -> **cliff to 42% by 0:45** -> ~40% to 1:20 -> slow slide to ~32% -> flat to the
+  end. 37.3% watched overall, 3.7% clicked. The cliff (0:36-0:45) is where the red giant/lava spectacle ends and the picture
+  goes dark and quiet (Earth freezes in silence, then the far galaxies fade). Rule for long videos: never go dark and quiet
+  right after the first big moment; keep the next big visible thing within ~10 s.
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
