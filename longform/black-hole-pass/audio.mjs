@@ -66,7 +66,7 @@ export function makeSoundtrack(outFile) {
     [150, [73.42, 110, 146.83, 174.61]],   // D minor: the last hour
     [200, [69.3, 82.41, 103.83, 138.59]],  // the subway: dissonant
     [252, [65.41, 69.3, 98, 130.81]],      // the end
-    [300, [55, 58.27, 82.41, 110]],        // falling in
+    [306, [55, 58.27, 82.41, 110]],        // falling in
   ];
   const chordAt = (v) => { let c = CHORDS[0][1]; for (const [ts, ch] of CHORDS) if (v >= ts) c = ch; return c; };
   const HITS = POPS.map(([t], i) => [t, 0.55 + 0.05 * i, [55, 49, 46.25, 41.2, 55, 49, 43.65, 41.2, 36.7, 32.7][i] || 41.2]);
@@ -96,7 +96,7 @@ export function makeSoundtrack(outFile) {
     const white = () => R0() * 2 - 1;
     const scene = sceneAt(v);
     const ffScene = v < FF_LEN ? 'street' : scene;
-    const silent = v >= 330.5 && v < 333;
+    const silent = v >= 336.5 && v < 339;
 
     // ---- the avenue: city hum + crowd murmur, then panic, then the last hour, then the flood and the wind ----
     brownL = clamp(brownL + white() * 0.02, -1, 1) * 0.998;
@@ -124,14 +124,15 @@ export function makeSoundtrack(outFile) {
     const engine = engineLP.run(white()) * engG * (2.4 + Math.sin(v * TAU * 7) * 0.6);
 
     // the subway: rumble (stronger in the shaking), the torrent, the roar of water
-    const rumG = scene === 'subway' ? 0.15 + 0.35 * gate(v, 214.5, 219, 1) + 0.15 * smooth(220, 225, v) : 0;
+    const rumG = scene === 'subway' ? 0.15 + 0.35 * gate(v, 214.5, 219, 1) + 0.15 * smooth(224, 229, v) : scene === 'coast' ? 0.45 : 0;
     const rumble = rumbleLP.run(white()) * rumG * 5;
-    const torG = scene === 'subway' ? 0.22 * smooth(219.5, 221.5, v) * (1 - 0.3 * smooth(244, 252, v)) : 0;
+    // (the torrent: the sea over the wall, the water down the avenue and the stairs, then inside)
+    const torG = scene === 'coast' ? 0.3 : scene === 'street' && v > 221.5 && v < 252 ? 0.26 * smooth(221.5, 223, v) : scene === 'subway' ? 0.22 * smooth(223.5, 225.5, v) * (1 - 0.3 * smooth(244, 252, v)) : 0;
     const tw = white();
     const torrent = (torrentF.run(tw, 900, 0.4).bp * 0.8 + torrentF2.run(tw, 2600, 0.6).bp * 0.4) * torG;
 
     // ---- the end: wind once gravity goes (and while you're lifted), then the fall's roar ----
-    const windG = onStreet * 0.17 * smooth(262, 296, t) + (scene === 'fall' ? 0.17 * (1 - smooth(316, 326, v)) : 0);
+    const windG = onStreet * 0.17 * smooth(262, 296, t) + (scene === 'fall' ? 0.17 * (1 - smooth(322, 332, v)) : 0);
     const wfc = 380 + 700 * smooth(262, 300, t) + 150 * Math.sin(v * 0.37) + 80 * Math.sin(v * 1.3);
     const wl = windL.run(white(), wfc, 0.35).bp * windG * 1.4;
     const wr = windR.run(white(), wfc * 1.12, 0.35).bp * windG * 1.4;
@@ -161,11 +162,11 @@ export function makeSoundtrack(outFile) {
 
     // ---- music: drone ----
     const ch = chordAt(v);
-    const dG = (0.09 + 0.04 * smooth(24, 150, v) + 0.02 * smooth(200, 300, v) + (scene === 'space' || scene === 'fall' ? 0.03 : 0)) * smooth(0, 1.2, v) * (silent || v >= 333 ? 0 : 1);
-    const cutoff = 300 + 500 * smooth(5, 150, v) + 600 * smooth(200, 300, v) + 1500 * smooth(318, 330, v);
+    const dG = (0.09 + 0.04 * smooth(24, 150, v) + 0.02 * smooth(200, 300, v) + (scene === 'space' || scene === 'fall' ? 0.03 : 0)) * smooth(0, 1.2, v) * (silent || v >= 339 ? 0 : 1);
+    const cutoff = 300 + 500 * smooth(5, 150, v) + 600 * smooth(200, 300, v) + 1500 * smooth(324, 336, v);
     droneLP[0].set(cutoff); droneLP[1].set(cutoff * 1.07);
     let dl = 0, dr = 0;
-    const bend = 1 + 0.07 * Math.pow(smooth(312, 330.4, v), 2);
+    const bend = 1 + 0.07 * Math.pow(smooth(318, 336.4, v), 2);
     for (let k = 0; k < ch.length; k++) {
       const f = ch[k] * bend;
       ph[k] += (f * 0.997) / SR; ph[k + 4] += (f * 1.003) / SR;
@@ -200,13 +201,13 @@ export function makeSoundtrack(outFile) {
     let whoosh = 0;
     for (const c of SPACE_CUTS) { const dt = v - c; if (dt > -0.6 && dt < 0.5) whoosh += riserF.run(white(), 300 + 2500 * clamp((dt + 0.6) / 1.1), 0.4).bp * Math.sin(Math.PI * clamp((dt + 0.6) / 1.1)) * 0.12; }
 
-    // the riser into the white-out (from 316), hard cut at 330.5
+    // the riser into the white-out (from 322), hard cut at 336.5
     let riser = 0;
-    if (v > 316 && v < 330.5) { const k = smooth(316, 330.4, v); riser = riserF.run(white(), 400 + 7000 * k * k, 0.25).bp * k * k * 0.2 * (1 - smooth(330.45, 330.5, v)); }
+    if (v > 322 && v < 336.5) { const k = smooth(322, 336.4, v); riser = riserF.run(white(), 400 + 7000 * k * k, 0.25).bp * k * k * 0.2 * (1 - smooth(336.45, 336.5, v)); }
     // the closing: a soft distant chord
     let endc = 0;
-    if (v > 333) {
-      const e = smooth(333, 335, v) * (1 - smooth(338.4, 339.9, v));
+    if (v > 339) {
+      const e = smooth(339, 341, v) * (1 - smooth(344.4, 345.9, v));
       [110, 164.81, 220, 261.63].forEach((f, k) => { endPh[k] += f / SR; endc += Math.sin(TAU * endPh[k]) * [0.5, 0.35, 0.3, 0.18][k]; });
       endc *= e * 0.06;
     }

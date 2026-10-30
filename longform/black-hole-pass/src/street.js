@@ -51,9 +51,11 @@ const VISITS = [
     [24.0, 13.4, 3.0, -5, 9, 22]] },
   // after Neptune: panic; NASA's note; Mom; (19 days later, from 44.4) the evacuation: gridlock, suitcases; Dad's
   // text; zoom into the LIVE picture of Saturn (the story jumps from 49 to the Saturn cutaway at 62)
-  { from: 37, to: 49, keys: [
-    [37, 13.4, 3.0, -5, 9, 24], [38.4, 13.4, 3.0, -8, 7, 48], [41, 13.4, 3.0, -30, 0, 56], [44.3, 13.4, 3.0, -6, 3, 56],
-    [44.4, -13.2, -4.0, 26, 2, 60], [46.4, -13.2, -6.0, 12, 1, 58], [47.6, -13.2, -8.4, 6, 8, 44], [49, -13.2, -9.2, 7, 9, 24]] },
+  // (two visits: a single spline across the cut swung the camera past its mark)
+  { from: 37, to: 44.35, keys: [
+    [37, 13.4, 3.0, -5, 9, 24], [38.4, 13.4, 3.0, -8, 7, 48], [41, 13.4, 3.0, -30, 0, 56], [44.35, 13.4, 3.0, -6, 3, 56]] },
+  { from: 44.35, to: 49, keys: [
+    [44.35, -13.2, -4.0, 26, 2, 60], [46.4, -13.2, -6.0, 12, 1, 58], [47.6, -13.2, -8.4, 6, 8, 44], [49, -13.2, -9.2, 7, 9, 24]] },
   // after Saturn: look up, now you can see it; Mom's text; you start walking south (for the airport)
   { from: 78, to: 95, keys: [
     [78, -13.2, -9.2, 7, 9, 26], [79.5, -13.2, -9.2, 4, 20, 50], [84, -13.2, -9.2, 2, 30, 46], [88, -13.2, -9.2, -12, 12, 56],
@@ -64,13 +66,17 @@ const VISITS = [
     [169, 13.0, 10.0, -5, 38, 38], [173, 13.0, 8.0, -10, 22, 54], [177, 13.0, 2.4, -2, 4, 58], [179, 13.0, 2.4, 6, -6, 58],
     [182.5, 13.0, 1.6, -10, 0, 60], [186, 13.6, -6.0, -6, -2, 62], [189.5, 14.4, -14.5, -2, -6, 62], [192.5, 14.65, -19.6, 0, -16, 62],
     [196.5, 14.65, -24.0, 0, -22, 62, -2.0], [200, 14.65, -27.0, 0, -14, 62, -4.0]] },
+  // 30 minutes left, outside: the ocean racing down the avenue toward you, then pouring down the subway stairs
+  { from: 222.6, to: 225, keys: [[222.6, 12.4, -11.5, -3, 7, 64], [223.8, 12.5, -12.5, 6, -4, 62], [225, 12.6, -13.2, 11, -20, 60]] },
   // the end: up the stairs (facing south), turn round: the flooded avenue under the hole; gravity flips; the horizon
-  // peels up; you're lifted
+  // peels up; you're lifted: first person all the way up (292-306), looking down at the street falling away from you,
+  // then up into the ring
   { from: 252, to: 300, keys: [
     [252, 14.65, -27.2, 180, 10, 62, -3.6], [254.2, 14.65, -22.0, 180, 4, 62, -0.5], [255.4, 14.65, -19.6, 180, 0, 62],
     [258, 14.2, -17.5, 30, 10, 60], [261, 13.6, -16.0, -6, 16, 56], [265, 13.4, -15.4, -14, 4, 58], [270, 13.2, -15.0, 8, 8, 60],
     [274, 13.0, -14.0, -8, 14, 64], [279, 13.0, -14.6, -4, 16, 62], [284, 13.0, -14.8, -26, 8, 62], [289, 13.0, -14.8, 2, 12, 64],
-    [293, 13.0, -14.8, 0, 18, 66], [300, 13.0, -14.8, -2, 50, 72]] },
+    [293, 13.0, -14.8, 0, 18, 66], [296.5, 13.0, -14.8, 8, -34, 72], [300, 13.0, -14.8, -12, -46, 76], [303, 13.0, -14.8, -6, 18, 76],
+    [306, 13.0, -14.8, -2, 58, 82]] },
 ];
 const EYE = 1.66;
 
@@ -331,17 +337,30 @@ export function makeStreet(renderer) {
   }
 
   // ---------- people ----------
-  const PEOPLE_N = 360;
+  // Everyone has a lane (a fixed x) and an even spot along it, so nobody walks through anyone: 6 lanes per sidewalk,
+  // 0.7 m apart, none where you stand (x 13.4 on the east side, -13.2 on the west); 40 people per lane, 6.5 m apart,
+  // on a loop that starts 90 m behind you and turns off into the cross street at the north end (out of sight).
+  // On a normal night the lanes alternate north/south; in the evacuation everyone heads south. Standing crowds (the
+  // last hour, the flood) stand on a grid along the same lanes. (crowd.js people face +z at yaw 0: yaw here is the
+  // direction they face with -z ahead, and pose() gets yaw + PI.)
+  // (the east sidewalk has the subway opening and its railing at x 13.4-15.9: its three lanes go round it)
+  const LANE_X = { 1: [11.75, 12.45, 16.45], [-1]: [-11.9, -12.55, -13.95, -14.65, -15.35, -16.05] };
+  const PER_LANE = 40, LOOP = 260, Z_START = 100, TURN_Z = -78;
+  const WALK_LANES = [...LANE_X[1].map((x, lane) => [1, lane]), ...LANE_X[-1].map((x, lane) => [-1, lane])];
+  const PEOPLE_N = WALK_LANES.length * PER_LANE;
   const people = [];
   for (let i = 0; i < PEOPLE_N; i++) {
-    const side = R() < 0.5 ? -1 : 1;
+    const [side, lane] = WALK_LANES[Math.floor(i / PER_LANE)], k = i % PER_LANE;
+    const RL = rng(lane * 31 + (side > 0 ? 7 : 3));
+    const laneSpeed = 1.15 + RL() * 0.3, laneOff = RL() * LOOP;
     people.push({
-      side, x: side * (ROAD + 0.9 + R() * 4.6), u0: R() * 200, dir: R() < 0.5 ? -1 : 1, speed: 1.0 + R() * 0.5,
+      side, lane, x: LANE_X[side][lane], u0: laneOff + k * (LOOP / PER_LANE) + (R() - 0.5) * 0.8, dir: lane % 2 ? 1 : -1, speed: laneSpeed,
       hop: R() * 6.28, h: 0.9 + R() * 0.2, liftT: 264 + R() * 22, spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(3),
-      bag: R() < 0.45, phone: R() < 0.8, look: R(), stay: R() < 0.42, fx: R() * 2 - 1, fz: -5 - R() * 60,
+      bag: R() < 0.45, phone: R() < 0.8, look: R(), stay: R() < 0.42,
+      // a standing spot: this lane, every 3 m along it (odd lanes offset by half, so neighbours don't line up)
+      gz: 34 - k * 2.6 - (lane % 2) * 1.3 + (R() - 0.5) * 0.3,
     });
   }
-  // keep the space right around you clear (you stand at x 13.4)
   const crowd = makeCrowd(scene, PEOPLE_N, plainMat(0xffffff, 0.85), { castShadow: false });
   const clothes = [0x2b2d42, 0x8d99ae, 0xb3243a, 0xd8d8d0, 0x3a5a40, 0xc49a6c, 0x264653, 0xd9b44a, 0x6d597a, 0x1d1d1d, 0x7b2d26, 0x3e5c76];
   { const RP = rng(4141); people.forEach((p, i) => crowd.color(i, clothes[Math.floor(RP() * clothes.length)], [0x2b2d42, 0x3d405b, 0x1d1d1d, 0x6b705c, 0x284b63][Math.floor(RP() * 5)], SKIN[Math.floor(RP() * SKIN.length)], HAIR[Math.floor(RP() * HAIR.length)], RP() < 0.7)); }
@@ -354,80 +373,98 @@ export function makeStreet(renderer) {
   const phones = new THREE.InstancedMesh(new THREE.BoxGeometry(0.075, 0.14, 0.012), glowMat(new THREE.Color(0.9, 1.0, 1.25)), PEOPLE_N);
   phones.frustumCulled = false;
   scene.add(phones);
-  const SUBWAY_IN = new THREE.Vector2((SUB.x0 + SUB.x1) / 2, SUB.z1 + 0.4);
-  const cam = { x: 0, z: 0, yaw: 0 };
+  const cam = { x: 0, z: 0, yaw: 0, fov: 60 };
+  const STRAIGHT = Z_START - TURN_Z;
+  // u along a lane's path (northbound): straight up the avenue, then out along the cross street
+  // (the outermost lane turns first, so the turning lanes never cross each other)
+  const along = (p, u, out) => {
+    const dz = 2 + (LANE_X[p.side].length - 1 - p.lane) * 0.7;
+    if (u < STRAIGHT + dz) { out.x = p.x; out.z = Z_START - u; out.yaw = 0; }
+    else { out.x = p.x + p.side * (u - STRAIGHT - dz); out.z = TURN_Z - dz; out.yaw = -p.side * Math.PI / 2; }
+    return out;
+  };
+  const tmpP = { x: 0, z: 0, yaw: 0 };
+  // nobody stands where you stand in the last hour (x 13, z 13 -> 1.6) or at the end (x 13, z -15)
+  const onYourPath = (p, end) => p.side > 0 && p.lane === 1 && (end ? p.gz - 10 < -4 && p.gz - 10 > -32 : p.gz > 0 && p.gz < 18);
+  // the subway runners: the east lane beside the stairs (x 12.45), south of them; they run north up the lane, step
+  // across into the stairs (x 14.65) and go down, all at once and at one pace, so the order holds all the way down
+  const subRunner = (p) => p.side > 0 && p.lane === 1 && p.gz > SUB.z1 + 2.5;
+  const SX = (SUB.x0 + SUB.x1) / 2, Z_STEP = SUB.z1 + 2.5, DIAG = Math.hypot(SX - LANE_X[1][1], 2.5);
   function updatePeople(v, s) {
     const t = s.t;
     people.forEach((p, i) => {
       let x = p.x, z, yaw, stride = 1, walkT = t, look = 0, armR = 0, armL = 0, pitch = 0, roll = 0, visible = true, y = 0.15;
-      const run = t >= 36 && t < 44.4 ? smooth(36, 41, t) : 0;
       if (t < 44.4) {
-        // walking both ways; at the alert everyone stops to read their phone, then looks up
+        // walking in their lanes; at the alert everyone stops to read their phone, then looks up; after Neptune they
+        // hurry on (everyone in a lane at the same pace, so the spacing holds)
         const stop = smooth(8.6, 9.6, t) * (1 - smooth(34, 37, t));
-        const tw = t < 8.6 ? t : 8.6 + (Math.min(t, 9.6) - 8.6) * 0.5 + Math.max(0, t - 36) * (1 + run * 1.2);
-        const u = (p.u0 + p.speed * tw) % 120;
-        z = p.dir < 0 ? 40 - u : -80 + u;
-        yaw = p.dir < 0 ? 0 : Math.PI;
-        stride = (1 - stop) * (1 + run * 0.6);
+        const tw = t < 8.6 ? t : 8.6 + (Math.min(t, 9.6) - 8.6) * 0.5 + Math.max(0, Math.min(t, 37) - 34) * 0.5 + Math.max(0, t - 37) * 1.6;
+        const u = (p.u0 + p.speed * tw) % LOOP;
+        along(p, p.dir < 0 ? u : LOOP - u, tmpP);
+        x = tmpP.x; z = tmpP.z; yaw = p.dir < 0 ? tmpP.yaw : tmpP.yaw + Math.PI;
+        stride = (1 - stop) * (1 + 0.5 * smooth(37, 39, t));
         walkT = tw;
         armR = p.phone ? 0.7 * stop * (1 - s.lookUp * 0.7) : 0;
         look = s.lookUp * (0.5 + 0.5 * p.look) * stop;
       } else if (t < 150) {
-        // the evacuation: everyone heads south (toward you and past), many with suitcases
-        const u = (p.u0 + p.speed * 1.1 * (t - 44.4)) % 120;
-        z = -80 + u;
-        yaw = Math.PI;
+        // the evacuation: every lane heads south, many with suitcases
+        const u = (p.u0 + p.speed * 1.1 * (t - 44.4)) % LOOP;
+        along(p, LOOP - u, tmpP);
+        x = tmpP.x; z = tmpP.z; yaw = tmpP.yaw + Math.PI;
         armR = p.bag ? 0.15 : (p.phone ? 0.7 : 0);
-        look = s.lookUp * p.look;
         stride = 1.1;
       } else if (t < 252) {
-        // the last hour: people stand and stare at the sky; after the alert they run for the subway
-        const run2 = smooth(179 + p.look * 3, 181 + p.look * 3, t);
-        const sx = p.x + p.fx * 1.2, sz = p.fz + (p.u0 % 40);
-        if (run2 <= 0) { x = sx; z = sz; yaw = Math.PI + p.fx * 0.8; stride = 0; look = s.lookUp * (0.4 + 0.6 * p.look); armR = p.phone && p.look > 0.6 ? 1.1 : 0; }
-        else {
-          // toward the stairs (the near half) or away up the avenue (the rest)
-          const toSub = p.side > 0 || p.look < 0.5;
-          const tx = toSub ? SUBWAY_IN.x : p.x, tz = toSub ? SUBWAY_IN.y : sz + 160;
-          const dx = tx - sx, dz = tz - sz, dist = Math.hypot(dx, dz);
-          const go = Math.min(dist, (t - 179 - p.look * 3) * 4.2);
-          x = sx + dx / dist * go; z = sz + dz / dist * go;
-          yaw = Math.atan2(-dx, -dz);
-          stride = go < dist ? 1.6 : 0;
-          walkT = t * 1.3;
-          if (toSub && go >= dist - 0.3) visible = false;
-          if (Math.abs(x - 13.4) < 1.0 && Math.abs(z - 2.0) < 1.5 && t < 183) x += 1.5;
+        // the last hour: standing on their spots, staring up; after the alert the east side runs for the subway
+        // (and down the stairs), the west side runs south (the southmost first, so nobody runs through anyone)
+        const sx = x, sz = p.gz;
+        if (onYourPath(p, false)) visible = false;
+        const START = 179.6;
+        if (t < START) { z = sz; yaw = Math.PI; stride = 0; look = s.lookUp * (0.4 + 0.6 * p.look); armR = p.phone && p.look > 0.6 ? 1.1 : 0; }
+        else if (subRunner(p)) {
+          // north up the lane, across into the stairs and down them (a little faster: you follow them down)
+          let d = (t - START) * 4.2;
+          const run1 = sz - Z_STEP;
+          if (d < run1) { z = sz - d; yaw = 0; }
+          else if (d < run1 + DIAG) { const k2 = (d - run1) / DIAG; x = lerp(x, SX, k2); z = lerp(Z_STEP, SUB.z1, k2); yaw = Math.atan2(-(SX - LANE_X[1][1]), 2.5); }
+          else {
+            const down = d - run1 - DIAG;
+            x = SX; z = SUB.z1 - down; yaw = 0;
+            y = 0.15 - Math.min(down, SUB.z1 - SUB.z0) * (SUB.depth / (SUB.z1 - SUB.z0));
+            if (down > SUB.z1 - SUB.z0 + 2) visible = false;
+          }
+          stride = 1.5; walkT = t * 1.3;
+        } else if (p.side > 0 && p.lane === 1) {
+          // (the rest of the stairs lane, north of the stairs: on up the avenue, the same way and pace as the lane)
+          z = sz - (t - START) * 3.6; yaw = 0; stride = 1.5; walkT = t * 1.3;
+        } else {
+          // everyone else runs south, down their own lane, all at one pace
+          z = sz + (t - START) * 3.6; yaw = Math.PI; stride = 1.5; walkT = t * 1.3;
         }
       } else {
-        // the end: a few hundred left, standing in the flood, staring up; then they fall up
-        if (!p.stay) visible = false;
-        x = p.x + p.fx; z = -20 + p.fz * 1.6 + (p.u0 % 30);
-        yaw = Math.PI + p.fx * 1.4;
+        // the end: the few left stand in the flood on their spots, staring up (none on your path)
+        if (!p.stay || onYourPath(p, true)) visible = false;
+        z = p.gz - 10;
+        yaw = Math.PI + (p.look - 0.5) * 1.2;
         stride = 0;
         look = s.lookUp * (0.5 + 0.5 * p.look);
-        y = 0.15 - 0.05;
+        y = 0.1;
       }
-      // nobody walks right in front of your eyes: within 14 m ahead of you people keep 1.3 m to the side
-      {
-        const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw);
-        const dx = x - cam.x, dz = z - cam.z;
-        const ahead = dx * fx + dz * fz, side = dx * fz - dz * fx;
-        const need = 1.3 * smooth(16, 6, ahead) * (ahead > -1.2 ? 1 : 0);
-        if (Math.abs(side) < need) { const push = (side >= 0 ? 1 : -1) * need - side; x += push * fz; z -= push * fx; }
-      }
-      // lifted: bob, then fall up spinning, arms flailing
+      // gravity going: a slow drift up off the ground, arms out for balance; then (each at their own moment) they fall
+      // up, turning over, arms and legs flailing. Everything eases in: no hops, no snapping into the flail.
+      const light = s.lift;
+      const drift = t > 255 ? light * light * (0.35 + 0.15 * Math.sin(t * 0.9 + p.hop)) : 0;
       const dt = t - p.liftT;
       const up = liftDisp(dt, 0.9, 0.35) * (1 + s.curl * 2);
-      const light = s.lift;
-      const bounce = t > 255 ? Math.abs(Math.sin(t * (3 - light * 2) + p.hop)) * light * light * 1.2 : 0;
       const r = dt > 0 ? dt * dt * 0.4 : 0;
-      const flail = dt > 0 ? 1 : 0;
+      const fl = smooth(0, 1.5, dt);
+      const bal = t > 255 ? smooth(0.2, 0.7, light) : 0;
       crowd.pose(i, {
-        x, y: y + bounce + up, z: z - up * 0.2, yaw: yaw + p.spin.y * r, s: p.h, visible,
-        walk: walkT * 5.6 + p.hop, stride: flail ? 1.2 : stride, pitch: pitch + p.spin.x * r, roll: roll + p.spin.z * r,
-        armL: flail ? 1.3 + 0.5 * Math.sin(t * 3.1 + p.hop) : armL, armR: flail ? 1.4 + 0.5 * Math.sin(t * 2.7 + p.hop * 2) : armR,
-        look: flail ? 0 : look,
+        x, y: y + drift + up, z: z - up * 0.2, yaw: yaw + Math.PI + p.spin.y * r, s: p.h, visible,
+        walk: fl > 0 ? t * 4 + p.hop : walkT * 5.6 + p.hop, stride: lerp(stride, 1.1, fl), pitch: pitch + p.spin.x * r, roll: roll + p.spin.z * r,
+        armL: lerp(Math.max(armL, bal * 0.9), 1.3 + 0.5 * Math.sin(t * 3.1 + p.hop), fl), armR: lerp(Math.max(armR, bal * 0.9), 1.4 + 0.5 * Math.sin(t * 2.7 + p.hop * 2), fl),
+        look: look * (1 - fl),
       });
+      const flail = fl > 0.5;
       // the suitcase rolls behind them; the phone sits in the raised right hand
       const showBag = visible && p.bag && t >= 44.4 && t < 150;
       if (showBag) {
@@ -438,7 +475,7 @@ export function makeStreet(renderer) {
       if (visible && armR > 0.5 && !flail) {
         // at the end of the raised arm (shoulder 1.40 m, arm 0.6 m, swung forward by armR * 1.45 rad)
         const a = armR * 1.45;
-        tmpV.set(0.215 * p.h, (1.40 - 0.62 * Math.cos(a)) * p.h, -0.62 * Math.sin(a) * p.h).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        tmpV.set(-0.215 * p.h, (1.40 - 0.62 * Math.cos(a)) * p.h, -0.62 * Math.sin(a) * p.h).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         dummy.position.set(x + tmpV.x, y + tmpV.y, z + tmpV.z); dummy.rotation.set(a - 0.4, yaw, 0); dummy.scale.setScalar(p.h);
       } else dummy.scale.setScalar(0);
       dummy.updateMatrix(); phones.setMatrixAt(i, dummy.matrix);
@@ -460,8 +497,54 @@ export function makeStreet(renderer) {
           float b = cos(q.x * 1.7 + uWT * 1.9) - cos(q.y * 2.3 - uWT * 1.4) + 0.6 * cos((q.x + q.y) * 4.1 + uWT * 2.7);
           normal = normalize(normal + (viewMatrix * vec4(a * 0.035, 0.0, b * 0.035, 0.0)).xyz); }`);
   })(waterMat.onBeforeCompile);
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(200, 900, 40, 120).rotateX(-Math.PI / 2), waterMat);
-  water.position.set(0, 0, -300);
+  // (the plane runs from its front edge 900 m north: the front races down the avenue at 28 m/s from 221.5)
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(200, 900, 40, 120).rotateX(-Math.PI / 2).translate(0, 0, -450), waterMat);
+  water.position.set(0, 0, 150);
+  const frontAt = (t) => (t >= 252 ? 150 : -84 + 28 * (t - 221.5));
+  const foamU = { uT: G.uTime };
+  const foamMat = new THREE.ShaderMaterial({
+    uniforms: foamU, transparent: true, depthWrite: false,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: /* glsl */ `
+      uniform float uT; varying vec2 vUv;
+      float h(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      void main() {
+        float f = n(vec2(vUv.x * 60.0, vUv.y * 8.0 - uT * 9.0)) * 0.6 + n(vec2(vUv.x * 140.0, vUv.y * 17.0 + uT * 5.0)) * 0.4;
+        float a = smoothstep(0.35, 0.7, f) * smoothstep(0.0, 0.3, vUv.y) * smoothstep(1.0, 0.55, vUv.y);
+        gl_FragColor = vec4(vec3(0.85, 0.82, 0.78) * a, a);
+      }`,
+  });
+  const foam = new THREE.Mesh(new THREE.PlaneGeometry(34, 5).rotateX(-Math.PI / 2), foamMat);
+  scene.add(foam);
+  // the wave's breaking face: a churning white wall ~1.2 m high, leaning forward as it comes
+  const crestMat = foamMat.clone();
+  crestMat.side = THREE.DoubleSide;
+  const crest = new THREE.Mesh(new THREE.PlaneGeometry(34, 2.2, 1, 1).translate(0, 1.1, 0), crestMat);
+  crest.rotation.x = -0.5;
+  scene.add(crest);
+  // the torrent down the subway stairs (the same churning water as inside)
+  const tor = new THREE.Mesh(new THREE.PlaneGeometry(SUB.x1 - SUB.x0, Math.hypot(SUB.z1 - SUB.z0, SUB.depth) + 0.6), new THREE.ShaderMaterial({
+    uniforms: foamU, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: /* glsl */ `
+      uniform float uT; varying vec2 vUv;
+      float h(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      void main() {
+        vec2 q = vec2(vUv.x * 9.0 + vUv.y * 3.0, vUv.y * 7.0 + uT * 9.0);
+        float f = n(q) * 0.5 + n(q * 2.3 + 3.1) * 0.3 + n(q * 5.1 - 7.3) * 0.2;
+        float foam = smoothstep(0.35, 0.8, f);
+        vec3 c = mix(vec3(0.06, 0.1, 0.09), vec3(0.62, 0.68, 0.64), foam * 0.85);
+        gl_FragColor = vec4(c, 0.93);
+      }`,
+  }));
+  {
+    const ang = Math.atan2(SUB.depth, SUB.z1 - SUB.z0);
+    tor.rotation.set(-Math.PI / 2 - ang, 0, 0);
+    tor.position.set((SUB.x0 + SUB.x1) / 2, -SUB.depth / 2 + 0.35, (SUB.z0 + SUB.z1) / 2);
+    scene.add(tor);
+  }
   water.frustumCulled = false;
   scene.add(water);
   const BLOB_N = 700;
@@ -482,6 +565,12 @@ export function makeStreet(renderer) {
     const t = s.t;
     water.visible = s.flood > 0;
     water.position.y = s.flood * 0.62;
+    water.position.z = frontAt(t);
+    foam.visible = t >= 221.5 && t < 252;
+    foam.position.set(0, water.position.y + 0.03, water.position.z - 1.8);
+    crest.visible = foam.visible && t < 224.6;
+    crest.position.set(0, water.position.y - 0.2, water.position.z - 0.4);
+    tor.visible = t > 223.6 && t < 251.9;
     blobs.forEach((b, i) => {
       const dt = t - b.t0;
       if (t < 252 || dt <= 0) { dummy.scale.setScalar(0); }
@@ -523,7 +612,7 @@ export function makeStreet(renderer) {
   }
 
   return {
-    scene, camera, screens,
+    scene, camera, screens, crowd,
     frame(v, s) {
       const t = s.t;
       G.uTime.value = t;
@@ -542,9 +631,10 @@ export function makeStreet(renderer) {
       pitch += wobble(t * 0.27, 4) * 0.4 * (fov / 55) + hf(1) * shake;
       const roll = wobble(t * 0.19, 5) * 0.4 + hf(3) * shake * 0.6;
       // you: lifted off the ground at the very end
-      const youUp = liftDisp(t - 292, 2.2, 1.6);
+      // (slow at first, so you see the street drop away under you: ~15 m by 296, ~100 m by 300, ~350 m by 306)
+      const youUp = liftDisp(t - 292, 1.0, 0.09);
       camera.position.set(x, EYE + yOff + bob + youUp + (s.flood > 0 && yOff === 0 ? 0 : 0), z);
-      camera.rotation.set(pitch * DEG, -yaw * DEG, (roll + s.you * 25) * DEG);
+      camera.rotation.set(pitch * DEG, -yaw * DEG, (roll + s.you * 35 + 10 * Math.sin(t * 0.7) * smooth(293, 297, t)) * DEG);
       camera.fov = fov;
       camera.updateProjectionMatrix();
       camera.updateMatrixWorld();
@@ -598,7 +688,7 @@ export function makeStreet(renderer) {
       beaconMesh.visible = Math.sin(t * 2.2) > 0.2 && lampOn > 0;
 
       // ---- the world ----
-      cam.x = x; cam.z = z; cam.yaw = yaw * DEG;
+      cam.x = x; cam.z = z; cam.yaw = yaw * DEG; cam.fov = fov;
       updateCars(v, s);
       updatePeople(v, s);
       updateFlood(s);

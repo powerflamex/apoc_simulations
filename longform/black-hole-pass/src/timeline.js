@@ -8,7 +8,7 @@ export const STORY_START = 0;
 // The story runs 0..STORY_END; two stretches of it are cut out of the video (owner, Oct 29: a new big moment at least
 // every ~15 s early on): the avenue between Neptune and Saturn now jumps from 49 straight to Saturn (62), and the end
 // of the highway (146..150). storyOf(video time) gives the story moment shown; every module runs on story time.
-export const STORY_END = 340;
+export const STORY_END = 346;
 export const SKIPS = [[49, 62], [146, 150]];
 export const VIDEO_DURATION = STORY_END - SKIPS.reduce((a, [x, y]) => a + y - x, 0);
 export function storyOf(vv) {
@@ -33,10 +33,13 @@ export const SHOTS = [
   [106, 120, 'space', 'jupiter'],
   [120, 150, 'highway'],
   [150, 197.6, 'street'],
-  [197.6, 252, 'subway'],
-  [252, 300, 'street'],
-  [300, 331, 'fall'],
-  [331, STORY_END, 'end'],
+  [197.6, 219, 'subway'],
+  [219, 222.6, 'coast'],      // outside: the ocean pulled up toward the hole, over the seawall
+  [222.6, 225, 'street'],     // the water rushing down the avenue and into the subway entrance
+  [225, 252, 'subway'],
+  [252, 306, 'street'],       // (ends with you pulled up off the street, first person, 292-306)
+  [306, 337, 'fall'],
+  [337, STORY_END, 'end'],
 ];
 export function shotAt(v) {
   for (const s of SHOTS) if (v >= s[0] && v < s[1]) return { from: s[0], to: s[1], scene: s[2], what: s[3], u: (v - s[0]) / (s[1] - s[0]) };
@@ -54,7 +57,7 @@ export const CHAPTERS = [
   { v: 150, left: 3600, rate: 35, stamp: '1 HOUR LEFT' },
   { v: 200, left: 1800, rate: 26, stamp: '30 MINUTES LEFT' },
   { v: 252, left: 420, rate: 8.6, stamp: '7 MINUTES LEFT' },
-  { v: 300, left: 8, rate: 0.26, stamp: null },
+  { v: 306, left: 8, rate: 0.26, stamp: null },
 ];
 export function chapterAt(v) {
   let c = CHAPTERS[0], i = 0;
@@ -71,13 +74,13 @@ export const milesAt = (v) => PASS_MILES + leftAt(v) * SPEED_MPS;
 
 // the counter: the hole's distance, then your weight (from 258), then your clock while you fall in
 const W0 = 160;
-export const weightAt = (v) => W0 * (1 - smooth(257, 271, v)) - 70 * smooth(271, 284, v) - 300 * smooth(284, 299, v);
+export const weightAt = (v) => W0 * (1 - smooth(257, 271, v)) - 70 * smooth(271, 284, v) - 300 * smooth(284, 305, v);
 const fmtInt = (x) => Math.round(x).toLocaleString('en-US');
 export const COUNTERS = [
   // (on from frame 0, already racing: the flash-forward shows the hole ~50,000 miles away and closing fast)
   { from: -1, to: 257, label: 'BLACK HOLE', value: milesAt, fmt: fmtInt, unit: () => 'MILES AWAY' },
-  { from: 257, to: 300, label: 'YOUR WEIGHT', value: weightAt, fmt: (x) => fmtInt(Math.max(x, 0)), unit: (v) => (weightAt(v) > 0 ? 'POUNDS' : 'POUNDS · FALLING UP') },
-  { from: 302, to: 327, label: 'ONE SECOND FOR YOU', value: (v) => Math.pow(10, lerp(0, 9.3, smooth(304, 326, v))), fmt: (x) => (x < 60 ? `${x.toFixed(x < 10 ? 1 : 0)} s` : x < 3600 ? `${Math.round(x / 60)} min` : x < 86400 * 2 ? `${Math.round(x / 3600)} hours` : x < 86400 * 730 ? `${Math.round(x / 86400)} days` : `${fmtInt(x / 31557600)} years`), unit: () => 'PASSES ON EARTH' },
+  { from: 257, to: 306, label: 'YOUR WEIGHT', value: weightAt, fmt: (x) => fmtInt(Math.max(x, 0)), unit: (v) => (weightAt(v) > 0 ? 'POUNDS' : 'POUNDS · FALLING UP') },
+  { from: 308, to: 333, label: 'ONE SECOND FOR YOU', value: (v) => Math.pow(10, lerp(0, 9.3, smooth(310, 332, v))), fmt: (x) => (x < 60 ? `${x.toFixed(x < 10 ? 1 : 0)} s` : x < 3600 ? `${Math.round(x / 60)} min` : x < 86400 * 2 ? `${Math.round(x / 3600)} hours` : x < 86400 * 730 ? `${Math.round(x / 86400)} days` : `${fmtInt(x / 31557600)} years`), unit: () => 'PASSES ON EARTH' },
 ];
 
 // your phone: notification cards (top right). kind: msg (a text), alert (emergency alert), news, flight
@@ -110,11 +113,11 @@ export const POPS = [
   [112.5, 'JUPITER IS TORN APART'],
   [140.0, 'NOBODY IS LEAVING'],
   [165.0, 'THE MOON STARTS TO STRETCH'],
-  [222.0, 'THE OCEAN IS COMING IN'],
+  [219.4, 'THE OCEAN IS COMING IN'],
   [256.0, 'THE MOON IS GONE'],
   [270.0, 'GRAVITY FLIPS'],
   [289.0, 'THE HORIZON PEELS UP'],
-  [313.0, 'TIME STOPS FOR YOU'],
+  [319.0, 'TIME STOPS FOR YOU'],
 ];
 export const POP = 1.9;
 export function popupAt(v) {
@@ -134,12 +137,13 @@ export const CAPS = [
   [102.8, 106.0, 'Everyone had the same idea.'],
   [142.0, 145.6, 'There\'s nowhere left to fly.'],
   [189.0, 193.0, 'Underground. Now.'],
-  [228.0, 232.0, 'The Moon is pulling the sea. The hole pulls harder.'],
+  [221.5, 224.8, 'The hole pulls the ocean toward it, over the city.'],
   [244.0, 248.0, 'Up. Up the stairs.'],
   [260.0, 264.0, 'You feel lighter.'],
   [294.0, 298.0, 'And then the ground lets go of you.'],
-  [304.5, 309.0, 'Earth is pulled into a stream behind you.'],
-  [318.0, 322.5, 'Near the edge, the whole future of the universe flashes by.'],
+  [299.5, 303.5, 'Nothing is holding you down anymore.'],
+  [310.5, 315.0, 'Earth is pulled into a stream behind you.'],
+  [324.0, 328.5, 'Near the edge, the whole future of the universe flashes by.'],
 ];
 export function captionAt(v) {
   if (popupAt(v) || stampAt(v)) return null;
@@ -148,7 +152,7 @@ export function captionAt(v) {
 }
 
 // the closing (after the white-out)
-export const CLOSING = [[333.0, STORY_END - 0.6, 'Would you have made it?']];
+export const CLOSING = [[339.0, STORY_END - 0.6, 'Would you have made it?']];
 
 // ---------- the state of the world (sky, street, people) at video time v ----------
 // t: the story moment shown (the flash-forward shows V_FF + v)
@@ -160,7 +164,7 @@ export function state(v) {
   // the hole in the sky: how big (lens strength; the sky shader's distance in hole radii, smaller = bigger), its disk
   // (dim until it has eaten Neptune, brighter after Saturn and Jupiter, blazing in the last hour)
   s.bhD = t < 44.4 ? lerp(900, 700, smooth(5, 44.4, t)) : t < 95 ? lerp(600, 450, smooth(44.4, 95, t)) : t < 150 ? lerp(380, 290, smooth(95, 150, t))
-    : t < 252 ? lerp(150, 95, smooth(150, 252, t)) : lerp(80, 14, Math.pow(smooth(252, 300, t), 0.8));
+    : t < 252 ? lerp(150, 95, smooth(150, 252, t)) : lerp(80, 14, Math.pow(smooth(252, 306, t), 0.8));
   s.disk = 0.04 * smooth(30, 40, t) + 0.25 * smooth(68, 80, t) + 0.5 * smooth(110, 125, t) + 0.6 * smooth(150, 170, t) + 0.4 * smooth(252, 290, t);
   // the Moon: stretches in the last hour, a ring when you come out of the subway
   s.moonStretch = 0.7 * smooth(159, 172, t) + 0.3 * smooth(205, 256, t);
@@ -169,18 +173,19 @@ export function state(v) {
   s.panic = smooth(36, 44, t);
   s.evac = t >= 44.4 && t < 150 ? 1 : 0;
   s.shelter = t >= 150 && t < 200 ? 1 : 0;
-  s.flood = t >= 252 ? 0.55 + 0.1 * smooth(252, 268, t) : 0;
+  // (the water reaches the avenue at 221.5, racing down it from the north: street.js; knee-deep from 252)
+  s.flood = t >= 252 ? 0.55 + 0.1 * smooth(252, 268, t) : t >= 221.5 ? 0.75 * smooth(221.5, 223.5, t) : 0;
   // gravity flipping on the avenue (0 .. 1), the horizon peeling up, your own lift
   s.lift = smooth(262, 296, t);
-  s.curl = smooth(284, 300, t);
-  s.you = Math.pow(smooth(292, 300, t), 1.6);
+  s.curl = smooth(284, 302, t);
+  s.you = Math.pow(smooth(292, 306, t), 1.6);
   s.quake = 0.25 * smooth(150, 200, t) + 0.6 * smooth(262, 298, t);
   // the phones: everyone looks at theirs at each alert, and up at the sky after
   s.alert = Math.max(0, ...[[8.6, 9], [178, 9]].map(([a, d]) => smooth(a, a + 0.6, t) * (1 - smooth(a + d - 1.5, a + d, t))));
   s.lookUp = smooth(12, 14, t) * (1 - smooth(36, 40, t)) + smooth(80, 82, t) * (1 - smooth(92, 95, t)) + smooth(157, 160, t) * (1 - smooth(176, 179, t)) + smooth(253, 256, t);
   // the white-out at the end
-  s.white = smooth(325.5, 330.5, t) * (1 - smooth(331.5, 333.5, t));
-  s.black = smooth(331.0, 331.5, t);
+  s.white = smooth(331.5, 336.5, t) * (1 - smooth(337.5, 339.5, t));
+  s.black = smooth(337.0, 337.5, t);
   if (v < FF_LEN) { s.ff = 1; s.bhD = 15; s.disk = 1.6; }
   return s;
 }

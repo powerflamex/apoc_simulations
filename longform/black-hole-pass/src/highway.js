@@ -191,25 +191,23 @@ export function makeHighway() {
   }
 
   // ---------- people: by their cars, on their phones; after the news they leave the cars and walk on ----------
-  const PN = 160;
+  // (one person per car, beside its right-hand door, for the first 120 cars; crowd.js people face +z at yaw 0, so
+  // pose() gets yaw + PI to face north)
+  const PN = 120;
   const people = [];
   for (let i = 0; i < PN; i++) {
-    const c = cars[Math.floor(R() * Math.min(cars.length, 200))];
-    const side = R() < 0.5 ? -1 : 1;
-    people.push({ x: c.x + side * 1.25, z: c.z + (R() - 0.5) * 2, yaw: R() * 6.28, out: R() < 0.35, go: 129 + R() * 9, speed: 1.0 + R() * 0.5, hop: R() * 6.28, phone: R() < 0.6, h: 0.9 + R() * 0.2 });
+    const c = cars[i * 2 + (i % 2)];
+    people.push({ x: c.x + 1.3, z: c.z + 0.6, yaw: 0.6 + R() * 1.4, go: 129 + R() * 6, hop: R() * 6.28, phone: R() < 0.6, h: 0.9 + R() * 0.2 });
   }
   const crowd = makeCrowd(scene, PN, plainMat(0xffffff, 0.85), { castShadow: false });
   { const RP = rng(77); const clothes = [0x2b2d42, 0x8d99ae, 0xb3243a, 0xd8d8d0, 0x3a5a40, 0xc49a6c, 0x264653, 0xd9b44a, 0x6d597a, 0x1d1d1d]; people.forEach((p, i) => crowd.color(i, clothes[Math.floor(RP() * clothes.length)], [0x2b2d42, 0x3d405b, 0x1d1d1d, 0x6b705c][Math.floor(RP() * 4)], SKIN[Math.floor(RP() * SKIN.length)], HAIR[Math.floor(RP() * HAIR.length)], RP() < 0.7)); }
   function updatePeople(t, cam) {
     people.forEach((p, i) => {
-      const visible = p.out || t > p.go;
-      const walking = t > p.go;
-      const d = walking ? (t - p.go) * p.speed : 0;
-      let x = p.x, z = p.z - d, yaw = walking ? 0 : p.yaw;
-      // keep out of your face
-      const dx = x - cam.x, dz = z - cam.z;
-      if (Math.abs(dx) < 1.2 && dz < 1 && dz > -10) x = cam.x + (dx < 0 ? -1.2 : 1.2);
-      crowd.pose(i, { x, y: 0, z, yaw, s: p.h, visible, walk: t * 5.4 + p.hop, stride: walking ? 1 : 0, armR: !walking && p.phone ? 0.7 : 0, look: !walking ? 0.15 : 0 });
+      // turn to face north over half a second, then walk (1.25 m/s, everyone the same)
+      const turn = smooth(p.go - 0.6, p.go, t);
+      const d = Math.max(0, t - p.go) * 1.25;
+      const yaw = p.yaw * (1 - turn);
+      crowd.pose(i, { x: p.x, y: 0, z: p.z - d, yaw: yaw + Math.PI, s: p.h, walk: t * 5.4 + p.hop, stride: smooth(p.go, p.go + 0.4, t), armR: p.phone ? 0.7 * (1 - turn) : 0, look: 0.15 * (1 - turn) });
     });
     crowd.commit();
   }

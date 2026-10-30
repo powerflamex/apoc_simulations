@@ -47,6 +47,20 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 - Highway: darker dusk sky, less fog, a shorter look up at Jupiter.
 - Text cards that arrive while a chapter stamp is up sit lower (they covered "19 DAYS LEFT"); shop windows dimmer.
 
+## Oct 29, second pass (owner: "people physics is rly bad")
+- People: crowd.js people face +z at yaw 0, and every scene had them facing -z, so everyone walked backwards (pose()
+  now gets yaw + PI). The avenue's walkers move in lanes 0.7 m apart at one pace per lane, evenly spaced (nobody walks
+  through anyone); standing crowds stand on a grid; nobody on your path; the view-clearing push only acts (smoothly)
+  while you zoom in on the big screen; the subway runners walk down the stairs instead of vanishing. Gravity going:
+  a slow drift up with arms out, then an eased-in fall up (no hopping, no snapping into the flail). Highway: everyone
+  by their car from the start, one pace. Subway: spots on a grid, everyone leaves at once at one pace in lanes; you
+  run in a free lane by the wall.
+- New shots (story 219-225): outside (`src/coast.js`): the ocean heaped into a dome toward the hole, the surge over the
+  seawall; then the avenue: a breaking wave racing down it and into the subway stairs. The subway flood moved 4 s later.
+- Subway water: the torrent and the floor are one dark green water with flowing foam streaks.
+- Pulled up: 292-306 in first person (looking down at the street dropping away, then up into the ring); everything
+  after moved 6 s (the fall 306-337). STORY_END 346, video 5:29.
+
 ## Built (Oct 28)
 Rendered and checked: `longform/out/black-hole-pass_1920x1080.mp4` (5:40; 5:23 after the Oct 29 rework), thumbnail `longform/out/black-hole-pass_thumb.png`,
 posting copy in `CAPTIONS.md`. Render: `bash ../../render-gate.sh black-hole-pass-long node render.mjs --upload

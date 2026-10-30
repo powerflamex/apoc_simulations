@@ -414,20 +414,20 @@ export function makeSpace(renderer, { w = 1920, h = 1080 } = {}) {
 
   // ---------- the fall: you fall toward the hole with Earth's debris; Earth stretched behind you ----------
   function setFall(v) {
-    const u = clamp((v - 300) / 31);
+    const u = clamp((v - 306) / 31);
     hole.set(0, 0, 0);
     // you: from far out, falling in (the hole's shadow grows to fill most of the view)
     const dist = lerp(26, 1.3, Math.pow(smooth(0, 0.86, u), 1.35));
     camera.position.set(0.35 * (1 - u), 0.22 + 0.4 * (1 - u), dist);
     // look back at Earth (304-309), then ahead at the hole
-    const back = smooth(301.5, 303.5, v) * (1 - smooth(309, 311.5, v));
+    const back = smooth(307.5, 309.5, v) * (1 - smooth(315, 317.5, v));
     const ahead = tmp.set(0, 0, 0);
     const behind = tmp2.set(6.5, -2.2, dist + 4);
     const target = ahead.lerp(behind, back);
     camera.up.set(0, 1, 0);
     camera.lookAt(target);
-    camera.rotateZ((1 - back) * 0.25 * Math.sin(v * 0.3) + smooth(312, 330, v) * 0.8);
-    camera.fov = lerp(48, 70, smooth(305, 328, v));
+    camera.rotateZ((1 - back) * 0.25 * Math.sin(v * 0.3) + smooth(318, 336, v) * 0.8);
+    camera.fov = lerp(48, 70, smooth(311, 334, v));
     // Earth: behind you, being pulled into a stream that runs past you into the hole
     planet.visible = true;
     pUniforms.uKind.value = 3;
@@ -462,7 +462,7 @@ export function makeSpace(renderer, { w = 1920, h = 1080 } = {}) {
     qUniforms.uDN.value.set(0.12, 1, 0.1).normalize();
     lUniforms.uDisk.value = 0.55;
     lUniforms.uDiskN.value.copy(qUniforms.uDN.value);
-    lUniforms.uFuture.value = smooth(316, 326, v);
+    lUniforms.uFuture.value = smooth(322, 332, v);
     sunDir.set(-0.4, 0.5, 0.75).normalize();
   }
 

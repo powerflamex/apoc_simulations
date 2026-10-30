@@ -30,9 +30,12 @@ function spline(list, t) {
 // [v, x, y, z, yaw, pitch, fov]  (yaw 0 = north, + turns right; 180 = south)
 const KEYS = [
   [200, 4.0, 0, -28, 172, -4, 58], [205, 4.2, 0, -24, 160, -8, 56], [209, 4.2, 0, -23, 196, -6, 56], [213, 4.2, 0, -23, 176, 4, 56],
-  [215.5, 4.2, 0, -25, 170, 30, 54], [218.5, 4.0, 0, -29, 20, 6, 56], [221, 3.8, 0, -30, 4, 10, 54], [224, 3.4, 0, -28, -2, 2, 56],
-  [227, 2.6, 0, -24, -24, -16, 58], [230, 2.4, 0, -19, -40, -20, 58], [233, 3.2, 0, -12, 10, 0, 56], [236, 3.6, 0, -6, 150, 0, 58], [241, 4.0, 0, 8, 180, 0, 58],
-  [245, 3.9, 0, 22, 180, 6, 58], [248, 3.9, 0.5, 31, 180, 18, 58], [252, 3.9, 4.0, 38.5, 180, 14, 60],
+  [215.5, 4.2, 0, -25, 170, 30, 54], [218.4, 4.0, 0, -29, 20, 6, 56], [219, 4.0, 0, -29.4, 10, 8, 56],
+  // (outside 219-225) back in: the torrent pouring down the stairs, the wave racing at you; you turn and run in the
+  // free strip (x 4.8: the crowd keeps to its columns at 1.6-3.8 and the wall) and up the south stairs
+  [225, 4.6, 0, -30, 4, 10, 54], [227.6, 4.8, 0, -29, -2, 2, 56], [229.5, 4.8, 0, -26, -30, -18, 58], [232, 4.8, 0, -21, 160, -4, 58],
+  [236, 4.8, 0, -11, 178, 0, 58], [241, 4.8, 0, 4, 180, 0, 58],
+  [245, 4.75, 0, 22, 180, 6, 58], [248, 4.6, 0.5, 31, 180, 18, 58], [252, 4.6, 4.0, 38.5, 180, 14, 60],
 ];
 
 export function makeSubway() {
@@ -135,12 +138,16 @@ export function makeSubway() {
   { const p = new THREE.PointLight(0xffd0a0, 7, 14, 1.5); p.position.set(3.9, 5.2, 41); scene.add(p); }
 
   // ---------- people sheltering ----------
-  const PN = 170;
+  // the sitters along the wall every 0.9 m, the standers on a 1.1 m grid across the platform (a few spots left empty);
+  // crowd.js people face +z at yaw 0, so pose() gets yaw + PI (yaw here: the way they face with -z ahead)
   const people = [];
-  for (let i = 0; i < PN; i++) {
-    const sit = R() < 0.55;
-    people.push({ x: sit ? 5.5 + R() * 0.5 : 1.4 + R() * 4.0, z: -40 + R() * 66, sit, yaw: sit ? -Math.PI / 2 + (R() - 0.5) * 0.6 : R() * 6.28, hop: R() * 6.28, h: 0.85 + R() * 0.25, flee: 222 + R() * 6, speed: 1.2 + R() * 1.0, phone: R() < 0.5 });
-  }
+  for (let z = -40; z < 26; z += 0.9) if (R() < 0.8) people.push({ x: 5.75, z: z + (R() - 0.5) * 0.15, sit: true, yaw: Math.PI / 2 + (R() - 0.5) * 0.5 });
+  // (three columns of standers; the strip x 4.3-5.3 stays free: your way out. None where you stand before the flood)
+  for (let z = -39.5; z < 26; z += 1.1) for (const x of [1.6, 2.7, 3.8]) if (R() < 0.55 && !(x > 3 && z > -32 && z < -20)) people.push({ x: x + (R() - 0.5) * 0.15, z: z + (R() - 0.5) * 0.2, sit: false, yaw: R() * 6.28 });
+  // each column has its own line up the south stairs (0.7 m apart)
+  const STAIR_LINE = (x) => (x < 2.2 ? 2.5 : x < 3.2 ? 3.2 : x < 4.3 ? 3.9 : 5.3);
+  people.forEach((p, i) => Object.assign(p, { hop: R() * 6.28, h: 0.85 + R() * 0.25, phone: R() < 0.5, lane: STAIR_LINE(p.x) }));
+  const PN = people.length;
   const crowd = makeCrowd(scene, PN, plainMat(0xffffff, 0.85), { castShadow: false });
   { const RP = rng(99); const clothes = [0x2b2d42, 0x8d99ae, 0xb3243a, 0xd8d8d0, 0x3a5a40, 0xc49a6c, 0x264653, 0xd9b44a, 0x6d597a, 0x1d1d1d]; people.forEach((p, i) => crowd.color(i, clothes[Math.floor(RP() * clothes.length)], [0x2b2d42, 0x3d405b, 0x1d1d1d, 0x6b705c][Math.floor(RP() * 4)], SKIN[Math.floor(RP() * SKIN.length)], HAIR[Math.floor(RP() * HAIR.length)], RP() < 0.7)); }
   // phone torches after the lights die
@@ -150,7 +157,7 @@ export function makeSubway() {
 
   // ---------- the water ----------
   const waterU = { uT: { value: 0 } };
-  const waterMat = new THREE.MeshStandardMaterial({ color: 0x3a4a3c, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.93 });
+  const waterMat = new THREE.MeshStandardMaterial({ color: 0x1a2622, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.95 });
   waterMat.onBeforeCompile = (sh) => {
     sh.uniforms.uT = waterU.uT;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -159,7 +166,17 @@ export function makeSubway() {
         { vec2 q = vWp.xz;
           float a = sin(q.x * 3.1 + uT * 3.3) + sin(q.y * 2.3 + uT * 4.6) + 0.6 * sin((q.x + q.y) * 6.1 + uT * 5.1);
           float b = cos(q.x * 2.7 - uT * 2.9) + cos(q.y * 3.3 + uT * 5.4) + 0.6 * cos((q.x - q.y) * 5.3 + uT * 4.3);
-          normal = normalize(normal + (viewMatrix * vec4(a * 0.06, 0.0, b * 0.06, 0.0)).xyz); }`);
+          normal = normalize(normal + (viewMatrix * vec4(a * 0.06, 0.0, b * 0.06, 0.0)).xyz); }`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        { // foam streaks flowing away from the north stairs (z -36), strongest near them
+          vec2 q = vec2(vWp.x * 3.0, vWp.z * 0.7 - uT * 4.5);
+          vec2 i = floor(q), f = fract(q); f = f * f * (3.0 - 2.0 * f);
+          float h00 = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5), h10 = fract(sin(dot(i + vec2(1, 0), vec2(127.1, 311.7))) * 43758.5);
+          float h01 = fract(sin(dot(i + vec2(0, 1), vec2(127.1, 311.7))) * 43758.5), h11 = fract(sin(dot(i + vec2(1, 1), vec2(127.1, 311.7))) * 43758.5);
+          float nz = mix(mix(h00, h10, f.x), mix(h01, h11, f.x), f.y);
+          float near = smoothstep(26.0, 0.0, vWp.z + 36.0) * 0.8 + 0.25;
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.6, 0.66, 0.62), smoothstep(0.55, 0.9, nz) * near * 0.85);
+        }`);
   };
   const water = new THREE.Mesh(new THREE.PlaneGeometry(11.5, L, 20, 100).rotateX(-Math.PI / 2), waterMat);
   water.position.set(0.8, -1.3, ZC);
@@ -179,10 +196,12 @@ export function makeSubway() {
         if (vUv.y < front) discard;
         vec2 q = vec2(vUv.x * 9.0 + vUv.y * 3.0, vUv.y * 7.0 + uT * 9.0);
         float f = n(q) * 0.5 + n(q * 2.3 + 3.1) * 0.3 + n(q * 5.1 - 7.3) * 0.2;
-        float foam = smoothstep(0.3, 0.75, f);
-        vec3 c = mix(vec3(0.16, 0.22, 0.2), vec3(0.9, 0.93, 0.9), foam);
+        float foam = smoothstep(0.35, 0.8, f);
+        vec3 c = mix(vec3(0.06, 0.1, 0.09), vec3(0.62, 0.68, 0.64), foam * 0.85);
+        // (a glint of the platform lights along the flow)
+        c += vec3(0.25, 0.28, 0.26) * pow(n(q * 0.5 + 9.0), 6.0);
         float edge = smoothstep(front, front + 0.06, vUv.y);
-        gl_FragColor = vec4(c * 1.2, (0.9 + 0.1 * foam) * edge);
+        gl_FragColor = vec4(c, (0.92 + 0.08 * foam) * edge);
       }`,
   }));
   {
@@ -224,15 +243,15 @@ export function makeSubway() {
       }`,
   }));
   scene.add(foam);
-  const frontAt = (t) => PZ0 + Math.max(0, t - 222.2) * 5.0;
+  const frontAt = (t) => PZ0 + Math.max(0, t - 226.2) * 5.0;
 
   function waterLevel(t) {
     // the tracks fill, then it climbs over the platform (knee-deep by the time you reach the stairs)
-    return -1.3 + 1.3 * smooth(221, 233, t) + 0.55 * smooth(233, 246, t);
+    return -1.3 + 1.3 * smooth(225, 237, t) + 0.55 * smooth(237, 248, t);
   }
 
   return {
-    scene, camera,
+    scene, camera, crowd,
     frame(v, s) {
       const t = s.t;
       const col = (j) => KEYS.map((r) => [r[0], r[j]]);
@@ -265,15 +284,15 @@ export function makeSubway() {
       water.position.y = waterLevel(t);
       {
         const fz = frontAt(t), len = Math.max(0.01, fz - PZ0);
-        pwater.visible = foam.visible = t > 222.2 && fz < 52;
-        pwater.position.y = Math.max(0.03 + 0.5 * smooth(224, 246, t), water.position.y);
+        pwater.visible = foam.visible = t > 226.2 && fz < 52;
+        pwater.position.y = Math.max(0.03 + 0.5 * smooth(228, 248, t), water.position.y);
         pwater.position.z = PZ0; pwater.scale.z = len;
         pwater.geometry.attributes.position.needsUpdate = false;
         foam.position.set(3.2, pwater.position.y + 0.02, PZ0 + len - 0.3);
         if (fz >= 52) { pwater.visible = false; water.position.y = Math.max(water.position.y, 0.53); }
       }
-      fallU.uOn.value = smooth(219.6, 221.6, t);
-      fall.visible = fall.userData.twin.visible = t > 219.5;
+      fallU.uOn.value = smooth(223.6, 225.6, t);
+      fall.visible = fall.userData.twin.visible = t > 223.5;
       sprayMesh.visible = t > 214;
       spray.forEach((p, i) => {
         if (p.dust) {
@@ -283,7 +302,7 @@ export function makeSubway() {
           dummy.scale.setScalar(t > 214.5 && t < 232 ? 0.012 : 0);
         } else {
           const k = ((t * 1.2 + p.ph) % 1);
-          const on = smooth(220.5, 222, t);
+          const on = smooth(224.5, 226, t);
           dummy.position.set(p.x, waterLevel(t) + 0.1 + p.vy * k - 4.9 * k * k * 0.5, p.z0 + p.vz * k * 1.5);
           dummy.scale.set(on * 0.025, on * (0.03 + 0.04 * (1 - k)), on * 0.025);
         }
@@ -293,23 +312,21 @@ export function makeSubway() {
 
       // people: sheltering; when the water comes, everyone heads for the south stairs
       const tl = [];
+      // everyone gets up at once when the water bursts in (the sitters take 0.8 s), turns south, and walks at one
+      // pace (slower in the deep water), easing sideways into their lane: their order along the platform never changes
+      const FLEE = 226.2;
+      const walked = Math.max(0, t - FLEE - 0.8) * 2.4;
       people.forEach((p, i) => {
-        const go = t > p.flee;
-        let px = p.x, pz = p.z, yaw2 = p.yaw, stride = 0, sit = p.sit ? 1 - smooth(p.flee, p.flee + 0.8, t) : 0;
-        if (go) {
-          const d = (t - p.flee - 0.8) * p.speed * (1 - 0.5 * smooth(233, 240, t));
-          pz = p.z + Math.max(d, 0);
-          px = lerp(p.x, 3.9 + (p.x - 3.6) * 0.4, smooth(0, 8, d));
-          yaw2 = Math.PI; stride = d > 0 ? 1.4 : 0;
-          pz = Math.min(pz, S_STAIR.z1 + 1);
-        }
-        // (and nobody stands in your face)
-        const dx = px - camera.position.x, dz = pz - camera.position.z;
-        if (Math.hypot(dx, dz) < 0.9) px += dx >= 0 ? 0.9 : -0.9;
+        const go = t > FLEE;
+        const turn = smooth(FLEE, FLEE + 0.8, t);
+        // (they keep their column until the stairs, then step into their column's line)
+        let pz = p.z + walked, px = lerp(p.x, p.lane, smooth(S_STAIR.z0 - 7, S_STAIR.z0 - 0.5, pz));
+        let yaw2 = lerp(p.yaw, Math.PI, turn), stride = walked > 0 ? 1.4 : 0, sit = p.sit ? 1 - turn : 0;
+        pz = Math.min(pz, S_STAIR.z1 + 1);
         const onStair = pz > S_STAIR.z0 ? Math.min(4.4, (pz - S_STAIR.z0) * 4.4 / (S_STAIR.z1 - S_STAIR.z0)) : 0;
         const visible = pz < S_STAIR.z1 + 0.5;
         const look = !go && t > 215 && t < 221 ? 0.6 : 0;
-        crowd.pose(i, { x: px, y: onStair, z: pz, yaw: yaw2, s: p.h, visible, walk: t * 6 + p.hop, stride, sit, armR: dead > 0.5 && p.phone ? 1.2 : (!go && p.phone && !p.sit ? 0.7 : 0), look });
+        crowd.pose(i, { x: px, y: onStair, z: pz, yaw: yaw2 + Math.PI, s: p.h, visible, walk: t * 6 + p.hop, stride, sit, armR: dead > 0.5 && p.phone ? 1.2 : (!go && p.phone && !p.sit ? 0.7 : 0), look });
         if (dead > 0.5 && p.phone && visible) {
           dummy.position.set(px - Math.sin(yaw2) * 0.5, onStair + 1.5 * p.h, pz - Math.cos(yaw2) * 0.5); dummy.scale.setScalar(1);
           tl.push(dummy.position.clone());

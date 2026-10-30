@@ -13,6 +13,7 @@ import { makeStreet } from './street.js';
 import { makeSpace } from './space.js';
 import { makeHighway } from './highway.js';
 import { makeSubway } from './subway.js';
+import { makeCoast } from './coast.js';
 import { feedAt } from './screens.js';
 import { makeOverlay } from './overlay.js';
 import { state, shotAt, SHOTS, VIDEO_DURATION, FF_LEN, storyOf } from './timeline.js';
@@ -36,6 +37,7 @@ const street = makeStreet(renderer);
 const space = makeSpace(renderer);
 const highway = makeHighway(renderer);
 const subway = makeSubway(renderer);
+const coast = makeCoast();
 const feed = space.makeFeed();
 street.screens?.setFeed?.(feed.texture);
 const blank = new THREE.Scene();
@@ -83,7 +85,7 @@ function update(v) {
     if (f) feed.render(f.what, f.u, v);
     street.frame(v, s);
     renderPass.scene = street.scene; renderPass.camera = street.camera;
-    exposure = s.ff ? 1.4 : 1.15 * (1 - 0.12 * smooth(290, 300, s.t)) * (1 + 0.25 * smooth(284, 290, s.t));
+    exposure = s.ff ? 1.4 : 1.15 * (1 + 0.25 * smooth(284, 290, s.t));
     bloom.threshold = 1.0; bloom.strength = 0.4 + 0.08 * Math.min(s.disk, 1.5);
   } else if (shot.scene === 'space' || shot.scene === 'fall') {
     space.prepare(shot.scene === 'fall' ? 'fall' : shot.what, shot.u, v);
@@ -95,6 +97,11 @@ function update(v) {
     renderPass.scene = highway.scene; renderPass.camera = highway.camera;
     exposure = 1.1;
     bloom.threshold = 1.0; bloom.strength = 0.4;
+  } else if (shot.scene === 'coast') {
+    coast.frame(v, s);
+    renderPass.scene = coast.scene; renderPass.camera = coast.camera;
+    exposure = 1.15;
+    bloom.threshold = 1.0; bloom.strength = 0.45;
   } else if (shot.scene === 'subway') {
     subway.frame(v, s);
     renderPass.scene = subway.scene; renderPass.camera = subway.camera;
@@ -107,7 +114,7 @@ function update(v) {
   // the blink at each cut, and the quake's colour fringe
   let blink = 0;
   for (const c of CUTS) if (c > FF_LEN - 0.01) blink = Math.max(blink, Math.exp(-Math.abs(v - c) * 16) * 0.55);
-  if (v >= 300) blink = 0;
+  if (v >= 306) blink = 0;
   s.blink = window.__cover ? 0 : blink;
   finish.uniforms.uAb.value = (s.quake || 0) * 0.5;
   finish.uniforms.uTitle.value = window.__cover ? 0.2 : v < FF_LEN ? 1 - smooth(4.3, 5.0, v) : 0;
@@ -134,7 +141,7 @@ async function boot() {
   for (const t of [2, 10, 22, 30, 70, 100, 115, 160, 220, 270, 310, 335]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
-  window.__dbg = { renderer, composer, street, space, state };
+  window.__dbg = { renderer, composer, street, space, subway, highway, state };
   window.DURATION = VIDEO_DURATION;
   window.__glInfo = (() => {
     const gl = renderer.getContext();
