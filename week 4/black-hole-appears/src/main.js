@@ -82,9 +82,10 @@ composer.addPass(new ShaderPass({
 // the marble: everything behind it bent round its shadow (a point lens: a pixel at angle t from it shows what is at
 // t - tE^2 / t), black inside the shadow, a thin bright photon ring at its edge. Done on the linear HDR frame.
 const lens = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uC: { value: new THREE.Vector2(0.5, 0.5) }, uE: { value: 0 }, uS: { value: 0 }, uAsp: { value: W / H } },
+  uniforms: { tDiffuse: { value: null }, uC: { value: new THREE.Vector2(0.5, 0.5) }, uE: { value: 0 }, uS: { value: 0 }, uAsp: { value: W / H },
+    uRing: { value: new THREE.Vector3(1.8, 1.44, 1.08) }, uHalo: { value: 0 }, uPx: { value: 1 / H } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform vec2 uC; uniform float uE; uniform float uS; uniform float uAsp; varying vec2 vUv;
+  fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform vec2 uC; uniform float uE; uniform float uS; uniform float uAsp; uniform vec3 uRing; uniform float uHalo; uniform float uPx; varying vec2 vUv;
     void main(){
       if (uS <= 0.0) { gl_FragColor = texture2D(tDiffuse, vUv); return; }
       vec2 d = (vUv - uC) * vec2(uAsp, 1.0);
@@ -93,15 +94,31 @@ const lens = new ShaderPass({
       vec2 src = uC + (d * (1.0 - uE * uE / (rs * rs))) / vec2(uAsp, 1.0);
       vec3 c = texture2D(tDiffuse, src).rgb;
       // the photon ring and the shadow
-      float ring = exp(-pow((r - uS * 1.015) / (uS * 0.02), 2.0));
-      c = mix(c, vec3(0.0), 1.0 - smoothstep(uS * 0.985, uS * 1.005, r));
-      c += vec3(3.0, 2.4, 1.8) * ring * 0.6;
+      float ring = exp(-pow((r - uS * 1.015) / max(uS * 0.02, uPx * 0.9), 2.0));
+      c = mix(c, vec3(0.0), 1.0 - smoothstep(uS * 0.985 - uPx * 0.7, uS * 1.005 + uPx * 0.7, r));
+      c += uRing * ring;
+      // (street shots) a hot orange glow hugging the ring and a violet halo further out: its own colour, nothing on
+      // the Strip has it
+      c += vec3(2.2, 0.75, 0.15) * uHalo * exp(-pow((r - uS * 1.3) / (uS * 0.3), 2.0));
+      c += vec3(0.75, 0.18, 1.35) * uHalo * 0.5 * exp(-max(r - uS * 1.6, 0.0) / (uS * 1.6)) * step(uS, r);
       gl_FragColor = vec4(c, 1.0);
     }`,
 });
 composer.addPass(lens);
 const bloom = new UnrealBloomPass(new THREE.Vector2(RW / 2, RH / 2), 0.5, 0.35, 0.9);
 composer.addPass(bloom);
+// (after the glow: the shadow stays pure black, the glow of its own ring doesn't fill it in)
+const dot = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uC: { value: new THREE.Vector2(0.5, 0.5) }, uS: { value: 0 }, uAsp: { value: W / H }, uPx: { value: 1 / H } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform vec2 uC; uniform float uS; uniform float uAsp; uniform float uPx; varying vec2 vUv;
+    void main(){
+      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      if (uS > 0.0) { float r = length((vUv - uC) * vec2(uAsp, 1.0)); c *= smoothstep(uS * 0.9 - uPx, uS * 0.97 + uPx * 0.5, r); }
+      gl_FragColor = vec4(c, 1.0);
+    }`,
+});
+composer.addPass(dot);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({
   uniforms: {
@@ -141,7 +158,7 @@ const v3 = new THREE.Vector3(), v4 = new THREE.Vector3(), v5 = new THREE.Vector3
 const lookAt = (pos, tgt) => { v3.copy(tgt).sub(pos); return { yaw: Math.atan2(-v3.x, -v3.z), pitch: Math.atan2(v3.y, Math.hypot(v3.x, v3.z)) }; };
 const TOWER = new THREE.Vector3(720, 300, 2480);              // you, on a tower 2.6 km away (south-east, across the low city)
 const dirFrom = (az, el) => new THREE.Vector3(Math.sin(az * DEG) * Math.cos(el * DEG), Math.sin(el * DEG), Math.cos(az * DEG) * Math.cos(el * DEG));
-const HIGH_D = [[24.2, 3.0e4], [27, 8e4], [30, 2.6e5], [33, 8.5e5], [36, 2.8e6], [38.5, 7.5e6], [40, 1.25e7]];
+const HIGH_D = [[24.2, 2.2e4], [27, 3.6e4], [30, 1.1e5], [33, 3.5e5], [36, 1.2e6], [38.5, 6.5e6], [40, 1.25e7]];
 const highAz = (v) => lerp(-8, 22, smooth(24.2, 40, v));
 const highEl = (v) => lerp(42, 68, smooth(24.6, 38.5, v));
 function camAt(v, s) {
@@ -149,13 +166,14 @@ function camAt(v, s) {
   const kl = clamp((v - sh.a) / (sh.b - sh.a));
   const pos = new THREE.Vector3(), tgt = new THREE.Vector3();
   // pOff: how far (deg) the view is tipped down from the black hole, so it sits in the upper third, clear of the counter
-  let fov = 60, roll = wobble(v * 0.3, 7) * 0.5 * DEG, near = 0.05, hand = 1, pOff = 0;
+  let fov = 60, roll = wobble(v * 0.3, 7) * 0.5 * DEG, near = 0.05, hand = 1, pOff = 0, yOff = 0;
   if (sh.k === 'face') {
     // right in front of it: it hangs just above the middle of the frame, people at your shoulders; you back away
     const k = Math.pow(smooth(-0.5, 4.5, v), 1.3);
-    pos.set(-0.25 - 0.2 * k, 1.64 + 0.08 * k, 3.3 + 1.6 * k);
-    tgt.set(0.48 + 0.1 * k, -0.12 + 0.25 * k, -1.32);
+    pos.set(1.75 - 0.2 * k, 1.62 + 0.08 * k, 2.75 + 1.9 * k);
+    tgt.copy(B);
     fov = 70;
+    pOff = 11.5; yOff = 1.5;
   } else if (sh.k === 'walk') {
     pos.set(-3.0 - 0.3 * kl, 3.6, 24.6 + 1.6 * kl);
     tgt.set(1.4, 1.3, 0);
@@ -207,6 +225,7 @@ function camAt(v, s) {
   }
   const o = lookAt(pos, tgt);
   o.pitch -= pOff * DEG;
+  o.yaw += yOff * DEG;
   // (from the sky and space, the hole sits in the upper third: the counter is in the middle of the frame)
   if (sh.k === 'high') o.pitch -= 9 * DEG;
   if (sh.k === 'zoom') o.pitch -= 9 * DEG * (1 - smooth(sh.a, V_MARBLE, v)) + 7 * DEG * smooth(40.6, V_MARBLE, v);
@@ -269,13 +288,14 @@ function update(v, cover = -1) {
   land.atmo.visible = !deep;
 
   glows.begin(camera);
-  if (streetOn) things.frame(v, glows);
+  if (streetOn) things.frame(v, glows, camera.position);
   const crush = streetOn ? things.crushRate(v) : 2;
   // the swirl: physical size; at the marble its inner edge is where nothing can orbit (3 x its radius)
   const rs = sizeAt(v) / 2;
   const R = accR(v);
   const inner = shot === 'zoom' ? clamp(3 * rs / R, 0, 0.5) : 0;
-  const hs = hole.frame(v, glows, crush, camera.position, { R, inner, diskK: shot === 'zoom' ? 0.75 : shot === 'high' ? 0.45 : shot === 'tower' ? 0.8 : 1, cap: shot === 'zoom' ? 0.5 : 6, focus: shot === 'zoom' ? Math.max(camD * 0.45, 0.1) : 1e12, tilt: shot === 'zoom' ? 24 * (1 - smooth(40.4, 41.4, v)) : 24, lightK: streetOn ? 1 : 0 });
+  const near3 = shot === 'face' || shot === 'walk' || shot === 'block';
+  const hs = hole.frame(v, glows, crush, camera.position, { R, inner, diskK: shot === 'zoom' ? 0.75 : shot === 'high' ? 0.8 * (1 - 0.35 * smooth(37, 39.5, v)) : shot === 'tower' ? 0.8 : 1, cap: shot === 'zoom' ? 0.5 : shot === 'face' ? 1.0 : 6, streaks: shot === 'high' ? 1 - smooth(38, 39.6, v) : 0, overGround: shot === 'high' && v < 38.5, noStar: near3, noHawk: near3, focus: shot === 'zoom' ? Math.max(camD * 0.45, 0.1) : 1e12, tilt: shot === 'zoom' ? 24 * (1 - smooth(40.4, 41.4, v)) : 24, lightK: streetOn ? 1 : 0 });
   glows.end();
 
   // ---------- lights ----------
@@ -291,6 +311,21 @@ function update(v, cover = -1) {
   // ---------- the lens round the marble ----------
   {
     let S = 0, E = 0;
+    const scr0 = 1 / (2 * Math.tan(camera.fov * DEG / 2));
+    lens.uniforms.uRing.value.set(1.8, 1.44, 1.08);
+    lens.uniforms.uHalo.value = 0;
+    if (near3 || (shot === 'rise' && v < 13.6)) {
+      v4.copy(B).applyMatrix4(camera.matrixWorldInverse);
+      if (v4.z < 0) {
+        const fade = 1 - smooth(12.6, 13.5, v);
+        S = Math.max(0.03 / camD * scr0, 0.0048) * fade;
+        E = S * 3.8;
+        v4.copy(B).project(camera);
+        lens.uniforms.uC.value.set(v4.x * 0.5 + 0.5, v4.y * 0.5 + 0.5);
+        lens.uniforms.uRing.value.set(3.0, 1.15, 0.22);
+        lens.uniforms.uHalo.value = (0.4 + 0.45 * hs.hk) * fade;
+      }
+    }
     if (shot === 'zoom') {
       const rsE = sizeAt(V_EARTH) / 2;
       const th = Math.atan(2.6 * rsE / camD);                    // the shadow's angular radius
@@ -303,10 +338,12 @@ function update(v, cover = -1) {
     }
     lens.uniforms.uS.value = S;
     lens.uniforms.uE.value = E;
+    // (ShaderPass copies its uniforms, so the dot pass gets them set here)
+    dot.uniforms.uS.value = S; dot.uniforms.uC.value.copy(lens.uniforms.uC.value);
   }
 
   // ---------- post ----------
-  bloom.strength = 0.55 + 0.25 * kick - (shot === 'zoom' ? 0.3 * smooth(40.8, V_MARBLE, v) : 0);
+  bloom.strength = (shot === 'face' ? 0.32 : 0.55) + 0.25 * kick - (shot === 'zoom' ? 0.3 * smooth(40.8, V_MARBLE, v) : 0);
   finish.uniforms.uTime.value = v;
   finish.uniforms.uAb.value = kick * 0.7 + (shot === 'tower' ? smooth(V_YOU, V_YOU + 2, v) * 0.4 : 0);
   finish.uniforms.uBlur.value = window.__cover ? 0 : kick * 0.025 + (shot === 'zoom' ? 0.06 * Math.sin(Math.PI * smooth(40, V_MARBLE, v)) : 0);
@@ -352,7 +389,7 @@ async function boot() {
   for (const t of [42, 35, 28, 22, 18, 14, 10, 6, 2, 0]) renderFrame(t);
   window.renderFrame = renderFrame;
   window.__comp = comp;
-  window.__dbg = { scene, camera, renderer, composer, things, hole, land, SURF };
+  window.__dbg = { scene, camera, renderer, composer, things, hole, land, SURF, lens, dot };
   window.DURATION = VIDEO_DURATION;
   window.__glInfo = (() => {
     const gl = renderer.getContext();

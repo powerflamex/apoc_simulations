@@ -115,7 +115,7 @@ const LOOK = /* glsl */ `
         vec3 sf = mix(base * 0.18, mix(vec3(0.03), inside * 0.3, 1.0 - bro), pane);
         sf = mix(sf, vec3(0.03, 0.025, 0.03), step(g0 - 0.9, y));
         col = sf;
-        totalEmissiveRadiance += pane * inside * 1.1 * on * (1.0 - bro);
+        totalEmissiveRadiance += pane * inside * 0.6 * on * (1.0 - bro);
         // a strip of light under the fascia
         totalEmissiveRadiance += vec3(1.2, 0.9, 0.6) * exp(-pow((y - (g0 - 0.85)) / 0.08, 2.0)) * on;
       }

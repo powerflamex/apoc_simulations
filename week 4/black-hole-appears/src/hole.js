@@ -101,6 +101,8 @@ export function makeHole(scene) {
   star.renderOrder = 8;
   scene.add(star);
 
+  const STREAKS = [];
+  for (let i = 0; i < 150; i++) STREAKS.push({ a: i * 2.3999, ph: (i * 0.618034) % 1, T: 2.4 + ((i * 0.3819) % 1) * 2.6, s: 0.012 + 0.02 * ((i * 0.7071) % 1), y: (((i * 0.4142) % 1) - 0.5) * 0.12 });
   const BALL = [];
   for (let i = 0; i < 260; i++) {
     const r = Math.pow(((i * 0.6180339) % 1), 1.6), y = (((i * 0.4142) % 1) * 2 - 1) * 0.55;
@@ -121,13 +123,15 @@ export function makeHole(scene) {
       U.uInner.value = opts.inner ?? 0;
       U.uCap.value = opts.cap ?? 6;
       U.uFocus.value = opts.focus ?? 1e12;
+      // (from the sky the swirl is drawn over the ground, so the land it hangs over doesn't slice it in half)
+      mat.depthTest = !opts.overGround;
       // the swirl lights up as things reach it (the first dust and tokens at ~1-2 s), flashing as big things go in
       const acc = smooth(0.8, 3.5, v) * (0.75 + 0.25 * Math.tanh(crush * 0.4));
       U.uBright.value = acc * (opts.diskK ?? 1);
       // the Hawking point: blue-white, a hard core and a soft halo
       const hk = hawk(v);
       const dc = camPos.distanceTo(B);
-      if (hk > 0) {
+      if (hk > 0 && !opts.noHawk) {
         const core = Math.max(0.022, dc * 0.0035);
         glows.add(B.x, B.y, B.z, core, 7 * hk, 7.5 * hk, 9 * hk);
         glows.add(B.x, B.y, B.z, core * 4, 0.9 * hk * hk, 1.0 * hk * hk, 1.4 * hk * hk);
@@ -139,7 +143,26 @@ export function makeHole(scene) {
       star.visible = hk > 0.01 && !opts.noStar;
       // the crushed core: a hot knot at the centre of the swirl, flaring when something is crushed
       const kn = acc * (0.6 + Math.min(1.5, crush * 0.25));
-      glows.add(B.x, B.y, B.z, Math.max(R * 0.08, dc * 0.003), 3 * kn, 1.8 * kn, 0.9 * kn);
+      if (!opts.noHawk) glows.add(B.x, B.y, B.z, Math.max(R * 0.08, dc * 0.003), 3 * kn, 1.8 * kn, 0.9 * kn);
+      // a pulse through the swirl on every step (10x every 3 s)
+      const st = v % 3, pulse = v > 2.5 ? Math.exp(-st / 0.35) * smooth(0, 0.05, st) : 0;
+      U.uBright.value *= 1 + 0.9 * pulse;
+      // (from the sky) glowing pieces of the land streaking in along the swirl, each drawn as a short trail
+      const sk = opts.streaks ?? 0;
+      if (sk > 0.01) {
+        const ct = Math.cos(disk.rotation.x), sn = Math.sin(disk.rotation.x);
+        for (const p of STREAKS) {
+          for (let j = 0; j < 10; j++) {
+            const u = (((v - j * 0.012) / p.T + p.ph) % 1 + 1) % 1;
+            const rn = 2.4 * Math.pow(1 - u, 1.5) + 0.05;
+            const th = p.a + 2.6 * Math.log(2.4 / rn) + v * 0.35;
+            const x = Math.cos(th) * rn * R, z = Math.sin(th) * rn * R, y = p.y * rn * R;
+            const hot = 0.4 + 0.6 * (1 - rn / 2.45);
+            const g = sk * (1 - j / 10) * smooth(0, 0.08, u) * hot * (1 + 1.2 * pulse) * 0.75;
+            glows.add(B.x + x, B.y + y * ct - z * sn, B.z + y * sn + z * ct, R * p.s * (1.2 - j * 0.06), 2.6 * g, 1.2 * g * hot, 0.35 * g * hot * hot);
+          }
+        }
+      }
       // a ball of crushed, glowing matter churning round it (seen from any side), fading when the camera is inside it
       const Rb = R * 0.32;
       const bk = acc * smooth(Rb * 1.5, Rb * 4, dc) * (opts.ballK ?? 1);
@@ -155,8 +178,9 @@ export function makeHole(scene) {
       // its light on the street
       light.position.copy(B);
       const Lh = 7 * hk * hk, La = 4 * kn * Math.max(1, R);
-      light.intensity = (Lh + La) * (opts.lightK ?? 1);
+      light.intensity = (Lh + La) * (opts.lightK ?? 1) * (opts.noHawk ? 0.3 : 1);
       light.color.setRGB((Lh * 0.85 + La * 1.0) / (Lh + La + 1e-6), (Lh * 0.9 + La * 0.62) / (Lh + La + 1e-6), (Lh * 1.0 + La * 0.35) / (Lh + La + 1e-6));
+      if (opts.noHawk) light.color.setRGB(1.0, 0.5, 0.35);
       return { hk, kn };
     },
   };

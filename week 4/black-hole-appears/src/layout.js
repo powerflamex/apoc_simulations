@@ -156,6 +156,8 @@ export const VICTIM = person(0.2, -1.7, { yaw: Math.atan2(BH.x - 0.2, BH.z + 1.7
 // right next to you: a woman filming it (left, close) and a man (right, close)
 person(-1.0, 1.75, { phone: true, k: 1.25, shirt: 0xc95fa0, pants: 0x111111, s: 0.97, yaw: Math.atan2(BH.x + 1.0, BH.z - 1.75) });
 person(-1.75, 0.55, { phone: true, k: 1.2, shirt: 0x2f5fa8, pants: 0x2a2a2a, s: 1.02 });
+// at your right shoulder (from the first camera), filming it
+person(1.9, 1.5, { phone: true, k: 1.3, shirt: 0xe85a8a, pants: 0x1f2a44, s: 0.98 });
 // around it: tourists on the sidewalk beyond it, two by the casino front, some on the curb, a few across the road
 for (const [x, z] of [[-1.6, -3.2], [-0.6, -4.4], [1.5, -5.2], [-3.4, -2.2], [-4.6, -0.6], [2.6, -3.6], [-2.4, -6.8], [0.4, -8.4], [2.2, -10.5], [-3.8, -9.6], [-1.2, -12.8], [1.4, -15.5], [-4.2, -15], [-2.2, -18.5], [0.9, -22], [-3.6, -25], [2.1, -27], [-0.8, -31], [-4.8, -36], [1.6, -40], [-2.6, -44], [0.2, -49]]) person(x + (R() - 0.5) * 0.4, z + (R() - 0.5) * 0.4);
 for (const [x, z] of [[-3.6, 3.6], [-5.0, 1.8], [2.4, 1.2], [-4.2, 6.8], [1.9, 7.6], [-2.6, 9.4]]) person(x, z);
@@ -220,7 +222,7 @@ for (let i = 0; i < 260; i++) {
 for (let i = 0; i < 110; i++) {
   const a = R() * Math.PI * 2, r = 1.0 + Math.pow(R(), 1.2) * 9;
   const x = BH.x + Math.cos(a) * r, z = BH.z + Math.sin(a) * r * 1.3;
-  if (x < W_FRONT + 0.2 || Math.hypot(x - 0.15, z - 3.3) < 2.2) continue;
+  if (x < W_FRONT + 0.2 || Math.hypot(x - 0.15, z - 3.3) < 2.2 || Math.hypot(x - 1.75, z - 2.75) < 1.9) continue;
   const t = R();
   prop(t < 0.4 ? 'card' : t < 0.75 ? 'paper' : 'leaf', x, 0.3 + R() * 3.5, z);
 }

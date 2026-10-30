@@ -105,7 +105,7 @@ export function popupAt(v) {
 // ---- captions (in the gaps between the popups: never on screen together) ----
 export const CAPTIONS = [
   [5.1, 6.9, 'It gets 10x heavier every 3 seconds.'],
-  [8.8, 10.5, 'It’s still smaller than an atom.'],
+  [8.8, 10.5, 'Everything within 80 feet is falling in.'],
   [12.4, 14.4, 'The heavier it gets, the dimmer it glows.'],
   [16.4, 17.9, 'Nothing can hold on now.'],
   [21.0, 22.5, 'Its pull on you just passed Earth’s.'],
@@ -119,8 +119,8 @@ export function captionAt(v) {
   if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
     if (v >= a - 0.01 && v <= b + 0.01) {
-      const fadeIn = clamp((v - a) / 0.3);
-      const fadeOut = clamp((b - v) / 0.3);
+      const fadeIn = clamp((v - a) / 0.2);
+      const fadeOut = clamp((b - v) / 0.2);
       return { text, alpha: Math.min(fadeIn, fadeOut), rise: (1 - fadeIn) * 14 };
     }
   }

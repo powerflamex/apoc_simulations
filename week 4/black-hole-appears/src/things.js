@@ -342,6 +342,42 @@ export function makeThings(scene, ctx) {
     }
   }
 
+  // ---------------- the spiral right round it at the start: chips, cards and flyers whirling in ----------------
+  // (a steady stream: each piece comes in from ~1.3 m, winds round on a tipped plane facing the first camera and
+  // vanishes into it; then the next. Fades out by 8 s, when the loose things on the ground have taken over.)
+  const SWN = new THREE.Vector3(0.18, 0.882, 0.44).normalize();
+  const SWE1 = new THREE.Vector3().crossVectors(UP, SWN).normalize(), SWE2 = new THREE.Vector3().crossVectors(SWN, SWE1);
+  const swirl = [['chip', 48, 1.9], ['card', 34, 1.3], ['paper', 12, 0.8]].map(([type, n, sc]) => {
+    const T = TYPES[type];
+    const mesh = mk(T.g, T.m, n);
+    const list = [];
+    for (let j = 0; j < n; j++) {
+      if (T.colors) mesh.setColorAt(j, new THREE.Color([0xd8262a, 0x2a5ad8, 0x22a050, 0xf2f2f2, 0xe8b020][j % 5]));
+      list.push({ T: 1.5 + R() * 1.8, ph: R(), a: R() * 6.28, sc, spin: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).multiplyScalar(14), off: (R() - 0.5) * 0.08 });
+    }
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    return { mesh, list };
+  });
+  function spiral(v) {
+    const fade = 1 - smooth(6, 8, v);
+    for (const { mesh, list } of swirl) {
+      list.forEach((p, j) => {
+        if (fade <= 0) { mesh.setMatrixAt(j, zero); return; }
+        const u = ((v / p.T + p.ph) % 1 + 1) % 1;
+        const r = 0.03 + 1.3 * Math.pow(1 - u, 1.7);
+        const th = p.a + 2.8 * Math.log(1.33 / r) + 0.8 * v;
+        v4.copy(B).addScaledVector(SWE1, Math.cos(th) * r).addScaledVector(SWE2, Math.sin(th) * r).addScaledVector(SWN, p.off * r);
+        const t = u * p.T;
+        e4.set(p.spin.x * t, p.spin.y * t, p.spin.z * t);
+        q4.setFromEuler(e4);
+        const s = p.sc * smooth(0, 0.1, u) * smooth(0.12, 0.4, r) * fade;
+        m4.compose(v4, q4, s4.set(s, s, s));
+        mesh.setMatrixAt(j, m4);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
   // what was crushed in the last moments (for the flashes in the glow and the light it throws)
   const ALL = [...PEOPLE.map((p) => [p.F, 1.0]), ...CARS.map((c) => [c.F, 2.0]), ...POLES.map((p) => [p.F, 1.2]), ...PROPS.map((p) => [p.F, 0.15])];
   function crushRate(v, win = 0.35) {
@@ -352,7 +388,7 @@ export function makeThings(scene, ctx) {
 
   return {
     crowd, fleet,
-    frame(v, glows) { people(v, glows); cars(v); poles(v, glows); props(v, glows); shards(v, glows); dust(v, glows); },
+    frame(v, glows) { people(v, glows); cars(v); poles(v, glows); props(v, glows); shards(v, glows); dust(v, glows); spiral(v); },
     crushRate,
     victim: VICTIM,
   };
