@@ -887,14 +887,17 @@ Big Rip, Big Crunch or heat death: which ending scares you most? 👇
 
 ## Long video 6. A black hole passes Earth — `longform/out/black-hole-pass_1920x1080.mp4`
 
-16:9, 5:40, **no voice** (owner, Oct 26): the phone (texts from Mom, Dad and Jay, emergency alerts), the avenue's giant
+16:9, 5:23, **no voice** (owner, Oct 26): the phone (texts from Mom, Dad and Jay, emergency alerts), the avenue's giant
 screens (headlines, LIVE pictures from space) and short captions tell it. New scenes (a night avenue, the highway to
 the airport, a subway platform, space with the lensing done per pixel; plan `longform/BLACK-HOLE-PASS.md`). Topic
 picked from the Oct 26 YouTube check (`research/longform_topics_2026-10-26.md`): the channel's biggest Short, and no
-long version over 443 views. **Upload this file.**
-Thumbnail: `longform/out/black-hole-pass_thumb.png` (the last hour, 2:48: the Moon torn into a glowing shard pointing at the
-black hole over the avenue; small caps "THE BLACK HOLE ARRIVES IN" and a giant gold "1 HOUR";
-`node render.mjs --cover 168` in `longform/black-hole-pass/`).
+long version over 443 views. Oct 29 (owner, before posting: a competitor's similar video, Scout's Theory 103K): a clear
+opening (the black hole's giant glowing ring over the avenue, taxis and people falling up toward it, the title under
+it, BLACK HOLE · MILES AWAY racing on frame 0), the avenue stretch between Neptune and Saturn cut from 25 s to 12 s
+(Saturn at 0:47 instead of 1:02), a darker, sharper highway with 4 s less of it. **Upload this file.**
+Thumbnail: `longform/out/black-hole-pass_thumb.png` (the opening shot: the giant glowing ring over the avenue, buildings
+both sides, taxis falling up, people in the flooded street; small caps "THE BLACK HOLE ARRIVES IN" and a giant gold
+"1 HOUR"; `node render.mjs --cover 0.05` in `longform/black-hole-pass/`).
 
 **YouTube title (62 chars)**
 What If a Black Hole Passed Earth? You Have 56 Days to Survive
@@ -912,14 +915,13 @@ Would you have made it? Where would you have gone? 👇
 
 0:00 56 days left
 0:24 Neptune is torn apart
-0:50 19 days left: the evacuation
-1:02 Saturn's rings
-1:35 8 days left: the last flight
-1:46 Jupiter
-2:30 1 hour left
-3:20 30 minutes left: the subway floods
-4:12 7 minutes left: gravity flips
-5:00 Falling in
+0:44 19 days left: Saturn's rings
+1:22 8 days left: the last flight
+1:33 Jupiter
+2:13 1 hour left
+3:00 30 minutes left: the subway floods
+3:55 7 minutes left: gravity flips
+4:43 Falling in
 
 #whatif #blackhole #space #simulation #science
 

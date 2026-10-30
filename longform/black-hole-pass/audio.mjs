@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, SHOTS, NOTES, POPS, CHAPTERS, FF_LEN, V_FF, state } from './src/timeline.js';
+import { VIDEO_DURATION, SHOTS, NOTES, POPS, CHAPTERS, FF_LEN, V_FF, state, storyOf } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -90,9 +90,9 @@ export function makeSoundtrack(outFile) {
 
   let s = state(0);
   for (let n = 0; n < N; n++) {
-    const v = n / SR;
+    const v = storyOf(n / SR);                 // (the story moment: two stretches are cut out of the video)
     const t = v < FF_LEN ? V_FF + v : v;     // the story moment (the flash-forward plays the end's sound)
-    if (n % 64 === 0) s = state(v);
+    if (n % 64 === 0) s = state(v);   // (state takes the story moment)
     const white = () => R0() * 2 - 1;
     const scene = sceneAt(v);
     const ffScene = v < FF_LEN ? 'street' : scene;

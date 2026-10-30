@@ -124,7 +124,7 @@ const FACADE = /* glsl */ `
     float frameMask = 1.0 - mull * 0.9 * detail;
     float e = mix(win * lit * interior * frameMask, 0.1 * ok * onFrac, far) * power;
     float shopLit = step(0.3, rs) * power * (style == 2.0 ? 0.7 : 1.0);
-    e += mix(pane * 1.1, shop * 0.12, far) * shopLit;
+    e += mix(pane * 0.55, shop * 0.08, far) * shopLit;
     totalEmissiveRadiance += e * warm + fascia * shopLit * fasciaC * 0.6 * detail;
   }
 `;

@@ -37,7 +37,17 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 | 5:00 | space | You fall up into it: Earth's debris stream behind you, the ring of light, white. |
 | 5:30 | white | "Would you have made it?" |
 
+## Oct 29 rework (owner, before posting)
+- Opening: the hole shown close (giant glowing ring, bhD 15) high over the avenue, taxis and people falling up toward it,
+  the title moved under the ring; BLACK HOLE · MILES AWAY racing from frame 0. The thumbnail is the same shot.
+- Two stretches of the story are cut out of the video (`SKIPS` / `storyOf` in `src/timeline.js`; every module still
+  runs on story time): the avenue between Neptune and Saturn (story 49-62: NASA, Mom, 19 DAYS LEFT and Dad now fit in
+  37-49) and the end of the highway (146-150). 5:40 -> 5:23. Video times in the table above are story times: subtract
+  13 s after 0:49 and 17 s after 2:26.
+- Highway: darker dusk sky, less fog, a shorter look up at Jupiter.
+- Text cards that arrive while a chapter stamp is up sit lower (they covered "19 DAYS LEFT"); shop windows dimmer.
+
 ## Built (Oct 28)
-Rendered and checked: `longform/out/black-hole-pass_1920x1080.mp4` (5:40), thumbnail `longform/out/black-hole-pass_thumb.png`,
+Rendered and checked: `longform/out/black-hole-pass_1920x1080.mp4` (5:40; 5:23 after the Oct 29 rework), thumbnail `longform/out/black-hole-pass_thumb.png`,
 posting copy in `CAPTIONS.md`. Render: `bash ../../render-gate.sh black-hole-pass-long node render.mjs --upload
 ../out/black-hole-pass_1920x1080.mp4` in `longform/black-hole-pass/` (~14 min drawing + ~5 min upload copy).

@@ -43,17 +43,17 @@ const K = (...p) => p;
 // Each visit is a list of keys [v, x, z, yaw, pitch, fov]; y is your eye height unless a key sets it (the stairs).
 const VISITS = [
   // the flash-forward: things falling up all around, the hole overhead (shown at V_FF + v; keys in story time)
-  { from: 295.6, to: 300.6, keys: [[295.6, 13.0, -14.8, -4, 11, 72], [300.6, 13.0, -14.8, -2, 18, 72]] },
+  { from: 280, to: 285, keys: [[280, 13.0, -9.0, -2, 29, 76], [285, 13.0, -9.6, -2, 32, 74]] },
   // a normal night; the alert; up at the sky; back down to the big screen, zooming in on its LIVE picture
   { from: 5, to: 24, keys: [
     [5, 13.4, 7.0, -30, 6, 58], [8.6, 13.4, 3.4, -18, 2, 58], [10.5, 13.4, 3.0, 8, -8, 56], [12.0, 13.4, 3.0, 0, 6, 56],
     [13.6, 13.4, 3.0, -2, 30, 50], [16.6, 13.4, 3.0, -4, 31, 46], [18.6, 13.4, 3.0, -16, 6, 54], [21.0, 13.4, 3.0, -6, 8, 40],
     [24.0, 13.4, 3.0, -5, 9, 22]] },
-  // after Neptune: panic; NASA's note; (19 days later, from 50) the evacuation: gridlock, suitcases, the screens;
-  // zoom into the LIVE picture of Saturn
-  { from: 37, to: 62, keys: [
-    [37, 13.4, 3.0, -5, 9, 24], [38.6, 13.4, 3.0, -8, 7, 48], [42, 13.4, 3.0, -40, 0, 56], [46, 13.4, 3.0, 22, 2, 58], [49.9, 13.4, 3.0, 30, 0, 58],
-    [50, -13.2, -4.0, 26, 2, 60], [54, -13.2, -6.0, 18, 0, 60], [57, -13.2, -8.0, -10, 3, 58], [59.6, -13.2, -9.0, 6, 8, 46], [62, -13.2, -9.2, 7, 9, 24]] },
+  // after Neptune: panic; NASA's note; Mom; (19 days later, from 44.4) the evacuation: gridlock, suitcases; Dad's
+  // text; zoom into the LIVE picture of Saturn (the story jumps from 49 to the Saturn cutaway at 62)
+  { from: 37, to: 49, keys: [
+    [37, 13.4, 3.0, -5, 9, 24], [38.4, 13.4, 3.0, -8, 7, 48], [41, 13.4, 3.0, -30, 0, 56], [44.3, 13.4, 3.0, -6, 3, 56],
+    [44.4, -13.2, -4.0, 26, 2, 60], [46.4, -13.2, -6.0, 12, 1, 58], [47.6, -13.2, -8.4, 6, 8, 44], [49, -13.2, -9.2, 7, 9, 24]] },
   // after Saturn: look up, now you can see it; Mom's text; you start walking south (for the airport)
   { from: 78, to: 95, keys: [
     [78, -13.2, -9.2, 7, 9, 26], [79.5, -13.2, -9.2, 4, 20, 50], [84, -13.2, -9.2, 2, 30, 46], [88, -13.2, -9.2, -12, 12, 56],
@@ -306,7 +306,7 @@ export function makeStreet(renderer) {
     const t = s.t;
     cars.forEach((c, i) => {
       let z, lights = true, yaw = c.dir < 0 ? 0 : Math.PI;
-      if (t < 50) {
+      if (t < 44.4) {
         // a normal night: moving, then (after Neptune) slowing to a crawl
         const tr = t < 38 ? t : 38 + (Math.min(t, 48) - 38) * 0.4;
         const u = (c.u0 + c.speed * tr) % ROAD_LEN;
@@ -322,8 +322,8 @@ export function makeStreet(renderer) {
       const r = dt > 0 ? dt * dt * 0.35 : 0;
       dummy.position.set(c.lane, (t >= 252 ? s.flood * 0.25 : 0) + up, z - up * 0.25);
       dummy.rotation.set(c.spin.x * r, yaw + c.spin.y * r, c.spin.z * r);
-      const endFade = t < 50 ? Math.min(clamp((ROAD_Z0 - z) / 4), clamp((z - (ROAD_Z0 - ROAD_LEN)) / 4)) : 1;
-      dummy.scale.setScalar(t >= 50 && z < CROSS_Z1 + 2 ? 0.0001 : Math.max(endFade, 0.0001));
+      const endFade = t < 44.4 ? Math.min(clamp((ROAD_Z0 - z) / 4), clamp((z - (ROAD_Z0 - ROAD_LEN)) / 4)) : 1;
+      dummy.scale.setScalar(t >= 44.4 && z < CROSS_Z1 + 2 ? 0.0001 : Math.max(endFade, 0.0001));
       dummy.updateMatrix();
       fleet.set(i, dummy.matrix, lights);
     });
@@ -360,8 +360,8 @@ export function makeStreet(renderer) {
     const t = s.t;
     people.forEach((p, i) => {
       let x = p.x, z, yaw, stride = 1, walkT = t, look = 0, armR = 0, armL = 0, pitch = 0, roll = 0, visible = true, y = 0.15;
-      const run = t >= 36 && t < 50 ? smooth(36, 42, t) : 0;
-      if (t < 50) {
+      const run = t >= 36 && t < 44.4 ? smooth(36, 41, t) : 0;
+      if (t < 44.4) {
         // walking both ways; at the alert everyone stops to read their phone, then looks up
         const stop = smooth(8.6, 9.6, t) * (1 - smooth(34, 37, t));
         const tw = t < 8.6 ? t : 8.6 + (Math.min(t, 9.6) - 8.6) * 0.5 + Math.max(0, t - 36) * (1 + run * 1.2);
@@ -374,7 +374,7 @@ export function makeStreet(renderer) {
         look = s.lookUp * (0.5 + 0.5 * p.look) * stop;
       } else if (t < 150) {
         // the evacuation: everyone heads south (toward you and past), many with suitcases
-        const u = (p.u0 + p.speed * 1.1 * (t - 50)) % 120;
+        const u = (p.u0 + p.speed * 1.1 * (t - 44.4)) % 120;
         z = -80 + u;
         yaw = Math.PI;
         armR = p.bag ? 0.15 : (p.phone ? 0.7 : 0);
@@ -429,7 +429,7 @@ export function makeStreet(renderer) {
         look: flail ? 0 : look,
       });
       // the suitcase rolls behind them; the phone sits in the raised right hand
-      const showBag = visible && p.bag && t >= 50 && t < 150;
+      const showBag = visible && p.bag && t >= 44.4 && t < 150;
       if (showBag) {
         tmpV.set(0.42 * p.h, 0.3, 0.45).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         dummy.position.set(x + tmpV.x, y + 0.3, z + tmpV.z); dummy.rotation.set(0.25, yaw, 0); dummy.scale.setScalar(1);
@@ -551,8 +551,8 @@ export function makeStreet(renderer) {
 
       // ---- sky ----
       // high over the avenue at first; at the end it comes down the sky and looms over the end of the avenue
-      const bhEl = lerp(31, 37, smooth(5, 200, t)) - 6 * smooth(240, 262, t);
-      dirFromAzEl(-2 * DEG, bhEl * DEG, bhDir);
+      const bhEl = s.ff ? 50 : lerp(31, 37, smooth(5, 200, t)) - 6 * smooth(240, 262, t);
+      dirFromAzEl((s.ff ? -7 : -2) * DEG, bhEl * DEG, bhDir);
       dirFromAzEl(-10 * DEG, 45 * DEG, moon0);   // (above the avenue, where the buildings don't hide it)
       const prog = Math.pow(smooth(158, 256, t), 1.6);
       slerpDir(moon0, bhDir, prog * 0.92, moonDir);
@@ -584,8 +584,8 @@ export function makeStreet(renderer) {
       const disk = s.disk;
       diskLight.position.copy(bhDir).multiplyScalar(200).add(camera.position);
       diskLight.target.position.copy(camera.position);
-      diskLight.intensity = 2.2 * smooth(0.3, 1.8, disk) + 2.5 * smooth(252, 280, t);
-      hemi.intensity = 0.5 + 0.35 * smooth(0.3, 1.8, disk) + 0.9 * smooth(252, 280, t);
+      diskLight.intensity = 2.2 * smooth(0.3, 1.8, disk) + 2.5 * smooth(252, 280, t) + (s.ff ? 3 : 0);
+      hemi.intensity = 0.5 + 0.35 * smooth(0.3, 1.8, disk) + 0.9 * smooth(252, 280, t) + (s.ff ? 1.2 : 0);
       hemi.color.setRGB(0.2, 0.25, 0.35).lerp(tmpC.setRGB(0.55, 0.36, 0.22), smooth(0.4, 1.8, disk));
       scene.fog.color.setRGB(0.04, 0.05, 0.08).lerp(tmpC.setRGB(0.16, 0.08, 0.04), smooth(0.4, 1.8, disk));
       scene.fog.density = 0.0011 * (1 - 0.6 * s.curl);

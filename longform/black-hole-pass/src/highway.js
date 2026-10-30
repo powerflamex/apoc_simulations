@@ -30,13 +30,13 @@ function spline(list, t) {
 // [v, x, z, yaw, pitch, fov]
 const KEYS = [
   [95, 0.5, 3.0, 14, -2, 56], [99, 0.5, 2.0, 8, 0, 54], [102.8, 0.5, 1.6, 2, 1, 54], [106, 0.5, 1.5, -14, 22, 34],
-  [120, 0.5, 1.5, -18, 26, 26], [124.5, 0.5, 1.5, -20, 27, 24], [127.5, 0.5, 1.5, 6, 1, 54], [131, 0.5, 1.5, 34, -6, 56],
+  [120, 0.5, 1.5, -18, 26, 30], [122.6, 0.5, 1.5, -19, 26, 30], [125, 0.5, 1.5, 4, 2, 54], [127.5, 0.5, 1.5, 6, 1, 54], [131, 0.5, 1.5, 34, -6, 56],
   [135, 0.5, 1.5, 12, -2, 54], [140, 0.5, 1.5, 6, 0, 52], [143, 0.5, 1.0, -8, 12, 46], [150, 0.5, -6.0, 6, 2, 56],
 ];
 
 export function makeHighway() {
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x1a1b26, 0.00055);
+  scene.fog = new THREE.FogExp2(0x12131c, 0.0003);
   const camera = new THREE.PerspectiveCamera(56, 1920 / 1080, 0.1, 9000);
   camera.rotation.order = 'YXZ';
   scene.add(camera);
@@ -249,7 +249,7 @@ export function makeHighway() {
       const u = sky.uniforms;
       sky.mesh.position.copy(camera.position);
       u.uTime.value = t;
-      u.uNight.value = lerp(0.5, 0.75, smooth(95, 150, t));
+      u.uNight.value = lerp(0.68, 0.86, smooth(95, 146, t));
       u.uStarVis.value = 0.5;
       u.uSunDir.value.set(-1, -0.04, 0.1).normalize();
       u.uBhDir.value.copy(bhDir);

@@ -5,16 +5,28 @@
 import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
-export const VIDEO_DURATION = 340;
+// The story runs 0..STORY_END; two stretches of it are cut out of the video (owner, Oct 29: a new big moment at least
+// every ~15 s early on): the avenue between Neptune and Saturn now jumps from 49 straight to Saturn (62), and the end
+// of the highway (146..150). storyOf(video time) gives the story moment shown; every module runs on story time.
+export const STORY_END = 340;
+export const SKIPS = [[49, 62], [146, 150]];
+export const VIDEO_DURATION = STORY_END - SKIPS.reduce((a, [x, y]) => a + y - x, 0);
+export function storyOf(vv) {
+  let v = vv;
+  for (const [a, b] of SKIPS) if (v >= a) v += b - a;
+  return v;
+}
 export const FF_LEN = 5.0;
-export const V_FF = 295.6;
+// the flash-forward: the giant ring low over the avenue while cars and people fall up toward it (the hole is shown
+// closer than it is at that moment: see the end of state())
+export const V_FF = 280.0;
 
 // which scene is on screen
 export const SHOTS = [
   [0, 5, 'street'],
   [5, 24, 'street'],
   [24, 37, 'space', 'neptune'],
-  [37, 62, 'street'],
+  [37, 49, 'street'],
   [62, 78, 'space', 'saturn'],
   [78, 95, 'street'],
   [95, 106, 'highway'],
@@ -24,7 +36,7 @@ export const SHOTS = [
   [197.6, 252, 'subway'],
   [252, 300, 'street'],
   [300, 331, 'fall'],
-  [331, VIDEO_DURATION, 'end'],
+  [331, STORY_END, 'end'],
 ];
 export function shotAt(v) {
   for (const s of SHOTS) if (v >= s[0] && v < s[1]) return { from: s[0], to: s[1], scene: s[2], what: s[3], u: (v - s[0]) / (s[1] - s[0]) };
@@ -37,7 +49,7 @@ export const SPEED_MPS = 2_000_000 / 3600;    // the hole moves at 2 million mph
 export const PASS_MILES = 26_000;             // how close it passes
 export const CHAPTERS = [
   { v: 5, left: 56 * 86400, rate: 1, stamp: '56 DAYS LEFT' },
-  { v: 50, left: 19 * 86400, rate: 1, stamp: '19 DAYS LEFT' },
+  { v: 44.4, left: 19 * 86400, rate: 1, stamp: '19 DAYS LEFT' },
   { v: 95, left: 8 * 86400, rate: 1, stamp: '8 DAYS LEFT' },
   { v: 150, left: 3600, rate: 35, stamp: '1 HOUR LEFT' },
   { v: 200, left: 1800, rate: 26, stamp: '30 MINUTES LEFT' },
@@ -73,9 +85,9 @@ export const NOTES = [
   [8.6, 5.2, 'alert', 'Emergency Alert', 'NASA: a black hole has entered the solar system. It gives off no light.'],
   [16.2, 3.6, 'msg', 'Mom', 'are you seeing this??'],
   [20.2, 3.4, 'msg', 'Jay', 'bro it\'s on every screen'],
-  [39.5, 5.4, 'news', 'NASA', 'Its path passes between Earth and the Moon.'],
-  [46.0, 3.4, 'msg', 'Mom', 'come home. NOW'],
-  [55.0, 4.6, 'msg', 'Dad', 'got us 3 seats. flight 802, 9pm tonight. go to the airport'],
+  [37.5, 4.0, 'news', 'NASA', 'Its path passes between Earth and the Moon.'],
+  [41.7, 2.6, 'msg', 'Mom', 'come home. NOW'],
+  [44.9, 3.9, 'msg', 'Dad', 'got us 3 seats. flight 802, 9pm tonight. go to the airport'],
   [86.5, 3.8, 'msg', 'Mom', 'leave NOW the traffic is insane'],
   [99.0, 3.6, 'msg', 'Jay', 'highway hasn\'t moved in 2 hours'],
   [127.5, 5.0, 'flight', 'Flight 802', 'CANCELLED. All flights are grounded.'],
@@ -118,10 +130,9 @@ export function stampAt(v) {
 // captions (italic, lower middle): only in the gaps
 export const CAPS = [
   [12.6, 15.8, 'It gives off no light. Only the stars around it bend.'],
-  [43.4, 45.8, 'That\'s closer than the Moon.'],
   [80.2, 84.6, 'Now you can see it.'],
   [102.8, 106.0, 'Everyone had the same idea.'],
-  [143.0, 147.0, 'There\'s nowhere left to fly.'],
+  [142.0, 145.6, 'There\'s nowhere left to fly.'],
   [189.0, 193.0, 'Underground. Now.'],
   [228.0, 232.0, 'The Moon is pulling the sea. The hole pulls harder.'],
   [244.0, 248.0, 'Up. Up the stairs.'],
@@ -137,7 +148,7 @@ export function captionAt(v) {
 }
 
 // the closing (after the white-out)
-export const CLOSING = [[333.0, VIDEO_DURATION - 0.6, 'Would you have made it?']];
+export const CLOSING = [[333.0, STORY_END - 0.6, 'Would you have made it?']];
 
 // ---------- the state of the world (sky, street, people) at video time v ----------
 // t: the story moment shown (the flash-forward shows V_FF + v)
@@ -148,7 +159,7 @@ export function state(v) {
   s.ch = c.i;
   // the hole in the sky: how big (lens strength; the sky shader's distance in hole radii, smaller = bigger), its disk
   // (dim until it has eaten Neptune, brighter after Saturn and Jupiter, blazing in the last hour)
-  s.bhD = t < 50 ? lerp(900, 700, smooth(5, 50, t)) : t < 95 ? lerp(600, 450, smooth(50, 95, t)) : t < 150 ? lerp(380, 290, smooth(95, 150, t))
+  s.bhD = t < 44.4 ? lerp(900, 700, smooth(5, 44.4, t)) : t < 95 ? lerp(600, 450, smooth(44.4, 95, t)) : t < 150 ? lerp(380, 290, smooth(95, 150, t))
     : t < 252 ? lerp(150, 95, smooth(150, 252, t)) : lerp(80, 14, Math.pow(smooth(252, 300, t), 0.8));
   s.disk = 0.04 * smooth(30, 40, t) + 0.25 * smooth(68, 80, t) + 0.5 * smooth(110, 125, t) + 0.6 * smooth(150, 170, t) + 0.4 * smooth(252, 290, t);
   // the Moon: stretches in the last hour, a ring when you come out of the subway
@@ -156,7 +167,7 @@ export function state(v) {
   s.moonRing = smooth(250, 258, t);
   // the avenue: what's going on
   s.panic = smooth(36, 44, t);
-  s.evac = t >= 50 && t < 150 ? 1 : 0;
+  s.evac = t >= 44.4 && t < 150 ? 1 : 0;
   s.shelter = t >= 150 && t < 200 ? 1 : 0;
   s.flood = t >= 252 ? 0.55 + 0.1 * smooth(252, 268, t) : 0;
   // gravity flipping on the avenue (0 .. 1), the horizon peeling up, your own lift
@@ -170,5 +181,6 @@ export function state(v) {
   // the white-out at the end
   s.white = smooth(325.5, 330.5, t) * (1 - smooth(331.5, 333.5, t));
   s.black = smooth(331.0, 331.5, t);
+  if (v < FF_LEN) { s.ff = 1; s.bhD = 15; s.disk = 1.6; }
   return s;
 }

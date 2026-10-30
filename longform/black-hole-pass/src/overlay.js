@@ -1,6 +1,6 @@
 // DOM overlay: the opening title, the counter, the chapter stamps (56 DAYS LEFT ...), the gold popups, the captions,
 // your phone's notification cards, the closing question and the white/black fades. compose.js paints it into the frame.
-import { COUNTERS, CLOSING, noteAt, popupAt, stampAt, captionAt } from './timeline.js';
+import { COUNTERS, CLOSING, noteAt, popupAt, stampAt, captionAt, CHAPTERS } from './timeline.js';
 import { clamp, smooth } from './util.js';
 
 const KINDS = {
@@ -72,6 +72,9 @@ export function makeOverlay() {
       nFail.style.display = n.fail ? 'block' : 'none';
       const inn = smooth(0, 0.3, n.dt), out = smooth(n.dur - 0.35, n.dur, n.dt);
       note.style.opacity = (inn * (1 - out)).toFixed(3);
+      // (a card that arrives while a chapter stamp is up sits lower, clear of the stamp, for its whole time)
+      const clash = CHAPTERS.some((c) => c.stamp && c.v < n.v0 + n.dur && c.v + 2.6 > n.v0);
+      note.style.top = clash ? '300px' : '48px';
       note.style.transform = `translateY(${(-40 * (1 - inn) - 30 * out).toFixed(1)}px)`;
     } else note.style.opacity = '0';
 

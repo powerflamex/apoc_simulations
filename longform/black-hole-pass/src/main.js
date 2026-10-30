@@ -15,7 +15,7 @@ import { makeHighway } from './highway.js';
 import { makeSubway } from './subway.js';
 import { feedAt } from './screens.js';
 import { makeOverlay } from './overlay.js';
-import { state, shotAt, SHOTS, VIDEO_DURATION, FF_LEN } from './timeline.js';
+import { state, shotAt, SHOTS, VIDEO_DURATION, FF_LEN, storyOf } from './timeline.js';
 import { smooth, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -64,7 +64,7 @@ const finish = new ShaderPass({
       vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.8), c * vec2(1.0, 0.8)) * 2.2;
       // soft dark bands behind the title and under the counter, so the text reads on any picture
-      col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.6) / 0.16, 2.0));
+      col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.4) / 0.14, 2.0));
       col *= 1.0 - uCounter * 0.4 * exp(-pow((vUv.y - 0.14) / 0.12, 2.0)) * smoothstep(0.62, 0.15, vUv.x);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -83,7 +83,7 @@ function update(v) {
     if (f) feed.render(f.what, f.u, v);
     street.frame(v, s);
     renderPass.scene = street.scene; renderPass.camera = street.camera;
-    exposure = 1.15 * (1 - 0.12 * smooth(290, 300, s.t)) * (1 + 0.25 * smooth(284, 290, s.t));
+    exposure = s.ff ? 1.4 : 1.15 * (1 - 0.12 * smooth(290, 300, s.t)) * (1 + 0.25 * smooth(284, 290, s.t));
     bloom.threshold = 1.0; bloom.strength = 0.4 + 0.08 * Math.min(s.disk, 1.5);
   } else if (shot.scene === 'space' || shot.scene === 'fall') {
     space.prepare(shot.scene === 'fall' ? 'fall' : shot.what, shot.u, v);
@@ -117,8 +117,9 @@ function update(v) {
 }
 
 let comp = null;
+// t is video time; the story moment shown is storyOf(t) (two stretches are cut out)
 function renderFrame(t) {
-  update(t);
+  update(storyOf(t));
   composer.render();
   if (comp) comp.paint();
 }

@@ -16,11 +16,11 @@ const DEFS = [
 ];
 
 // when the main screen shows the LIVE picture from space: [from, to, planet]
-export const FEEDS = [[21.0, 24.0, 'neptune'], [37.0, 47.0, 'neptune'], [59.6, 62.0, 'saturn'], [78.0, 80.5, 'saturn']];
+export const FEEDS = [[21.0, 24.0, 'neptune'], [37.0, 44.3, 'neptune'], [46.9, 49.0, 'saturn'], [78.0, 80.5, 'saturn']];
 // (u: how far into that planet's cutaway the picture is, 0..1; space.js)
 export function feedAt(v) {
   for (const [a, b, what] of FEEDS) if (v >= a && v < b) {
-    const live = a === 21.0 || a === 59.6;
+    const live = a === 21.0 || a === 46.9;
     return { what, u: live ? 0.04 + (v - a) * 0.025 : 0.62 + (v - a) * 0.028 };
   }
   return null;
@@ -39,7 +39,7 @@ function content(id, v, t) {
   if (t >= 268) return { kind: 'dead' };
   if (id === 'tick') {
     if (t < 9.2) return { kind: 'tick', text: 'TONIGHT: CLEAR SKIES · 64°F · SUBWAY SERVICE NORMAL · ', bg: '#101820', fg: '#e8eef5' };
-    if (t < 50) return { kind: 'tick', text: 'BREAKING · BLACK HOLE ENTERS THE SOLAR SYSTEM · NEPTUNE DESTROYED · NASA: ITS PATH PASSES BETWEEN EARTH AND THE MOON · ', bg: '#a8000c', fg: '#ffffff' };
+    if (t < 44.4) return { kind: 'tick', text: 'BREAKING · BLACK HOLE ENTERS THE SOLAR SYSTEM · NEPTUNE DESTROYED · NASA: ITS PATH PASSES BETWEEN EARTH AND THE MOON · ', bg: '#a8000c', fg: '#ffffff' };
     if (t < 150) return { kind: 'tick', text: 'EVACUATE COASTAL CITIES · SATURN\'S RINGS SWALLOWED · ALL HIGHWAYS OUTBOUND · AIRPORTS OVERWHELMED · ', bg: '#a8000c', fg: '#ffffff' };
     return { kind: 'tick', text: t < 178 ? 'IT IS VISIBLE TONIGHT · STAY OFF THE ROADS · STAY AWAY FROM THE COAST · ' : 'TAKE SHELTER UNDERGROUND NOW · TAKE SHELTER UNDERGROUND NOW · ', bg: '#a8000c', fg: '#ffffff' };
   }
@@ -52,15 +52,15 @@ function content(id, v, t) {
   if (id === 'main') {
     const f = feedAt(v);
     if (f) return { kind: 'feed', label: f.what === 'neptune' ? (t < 30 ? 'LIVE · NEPTUNE' : 'NEPTUNE · 4 MINUTES AGO') : (t < 70 ? 'LIVE · SATURN' : 'SATURN · TONIGHT') };
-    if (t < 50) return { kind: 'news', title: 'BREAKING', text: 'NEPTUNE DESTROYED' };
+    if (t < 44.4) return { kind: 'news', title: 'BREAKING', text: 'NEPTUNE DESTROYED' };
     if (t < 150) return { kind: 'news', title: 'EVACUATION ORDER', text: 'LEAVE COASTAL CITIES NOW' };
     return { kind: 'news', title: 'NASA', text: 'IT IS VISIBLE TONIGHT' };
   }
   const H = {
-    w1: t < 50 ? ['BREAKING', 'BLACK HOLE IN THE SOLAR SYSTEM'] : t < 150 ? ['EVACUATE', 'HEAD INLAND'] : ['DO NOT', 'PANIC'],
-    w2: t < 50 ? ['NASA', 'IT GIVES OFF NO LIGHT'] : t < 150 ? ['ALL FLIGHTS', 'FULLY BOOKED'] : ['STAY', 'OFF THE ROADS'],
-    e1: t < 50 ? ['LIVE', 'STAY INDOORS'] : t < 150 ? ['SATURN', 'RINGS GONE'] : ['STAY AWAY', 'FROM THE COAST'],
-    e2: t < 50 ? ['NEPTUNE', 'DESTROYED'] : t < 150 ? ['HIGHWAYS', 'OUTBOUND ONLY'] : ['IT IS', 'VISIBLE TONIGHT'],
+    w1: t < 44.4 ? ['BREAKING', 'BLACK HOLE IN THE SOLAR SYSTEM'] : t < 150 ? ['EVACUATE', 'HEAD INLAND'] : ['DO NOT', 'PANIC'],
+    w2: t < 44.4 ? ['NASA', 'IT GIVES OFF NO LIGHT'] : t < 150 ? ['ALL FLIGHTS', 'FULLY BOOKED'] : ['STAY', 'OFF THE ROADS'],
+    e1: t < 44.4 ? ['LIVE', 'STAY INDOORS'] : t < 150 ? ['SATURN', 'RINGS GONE'] : ['STAY AWAY', 'FROM THE COAST'],
+    e2: t < 44.4 ? ['NEPTUNE', 'DESTROYED'] : t < 150 ? ['HIGHWAYS', 'OUTBOUND ONLY'] : ['IT IS', 'VISIBLE TONIGHT'],
   }[id];
   return { kind: 'news', title: H[0], text: H[1] };
 }
