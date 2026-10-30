@@ -198,6 +198,10 @@
   Recent Shorts now hold 70-75% (near the hits' 77-86%), but their first-24-h test is 5-30x smaller than mid-October's.
 - Studio cannot break stayed-to-watch or average watched down by hour: an hourly breakdown is refused for every metric;
   the hourly Realtime report only counts views. The finest is the first-24-hours report, then daily (with a ~1-2 day lag).
+- sun-explodes (posted Oct 29, reworked first 15 s + the owner's scream at the flash): Realtime report at 8:30 PM ET the
+  same day: 25.3K views, **2,337 in the last hour** (punch 341, grow-trillion 609; only black hole v4 3,476 and trillion
+  3,012 were higher, both in a second wave). 40 comments on day 1. The content list's view count lags the Realtime report.
+  Realtime report: Advanced mode > Report > Realtime performance (views per video, last 48 h and last 60 min; views only).
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
