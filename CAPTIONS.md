@@ -668,6 +668,36 @@ How many punches would you throw before you stopped? 👇
 
 Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 46.8`: Earth from space, the crust cracked open and glowing round Los Angeles, a ring of fire racing out)
 
+## Next Short. What if it rained antimatter? — `week 4/antimatter-rain/out/antimatter-rain_v4_1080x1920_60fps_tiktok.mp4`
+
+69.3 s. Built on rain-1000-years' street (Pike Street, Seattle, in the rain at dusk, looking at the Public Market sign).
+Frame 0: the first antimatter drop has just burst over Elliott Bay, a fireball over the market; the counter is in tons
+of TNT (one 4 mm drop = 1,440 tons), and the drops grow 10x every 5 s. The people in the street look up, the first blast
+breaks every window at 3.6 s (glass rains down, car alarms), they duck and run; 10 drops = Hiroshima; the sky fills
+with fireballs, the power dies; drop ~230 bursts right over you: white. A drone over downtown: the ground burning, towers
+slumping, then straight up until the whole region is on fire; space: the blast ring spreads over North America
+(Portland, Boise, Los Angeles, Denver), the dinosaur asteroid at 54 s, the whole planet glowing; one normal 10-minute
+shower (32 trillion drops) = 455 dinosaur asteroids; white, loop.
+
+**YouTube title (84 chars, emoji counted as 2)**
+What if it rained antimatter? One raindrop = 1,440 tons of TNT 🌧️ #whatif #physics
+
+**YouTube description**
+A storm over Seattle starts raining antimatter. Every 5 seconds, 10x more drops.
+1 drop: 1,440 tons of TNT. Every window on the street breaks.
+10 drops: Hiroshima.
+1,000 drops: the city is flattened.
+35,000 drops: the biggest bomb ever tested.
+200 million drops: everything within 200 miles is gone.
+72 billion drops: the asteroid that killed the dinosaurs.
+One normal rain shower is 32 trillion drops: 455 dinosaur asteroids.
+
+Would you run, or film it? 👇
+
+#whatif #physics #simulation #shorts
+
+Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.mjs --cover 0.3`: Pike Street in the rain, the first fireball over the Public Market, people in the street; "One drop = 1,440 tons of TNT")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
