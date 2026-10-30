@@ -202,12 +202,12 @@ export function makeProps(scene, { plainMat }) {
         const k = clamp(1 - smooth(V_SIGN - 0.7, V_SIGN, v));
         const flick = v > V_SIGN - 0.9 ? (Math.sin(v * 53) > -0.2 ? 1 : 0.15) * (Math.sin(v * 17.3) > -0.6 ? 1 : 0.3) : 1;
         const on = k * flick;
-        signMat.color.setScalar(0.25 + 2.3 * on); sign2Mat.color.setScalar(0.25 + 2.3 * on); clockMat.color.setScalar(0.35 + 1.7 * on);
+        signMat.color.setScalar(0.25 + 3.6 * on); sign2Mat.color.setScalar(0.25 + 3.6 * on); clockMat.color.setScalar(0.35 + 2.4 * on);
         farmMat.color.setScalar(0.12 + 1.7 * clamp(1 - smooth(4.6, 5.3, level)) * s.grid);
         arcadeMat.emissiveIntensity = 1.1 * s.grid * clamp(1 - smooth(1.2, 2.2, level));
         // red glow off the letters onto the rain and the water
         if (on > 0.05 && cam.position.y < 200) {
-          for (let x = -10; x <= 18; x += 4) { glows.add(x, 10.8, MARKET.z1 - 0.6, 6, 0.5 * on, 0.04 * on, 0.02 * on); glows.reflect(x, 10.8, MARKET.z1 - 0.6, 4, 0.9 * on, 0.06 * on, 0.03 * on, level); }
+          for (let x = -10; x <= 18; x += 4) { glows.add(x, 10.8, MARKET.z1 - 0.6, 6, 1.0 * on, 0.08 * on, 0.04 * on); glows.reflect(x, 10.8, MARKET.z1 - 0.6, 4, 0.9 * on, 0.06 * on, 0.03 * on, level); }
         }
         if (v > V_SIGN - 0.9 && v < V_SIGN + 0.4) {
           const Rs = rng(Math.floor(v * 30));

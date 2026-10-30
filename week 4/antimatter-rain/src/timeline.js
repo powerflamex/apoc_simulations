@@ -15,6 +15,7 @@
 // northern sky burns and the blast comes (to 35.2 s), then Earth from space (white, loop).
 import { smooth, clamp, rng } from './util.js';
 import { seattleH } from './terrain.js';
+import { B } from './layout.js';
 
 export const STORY_START = 0;
 export const PER10 = 4.5;                            // seconds for 10x more drops
@@ -35,8 +36,8 @@ export const blastR = (v) => 600 * Math.cbrt(dropsAt(v));
 export const vOfBlastR = (r) => vOfDrops(Math.pow(r / 600, 3));
 
 export const V_FIRST = 0.35;                         // drop 1 lands (it is already falling on frame 0)
-export const V_NEAR = 10.85;                         // a drop lands on the Market, 100 m from you: white
-export const V_DRONE = 11.2;                         // cut: the drone over downtown
+export const V_NEAR = 10.85;                         // a drop lands on the Market, 100 m from you: a flash
+export const V_DRONE = 10.95;                        // cut: the drone over downtown
 export const V_UP = 24.0;                            // cut: Earth from space (the first look)
 // the other cities: you're there as the blast arrives (each shot ends in white as it hits), with space in between.
 // cam: where you are; fwd: the way you look (toward Seattle, where the front comes from)
@@ -46,7 +47,7 @@ export const CITIES = [
   { name: 'NEW YORK', km: 3870, cam: { x: -350, y: 430, z: 1450 }, fwd: { x: 0.15, z: -1 }, kind: 'air' },
 ].map((c) => {
   const arr = vOfBlastR(c.km * 1000), L = Math.hypot(c.fwd.x, c.fwd.z);
-  return { ...c, fwd: { x: c.fwd.x / L, z: c.fwd.z / L }, arr, v0: arr - 4.6, v1: arr + 0.2 };
+  return { ...c, fwd: { x: c.fwd.x / L, z: c.fwd.z / L }, arr, v0: arr - 4.6, v1: arr + 0.07 };   // (a few frames of flash, then the cut)
 });
 export const cityAt = (v) => CITIES.find((c) => v >= c.v0 && v < c.v1) || null;
 export const V_SPACE = V_UP;
@@ -67,7 +68,8 @@ export function landAt(x, z) {
   return h < 0 ? { y: 0, water: true } : { y: h, water: false };
 }
 export const DOWNTOWN = { x: -300, z: 500 };
-export const DRONE_XZ = { x: -2300, z: 1750 };          // where the drone hovers (no drops land on it)
+export const DRONE_XZ = { x: -2600, z: 1100 };          // where the drone hovers (no drops land on it)
+export const CORE = { x: -400, z: 550, r: 1400 };       // downtown's towers: hit one by one by TOWER_HITS (below)
 export const DROPS = [];
 {
   const R = rng(777);
@@ -75,22 +77,23 @@ export const DROPS = [];
   for (let k = 1; k <= K; k++) {
     const v = k === 1 ? V_FIRST : vOfDrops(k) + 0.1;
     let x, z;
-    if (k === 1) { x = 120; z = -1250; }                        // Elliott Bay, straight ahead, 1.26 km away
+    // on the street they land where you can see them, out over the bay and the far shore past the Market (every boom
+    // you hear is one you see), and closer as they multiply: drop 1 is 3.6 km out, drop 10 (Hiroshima) 1.15 km,
+    // straight ahead, the first to fill the sky
+    if (k < 10) { const dd = 3600 - (k - 1) * 170; x = [0, -300, 260, -420, 380, -150, 470, -520, 200][k - 1]; z = -dd; }
+    else if (k === 10) { x = 40; z = -1150; }
     else if (Math.abs(v - V_NEAR) < 0.012 && !DROPS.some((d) => d.near)) { x = 2; z = -92; }   // the Market
-    else if (v < V_DRONE) {
-      // on the street they land where you can see them: out over the bay and the far shore past the Market
-      // (all of them: every boom you hear on the street is one you see)
-      const dd = 1100 + Math.pow(R(), 0.8) * 5200; x = (R() - 0.5) * 0.5 * dd; z = -dd;
-    } else {
-      // later, all over the city and round it, out to 14 km (a few more over downtown)
-      const r = (R() < 0.12 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2;
+    else if (v < V_DRONE) { const dd = 1300 + Math.pow(R(), 0.8) * 3800; x = (R() - 0.5) * 0.5 * dd; z = -dd; }
+    else {
+      // later, all over the city and round it, out to 14 km (downtown's towers are hit by TOWER_HITS, below)
+      const r = 14000 * Math.sqrt(R()), a = R() * Math.PI * 2;
       x = DOWNTOWN.x + r * Math.cos(a); z = DOWNTOWN.z + r * Math.sin(a);
-      if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 1300) { k--; continue; }   // (none right on top of the drone)
+      if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 2400 || Math.hypot(x - CORE.x, z - CORE.z) < CORE.r) { k--; continue; }
     }
     const g = landAt(x, z);
     const d = { k, v, x, y: g.y, z, water: g.water, seed: R(), near: k > 1 && x === 2 && z === -92 };
     // on the street the drops burst a little above the ground (the air finishes them): over the Market's roof, in view
-    d.hb = v < V_DRONE && !d.near ? 160 + 120 * d.seed : 0;
+    d.hb = v < V_DRONE && !d.near ? Math.max(k === 10 ? 130 : 160 + 120 * d.seed, 0.17 * Math.hypot(x, z - 10)) : 0;   // (high enough to clear the Market roof)
     d.dist = Math.hypot(x - CAM0.x, z - CAM0.z);
     DROPS.push(d);
   }
@@ -106,21 +109,39 @@ export function statDrops(j) {
     const t = (j + R()) / 30, r = (R() < 0.15 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2, seed = R();
     if (t < LAST_DROP.v) continue;
     const x = DOWNTOWN.x + r * Math.cos(a), z = DOWNTOWN.z + r * Math.sin(a);
-    if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 1300) continue;
+    if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 2400 || Math.hypot(x - CORE.x, z - CORE.z) < CORE.r) continue;
     const g = landAt(x, z);
     out.push({ v: t, x, y: g.y, z, water: g.water, seed, hb: 0 });
   }
   return out;
 }
-// the street: the first blast reaches you (windows go), the grid fails
-export const V_GLASS = V_FIRST + DROPS[0].dist / SOUND;      // 4.0 s
-export const V_POWER = 7.0;
 // how hard a blast hits at d metres (rough overpressure in psi for 1.44 kt on the ground)
 export const psiAt = (d) => 5 * Math.pow(480 / Math.max(d, 50), 1.9);
+// the street: the first blast strong enough to break windows reaches you (the Hiroshima drop's), the grid fails
+export const V_GLASS = Math.min(...DROPS.filter((d) => d.v < V_NEAR && psiAt(d.dist) > 0.75).map((d) => d.v + d.dist / SOUND));
+export const V_POWER = 7.0;
+// downtown coming apart, as the drone watches: drops landing among the towers one after another (12.3 to 21.5 s),
+// each blowing apart the towers within 260 m of it
+export const TOWER_HITS = [];
+{
+  const R = rng(9090);
+  const cand = B.filter((b) => b.h > 30 && Math.hypot(b.x - CORE.x, b.z - CORE.z) < CORE.r - 100);
+  for (let i = cand.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [cand[i], cand[j]] = [cand[j], cand[i]]; }
+  const n = Math.min(42, cand.length);
+  for (let i = 0; i < n; i++) {
+    const b = cand[i], v = 12.3 + (i + R() * 0.6) * (9.2 / n);
+    TOWER_HITS.push({ v, x: b.x + (R() - 0.5) * 40, y: 0, z: b.z + (R() - 0.5) * 40, water: false, seed: R(), hb: 0, tower: true });
+  }
+}
 
 // a building at (x, z) is blown apart by the first drop within 480 m of it (5+ psi): when, from where, how hard
 export function wreckOf(x, z) {
   let best = null;
+  for (const d of TOWER_HITS) {
+    const r = Math.hypot(x - d.x, z - d.z);
+    if (r < 260) { const v = d.v + r / 900; if (!best || v < best.v) best = { v, ox: d.x, oz: d.z, r }; }
+  }
+  if (best) return best;
   for (const d of DROPS) {
     if (best && d.v > best.v) break;
     if (d.v < V_DRONE - 0.5 && !d.near) continue;     // (the street-phase drops land out west, away from the towers)
@@ -138,7 +159,7 @@ export function wreckOf(x, z) {
 // ---- the beats: one gold phrase pops (no number: the counter has the numbers) ----
 export const BEATS = [
   { v: vOfDrops(10) + 0.1, say: 'THAT’S HIROSHIMA' },
-  { v: V_DRONE + 0.5, say: 'SEATTLE IS BURNING' },
+  { v: 12.0, say: 'SEATTLE IS BURNING' },
   { v: vOfDrops(50e6 / TONS_PER_DROP), say: 'THE BIGGEST BOMB EVER' },
   { v: V_DINO, say: 'THE DINOSAUR KILLER' },
 ];

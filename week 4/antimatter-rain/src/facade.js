@@ -12,13 +12,14 @@ export const F = {
   uTime: { value: 0 },
   uGrid: { value: 1 },
   uFlash: { value: 0 },
+  uShop: { value: 1 },                                 // how bright the shop windows are
   uBroken: { value: 0 },                              // the windows blown in (dark holes)
   uFire: { value: new THREE.Color(0, 0, 0) },        // orange light from the fires and fireballs
   uGlow: { value: new THREE.Vector3(0, 0.05, -1) },   // where the sunset glow is (west)
 };
 
 const PARS = /* glsl */ `
-uniform float uTime; uniform float uGrid; uniform float uFlash; uniform vec3 uGlow; uniform float uBroken; uniform vec3 uFire;
+uniform float uTime; uniform float uGrid; uniform float uFlash; uniform vec3 uGlow; uniform float uBroken; uniform vec3 uFire; uniform float uShop;
 varying vec3 vLoc; varying vec3 vSc; varying vec3 vWP; varying vec3 vWN; varying vec4 vS; varying vec3 vON;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) {
@@ -107,7 +108,7 @@ const LOOK = /* glsl */ `
         col = mix(base * 0.55, inside * 0.22, pane);
         float awn = step(g0 - 1.2, c.y) * step(c.y, g0 - 0.35);
         col = mix(col, mix(vec3(0.35, 0.05, 0.05), vec3(0.06, 0.18, 0.12), step(0.5, hB)), awn);
-        totalEmissiveRadiance += pane * inside * vec3(1.05, 0.85, 0.65) * uGrid;
+        totalEmissiveRadiance += pane * inside * vec3(1.05, 0.85, 0.65) * uGrid * uShop;
       }
       col = mix(col, base * 0.4, smoothstep(vS.w - 2.5, vS.w - 2.3, c.y));
       // window lights: whole floors and runs of windows, warm and cool white; after the blackout only a few lamps
@@ -146,6 +147,6 @@ export function facadeMaterial() {
     shader.fragmentShader = PARS + shader.fragmentShader.replace('#include <emissivemap_fragment>', LOOK);
     drownShader(shader);
   };
-  m.customProgramCacheKey = () => 'facade-amrain-v1';
+  m.customProgramCacheKey = () => 'facade-amrain-v2';
   return m;
 }

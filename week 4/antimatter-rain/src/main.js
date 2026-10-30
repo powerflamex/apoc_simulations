@@ -24,7 +24,7 @@ import { F } from './facade.js';
 import { B, CAM0, PIKE } from './layout.js';
 import {
   state, popupAt, captionAt, POP, dropsAt, VIDEO_DURATION, LOOP, DROPS, LAST_DROP, FALL, psiAt, wreckOf, blastR, statDrops,
-  V_GLASS, V_NEAR, V_DRONE, V_UP, V_END, CITIES, vFrontAt, SOUND,
+  V_GLASS, V_NEAR, V_DRONE, V_UP, V_END, V_POWER, CITIES, vFrontAt, SOUND, TOWER_HITS,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -87,11 +87,20 @@ const WATCH = [], ROOF = [];
   // in the other cities: people a few metres ahead of you, watching the sky the blast comes from (ahead, side: m)
   for (let k = 0; k < 9; k++) ROOF.push(mk({ ahead: 6.5 + R() * 3, side: -9 + k * 2.2 + (R() - 0.5) * 0.6, turn: (R() - 0.5) * 0.6, umb: false }));
 }
-const NP = PEOPLE.length + WATCH.length + ROOF.length;
+// three people right in front of you in the street (half of them in the picture), looking up at the falling streak:
+// one films it, one points; they duck when the blast arrives and run for the sidewalks
+const CLOSE = [
+  { x: -0.8, z: 6.3, side: -1, col: [0xc0392b, 0x1b2631, 0xe0ac86, 0x2e2018], arm: 'point' },
+  { x: 0.75, z: 5.9, side: 1, col: [0xe8b923, 0x2c3e50, 0xc68a62, 0x151515], arm: 'phone' },
+  { x: 1.2, z: 4.5, side: 1, col: [0x1f8a8a, 0x212121, 0xf1c8a6, 0x6b4a2a], arm: '' },
+].map((p, i) => ({ ...p, s: [1.0, 0.96, 1.04][i], ph: i * 2.1, seed: 0.3 + i * 0.2, react: [0.0, 0.12, 0.25][i], umb: false, yaw: Math.PI }));
+const NP = PEOPLE.length + WATCH.length + ROOF.length + CLOSE.length;
+const CL0 = PEOPLE.length + WATCH.length + ROOF.length;
 const crowd = makeCrowd(scene, NP, plainMat(0xffffff, 0.8), { castShadow: false });
 PEOPLE.forEach((p, i) => crowd.color(i, ...p.col));
 WATCH.forEach((p, i) => crowd.color(PEOPLE.length + i, ...p.col));
 ROOF.forEach((p, i) => crowd.color(PEOPLE.length + WATCH.length + i, ...p.col));
+CLOSE.forEach((p, i) => crowd.color(CL0 + i, ...p.col));
 const umbGeo = new THREE.ConeGeometry(0.55, 0.26, 10, 1, true).translate(0, -0.13, 0);
 const umbs = new THREE.InstancedMesh(umbGeo, plainMat(0xffffff, 0.35, { side: THREE.DoubleSide }), NP);
 const uc = new THREE.Color();
@@ -143,7 +152,7 @@ const stampW = document.getElementById('stampw');
 // ---------- the buildings: when each is blown apart, and into which pieces ----------
 const BUILD = B.map((b, i) => {
   const R = rng(Math.floor(b.seed * 1e7) + i);
-  const nx = clamp(Math.round(b.w / 13), 1, 3), nz = clamp(Math.round(b.d / 13), 1, 3), ny = clamp(Math.round(b.h / 9), 2, 10);
+  const nx = clamp(Math.round(b.w / 18), 1, 2), nz = clamp(Math.round(b.d / 18), 1, 2), ny = clamp(Math.round(b.h / 16), 2, 7);
   const parts = [];
   for (let ix = 0; ix < nx; ix++) for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) {
     parts.push({ fx: (ix + 0.5) / nx - 0.5, fy: (iy + 0.5) / ny, fz: (iz + 0.5) / nz - 0.5, sx: b.w / nx * (0.6 + 0.35 * R()), sy: b.h / ny * (0.6 + 0.35 * R()),
@@ -155,6 +164,19 @@ const BUILD = B.map((b, i) => {
 function wreckFor(o, city) {
   if (city) return { v: vFrontAt(city, o.b.x, o.b.z), ox: o.b.x + city.fwd.x * 6000, oz: o.b.z + city.fwd.z * 6000 };
   return o.sea;
+}
+
+// neon signs over the shopfronts on Pike St (pink, cyan, green, red, amber), lit until the power goes
+const NEON = [];
+{
+  const R = rng(616);
+  const COL = [[3.2, 0.5, 1.6], [0.5, 2.4, 3.2], [0.7, 3.0, 1.0], [3.4, 0.35, 0.2], [3.2, 1.7, 0.35]];
+  for (const b of B) {
+    if (!b.front || b.z > 120 || b.z < -40) continue;
+    const n = b.d > 16 ? 2 : 1;
+    for (let k = 0; k < n; k++) NEON.push({ x: b.side * (PIKE.walk - 0.12), y: 3.6 + R() * 1.6, z: b.z + (k - (n - 1) / 2) * b.d * 0.45 + (R() - 0.5) * 2,
+      w: 2.2 + R() * 2.4, col: COL[Math.floor(R() * COL.length)], seed: R() });
+  }
 }
 
 // glass: shards falling from the Pike St windows when the first blast arrives (it comes from the west, so the
@@ -246,13 +268,13 @@ function streetCam(v) {
 }
 // the drone: out over Elliott Bay looking back at the skyline as it's blown apart (the drops fall thickest over
 // downtown), drifting in; then climbing until the whole burning region is under it
-const DA = { x: -2400, y: 520, z: 1850 }, DM = { x: -2200, y: 600, z: 1650 }, DB = { x: -4500, y: 9500, z: 3500 };
+const DA = { x: -2650, y: 380, z: 1120 }, DM = { x: -2450, y: 470, z: 1020 }, DB = { x: -4500, y: 9500, z: 3500 };
 function droneCam(v) {
   const k = smooth(V_DRONE, 18.5, v), up = Math.pow(smooth(18.5, V_UP + 0.3, v), 1.6);
   const x = lerp(lerp(DA.x, DM.x, k), DB.x, up), y = lerp(lerp(DA.y, DM.y, k), DB.y, up), z = lerp(lerp(DA.z, DM.z, k), DB.z, up);
-  const tx = lerp(-350, -300, up), ty = lerp(20, 0, up), tz = lerp(450, 500, up);
+  const tx = lerp(-150, -300, up), ty = lerp(110, 0, up), tz = lerp(250, 500, up);
   const a = aim(x, y, z, tx, ty, tz);
-  return { x, y, z, yaw: a.yaw, pitch: a.pitch + 3 * DEG * (1 - up), roll: -1.0 * DEG * (1 - up), fov: lerp(44, 62, up) };
+  return { x, y, z, yaw: a.yaw, pitch: a.pitch + 2 * DEG * (1 - up), roll: -1.0 * DEG * (1 - up), fov: lerp(46, 62, up) };
 }
 // another city: where you are, looking the way the blast will come (a rooftop, the street, a helicopter at night)
 function cityCam(v, c) {
@@ -338,6 +360,7 @@ function dropsNow(v, where) {
   const out = [];
   if (where !== 'street' && where !== 'drone') return out;
   for (const d of DROPS) { if (d.v - FALL > v) break; if (v - d.v < 32) out.push(d); }
+  if (where === 'drone') for (const d of TOWER_HITS) if (d.v - FALL <= v) out.push(d);
   if (v > LAST_DROP.v) {
     for (let j = Math.floor((v - 9) * 30); j <= Math.floor((v + FALL) * 30); j++) for (const d of statDrops(j)) if (d.v - FALL <= v) out.push(d);
   }
@@ -351,69 +374,71 @@ const CLOUD = 700;                                  // m: the storm's base, wher
 function drawDrop(d, v, cam, out, cf) {
   const t = v - d.v;
   const dc = Math.hypot(d.x - cam.x, d.y - cam.y, d.z - cam.z);
-  const bf = Math.max(Math.pow(cf, 0.7), Math.min(1, Math.pow(900 / dc, 2)));
+  const bf = Math.max(Math.pow(cf, 0.7), Math.min(1, Math.pow(900 / dc, 2))) * (out.drone && !d.tower ? 0.22 : 1);   // (from the drone, the hits among the towers lead)
   if (t < 0) {
     // falling: a violet-white streak out of the cloud base, the head brightest
-    const hb = d.hb || 0, k = -t / FALL, top = d.y + CLOUD;
-    const head = d.y + hb + (CLOUD - hb) * k;
+    const hb = d.hb || 0, k = -t / FALL, cl = Math.max(CLOUD, hb + 800), top = d.y + cl;
+    const head = d.y + hb + (cl - hb) * k;
     const len = Math.min(220, top - head + 1);
-    const wdt = 2.5 + dc * 0.0012;
-    fires.add(d.x, head + len * 0.5, d.z, wdt, 3.2 * bf, 3.0 * bf, 6.0 * bf, -(len / wdt));
-    fires.add(d.x, head, d.z, wdt * 5, 2.0 * bf, 1.8 * bf, 4.0 * bf);
+    const wdt = 3 + dc * 0.0028;
+    fires.add(d.x, head + len * 0.5, d.z, wdt, 5 * bf, 4.6 * bf, 9 * bf, -(len / wdt));
+    fires.add(d.x, head, d.z, wdt * 5, 3.0 * bf, 2.7 * bf, 6.0 * bf);
     out.light += 0.05 * Math.min(1, Math.pow(1500 / dc, 2));
     return;
   }
   const near = Math.min(1, Math.pow(1300 / dc, 2));
   const flash = Math.exp(-t / 0.08) + 0.3 * Math.exp(-t / 0.6);
-  const heat = Math.exp(-t / 1.4);
-  const r = 75 * Math.min(1, Math.pow(t / 0.5, 0.4));
-  const rise = 30 * t;
-  const fy = d.y + (d.hb || 0) + r * 0.55 + rise;
-  // the fireball: white-hot, cooling to orange; a wide glow round it while it's flashing
-  const h3 = heat * heat * heat;
-  const cr = (10 * flash + 3.4 * h3) * bf, cg = (9.2 * flash + 1.2 * h3) * bf, cb = (8.6 * flash + 0.3 * h3) * bf;
+  const heat = Math.exp(-t / (out.drone ? 1.1 : 3.0));
+  const base = d.y + (d.hb || 0);
+  const wet = d.water, wide = dc < 2500 || cf > 0.25;
+  const clear = !(out.drone && dc < 900);            // (no smoke right on the drone's lens)
+  // the cloud: the fireball climbs a dark stem into a spreading cap (2.6 km up, 700 m wide at most)
+  const top = Math.min(2600, 120 + 260 * Math.pow(t, 0.7)), capR = Math.min(700, 90 + 55 * t);
+  // the fireball: white-hot, then a churning orange ball riding up into the cap
+  const r = 85 * Math.max(0.35, Math.min(1, Math.pow(t / 0.4, 0.4))) * (1 + 0.6 * smooth(0, 4, t)) * (out.drone ? 0.7 : 1);
+  const fy = base + r * 0.6 + (top - r * 0.6) * 0.85 * smooth(0.3, 4, t);
+  const h15 = Math.pow(heat, 1.5);
+  const cr = (10 * flash + 4.6 * h15) * bf, cg = (9.2 * flash + 1.8 * h15) * bf, cb = (8.6 * flash + 0.35 * h15) * bf;
   if (cr > 0.03) {
     fires.add(d.x, fy, d.z, r * 2.3, cr, cg, cb, -1);
-    if (bf > 0.3) fires.add(d.x, fy, d.z, r * 8, cr * 0.06, cg * 0.05, cb * 0.04);
+    if (!out.drone || d.tower) fires.add(d.x, fy, d.z, r * 3.5, cr * 0.04, cg * 0.025, cb * 0.012);
   }
-  out.light += (flash * near * 0.9 + heat * near * 0.05) * bf;
-  if (flash > 0.02 || heat > 0.25) out.top.push({ d, fy, w: (flash * near + 0.02 * heat * near) * bf, flash });
-  // the shock: a glowing shell racing out, and the dust (or spray) it kicks up along the ground
-  if (dc < 6000 && dc > 1100 && t < 2.6 && bf > 0.25 && shockR(t) < dc * 0.8) domes.dome(d.x, d.y, d.z, shockR(t), 0.45 * bf * Math.exp(-t / 0.55));
-  const wet = d.water;
-  if ((dc < 2500 || (dc < 7000 && cf > 0.25)) && t < 9) {
-    const R0 = Math.min(shockR(t), 260 + 60 * t), a = 0.45 * (1 - smooth(2, 9, t)) * smooth(0, 0.15, t);
+  out.light += (flash * near * 0.7 + heat * near * 0.02) * bf;
+  if (flash > 0.02 || heat > 0.25) out.top.push({ d, fy, w: (flash * near + 0.03 * heat * near) * bf, flash });
+  // the shock: a bright shell racing out
+  if (dc < 7000 && dc > 700 && t < (out.drone ? 0.9 : 2.2) && bf > 0.2 && shockR(t) < dc * 0.85) domes.dome(d.x, d.y, d.z, shockR(t), 0.9 * bf * Math.exp(-t / 0.5));
+  if (!clear) return;
+  const g = (out.drone ? 0.08 : 0.2) + 0.9 * heat;    // the fire under the cloud, lighting it from below
+  // the ring of dust (white spray over water) the shock throws along the ground
+  if (wide && t < 8) {
+    const R0 = Math.min(shockR(t), 300 + 70 * t), a = 0.55 * (1 - smooth(2, 8, t)) * smooth(0, 0.12, t);
     const n = dc < 3000 ? 12 : 7;
     for (let i = 0; i < n; i++) {
       const ang = (i / n) * Math.PI * 2 + d.seed * 9;
-      const rr = R0 * (0.85 + 0.25 * Math.sin(i * 3.7 + d.seed * 20));
-      const sz = 45 + 22 * t;
-      if (wet) puffs.puff(d.x + Math.cos(ang) * rr, d.y + sz * 0.5, d.z + Math.sin(ang) * rr, sz, 0.45, 0.48, 0.52, a, 0.3 * h3, 0.12 * h3, 0.03 * h3, d.seed + i);
-      else puffs.puff(d.x + Math.cos(ang) * rr, d.y + sz * 0.45, d.z + Math.sin(ang) * rr, sz, 0.24, 0.2, 0.17, a, 0.6 * h3, 0.22 * h3, 0.05 * h3, d.seed + i);
+      const rr = R0 * (0.85 + 0.25 * Math.sin(i * 3.7 + d.seed * 20)), sz = 45 + 24 * t;
+      const [c1, c2, c3] = wet ? [0.55, 0.57, 0.6] : [0.3, 0.24, 0.19];
+      puffs.puff(d.x + Math.cos(ang) * rr, d.y + sz * 0.45, d.z + Math.sin(ang) * rr, sz, c1, c2, c3, a, 0.5 * heat, 0.16 * heat, 0.03 * heat, d.seed + i);
     }
   }
-  // the column and the mushroom cap (steam over the water: white)
-  if (dc < 14000 && t > 0.25) {
-    const top = Math.min(wet ? 1500 : 2200, 80 + 210 * Math.pow(t, 0.75));
-    const capR = Math.min(420, 70 + 30 * t);
-    const a = (wet ? 0.5 : 0.7) * smooth(0.25, 1.0, t) * (1 - (wet ? smooth(6, 12, t) : smooth(20, 30, t)));
-    const g = 0.15 + 2.2 * h3;
-    const [cr2, cg2, cb2] = wet ? [0.5, 0.52, 0.56] : [0.22, 0.19, 0.17];
-    const crowd = dc < 3500 || cf > 0.15 ? 1 : 0.45;
-    puffs.puff(d.x, d.y + top, d.z, capR, cr2, cg2, cb2, a * crowd, 1.3 * g * crowd, 0.45 * g * crowd, 0.1 * g * crowd, d.seed);
-    if (dc < 2500 || (dc < 8000 && cf > 0.3)) {
-      for (let i = 0; i < 4; i++) { const ang = i * 1.57 + d.seed * 7; puffs.puff(d.x + Math.cos(ang) * capR * 0.75, d.y + top - capR * 0.25, d.z + Math.sin(ang) * capR * 0.75, capR * 0.7, cr2, cg2, cb2, a * 0.85, 1.1 * g, 0.38 * g, 0.08 * g, d.seed + i * 0.3); }
-      for (let i = 1; i <= 3; i++) puffs.puff(d.x, d.y + top * (i / 4), d.z, capR * (0.25 + 0.06 * i), cr2, cg2, cb2, a * 0.8, 1.6 * g, 0.55 * g, 0.12 * g, d.seed + i);
+  // the stem (dark, glowing at its foot) and the cap (dark grey-brown, lit orange from below by the fire)
+  if (dc < 14000 && t > 0.2) {
+    const a = 0.85 * smooth(0.2, 0.9, t) * (1 - smooth(22, 32, t)) * (wide ? 1 : 0.55) * (out.drone ? (d.tower ? 0.75 : 0.35) : 1);
+    const [k1, k2, k3] = wet ? [0.22, 0.21, 0.21] : [0.13, 0.11, 0.1];
+    puffs.puff(d.x, base + top, d.z, capR, k1, k2, k3, a, 1.3 * g, 0.42 * g, 0.07 * g, d.seed);
+    if (wide) {
+      for (let i = 0; i < 6; i++) { const ang = i * 1.047 + d.seed * 7; puffs.puff(d.x + Math.cos(ang) * capR * 0.8, base + top - capR * 0.3, d.z + Math.sin(ang) * capR * 0.8, capR * 0.65, k1, k2, k3, a * 0.9, 1.6 * g, 0.5 * g, 0.08 * g, d.seed + i * 0.3); }
+      for (let i = 1; i <= 4; i++) { const f = i / 5; puffs.puff(d.x, base + top * f, d.z, capR * (0.2 + 0.08 * f), k1 * 0.8, k2 * 0.8, k3 * 0.8, a * 0.95, 2.0 * g * (1 - f), 0.6 * g * (1 - f), 0.1 * g * (1 - f), d.seed + i); }
     }
   }
-  // the ground burns where it landed
+  // fire where it landed, and the smoke climbing off it
   if (!wet && t > 0.3) {
     const fl = smooth(0.3, 1.5, t);
-    for (let j = 0; j < 5; j++) {
-      const a = d.seed * 50 + j * 2.4, rr = 40 + 160 * ((d.seed * (3 + j * 7)) % 1);
+    for (let j = 0; j < 6; j++) {
+      const a = d.seed * 50 + j * 2.4, rr = 30 + 180 * ((d.seed * (3 + j * 7)) % 1);
       const f2 = fl * (0.6 + 0.4 * Math.sin(v * (5 + j) + d.seed * 30 + j));
-      fires.add(d.x + Math.cos(a) * rr, d.y + 4, d.z + Math.sin(a) * rr, 16, 2.4 * f2, 0.8 * f2, 0.13 * f2);
+      fires.add(d.x + Math.cos(a) * rr, d.y + 6, d.z + Math.sin(a) * rr, 24, 3.4 * f2, 1.2 * f2, 0.2 * f2);
     }
+    if (wide && t > 2) for (let j = 0; j < 2; j++) puffs.puff(d.x + (j - 0.5) * 120, d.y + 60 + 25 * (t - 2) + j * 40, d.z + (d.seed - 0.5) * 100, 70 + 10 * (t - 2), 0.1, 0.09, 0.085, 0.6 * smooth(2, 4, t), 1.4 * fl, 0.5 * fl, 0.1 * fl, d.seed + 7 + j);
   }
 }
 
@@ -434,22 +459,22 @@ function drawWreck(o, w, v, detail) {
   let dx = b.x - w.ox, dz = b.z - w.oz;
   const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
   const S = clamp(Math.pow(420 / Math.max(L, 60), 1.1), 0.35, 3.5);
-  const hot = S > 1.6 ? 0.35 * Math.exp(-t / 2) : 0.06 * Math.exp(-t / 1.5);
+  const hot = S > 1.6 ? 0.3 * Math.exp(-t / 1.5) : 0.05 * Math.exp(-t / 1.5);
   if (detail) for (const p of o.parts) {
     if (p.fy * b.h < o.stump) continue;
     const x0 = b.x + p.fx * b.w, y0 = p.fy * b.h, z0 = b.z + p.fz * b.d;
     const hs = Math.max(p.sx, p.sy, p.sz) * 0.35;
-    const sp = S * (9 + 26 * p.r1) * (0.5 + 0.5 * p.fy);
-    const vx = dx * sp + (p.r2 - 0.5) * 6 * S, vz = dz * sp + (p.r3 - 0.5) * 6 * S, vy = S * (2 + 9 * p.r2) * (0.4 + p.fy);
+    const S2 = clamp(S, 0.5, 1.4), sp = S2 * (3 + 12 * p.r1) * (0.4 + 0.6 * p.fy);
+    const vx = dx * sp + (p.r2 - 0.5) * 3, vz = dz * sp + (p.r3 - 0.5) * 3, vy = S2 * (1 + 5 * p.r2);
     const tl = (vy + Math.sqrt(vy * vy + 2 * 9.8 * Math.max(0, y0 - hs))) / 9.8;
     const tt = Math.min(t, tl), slide = Math.max(0, Math.min(t - tl, 0.6)) * 0.25;
     const x = x0 + vx * (tt + slide), z = z0 + vz * (tt + slide);
     const y = t < tl ? y0 + vy * tt - 4.9 * tt * tt : hs;
-    debris.chunk(x, y, z, p.sx, p.sy, p.sz, p.wx * tt, p.wy * tt, p.wz * tt, b.col, hot * (0.4 + 0.6 * p.r1), 0.3);
+    debris.chunk(x, y, z, p.sx, p.sy, p.sz, p.wx * tt, p.wy * tt, p.wz * tt, b.col, hot * (0.4 + 0.6 * p.r1), 0.16);
   }
   // dust boiling out of the collapse
   if (t < 9) {
-    const sz = Math.max(b.w, b.d) * (0.8 + 0.25 * t), a = 0.5 * (1 - smooth(4, 9, t)) * smooth(0, 0.3, t);
+    const sz = Math.max(b.w, b.d) * (0.8 + 0.25 * t), a = 0.35 * (1 - smooth(4, 9, t)) * smooth(0, 0.3, t);
     puffs.puff(b.x + dx * 12 * t, Math.min(b.h * 0.4, 30) + 6 * t, b.z + dz * 12 * t, sz, 0.36, 0.33, 0.3, a, 0.4 * hot, 0.15 * hot, 0.03 * hot, b.seed);
     if (detail) puffs.puff(b.x + dx * 20 * t, sz * 0.4, b.z + dz * 20 * t, sz * 0.9, 0.34, 0.31, 0.28, a * 0.8, 0, 0, 0, b.seed + 0.5);
   }
@@ -512,16 +537,18 @@ function update(v, cover = -1) {
   u.uTime.value = v;
   u.uScroll.value = v * 0.05;
   u.uFlash.value = 0; u.uBolt.value = 0;
-  const fogD = where === 'street' ? 0.0005 : where === 'drone' ? keys([[V_DRONE, 0.00009], [V_UP, 0.00004]], v) : 0.00011;
+  u.uClear.value = where === 'street' ? 1 : where === 'drone' ? 0.6 : 0;
+  const fogD = where === 'street' ? 0.00016 : where === 'drone' ? keys([[V_DRONE, 0.00009], [V_UP, 0.00004]], v) : 0.00011;
   scene.fog.density = fogD;
   glows.mat.uniforms.uFogD.value = fogD;
   fires.mat.uniforms.uFogD.value = fogD * 0.35;
   TU.uFogD.value = fogD; TU.uFlash.value = 0;
   water.u.uFogD.value = fogD;
   water.u.uChop.value = where === 'street' ? 0.25 : 0.6;
-  F.uTime.value = v; F.uGrid.value = s.grid;
+  F.uTime.value = v; F.uGrid.value = where === 'drone' ? 1 : s.grid;
+  F.uShop.value = where === 'street' ? 2.4 : 1;
   F.uBroken.value = city ? 0 : smooth(V_GLASS, V_GLASS + 0.5, v);
-  TU.uBurnR.value = where === 'drone' ? Math.min(blastR(v), 60000) : 0; TU.uBurnT.value = v;
+  TU.uBurnR.value = 0; TU.uBurnT.value = v;
 
   glows.begin(inSpace ? spaceCam : camera);
   fires.begin(inSpace ? spaceCam : camera);
@@ -533,6 +560,7 @@ function update(v, cover = -1) {
     const camP = camera.position;
     // the drops: falling, landing, exploding
     const cf = clamp(6 / (0.51 * Math.max(1, dropsAt(v))), 0.03, 1);
+    out.drone = where === 'drone';
     for (const d of dropsNow(v, where)) drawDrop(d, v, camP, out, cf);
     // the city: blown apart building by building (pieces only near enough to see)
     let changed = false;
@@ -582,14 +610,16 @@ function update(v, cover = -1) {
     u.uFire.value.setRGB(0.9, 0.32, 0.08).multiplyScalar(fireGlow * (where === 'drone' ? 0.22 : 0.35));
     F.uFire.value.setRGB(0.9, 0.35, 0.1).multiplyScalar(fireGlow * 0.5 + flashAll * 0.15);
     F.uFlash.value = flashAll * 0.12;
-    hemi.intensity = (city ? (city.kind === 'street' ? 1.0 : 0.7) : 1.15) + 0.9 * flashAll;
+    hemi.intensity = (city ? (city.kind === 'street' ? 1.0 : 0.7) : where === 'street' ? 1.35 : 1.15) + 0.9 * flashAll;
+    hemi.color.setRGB(0.42, 0.47, 0.6).lerp(tmpC.setRGB(0.75, 0.55, 0.5), where === 'street' ? 0.6 : 0);
     hemi.groundColor.setRGB(0.16, 0.14, 0.12).lerp(tmpC.setRGB(0.9, 0.35, 0.1), clamp(fireGlow * 0.6));
-    glowLight.intensity = where === 'street' ? 0.12 : 0.4;
+    glowLight.intensity = where === 'street' ? 0.3 : 0.4;
     const t0 = out.top[0];
     if (t0) { if (t0.dir) burstLight.position.copy(camP).addScaledVector(t0.dir, 1000); else burstLight.position.set(t0.d.x, t0.fy, t0.d.z); burstLight.target.position.copy(camP); }
     burstLight.intensity = 0.6 * flashAll;
     burstLight.color.setRGB(1, 0.95, 0.9).lerp(BURN, city ? 0.8 : 0);
     scene.fog.color.copy(FOG0).multiplyScalar(where === 'street' ? 0.8 : 0.5).lerp(tmpC.setRGB(0.3, 0.12, 0.05), clamp(fireGlow * 0.5));
+    if (where === 'street') scene.fog.color.setRGB(0.3, 0.2, 0.22);
     TU.uFogC.value.copy(scene.fog.color); water.u.uFogC.value.copy(scene.fog.color);
     puffs.mat.uniforms.uFogD.value = fogD * 0.6; puffs.mat.uniforms.uFogC.value.copy(scene.fog.color);
     puffs.mat.uniforms.uTime.value = v;
@@ -609,6 +639,22 @@ function update(v, cover = -1) {
     props.frame(v, s, glows, L, camera);
     traffic.frame(v, s, glows, L);
     PEOPLE.forEach((p, i) => { const o = crowdPose(p, v); crowd.pose(i, o); showUmb(i, p, o); });
+    for (const n of NEON) {
+      const on = s.grid * (v > V_POWER - 0.6 ? (Math.sin(v * 47 + n.seed * 9) > -0.3 ? 1 : 0.1) : 1);
+      if (on < 0.02) continue;
+      for (let q = 0; q < 7; q++) glows.add(n.x, n.y, n.z + (q / 6 - 0.5) * n.w, 0.45, n.col[0] * on, n.col[1] * on, n.col[2] * on);
+      glows.add(n.x - Math.sign(n.x) * 0.6, n.y, n.z, n.w * 1.4, n.col[0] * 0.08 * on, n.col[1] * 0.08 * on, n.col[2] * 0.08 * on);
+    }
+    CLOSE.forEach((p, j) => {
+      const o = standerPose(p, v, -1, V_GLASS, V_GLASS + 1.1, p.side, 0.15, DROPS[0].x, DROPS[0].z);
+      // looking up at the streak (head back); filming it, pointing at it
+      const look = 1 - smooth(V_GLASS, V_GLASS + 0.2, v);
+      o.look = lerp(o.look, 0.95, look);
+      if (p.arm === 'phone') o.armR = lerp(o.armR, 1.15, look);
+      if (p.arm === 'point') o.armL = lerp(o.armL, 1.45, look);
+      o.visible = Math.abs(o.x) < 7;
+      crowd.pose(CL0 + j, o);
+    });
     WATCH.forEach((p, j) => {
       const i = PEOPLE.length + j, o = standerPose(p, v, V_LOOK, V_GLASS, V_RUN, p.side, 0, DROPS[0].x, DROPS[0].z);
       o.visible = Math.abs(o.x) < 16;
@@ -676,7 +722,7 @@ function update(v, cover = -1) {
   }
 
   // ---------- post ----------
-  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 1.0 : city ? 1.15 : 1.3;
+  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 0.85 : city ? 1.15 : 1.05;
   bloom.strength = inSpace ? 0.8 : 0.5;
   const f = finish.uniforms;
   f.uTime.value = v;
@@ -684,10 +730,11 @@ function update(v, cover = -1) {
   f.uDrops.value = 0;
   f.uFlash.value = window.__cover ? 0 : Math.min(0.12, (s.flashAll || 0) * 0.04);
   let white = 0;
-  if (where === 'street') white = smooth(V_NEAR - 0.02, V_NEAR + 0.12, v);
-  if (where === 'drone') white = 1 - smooth(V_DRONE, V_DRONE + 0.5, v);
-  if (city) white = smooth(city.arr - 0.2, city.arr + 0.02, v);
-  if (inSpace) { const prev = CITIES.filter((c) => c.v1 <= v + 1e-6).pop(); if (prev) white = 1 - smooth(prev.v1, prev.v1 + 0.5, v); }
+  // (quick flashes, a few frames each: the cut happens inside them. Only the end stays white for long: the loop)
+  if (where === 'street') white = smooth(V_NEAR - 0.02, V_NEAR + 0.02, v);
+  if (where === 'drone') white = 0.9 * (1 - smooth(V_DRONE, V_DRONE + 0.13, v));
+  if (city) white = smooth(city.arr - 0.05, city.arr + 0.01, v);
+  if (inSpace) { const prev = CITIES.filter((c) => c.v1 <= v + 1e-6).pop(); if (prev) white = 0.9 * (1 - smooth(prev.v1, prev.v1 + 0.13, v)); }
   white = Math.max(white, cover >= 0 ? cover : 0, smooth(V_END - 0.6, V_END + 0.3, v));
   f.uWhite.value = window.__cover ? 0 : white;
   f.uAb.value = (s.punch || 0) * 1.4;

@@ -670,14 +670,15 @@ Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 4
 
 ## Next Short. What if it rained antimatter? — `week 4/antimatter-rain/out/antimatter-rain_v4_1080x1920_60fps_tiktok.mp4`
 
-62.5 s (v3, Oct 29, after the owner's second review: no ordinary rain, so everything falling is antimatter; only
-drops you can see make a sound; city and space shots alternate; even loudness). Pike Street, Seattle, at dusk, looking
-at the Public Market and Elliott Bay. Frame 0: the first antimatter drop is already falling out of the cloud as a
-glowing streak; it bursts over the Market roofline at 0.35 s (fireball, shock dome, mushroom cloud, boom). Every drop is
-seen falling and exploding, each with its sizzle and boom; 10x more every 4.5 s (one 4 mm drop = 1,440 tons of TNT).
-People in the street look up, the first blast breaks every window at 4 s, they duck and run; 10 drops = Hiroshima; a
-drop lands on the Market: white. A drone south-east of downtown: drops streaking in, towers blown into flying chunks,
-dust and fire; up into space (24 s). Then it alternates: Portland from a rooftop (people at the parapet, a mile-high
+62.5 s (v4, Oct 29: a clear glowing evening with people close to the camera; real blasts: fireball, shock ring, dark
+stem, mushroom cap lit orange from below, each step bigger; the drone sees downtown's lit towers hit one by one; the
+white-outs are now a few frames of flash, only the end stays white). Pike Street, Seattle, at sunset, looking at the
+Public Market and Elliott Bay, three people right in front of you looking up. Frame 0: the first antimatter drop is
+already falling as a glowing streak, 3.6 km out; it bursts at 0.35 s. Every drop is seen falling and exploding, each
+with its sizzle and boom, landing closer as they multiply (10x every 4.5 s; one 4 mm drop = 1,440 tons of TNT); drop 10
+(Hiroshima, 4.6 s) lands 1.2 km ahead and its mushroom fills the sky; its blast breaks every window at 8 s, people duck
+and run; a drop lands on the Market: a flash. A drone south-east of downtown (lit towers, the Space Needle beyond):
+drops land among the towers one after another and blow them apart; up into space (24 s). Then it alternates: Portland from a rooftop (people at the parapet, a mile-high
 wall rolling over the lit skyline, 35 s), space (200 miles gone), San Francisco from the street (towers lit, the wall
 rising behind them, 44 s), space (Los Angeles, Denver), New York from a helicopter at night (the dinosaur asteroid at
 48.8 s, the wall hits at 51.5 s), space: the fire wraps the planet, burning debris arcing off it; one normal 10-minute
@@ -688,8 +689,8 @@ What if it rained antimatter? One raindrop = 1,440 tons of TNT 🌧️ #whatif #
 
 **YouTube description**
 A storm over Seattle starts raining antimatter. Every few seconds, 10x more drops.
-1 drop: 1,440 tons of TNT. Every window on the street breaks.
-10 drops: Hiroshima.
+1 drop: 1,440 tons of TNT.
+10 drops: Hiroshima. Every window on the street breaks.
 1,000 drops: downtown Seattle is coming apart.
 35,000 drops: the biggest bomb ever tested.
 59 million drops: the blast reaches Portland, 145 miles away.
@@ -703,7 +704,7 @@ Would you run, or film it? 👇
 
 #whatif #physics #simulation #shorts
 
-Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.mjs --cover 1.6`: Pike Street in the rain, the first drop's fireball and mushroom over the Public Market, people in the street; "One drop = 1,440 tons of TNT")
+Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.mjs --cover 3.2`: Pike Street at sunset, mushroom clouds over the Public Market against the blue evening sky, people in front of you looking up; "One drop = 1,440 tons of TNT")
 
 ## Next Short. A black hole appears in front of you — `week 4/black-hole-appears/out/black-hole-appears_v4_1080x1920_60fps_tiktok.mp4`
 

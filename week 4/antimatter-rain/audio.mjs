@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, STORY_START, LOOP, DROPS, LAST_DROP, FALL, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_DRONE, V_UP, V_END, V_DINO, psiAt, BEATS, CITIES, cityAt, statDrops, DRONE_XZ, DOWNTOWN } from './src/timeline.js';
+import { state, VIDEO_DURATION, STORY_START, LOOP, DROPS, LAST_DROP, FALL, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_DRONE, V_UP, V_END, V_DINO, psiAt, BEATS, CITIES, cityAt, statDrops, DRONE_XZ, DOWNTOWN, TOWER_HITS } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -50,7 +50,7 @@ const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt
 // every drop you SEE is heard, and only those: a sizzle as it falls out of the cloud, a boom on the flash (on the beat
 // with the picture, not delayed by distance), louder the closer it lands. On the street every drop lands in view;
 // from the drone, the ones in front of it (the same drops the picture draws, the 3,000 and then the steady hail).
-const toDT = { x: -350 - DRONE_XZ.x, z: 450 - DRONE_XZ.z };   // (the way the drone looks: at downtown)
+const toDT = { x: -150 - DRONE_XZ.x, z: 250 - DRONE_XZ.z };   // (the way the drone looks: at downtown)
 { const L0 = Math.hypot(toDT.x, toDT.z); toDT.x /= L0; toDT.z /= L0; }
 const droneSees = (d) => {
   const dx = d.x - DRONE_XZ.x, dz = d.z - DRONE_XZ.z, L0 = Math.hypot(dx, dz);
@@ -66,6 +66,7 @@ for (const d of DROPS) {
   if (d.v < V_DRONE) addBoom(d, { x: 0, y: 2, z: 10 });
   else if (d.v < V_UP && droneSees(d)) addBoom(d, { x: DRONE_XZ.x, y: 500, z: DRONE_XZ.z });
 }
+for (const d of TOWER_HITS) addBoom(d, { x: DRONE_XZ.x, y: 450, z: DRONE_XZ.z });
 for (let j = Math.floor(LAST_DROP.v * 30); j < V_UP * 30; j++) for (const d of statDrops(j)) if (d.v < V_UP && droneSees(d)) addBoom(d, { x: DRONE_XZ.x, y: 500, z: DRONE_XZ.z });
 BOOMS.sort((a, b) => a.v - b.v);
 

@@ -18,7 +18,7 @@ varying vec3 vDir;
 uniform vec3 uGlow; uniform float uTime; uniform float uFlash; uniform float uBolt; uniform float uBoltAz; uniform float uBoltSeed;
 uniform vec3 uTop; uniform vec3 uLow; uniform vec3 uBand; uniform float uScroll; uniform float uCloudH; uniform float uDip;
 // antimatter bursts: direction (xyz) and brightness (w), colour; the fires below lighting the cloud base (uFire)
-uniform vec4 uB[8]; uniform vec3 uBC[8]; uniform vec3 uFire;
+uniform vec4 uB[8]; uniform vec3 uBC[8]; uniform vec3 uFire; uniform float uClear;
 float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -56,6 +56,15 @@ void main() {
     float br = exp(-pow((da - jb) / 0.0015, 2.0)) * step(y, 0.2) * step(0.06, y);
     c += vec3(0.9, 0.92, 1.0) * (core * 14.0 + br * 7.0 + glow * 0.8) * uBolt;
   }
+  // a clear evening (Seattle): deep blue overhead going gold and orange at the horizon where the Sun has just set,
+  // broken clouds lit pink and orange from below
+  if (uClear > 0.0) {
+    vec3 clr = mix(vec3(0.95, 0.38, 0.14), vec3(0.03, 0.06, 0.17), smoothstep(0.0, 0.3, h));
+    clr += vec3(1.5, 0.7, 0.25) * pow(w, 3.0) * (1.0 - smoothstep(0.0, 0.12, h)) * 1.2;
+    float cm = smoothstep(0.5, 0.72, n * 0.75 + n2 * 0.35);
+    vec3 cc = mix(vec3(0.95, 0.38, 0.24) * (0.45 + 0.9 * w), vec3(0.09, 0.07, 0.12), smoothstep(0.03, 0.35, h)) * (0.7 + 0.5 * n2);
+    c = mix(c, mix(clr, cc, cm), uClear);
+  }
   // the bursts light the cloud deck round them (brightest on the thick, low cloud), and a glow in the air
   float cloudK = smoothstep(-0.02, 0.12, h) * (0.35 + 1.0 * smoothstep(0.3, 0.8, n));
   for (int i = 0; i < 8; i++) {
@@ -75,7 +84,7 @@ export function makeSky() {
   const uniforms = {
     uGlow: { value: new THREE.Vector3(0, 0.05, -1) }, uTime: { value: 0 }, uFlash: { value: 0 }, uBolt: { value: 0 },
     uBoltAz: { value: 0 }, uBoltSeed: { value: 0 }, uScroll: { value: 0 }, uCloudH: { value: 1 }, uDip: { value: 0 },
-    uB: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) }, uBC: { value: Array.from({ length: 8 }, () => new THREE.Color()) }, uFire: { value: new THREE.Color(0, 0, 0) },
+    uB: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) }, uBC: { value: Array.from({ length: 8 }, () => new THREE.Color()) }, uFire: { value: new THREE.Color(0, 0, 0) }, uClear: { value: 0 },
     uTop: { value: new THREE.Color(0.07, 0.08, 0.1) }, uLow: { value: new THREE.Color(0.17, 0.18, 0.22) }, uBand: { value: new THREE.Color(0.95, 0.42, 0.2) },
   };
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, side: THREE.BackSide, depthWrite: false, depthTest: false }));

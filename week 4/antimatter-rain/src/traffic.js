@@ -74,8 +74,8 @@ export function makeTraffic(scene, { plainMat, glowMat }) {
           const k = underK(ly, level);
           for (const sx of [-0.62, 0.62]) {
             const px = x + Math.cos(yaw) * sx, pz = z - Math.sin(yaw) * sx;
-            glows.add(px - fx * 2.3, ly, pz - fz * 2.3, 0.6, 2.2 * k, 2.0 * k, 1.6 * k);
-            glows.add(px + fx * 2.3, ly, pz + fz * 2.3, 0.5, 2.0 * k, 0.1 * k, 0.05 * k);
+            glows.add(px - fx * 2.3, ly, pz - fz * 2.3, 0.85, 3.4 * k, 3.1 * k, 2.5 * k);
+            glows.add(px + fx * 2.3, ly, pz + fz * 2.3, 0.7, 3.2 * k, 0.15 * k, 0.08 * k);
             glows.reflect(px + fx * 2.3, ly, pz + fz * 2.3, 0.6, 1.2 * k, 0.06 * k, 0.03 * k, level);
             glows.reflect(px - fx * 2.3, ly, pz - fz * 2.3, 0.6, 0.9 * k, 0.8 * k, 0.6 * k, level);
           }
