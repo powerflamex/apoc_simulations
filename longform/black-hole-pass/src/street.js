@@ -330,6 +330,7 @@ export function makeStreet(renderer) {
       dummy.rotation.set(c.spin.x * r, yaw + c.spin.y * r, c.spin.z * r);
       const endFade = t < 44.4 ? Math.min(clamp((ROAD_Z0 - z) / 4), clamp((z - (ROAD_Z0 - ROAD_LEN)) / 4)) : 1;
       dummy.scale.setScalar(t >= 44.4 && z < CROSS_Z1 + 2 ? 0.0001 : Math.max(endFade, 0.0001));
+      if (window.__cover && Math.hypot(c.lane - 0.5, z - up * 0.25 + 6) < 26 && up < 14) dummy.scale.setScalar(0.0001);
       dummy.updateMatrix();
       fleet.set(i, dummy.matrix, lights);
     });
@@ -630,18 +631,22 @@ export function makeStreet(renderer) {
       yaw += wobble(t * 0.23, 3) * 0.6 * (fov / 55) + hf(2) * shake;
       pitch += wobble(t * 0.27, 4) * 0.4 * (fov / 55) + hf(1) * shake;
       const roll = wobble(t * 0.19, 5) * 0.4 + hf(3) * shake * 0.6;
+      // the thumbnail (render.mjs --cover; owner, Oct 29): crouched low in the flooded street, looking up the avenue at
+      // the hole, framed tighter so it fills the top half (the video is unchanged)
+      if (window.__cover) { x = 0.5; z = -6; yaw = -7; pitch = 33; fov = 62; }
       // you: lifted off the ground at the very end
       // (slow at first, so you see the street drop away under you: ~15 m by 296, ~100 m by 300, ~350 m by 306)
       const youUp = liftDisp(t - 292, 1.0, 0.09);
       camera.position.set(x, EYE + yOff + bob + youUp + (s.flood > 0 && yOff === 0 ? 0 : 0), z);
       camera.rotation.set(pitch * DEG, -yaw * DEG, (roll + s.you * 35 + 10 * Math.sin(t * 0.7) * smooth(293, 297, t)) * DEG);
+      if (window.__cover) camera.position.y = s.flood * 0.62 + 0.5;
       camera.fov = fov;
       camera.updateProjectionMatrix();
       camera.updateMatrixWorld();
 
       // ---- sky ----
       // high over the avenue at first; at the end it comes down the sky and looms over the end of the avenue
-      const bhEl = s.ff ? 50 : lerp(31, 37, smooth(5, 200, t)) - 6 * smooth(240, 262, t);
+      const bhEl = window.__cover ? 41 : s.ff ? 50 : lerp(31, 37, smooth(5, 200, t)) - 6 * smooth(240, 262, t);
       dirFromAzEl((s.ff ? -7 : -2) * DEG, bhEl * DEG, bhDir);
       dirFromAzEl(-10 * DEG, 45 * DEG, moon0);   // (above the avenue, where the buildings don't hide it)
       const prog = Math.pow(smooth(158, 256, t), 1.6);
@@ -654,8 +659,8 @@ export function makeStreet(renderer) {
       u.uStarVis.value = 0.55 + 0.25 * smooth(150, 200, t);
       u.uSunDir.value.set(0.2, -0.4, 1).normalize();
       u.uBhDir.value.copy(bhDir);
-      u.uBhD.value = s.bhD;
-      u.uDisk.value = Math.min(s.disk, 1.05);
+      u.uBhD.value = window.__cover ? 10 : s.bhD;
+      u.uDisk.value = window.__cover ? 0.09 : Math.min(s.disk, 1.05);
       u.uMoonDir.value.copy(moonDir);
       u.uMoonTail.value.copy(tail);
       u.uMoonStretch.value = s.moonStretch;
@@ -691,6 +696,11 @@ export function makeStreet(renderer) {
       cam.x = x; cam.z = z; cam.yaw = yaw * DEG; cam.fov = fov;
       updateCars(v, s);
       updatePeople(v, s);
+      if (window.__cover) {
+        const r = -yaw * DEG, fx = -Math.sin(r), fz = -Math.cos(r), rx = Math.cos(r), rz = -Math.sin(r);
+        crowd.pose(0, { x: x + fx * 2.0 + rx * 1.05, y: 0.15, z: z + fz * 2.0 + rz * 1.05, yaw: r + Math.PI, s: 1.02, look: 1, armL: 0.15, armR: 0.25 });
+        crowd.commit();
+      }
       updateFlood(s);
       const sc = screens.frame(v, s);
       sc.lights.forEach((l, i) => { const p = screenLights[i]; if (!p) return; p.position.copy(l.pos); p.color.copy(l.color); p.intensity = l.power * 160 * lampOn; });

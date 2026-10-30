@@ -171,7 +171,7 @@ export function makeScreens(scene, patch) {
     frame.position.copy(mesh.position); frame.rotation.y = d.yaw;
     frame.translateZ(-0.25);
     scene.add(frame);
-    return { d, canvas, g: canvas.getContext('2d'), tex, mat, mesh, key: '' };
+    return { d, canvas, g: canvas.getContext('2d'), tex, mat, mesh, frame, key: '' };
   });
   // the main screen's building (low, so the sky above it stays open) and the LIVE picture
   {
@@ -203,6 +203,8 @@ export function makeScreens(scene, patch) {
         sc.c = c;
         // a glitch as the power dies
         sc.mesh.visible = !(t >= 265 && t < 268 && Math.sin(t * 61 + sc.d.x) > 0.2);
+        // (the thumbnail: no dead black screens to compete with the hole)
+        if (window.__cover) sc.mesh.visible = sc.frame.visible = false;
       }
       feed.visible = !!feedAt(v) && !!feedMat.map;
       lights.forEach((l) => {

@@ -61,6 +61,16 @@ A black hole passing Earth is the channel's biggest Short (1.9M) and no long ver
 - Pulled up: 292-306 in first person (looking down at the street dropping away, then up into the ring); everything
   after moved 6 s (the fall 306-337). STORY_END 346, video 5:29.
 
+## Oct 29 thumbnail (owner: make it read on a phone, ~360 px wide)
+The thumbnail is cover mode (`node render.mjs --cover 0.05` -> `stills/cover.png`, copied to
+`longform/out/black-hole-pass_thumb.png`); everything below only applies when `window.__cover` is set, the video is
+unchanged. Camera low (0.5 m above the flood) in the middle of the avenue, pitched up 33 deg, fov 62, so the hole fills
+the top half between the towers; the hole closer (sky distance 10) and lower (41 deg) with the disk at 0.09 so the
+center is pure black inside a thin ring and nothing outshines it; bloom 0.1; no cars within 26 m (the cut-off taxi);
+the dead billboards hidden (black rectangles read as more holes when small); one person 2 m ahead and 1 m right, back
+to you, head tilted up at the hole. Text: one line "1 HOUR LEFT" (the video's own chapter stamp), gold, 210 px, with a
+soft black shadow and a dark band behind it. Checked at 360x203 next to the old one (`stills/thumb_compare_360.png`).
+
 ## Built (Oct 28)
 Rendered and checked: `longform/out/black-hole-pass_1920x1080.mp4` (5:40; 5:23 after the Oct 29 rework), thumbnail `longform/out/black-hole-pass_thumb.png`,
 posting copy in `CAPTIONS.md`. Render: `bash ../../render-gate.sh black-hole-pass-long node render.mjs --upload

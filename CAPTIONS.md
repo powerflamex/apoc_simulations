@@ -965,9 +965,10 @@ it, BLACK HOLE · MILES AWAY racing on frame 0), the avenue stretch between Nept
 (they all faced backwards; now in lanes, nobody walks through anyone, no hopping or popping), an outside view of the
 ocean heaped up toward the hole and pouring over the seawall and down the avenue into the subway (3:22), one look for
 the subway's water, and 6 s more of being pulled up off the street in first person. **Upload this file.**
-Thumbnail: `longform/out/black-hole-pass_thumb.png` (the opening shot: the giant glowing ring over the avenue, buildings
-both sides, taxis falling up, people in the flooded street; small caps "THE BLACK HOLE ARRIVES IN" and a giant gold
-"1 HOUR"; `node render.mjs --cover 0.05` in `longform/black-hole-pass/`).
+Thumbnail: `longform/out/black-hole-pass_thumb.png` (Oct 29, made to read at phone size: low in the flooded avenue looking
+up at the black hole, a big pure-black center with a thin ring and the disk's glare turned down, taxis and debris
+falling up into it, a person at the bottom right looking up at it; one line "1 HOUR LEFT" in big gold letters with a
+dark shadow; `node render.mjs --cover 0.05` in `longform/black-hole-pass/`).
 
 **YouTube title (62 chars)**
 What If a Black Hole Passed Earth? You Have 56 Days to Survive

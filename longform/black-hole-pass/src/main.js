@@ -85,8 +85,8 @@ function update(v) {
     if (f) feed.render(f.what, f.u, v);
     street.frame(v, s);
     renderPass.scene = street.scene; renderPass.camera = street.camera;
-    exposure = s.ff ? 1.4 : 1.15 * (1 + 0.25 * smooth(284, 290, s.t));
-    bloom.threshold = 1.0; bloom.strength = 0.4 + 0.08 * Math.min(s.disk, 1.5);
+    exposure = window.__cover ? 1.3 : s.ff ? 1.4 : 1.15 * (1 + 0.25 * smooth(284, 290, s.t));
+    bloom.threshold = 1.0; bloom.strength = window.__cover ? 0.1 : 0.4 + 0.08 * Math.min(s.disk, 1.5);
   } else if (shot.scene === 'space' || shot.scene === 'fall') {
     space.prepare(shot.scene === 'fall' ? 'fall' : shot.what, shot.u, v);
     renderPass.scene = space.lensScene; renderPass.camera = space.lensCamera;
@@ -118,7 +118,7 @@ function update(v) {
   s.blink = window.__cover ? 0 : blink;
   finish.uniforms.uAb.value = (s.quake || 0) * 0.5;
   finish.uniforms.uTitle.value = window.__cover ? 0.2 : v < FF_LEN ? 1 - smooth(4.3, 5.0, v) : 0;
-  finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9 * (1 - Math.max(s.white, s.black));
+  finish.uniforms.uCounter.value = window.__cover ? 1.25 : 0.9 * (1 - Math.max(s.white, s.black));
   overlay(v, s);
   return s;
 }
