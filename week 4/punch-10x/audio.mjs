@@ -78,7 +78,7 @@ export function makeSoundtrack(outFile) {
   for (const p of punches) {
     if (p.n < 2 || p.n > 11) continue;
     const n = p.n === 2 ? 26 : 10 + p.n * 2;
-    for (let k = 0; k < n; k++) taps.push({ t: p.v + 0.2 + Math.pow(R0(), 0.7) * (0.6 + 0.12 * p.n), f: 55 + R0() * 80, g: (p.n === 2 ? 0.035 : 0.02) * (0.5 + R0()), pan: R0() * 1.6 - 0.8 });
+    for (let k = 0; k < n; k++) taps.push({ t: p.v + 0.2 + Math.pow(R0(), 0.7) * (0.6 + 0.12 * p.n), f: 55 + R0() * 80, g: (p.n === 2 ? 0.035 : 0.02) * (0.5 + R0()), pan: R0() * 1.6 - 0.8, ph: 0, fl: new SVF() });
   }
   // glass: soft shimmers as the windows go (punches 3-9)
   const glass = [];
@@ -87,14 +87,14 @@ export function makeSoundtrack(outFile) {
   const alarms = [];
   for (let i = 0; i < 7; i++) alarms.push({ t: vPunch(4) + 0.3 + R0() * 2.5, end: vPunch(9) + 1 + R0() * 3, f: 820 + R0() * 380, rate: 1.6 + R0() * 1.4, kind: i % 3, g: 0.006 + 0.005 * R0(), pan: R0() * 1.6 - 0.8 });
   const cries = [];
-  for (let k = 0; k < 14; k++) cries.push({ t: V_RUN - 0.1 + R0() * 1.8, f: 220 + R0() * 260, d: 0.5 + R0() * 0.6, g: 0.008 + 0.009 * R0(), pan: R0() * 1.6 - 0.8, vow: R0() });
-  for (let k = 0; k < 10; k++) cries.push({ t: vPunch(5) + 0.1 + R0() * 1.2, f: 260 + R0() * 300, d: 0.4 + R0() * 0.5, g: 0.008 + 0.008 * R0(), pan: R0() * 1.6 - 0.8, vow: R0() });
+  // (each voice and each tap has its own pitch and filters: shared ones added overlapping voices' pitches into one squeak)
+  for (let k = 0; k < 14; k++) cries.push({ t: V_RUN - 0.1 + R0() * 1.8, f: 220 + R0() * 260, d: 0.5 + R0() * 0.6, g: 0.008 + 0.009 * R0(), pan: R0() * 1.6 - 0.8, vow: R0(), ph: 0, fA: new SVF(), fB: new SVF() });
+  for (let k = 0; k < 10; k++) cries.push({ t: vPunch(5) + 0.1 + R0() * 1.2, f: 260 + R0() * 300, d: 0.4 + R0() * 0.5, g: 0.008 + 0.008 * R0(), pan: R0() * 1.6 - 0.8, vow: R0(), ph: 0, fA: new SVF(), fB: new SVF() });
 
   const cityLP = new OnePole(260), cityLP2 = new OnePole(170);
   const talkF = Array.from({ length: 5 }, () => new SVF()), talkE = Array.from({ length: 5 }, () => new OnePole(3));
-  const cryF = [new SVF(), new SVF()];
   const swishF = [new SVF(), new SVF()], thudF = new SVF(), crunchF = new SVF(), blastF = new SVF(), rumF = [new SVF(), new SVF()], rumSub = new OnePole(45);
-  const tapF = new SVF(), roarF = [new SVF(), new SVF()], roarSub = new OnePole(55), metalF = [new SVF(), new SVF()];
+  const roarF = [new SVF(), new SVF()], roarSub = new OnePole(55), metalF = [new SVF(), new SVF()];
   const glassF = [new SVF(), new SVF()], alarmF = new SVF(), windF = [new SVF(), new SVF()], windSub = new OnePole(70);
   const padLP = new OnePole(500), endF = new SVF(), endSub = new OnePole(40);
   const muffL = new OnePole(12000), muffR = new OnePole(12000), spaceS = new OnePole(12);
@@ -121,9 +121,9 @@ export function makeSoundtrack(outFile) {
     for (const c of cries) {
       const dt = v - c.t;
       if (dt > 0 && dt < c.d) {
-        ph[2] += c.f * (1.2 - 0.3 * dt / c.d + 0.02 * Math.sin(dt * 30)) / SR;
-        const src = saw(ph[2]);
-        const vv = (cryF[0].run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * cryF[1].run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g;
+        c.ph += c.f * (1.2 - 0.3 * dt / c.d + 0.02 * Math.sin(dt * 30)) / SR;
+        const src = saw(c.ph);
+        const vv = (c.fA.run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * c.fB.run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g;
         l += vv * (1 - c.pan) * 0.5; r += vv * (1 + c.pan) * 0.5; wet += vv * 0.5;
       }
     }
@@ -194,8 +194,8 @@ export function makeSoundtrack(outFile) {
     for (const q of taps) {
       const dt = v - q.t;
       if (dt > 0 && dt < 0.35) {
-        ph[20] += (q.f + 30 * Math.exp(-dt * 20)) / SR;
-        const vv = (Math.sin(TAU * ph[20]) * 0.7 + tapF.run(white(), 220, 0.8).lp) * env(dt, 0.012, 0.07) * q.g;
+        q.ph += (q.f + 30 * Math.exp(-dt * 20)) / SR;
+        const vv = (Math.sin(TAU * q.ph) * 0.7 + q.fl.run(white(), 220, 0.8).lp) * env(dt, 0.012, 0.07) * q.g;
         l += vv * (1 - q.pan) * 0.5; r += vv * (1 + q.pan) * 0.5; wet += vv * 0.4;
       }
     }

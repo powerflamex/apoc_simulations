@@ -95,11 +95,12 @@ export function makeSoundtrack(outFile) {
   HITS.push({ t: V_EARTH, k: 1.0, root: 36.7 });
   // ---- cries: people near it going (synth voices, soft) ----
   const cries = [];
-  const addCries = (t0, t1, n, g) => { for (let k = 0; k < n; k++) cries.push({ t: t0 + R0() * (t1 - t0), f: 230 + R0() * 300, d: 0.45 + R0() * 0.7, g: g * (0.6 + 0.6 * R0()), pan: R0() * 1.6 - 0.8, vow: R0() }); };
+  // (each voice has its own pitch and its own filters: shared ones added overlapping voices' pitches into one squeak)
+  const addCries = (t0, t1, n, g) => { for (let k = 0; k < n; k++) cries.push({ t: t0 + R0() * (t1 - t0), f: 230 + R0() * 300, d: 0.45 + R0() * 0.7, g: g * (0.6 + 0.6 * R0()), pan: R0() * 1.6 - 0.8, vow: R0(), ph: 0, fA: new SVF(), fB: new SVF() }); };
   addCries(0.9, 2.6, 6, 0.012); addCries(2.2, 5.2, 14, 0.014); addCries(5.5, 9.0, 12, 0.01); addCries(9, 13, 9, 0.007);
   // ---- soft crunches (cars, poles going in) ----
   const thuds = [];
-  for (let k = 0; k < 26; k++) thuds.push({ t: 5.6 + Math.pow(R0(), 0.8) * 9, f: 50 + R0() * 50, g: 0.05 + 0.05 * R0(), pan: R0() * 1.4 - 0.7 });
+  for (let k = 0; k < 26; k++) thuds.push({ t: 5.6 + Math.pow(R0(), 0.8) * 9, f: 50 + R0() * 50, g: 0.05 + 0.05 * R0(), pan: R0() * 1.4 - 0.7, ph: 0, fl: new SVF() });
   // ---- glass: soft shimmering swells as the windows go ----
   const glass = [6.6, 7.4, 8.9, 10.2, 10.9, 11.6, 12.3].map((t) => ({ t, g: 0.035 + 0.01 * R0(), pan: R0() * 1.2 - 0.6 }));
   // ---- car horns at the start (soft two-tone), then alarms ----
@@ -116,8 +117,6 @@ export function makeSoundtrack(outFile) {
   const hissF = new SVF();
   const windF = [new SVF(), new SVF(), new SVF()], windSub = new OnePole(60);
   const braamLP = new SVF(), subLP = new OnePole(80);
-  const cryF = [new SVF(), new SVF()];
-  const thudF = new SVF();
   const glassF = [new SVF(), new SVF()];
   const alarmF = new SVF(), hornF = new SVF();
   const groanF = [new SVF(), new SVF()], rumLP = new OnePole(45), rumLP2 = new OnePole(70);
@@ -150,7 +149,7 @@ export function makeSoundtrack(outFile) {
       const talk = 1 - smooth(1.0, 3.0, v);          // the talking stops when they see it
       l += cv * 0.03 * talk; r += cv * 0.028 * talk;
       // the club: a soft kick at 124 bpm through a wall
-      const beat = (v * 124 / 60) % 1;
+      const beat = (((v * 124 / 60) % 1) + 1) % 1;     // (kept in 0..1 for the lead-in before frame 0, where v < 0)
       ph[1] += (48 + 60 * Math.exp(-beat * 30)) / SR;
       const kick = clubLP.run(Math.sin(TAU * ph[1]) * Math.exp(-beat * 9)) * 0.06 * (1 - smooth(2.5, 5, v));
       l += kick; r += kick;
@@ -222,9 +221,9 @@ export function makeSoundtrack(outFile) {
     for (const c of cries) {
       const dt = v - c.t;
       if (dt > 0 && dt < c.d) {
-        ph[20] += c.f * (1.25 - 0.35 * dt / c.d + 0.02 * Math.sin(dt * 30)) / SR;
-        const src = saw(ph[20]);
-        const vv = (cryF[0].run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * cryF[1].run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g;
+        c.ph += c.f * (1.25 - 0.35 * dt / c.d + 0.02 * Math.sin(dt * 30)) / SR;
+        const src = saw(c.ph);
+        const vv = (c.fA.run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * c.fB.run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g;
         l += vv * (1 - c.pan) * 0.5; r += vv * (1 + c.pan) * 0.5; wet += vv * 0.5;
       }
     }
@@ -232,8 +231,8 @@ export function makeSoundtrack(outFile) {
     for (const q of thuds) {
       const dt = v - q.t;
       if (dt > 0 && dt < 0.6) {
-        ph[22] += (q.f + 40 * Math.exp(-dt * 15)) / SR;
-        const vv = (Math.sin(TAU * ph[22]) * 0.8 + thudF.run(white(), 200, 0.8).lp) * env(dt, 0.012, 0.12) * q.g;
+        q.ph += (q.f + 40 * Math.exp(-dt * 15)) / SR;
+        const vv = (Math.sin(TAU * q.ph) * 0.8 + q.fl.run(white(), 200, 0.8).lp) * env(dt, 0.012, 0.12) * q.g;
         l += vv * (1 - q.pan) * 0.5; r += vv * (1 + q.pan) * 0.5; wet += vv * 0.4;
       }
     }

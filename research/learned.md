@@ -251,6 +251,10 @@
 - **Crowds:** people must never jump, teleport or change size. Plan every path up front so nobody overlaps
   (women-vanish/src/people.js) instead of pushing people apart each frame (that caused the jumping in electrons).
   Keep the scene at real scale (Shibuya scramble ~44 x 40 m).
+- **Squeaky, glitchy screams (found Oct 29):** the synth crowd screams in earth-stops, friction, jump-doubles, tsunami-nyc,
+  punch-10x and black-hole-appears all advanced ONE shared pitch counter (`ph[n] += c.f / SR` inside the cries loop), so
+  overlapping voices added their pitches into one high, jumping squeak. Every voice, tap or thud needs its own phase and
+  its own filters (`c.ph`, `c.fA`/`c.fB`), as fixed in punch-10x and black-hole-appears (copy those).
 - **Sound:** no harsh clicks/clacks/crackles. The owner noticed "plastic breaking" clacks from many short noise bursts
   (car bumps, dropped items). Use soft, low thuds and distance falloff, and scan the track for sharp spikes before rendering.
 - A human moment lands well (the last man dying on a bench, counter 1 -> 0, heartbeat stopping).
