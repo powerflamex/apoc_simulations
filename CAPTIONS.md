@@ -670,18 +670,18 @@ Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 4
 
 ## Next Short. What if it rained antimatter? — `week 4/antimatter-rain/out/antimatter-rain_v4_1080x1920_60fps_tiktok.mp4`
 
-62.5 s (v2, Oct 29, after the owner's review: "the rain doesn't turn into bombs"). Built on rain-1000-years' street
-(Pike Street, Seattle, in the rain at dusk, looking at the Public Market sign and Elliott Bay). Frame 0: the first
-antimatter drop is already falling out of the cloud as a glowing streak; it lands on the bay at 0.35 s (fireball, shock
-dome, steam plume, boom). Every drop is seen falling and exploding where it lands, with its own sizzle and boom; the
-drops grow 10x every 4.5 s (one 4 mm drop = 1,440 tons of TNT). The people in the street look up, the first blast breaks
-every window at 4 s, they duck and run; 10 drops = Hiroshima; mushroom clouds over the bay; a drop lands on the Market:
-white. A drone south-east of downtown: drops streaking in, towers blown apart into flying chunks, dust and fire; up
-until the whole region burns. Portland, 145 miles south (a rooftop, people at the parapet, the city lit): the northern
-sky burns brighter, a mile-high wall of dust rolls over the skyline and the towers break as it reaches you (35 s).
-Space: the blast ring sweeps North America, burning debris arcing up off the planet, city lights going out (Boise,
-California, Denver, New York), the dinosaur asteroid at 48.8 s; one normal 10-minute shower (32 trillion drops)
-= 455 dinosaur asteroids; white, loop.
+62.5 s (v3, Oct 29, after the owner's second review: no ordinary rain, so everything falling is antimatter; only
+drops you can see make a sound; city and space shots alternate; even loudness). Pike Street, Seattle, at dusk, looking
+at the Public Market and Elliott Bay. Frame 0: the first antimatter drop is already falling out of the cloud as a
+glowing streak; it bursts over the Market roofline at 0.35 s (fireball, shock dome, mushroom cloud, boom). Every drop is
+seen falling and exploding, each with its sizzle and boom; 10x more every 4.5 s (one 4 mm drop = 1,440 tons of TNT).
+People in the street look up, the first blast breaks every window at 4 s, they duck and run; 10 drops = Hiroshima; a
+drop lands on the Market: white. A drone south-east of downtown: drops streaking in, towers blown into flying chunks,
+dust and fire; up into space (24 s). Then it alternates: Portland from a rooftop (people at the parapet, a mile-high
+wall rolling over the lit skyline, 35 s), space (200 miles gone), San Francisco from the street (towers lit, the wall
+rising behind them, 44 s), space (Los Angeles, Denver), New York from a helicopter at night (the dinosaur asteroid at
+48.8 s, the wall hits at 51.5 s), space: the fire wraps the planet, burning debris arcing off it; one normal 10-minute
+shower (32 trillion drops) = 455 dinosaur asteroids; white, loop.
 
 **YouTube title (84 chars, emoji counted as 2)**
 What if it rained antimatter? One raindrop = 1,440 tons of TNT 🌧️ #whatif #physics
@@ -694,7 +694,9 @@ A storm over Seattle starts raining antimatter. Every few seconds, 10x more drop
 35,000 drops: the biggest bomb ever tested.
 59 million drops: the blast reaches Portland, 145 miles away.
 200 million drops: everything within 200 miles is gone.
+6 billion drops: San Francisco, 680 miles away.
 72 billion drops: the asteroid that killed the dinosaurs.
+270 billion drops: New York.
 One normal rain shower is 32 trillion drops: 455 dinosaur asteroids.
 
 Would you run, or film it? 👇

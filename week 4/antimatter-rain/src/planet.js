@@ -91,7 +91,7 @@ export function makePlanet() {
         // the storm itself: white-hot, flickering with every new burst
         float da = acos(clamp(dot(n, uSea), -1.0, 1.0));
         float spark = step(0.6, hash13(floor(n * 4000.0) + floor(uTime * 30.0)));
-        col += vec3(3.5, 3.2, 3.0) * uFlash * (exp(-pow(da / 0.008, 2.0)) * 3.0 + exp(-pow(da / 0.03, 2.0)) * spark * 1.5);
+        col += vec3(3.5, 3.2, 3.0) * uFlash * (exp(-pow(da / 0.006, 2.0)) * 2.0 + exp(-pow(da / 0.012, 2.0)) * spark * 0.8);
         col += vec3(2.5, 1.6, 0.9) * uFlash * exp(-pow(da / (0.08 * uR + 0.004), 2.0)) * 0.6;
         // the end: the whole surface white-hot
         col = mix(col, fireC(0.75 + 0.25 * fbm3(n * 30.0 + uTime)), uEnd);

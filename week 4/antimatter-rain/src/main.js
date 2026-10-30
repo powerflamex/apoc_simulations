@@ -23,8 +23,8 @@ import { DW } from './drown.js';
 import { F } from './facade.js';
 import { B, CAM0, PIKE } from './layout.js';
 import {
-  state, popupAt, captionAt, POP, dropsAt, VIDEO_DURATION, LOOP, DROPS, LAST_DROP, FALL, psiAt, wreckOf, blastR, landAt,
-  V_GLASS, V_NEAR, V_DRONE, V_PDX, V_WAVE, V_SPACE, V_END, PDX_CAM, vFront, DOWNTOWN, DRONE_XZ, SOUND,
+  state, popupAt, captionAt, POP, dropsAt, VIDEO_DURATION, LOOP, DROPS, LAST_DROP, FALL, psiAt, wreckOf, blastR, statDrops,
+  V_GLASS, V_NEAR, V_DRONE, V_UP, V_END, CITIES, vFrontAt, SOUND,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -84,8 +84,8 @@ const WATCH = [], ROOF = [];
     const x = a + R() * (b - a);
     WATCH.push(mk({ x, z: z + (R() - 0.5) * 0.3, side: x < 0 ? -1 : 1 }));
   }
-  // the roof: they stand along the parapet ahead of you, facing north (+x); later they run back past you
-  for (let k = 0; k < 7; k++) ROOF.push(mk({ x: PDX_CAM.x + 6.5 + R() * 1.2, z: PDX_CAM.z - 7 + k * 2.1 + (R() - 0.5) * 0.5, yaw: -Math.PI / 2 + (R() - 0.5) * 0.6, umb: false }));
+  // in the other cities: people a few metres ahead of you, watching the sky the blast comes from (ahead, side: m)
+  for (let k = 0; k < 9; k++) ROOF.push(mk({ ahead: 6.5 + R() * 3, side: -9 + k * 2.2 + (R() - 0.5) * 0.6, turn: (R() - 0.5) * 0.6, umb: false }));
 }
 const NP = PEOPLE.length + WATCH.length + ROOF.length;
 const crowd = makeCrowd(scene, NP, plainMat(0xffffff, 0.8), { castShadow: false });
@@ -113,12 +113,13 @@ const ejecta = makeGlows(planet.scene, 4000, { near: 1e6 });
 
 // the Portland rooftop: a flat roof with a parapet, under you
 const roof = new THREE.Group();
+const PDX_CAM = CITIES[0].cam;
 {
   const m = plainMat(0x4a4744, 0.9), mp = plainMat(0x6a655e, 0.8);
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(30, 61, 26), m); slab.position.set(PDX_CAM.x - 6, 30.5, PDX_CAM.z); roof.add(slab);
-  const par = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 26), mp); par.position.set(PDX_CAM.x + 8.8, 61.55, PDX_CAM.z); roof.add(par);
-  for (const s of [-1, 1]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(30, 1.1, 0.4), mp); p2.position.set(PDX_CAM.x - 6, 61.55, PDX_CAM.z + s * 12.8); roof.add(p2); }
-  const hut = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), mp); hut.position.set(PDX_CAM.x - 4, 62.5, PDX_CAM.z + 8); roof.add(hut);
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(30, 62, 26), m); slab.position.set(PDX_CAM.x - 6, 31, PDX_CAM.z); roof.add(slab);
+  const par = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 26), mp); par.position.set(PDX_CAM.x + 11.5, 62.55, PDX_CAM.z); roof.add(par);
+  for (const s of [-1, 1]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(30, 1.1, 0.4), mp); p2.position.set(PDX_CAM.x - 6, 62.55, PDX_CAM.z + s * 12.8); roof.add(p2); }
+  const hut = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), mp); hut.position.set(PDX_CAM.x - 4, 63.5, PDX_CAM.z + 8); roof.add(hut);
   scene.add(roof);
 }
 
@@ -151,8 +152,8 @@ const BUILD = B.map((b, i) => {
   return { b, i, parts, sea: wreckOf(b.x, b.z), stump: Math.min(b.h, 4 + b.h * 0.07), down: false };
 });
 // a building's wreck for this place: Seattle (the drops), Portland (the front from the north)
-function wreckFor(o, where) {
-  if (where === 'portland') return { v: vFront(o.b.x), ox: o.b.x + 6000, oz: o.b.z + (o.b.seed - 0.5) * 2000 };
+function wreckFor(o, city) {
+  if (city) return { v: vFrontAt(city, o.b.x, o.b.z), ox: o.b.x + city.fwd.x * 6000, oz: o.b.z + city.fwd.z * 6000 };
   return o.sea;
 }
 
@@ -247,17 +248,19 @@ function streetCam(v) {
 // downtown), drifting in; then climbing until the whole burning region is under it
 const DA = { x: -2400, y: 520, z: 1850 }, DM = { x: -2200, y: 600, z: 1650 }, DB = { x: -4500, y: 9500, z: 3500 };
 function droneCam(v) {
-  const k = smooth(V_DRONE, 18.5, v), up = Math.pow(smooth(17.5, V_PDX + 0.3, v), 1.6);
+  const k = smooth(V_DRONE, 18.5, v), up = Math.pow(smooth(18.5, V_UP + 0.3, v), 1.6);
   const x = lerp(lerp(DA.x, DM.x, k), DB.x, up), y = lerp(lerp(DA.y, DM.y, k), DB.y, up), z = lerp(lerp(DA.z, DM.z, k), DB.z, up);
   const tx = lerp(-350, -300, up), ty = lerp(20, 0, up), tz = lerp(450, 500, up);
   const a = aim(x, y, z, tx, ty, tz);
   return { x, y, z, yaw: a.yaw, pitch: a.pitch + 3 * DEG * (1 - up), roll: -1.0 * DEG * (1 - up), fov: lerp(44, 62, up) };
 }
-// Portland: on the rooftop behind the people at the parapet, looking north at the burning sky
-function pdxCam(v) {
-  const x = PDX_CAM.x, y = PDX_CAM.y - 1.3, z = PDX_CAM.z;
-  const pitch = lerp(3.5, 8, smooth(V_PDX, V_WAVE - 4, v)) * DEG;
-  return { x, y, z, yaw: -Math.PI / 2 + 4 * DEG, pitch, roll: 0, fov: lerp(60, 64, smooth(V_WAVE - 4, V_WAVE, v)) };
+// another city: where you are, looking the way the blast will come (a rooftop, the street, a helicopter at night)
+function cityCam(v, c) {
+  const k = smooth(c.v0, c.arr, v);
+  const yaw = Math.atan2(-c.fwd.x, -c.fwd.z) + (c.kind === 'roof' ? 4 : 0) * DEG;
+  const pitch = (c.kind === 'roof' ? lerp(4, 8, k) : c.kind === 'street' ? lerp(9, 14, k) : lerp(-13, -9, k)) * DEG;
+  const push = c.kind === 'air' ? 160 * k : 0;
+  return { x: c.cam.x + c.fwd.x * push, y: c.cam.y, z: c.cam.z + c.fwd.z * push, yaw, pitch, roll: 0, fov: lerp(c.kind === 'street' ? 66 : 60, c.kind === 'street' ? 70 : 64, k) };
 }
 // space: low over the western US looking north at the blast, climbing until the whole planet is in view
 const spaceCam = new THREE.PerspectiveCamera(46, W / H, 1, 3e6);
@@ -265,9 +268,9 @@ const NORTH = (n) => new THREE.Vector3(0, 1, 0).addScaledVector(n, -n.y).normali
 const EAST = (n) => new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n).normalize().negate();
 const OVER = toN(41.5, -119.5);                      // northern Nevada
 function placeSpaceCam(v) {
-  const alt = keys([[V_SPACE, 1900], [42, 2800], [48, 5200], [54, 11000], [V_END, 26000]], v, true);
-  const back = keys([[V_SPACE, 0.0], [48, 0.06], [V_END, 0.12]], v);
-  const base = OVER.clone().lerp(SEA, smooth(46, V_END, v) * 0.6).normalize();
+  const alt = keys([[V_UP, 1400], [30.4, 2000], [35.2, 2200], [39.4, 3200], [44.2, 4400], [46.8, 5600], [51.6, 8000], [V_END, 26000]], v, true);
+  const back = keys([[V_UP, 0.0], [48, 0.06], [V_END, 0.12]], v);
+  const base = OVER.clone().lerp(SEA, (1 - smooth(V_UP, 30, v)) * 0.8 + smooth(46, V_END, v) * 0.6).normalize();
   const pos = base.clone().addScaledVector(NORTH(base), -back).normalize().multiplyScalar(RE + alt);
   spaceCam.position.copy(pos);
   // look toward Seattle along the ground at first (the horizon high in the frame), then down at the globe
@@ -276,7 +279,7 @@ function placeSpaceCam(v) {
   spaceCam.lookAt(look);
   spaceCam.rotateX(lerp(-6, -12, smooth(44, 56, v)) * DEG);
   spaceCam.near = Math.max(1, alt * 0.05); spaceCam.far = 3e6;
-  spaceCam.fov = lerp(62, 46, smooth(V_SPACE, 50, v));
+  spaceCam.fov = lerp(62, 46, smooth(V_UP, 50, v));
   spaceCam.updateProjectionMatrix();
   spaceCam.updateMatrixWorld();
 }
@@ -336,17 +339,7 @@ function dropsNow(v, where) {
   if (where !== 'street' && where !== 'drone') return out;
   for (const d of DROPS) { if (d.v - FALL > v) break; if (v - d.v < 32) out.push(d); }
   if (v > LAST_DROP.v) {
-    const per = Math.min(14, 3 + (v - LAST_DROP.v) * 1.2);
-    for (let j = Math.floor((v - 9) * 30); j <= Math.floor((v + FALL) * 30); j++) {
-      const R = rng(j * 7919 + 13);
-      for (let q = 0; q < per; q++) {
-        const t = (j + R()) / 30, r = (R() < 0.15 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2, seed = R();
-        if (t - FALL > v || t < LAST_DROP.v) continue;
-        const x = DOWNTOWN.x + r * Math.cos(a), z = DOWNTOWN.z + r * Math.sin(a), g = landAt(x, z);
-        if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 1300 && where === 'drone') continue;
-        out.push({ v: t, x, y: g.y, z, water: g.water, seed });
-      }
-    }
+    for (let j = Math.floor((v - 9) * 30); j <= Math.floor((v + FALL) * 30); j++) for (const d of statDrops(j)) if (d.v - FALL <= v) out.push(d);
   }
   return out;
 }
@@ -476,13 +469,14 @@ function update(v, cover = -1) {
   for (const o of SEATTLE) o.visible = !inSpace;
   for (const o of LANDMARKS) o.visible = where === 'street' || where === 'drone';
   for (const b of props.boats) b.visible = false;
-  roof.visible = where === 'portland';
+  const city = s.city;
+  roof.visible = !!city && city.kind === 'roof';
   renderPass.scene = inSpace ? planet.scene : scene;
   renderPass.camera = inSpace ? spaceCam : camera;
 
   // ---------- the camera ----------
   if (!inSpace) {
-    const cam = where === 'street' ? streetCam(v) : where === 'drone' ? droneCam(v) : pdxCam(v);
+    const cam = where === 'street' ? streetCam(v) : where === 'drone' ? droneCam(v) : cityCam(v, city);
     let punch = 0;
     if (where === 'street') {
       for (const d of DROPS) {
@@ -494,7 +488,7 @@ function update(v, cover = -1) {
       // the flash of a landing drop jolts you too (it's that bright)
       for (const d of DROPS) { if (d.v > v) break; const dt = v - d.v; if (dt < 0.25) punch = Math.max(punch, 0.25 * Math.min(1, 2500 / d.dist) * Math.exp(-dt / 0.08)); }
     } else if (where === 'drone') punch = 0.3 * (0.5 + 0.5 * Math.sin(v * 13.1) * Math.sin(v * 7.3));
-    else punch = 0.6 * smooth(V_WAVE - 6, V_WAVE, v) * (0.5 + 0.5 * Math.sin(v * 17.3) * Math.sin(v * 9.1)) + 0.1 * smooth(V_PDX + 2, V_WAVE - 6, v) * Math.abs(Math.sin(v * 5.3));
+    else punch = (0.15 + 0.6 * smooth(city.arr - 3, city.arr, v)) * (0.5 + 0.5 * Math.sin(v * 17.3) * Math.sin(v * 9.1));
     if (window.__cover) punch = 0;
     cam.yaw += (wobble(v * 0.4, 5) * 0.45 + wobble(v * 9, 2) * 0.9 * punch) * DEG;
     cam.pitch += (wobble(v * 0.35, 7) * 0.35 - punch * 1.2) * DEG;
@@ -518,7 +512,7 @@ function update(v, cover = -1) {
   u.uTime.value = v;
   u.uScroll.value = v * 0.05;
   u.uFlash.value = 0; u.uBolt.value = 0;
-  const fogD = where === 'street' ? 0.0005 : where === 'drone' ? keys([[V_DRONE, 0.00009], [V_PDX, 0.00004]], v) : 0.00011;
+  const fogD = where === 'street' ? 0.0005 : where === 'drone' ? keys([[V_DRONE, 0.00009], [V_UP, 0.00004]], v) : 0.00011;
   scene.fog.density = fogD;
   glows.mat.uniforms.uFogD.value = fogD;
   fires.mat.uniforms.uFogD.value = fogD * 0.35;
@@ -526,7 +520,7 @@ function update(v, cover = -1) {
   water.u.uFogD.value = fogD;
   water.u.uChop.value = where === 'street' ? 0.25 : 0.6;
   F.uTime.value = v; F.uGrid.value = s.grid;
-  F.uBroken.value = where === 'portland' ? 0 : smooth(V_GLASS, V_GLASS + 0.5, v);
+  F.uBroken.value = city ? 0 : smooth(V_GLASS, V_GLASS + 0.5, v);
   TU.uBurnR.value = where === 'drone' ? Math.min(blastR(v), 60000) : 0; TU.uBurnT.value = v;
 
   glows.begin(inSpace ? spaceCam : camera);
@@ -543,33 +537,34 @@ function update(v, cover = -1) {
     // the city: blown apart building by building (pieces only near enough to see)
     let changed = false;
     for (const o of BUILD) {
-      const w = wreckFor(o, where);
+      const w = wreckFor(o, city);
       const dc = Math.hypot(o.b.x - camP.x, o.b.z - camP.z);
-      if (drawWreck(o, w, v, dc < (where === 'drone' ? 3200 : 4500))) changed = true;
+      if (drawWreck(o, w, v, dc < (where === 'drone' ? 3200 : 5000))) changed = true;
     }
     if (changed) buildings.mesh.instanceMatrix.needsUpdate = true;
-    // Portland: the northern sky. A wall of light over the horizon 145 miles away, the fireball climbing above it,
-    // flickering with the blasts; then the front: a wall of dust and fire rolling over the city toward you
-    if (where === 'portland') {
-      const k = smooth(V_PDX, V_WAVE - 3, v);
+    // another city: the sky the blast comes from. A wall of light over the horizon, the fireball climbing above it,
+    // flickering; and the front: a mile-high wall of dust lit orange from below, rolling over the city toward you
+    if (city) {
+      const fx = city.fwd.x, fz = city.fwd.z, sx = -fz, sz = fx;
+      const k = smooth(city.v0 - 3, city.arr - 1.5, v);
       const flick = 0.75 + 0.25 * Math.sin(v * 23) * Math.sin(v * 13.7) + 0.3 * Math.max(0, Math.sin(v * 7.1 + 2) * Math.sin(v * 4.3));
-      const far = 150000, rise = lerp(4000, 60000, Math.pow(k, 1.3));
-      const g0 = (0.4 + k) * flick;
-      fires.add(camP.x + far, rise * 0.5, camP.z - 30000, rise * 2.2, 1.6 * g0, 0.6 * g0, 0.15 * g0);
-      fires.add(camP.x + far, rise * 0.6, camP.z - 30000, rise * 1.0, 3.5 * k * flick, 2.0 * k * flick, 0.9 * k * flick, -1);
-      for (let i = 0; i < 8; i++) fires.add(camP.x + far * 0.9, 2500, camP.z + (i - 3.5) * 22000, 40000, 0.7 * g0, 0.22 * g0, 0.04 * g0);
+      const far = 150000, rise = lerp(20000, 60000, k);
+      const g0 = (0.5 + k) * flick;
+      const hx = camP.x + fx * far - sx * 30000, hz = camP.z + fz * far - sz * 30000;
+      fires.add(hx, rise * 0.5, hz, rise * 2.2, 1.6 * g0, 0.6 * g0, 0.15 * g0);
+      fires.add(hx, rise * 0.6, hz, rise * 1.0, 3.5 * k * flick, 2.0 * k * flick, 0.9 * k * flick, -1);
+      for (let i = 0; i < 8; i++) fires.add(camP.x + fx * far * 0.9 + sx * (i - 3.5) * 22000, 2500, camP.z + fz * far * 0.9 + sz * (i - 3.5) * 22000, 40000, 0.7 * g0, 0.22 * g0, 0.04 * g0);
       out.light += 0.15 * k * flick;
       fireGlow = 0.4 + 0.6 * k;
-      for (let i = 0; i < 6; i++) { const dir = new THREE.Vector3(1, 0.03 + 0.05 * i * k, (i - 2.5) * 0.35).normalize(); out.top.push({ dir, w: (0.25 + 0.6 * k) * flick * (1 - i * 0.08), flash: 0.05 }); }
-      // the front: a rolling wall of dark dust lit orange from below, as wide as the city
-      const xf = PDX_CAM.x + (V_WAVE - v) * 1200;
-      if (xf < PDX_CAM.x + 14000) {
-        // (a mile high: you see it coming over the skyline long before it gets here)
+      for (let i = 0; i < 6; i++) { const dir = new THREE.Vector3(fx + sx * (i - 2.5) * 0.35, 0.03 + 0.05 * i * k, fz + sz * (i - 2.5) * 0.35).normalize(); out.top.push({ dir, w: (0.25 + 0.6 * k) * flick * (1 - i * 0.08), flash: 0.05 }); }
+      const ahead = (city.arr - v) * 1200;
+      if (ahead < 14000) {
+        const ox = city.cam.x + fx * ahead, oz = city.cam.z + fz * ahead;
         for (let i = -16; i <= 16; i++) for (let j = 0; j < 7; j++) {
-          const zz = camP.z + i * 300 + Math.sin(i * 7.3) * 80, hh = 80 + j * 230 + 60 * Math.sin(i * 3.1 + j + v * 0.7);
-          puffs.puff(xf + j * 160 + 60 * Math.sin(i * 2.3 + j), hh, zz, 230 + 45 * j, 0.1, 0.085, 0.075, 0.97, Math.max(0, 1.8 - j * 0.4), Math.max(0, 0.55 - j * 0.12), 0.06, i * 0.37 + j);
+          const lat = i * 300 + Math.sin(i * 7.3) * 80, hh = 80 + j * 230 + 60 * Math.sin(i * 3.1 + j + v * 0.7), fw = j * 160 + 60 * Math.sin(i * 2.3 + j);
+          puffs.puff(ox + sx * lat + fx * fw, hh, oz + sz * lat + fz * fw, 230 + 45 * j, 0.1, 0.085, 0.075, 0.97, Math.max(0, 1.8 - j * 0.4), Math.max(0, 0.55 - j * 0.12), 0.06, i * 0.37 + j);
         }
-        for (let i = -20; i <= 20; i++) fires.add(xf - 30, 25, camP.z + i * 180, 140, 3, 1.0, 0.18);
+        for (let i = -20; i <= 20; i++) fires.add(ox - fx * 30 + sx * i * 180, 25, oz - fz * 30 + sz * i * 180, 140, 3, 1.0, 0.18);
       }
     }
     // the brightest blasts light the clouds
@@ -587,13 +582,13 @@ function update(v, cover = -1) {
     u.uFire.value.setRGB(0.9, 0.32, 0.08).multiplyScalar(fireGlow * (where === 'drone' ? 0.22 : 0.35));
     F.uFire.value.setRGB(0.9, 0.35, 0.1).multiplyScalar(fireGlow * 0.5 + flashAll * 0.15);
     F.uFlash.value = flashAll * 0.12;
-    hemi.intensity = (where === 'portland' ? 0.7 : 1.15) + 0.9 * flashAll;
+    hemi.intensity = (city ? (city.kind === 'street' ? 1.0 : 0.7) : 1.15) + 0.9 * flashAll;
     hemi.groundColor.setRGB(0.16, 0.14, 0.12).lerp(tmpC.setRGB(0.9, 0.35, 0.1), clamp(fireGlow * 0.6));
     glowLight.intensity = where === 'street' ? 0.12 : 0.4;
     const t0 = out.top[0];
     if (t0) { if (t0.dir) burstLight.position.copy(camP).addScaledVector(t0.dir, 1000); else burstLight.position.set(t0.d.x, t0.fy, t0.d.z); burstLight.target.position.copy(camP); }
     burstLight.intensity = 0.6 * flashAll;
-    burstLight.color.setRGB(1, 0.95, 0.9).lerp(BURN, where === 'portland' ? 0.8 : 0);
+    burstLight.color.setRGB(1, 0.95, 0.9).lerp(BURN, city ? 0.8 : 0);
     scene.fog.color.copy(FOG0).multiplyScalar(where === 'street' ? 0.8 : 0.5).lerp(tmpC.setRGB(0.3, 0.12, 0.05), clamp(fireGlow * 0.5));
     TU.uFogC.value.copy(scene.fog.color); water.u.uFogC.value.copy(scene.fog.color);
     puffs.mat.uniforms.uFogD.value = fogD * 0.6; puffs.mat.uniforms.uFogC.value.copy(scene.fog.color);
@@ -629,13 +624,16 @@ function update(v, cover = -1) {
       const lit = 1 + 1.5 * (s.flashAll || 0);
       glows.add(x, y, z, g.s, 1.6 * gl * lit, 1.7 * gl * lit, 1.9 * gl * lit);
     }
-  } else if (where === 'drone' || where === 'portland') {
+  } else if (where === 'drone' || city) {
     traffic.frame(v, s, { add() {}, reflect() {} }, L);
-    if (where === 'portland') ROOF.forEach((p, j) => {
-      const side = p.z < PDX_CAM.z ? -1 : 1;
-      const o = standerPose(p, v, V_PDX + 0.6, V_WAVE - 3.2, V_WAVE - 2.6, -0.25, side, PDX_CAM.x + 1e5, PDX_CAM.z);
-      o.y = 61.1;
-      o.visible = Math.abs(o.z - PDX_CAM.z) < 12.5;    // (they run off along the parapet, out of the picture)
+    // people watching (on the roof, or in the street), then running off to the sides, out of the picture
+    if (city && city.kind !== 'air') ROOF.forEach((p, j) => {
+      const fx = city.fwd.x, fz = city.fwd.z, sx = -fz, sz = fx;
+      const q = { ...p, x: city.cam.x + fx * p.ahead + sx * p.side, z: city.cam.z + fz * p.ahead + sz * p.side, yaw: Math.atan2(fx, fz) + p.turn };
+      const side = p.side < 0 ? -1 : 1;
+      const o = standerPose(q, v, city.v0 + 0.2, city.arr - 2.6, city.arr - 2.0, sx * side - fx * 0.25, sz * side - fz * 0.25, q.x + fx * 1e5, q.z + fz * 1e5);
+      o.y = city.kind === 'roof' ? 62.0 : 0;
+      o.visible = Math.abs((o.x - city.cam.x) * sx + (o.z - city.cam.z) * sz) < 12.5;
       crowd.pose(PEOPLE.length + WATCH.length + j, o);
     });
   }
@@ -655,9 +653,9 @@ function update(v, cover = -1) {
       const Rj = rng(j * 131 + 7);
       for (let q = 0; q < 16; q++) {
         const tb = (j + Rj()) / 12, t = v - tb, a = Rj() * Math.PI * 2, sp = 0.6 + Rj() * 0.8, seed = Rj();
-        if (t < 0 || t > 7 || tb < V_SPACE - 7) continue;
+        if (t < 0 || t > 7 || tb < V_UP - 7) continue;
         const Rb = Math.min(Math.PI * 1.02, blastR(tb) / 1000 / RE) * (0.98 + 0.04 * seed);
-        const hgt = 380 * sp * t - 55 * t * t;
+        const hgt = (380 * sp * t - 55 * t * t) * Math.min(1, Rb * RE / 600);   // (small while the blast is small)
         if (hgt <= 0) continue;
         const n = SEA.clone().multiplyScalar(Math.cos(Rb)).addScaledVector(nS.clone().multiplyScalar(Math.cos(a)).addScaledVector(eS, Math.sin(a)), Math.sin(Rb)).normalize();
         const p = n.multiplyScalar(RE + hgt);
@@ -670,26 +668,26 @@ function update(v, cover = -1) {
   glows.end(); fires.end(); puffs.end(); domes.end(); debris.end();
   for (const [k, m] of [['fires', fires.mesh], ['puffs', puffs.mesh], ['domes', domes.mesh], ['debris', debris.mesh], ['glows', glows.mesh]]) if (OFF.has(k)) m.visible = false;   // (debugging: ?off=fires,puffs)
   if (!inSpace) {
-    water.mesh.visible = where !== 'street';
+    water.mesh.visible = where === 'drone' || (!!city && city.kind === 'roof');
     water.frame(v, L, camera, where === 'street' ? 4000 : 400000);
-    rain.mesh.visible = where === 'street';
+    rain.mesh.visible = false;   // (no ordinary rain: everything you see falling is antimatter)
     rain.frame(v, camera, L);
     rain.u.uLight.value.setRGB(0.5, 0.52, 0.58).multiplyScalar(1 + 1.2 * (s.flashAll || 0));
   }
 
   // ---------- post ----------
-  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 1.0 : where === 'portland' ? 1.15 : 1.3;
+  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 1.0 : city ? 1.15 : 1.3;
   bloom.strength = inSpace ? 0.8 : 0.5;
   const f = finish.uniforms;
   f.uTime.value = v;
-  f.uRainK.value = where === 'street' ? 1 : 0;
-  f.uDrops.value = where === 'street' ? 0.6 : 0;
+  f.uRainK.value = 0;
+  f.uDrops.value = 0;
   f.uFlash.value = window.__cover ? 0 : Math.min(0.12, (s.flashAll || 0) * 0.04);
   let white = 0;
   if (where === 'street') white = smooth(V_NEAR - 0.02, V_NEAR + 0.12, v);
   if (where === 'drone') white = 1 - smooth(V_DRONE, V_DRONE + 0.5, v);
-  if (where === 'portland') white = smooth(V_WAVE - 0.2, V_WAVE + 0.02, v);
-  if (inSpace) white = 1 - smooth(V_SPACE, V_SPACE + 0.5, v);
+  if (city) white = smooth(city.arr - 0.2, city.arr + 0.02, v);
+  if (inSpace) { const prev = CITIES.filter((c) => c.v1 <= v + 1e-6).pop(); if (prev) white = 1 - smooth(prev.v1, prev.v1 + 0.5, v); }
   white = Math.max(white, cover >= 0 ? cover : 0, smooth(V_END - 0.6, V_END + 0.3, v));
   f.uWhite.value = window.__cover ? 0 : white;
   f.uAb.value = (s.punch || 0) * 1.4;

@@ -29,7 +29,7 @@ export const T_SWITCH = V_END + 0.75;
 export const LOOP = 1.0;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 export const SOUND = 343;                           // m/s
-export const FALL = 0.45;                            // s: a drop's glowing fall out of the cloud before it lands
+export const FALL = 0.7;                             // s: a drop's glowing fall out of the cloud before it lands
 // how far the combined blast has flattened everything (m): 600 m for one drop, growing as the cube root of the energy
 export const blastR = (v) => 600 * Math.cbrt(dropsAt(v));
 export const vOfBlastR = (r) => vOfDrops(Math.pow(r / 600, 3));
@@ -37,12 +37,23 @@ export const vOfBlastR = (r) => vOfDrops(Math.pow(r / 600, 3));
 export const V_FIRST = 0.35;                         // drop 1 lands (it is already falling on frame 0)
 export const V_NEAR = 10.85;                         // a drop lands on the Market, 100 m from you: white
 export const V_DRONE = 11.2;                         // cut: the drone over downtown
-export const V_PDX = 22.6;                           // cut: Portland
-export const PDX_KM = 233;
-export const V_WAVE = vOfBlastR(PDX_KM * 1000);      // 35.0: the blast reaches Portland
-export const V_SPACE = V_WAVE + 0.25;                // cut (under the white): Earth from space
+export const V_UP = 24.0;                            // cut: Earth from space (the first look)
+// the other cities: you're there as the blast arrives (each shot ends in white as it hits), with space in between.
+// cam: where you are; fwd: the way you look (toward Seattle, where the front comes from)
+export const CITIES = [
+  { name: 'PORTLAND', km: 233, cam: { x: -2350, y: 63.7, z: 420 }, fwd: { x: 1, z: 0 }, kind: 'roof' },
+  { name: 'SAN FRANCISCO', km: 1090, cam: { x: -1270, y: 1.7, z: 660 }, fwd: { x: 1, z: 0.12 }, kind: 'street' },
+  { name: 'NEW YORK', km: 3870, cam: { x: -350, y: 430, z: 1450 }, fwd: { x: 0.15, z: -1 }, kind: 'air' },
+].map((c) => {
+  const arr = vOfBlastR(c.km * 1000), L = Math.hypot(c.fwd.x, c.fwd.z);
+  return { ...c, fwd: { x: c.fwd.x / L, z: c.fwd.z / L }, arr, v0: arr - 4.6, v1: arr + 0.2 };
+});
+export const cityAt = (v) => CITIES.find((c) => v >= c.v0 && v < c.v1) || null;
+export const V_SPACE = V_UP;
 export const V_DINO = vOfDrops(DINO_TONS / TONS_PER_DROP);   // 48.8
-export const place = (v) => (v < V_DRONE ? 'street' : v < V_PDX ? 'drone' : v < V_SPACE ? 'portland' : 'space');
+export const place = (v) => (v < V_DRONE ? 'street' : v < V_UP ? 'drone' : cityAt(v) ? 'city' : 'space');
+// in a city shot a building goes when the front reaches it: the front comes from straight ahead at 1.2 km/s (sped up)
+export const vFrontAt = (c, x, z) => c.arr - ((x - c.cam.x) * c.fwd.x + (z - c.cam.z) * c.fwd.z) / 1200;
 
 // ---- the drops we follow one by one (the first 3,000), in metres round the Market: x north, z east, y up;
 // you stand at (0, 2, 10) looking west down Pike St at the Market and Elliott Bay ----
@@ -67,9 +78,9 @@ export const DROPS = [];
     if (k === 1) { x = 120; z = -1250; }                        // Elliott Bay, straight ahead, 1.26 km away
     else if (Math.abs(v - V_NEAR) < 0.012 && !DROPS.some((d) => d.near)) { x = 2; z = -92; }   // the Market
     else if (v < V_DRONE) {
-      // on the street, most land where you can see them: out over the bay and the far shore past the Market
-      if (R() < 0.72) { const d = 1100 + Math.pow(R(), 0.8) * 5200; x = (R() - 0.5) * 0.5 * d; z = -d; }
-      else for (;;) { const r = 1500 + R() * 7000, a = R() * Math.PI * 2; x = r * Math.cos(a); z = r * Math.sin(a); if (z > -300) break; }
+      // on the street they land where you can see them: out over the bay and the far shore past the Market
+      // (all of them: every boom you hear on the street is one you see)
+      const dd = 1100 + Math.pow(R(), 0.8) * 5200; x = (R() - 0.5) * 0.5 * dd; z = -dd;
     } else {
       // later, all over the city and round it, out to 14 km (a few more over downtown)
       const r = (R() < 0.12 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2;
@@ -86,6 +97,21 @@ export const DROPS = [];
 }
 export const LAST_DROP = DROPS[DROPS.length - 1];
 export const NEAR = DROPS.find((d) => d.near);
+// after the 3,000th: a steady random hail, generated per 1/30 s slot (the picture and the soundtrack use the same)
+export function statDrops(j) {
+  const t0 = j / 30, out = [];
+  if (t0 < LAST_DROP.v - 1 / 30) return out;
+  const R = rng(j * 7919 + 13), per = Math.min(14, 3 + Math.max(0, t0 - LAST_DROP.v) * 1.2);
+  for (let q = 0; q < per; q++) {
+    const t = (j + R()) / 30, r = (R() < 0.15 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2, seed = R();
+    if (t < LAST_DROP.v) continue;
+    const x = DOWNTOWN.x + r * Math.cos(a), z = DOWNTOWN.z + r * Math.sin(a);
+    if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 1300) continue;
+    const g = landAt(x, z);
+    out.push({ v: t, x, y: g.y, z, water: g.water, seed, hb: 0 });
+  }
+  return out;
+}
 // the street: the first blast reaches you (windows go), the grid fails
 export const V_GLASS = V_FIRST + DROPS[0].dist / SOUND;      // 4.0 s
 export const V_POWER = 7.0;
@@ -109,11 +135,6 @@ export function wreckOf(x, z) {
   return best;
 }
 
-// ---- Portland: you on a rooftop 145 miles south (the same street grid, seen from the south, lights still on) ----
-// the front comes in from the north and crosses the city at 1.2 km/s (sped up), reaching you at V_WAVE
-export const PDX_CAM = { x: -2350, y: 64, z: 420 };
-export const vFront = (x) => V_WAVE - (x - PDX_CAM.x) / 1200;
-
 // ---- the beats: one gold phrase pops (no number: the counter has the numbers) ----
 export const BEATS = [
   { v: vOfDrops(10) + 0.1, say: 'THAT’S HIROSHIMA' },
@@ -134,13 +155,13 @@ export const CAPTIONS = [
   [6.8, 9.1, 'And every few seconds, 10 times more.'],
   [14.0, 16.6, 'Drop 1,000. Downtown is coming apart.'],
   [17.0, 19.6, 'Every drop flattens a city block.'],
-  [23.2, 26.0, 'You’re in Portland, 145 miles south.'],
-  [27.4, 30.2, 'The whole northern sky is on fire.'],
-  [31.2, 33.8, 'Here comes the blast.'],
-  [36.6, 39.4, 'Everything within 200 miles is gone.'],
-  [41.0, 43.6, 'Boise. Then California.'],
-  [44.1, 46.7, 'San Francisco. Los Angeles. Denver.'],
-  [51.3, 53.9, 'The blast reaches New York.'],
+  [24.6, 27.4, 'From space, the storm is glowing.'],
+  [30.6, 33.0, 'You’re in Portland, 145 miles away.'],
+  [35.6, 38.4, 'Everything within 200 miles is gone.'],
+  [39.6, 42.0, 'You’re in San Francisco, 680 miles away.'],
+  [44.5, 46.6, 'Los Angeles. Denver.'],
+  [47.1, 48.6, 'New York, 2,400 miles away.'],
+  [52.6, 55.2, 'The fire wraps around the planet.'],
   [55.6, 58.8, 'One normal rain shower: 32 trillion drops.'],
 ];
 export function captionAt(v) {
@@ -187,7 +208,9 @@ export function state(v) {
   const s = { v };
   s.place = place(v);
   s.drops = dropsAt(v);
-  s.grid = s.place === 'portland' ? 1 - smooth(V_WAVE - 2.5, V_WAVE - 1.5, v) * 0.7 : 1 - smooth(V_POWER, V_POWER + 1.2, v);
+  const c = cityAt(v);
+  s.city = c;
+  s.grid = c ? 1 - smooth(c.arr - 2.0, c.arr - 1.0, v) * 0.7 : 1 - smooth(V_POWER, V_POWER + 1.2, v);
   s.title = 1 - smooth(3.0, 3.8, v);
   s.flash = smooth(V_END - 0.2, V_END + 0.5, v);
   s.flashColor = '#fff';
