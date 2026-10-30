@@ -670,24 +670,29 @@ Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 4
 
 ## Next Short. What if it rained antimatter? — `week 4/antimatter-rain/out/antimatter-rain_v4_1080x1920_60fps_tiktok.mp4`
 
-69.3 s. Built on rain-1000-years' street (Pike Street, Seattle, in the rain at dusk, looking at the Public Market sign).
-Frame 0: the first antimatter drop has just burst over Elliott Bay, a fireball over the market; the counter is in tons
-of TNT (one 4 mm drop = 1,440 tons), and the drops grow 10x every 5 s. The people in the street look up, the first blast
-breaks every window at 3.6 s (glass rains down, car alarms), they duck and run; 10 drops = Hiroshima; the sky fills
-with fireballs, the power dies; drop ~230 bursts right over you: white. A drone over downtown: the ground burning, towers
-slumping, then straight up until the whole region is on fire; space: the blast ring spreads over North America
-(Portland, Boise, Los Angeles, Denver), the dinosaur asteroid at 54 s, the whole planet glowing; one normal 10-minute
-shower (32 trillion drops) = 455 dinosaur asteroids; white, loop.
+62.5 s (v2, Oct 29, after the owner's review: "the rain doesn't turn into bombs"). Built on rain-1000-years' street
+(Pike Street, Seattle, in the rain at dusk, looking at the Public Market sign and Elliott Bay). Frame 0: the first
+antimatter drop is already falling out of the cloud as a glowing streak; it lands on the bay at 0.35 s (fireball, shock
+dome, steam plume, boom). Every drop is seen falling and exploding where it lands, with its own sizzle and boom; the
+drops grow 10x every 4.5 s (one 4 mm drop = 1,440 tons of TNT). The people in the street look up, the first blast breaks
+every window at 4 s, they duck and run; 10 drops = Hiroshima; mushroom clouds over the bay; a drop lands on the Market:
+white. A drone south-east of downtown: drops streaking in, towers blown apart into flying chunks, dust and fire; up
+until the whole region burns. Portland, 145 miles south (a rooftop, people at the parapet, the city lit): the northern
+sky burns brighter, a mile-high wall of dust rolls over the skyline and the towers break as it reaches you (35 s).
+Space: the blast ring sweeps North America, burning debris arcing up off the planet, city lights going out (Boise,
+California, Denver, New York), the dinosaur asteroid at 48.8 s; one normal 10-minute shower (32 trillion drops)
+= 455 dinosaur asteroids; white, loop.
 
 **YouTube title (84 chars, emoji counted as 2)**
 What if it rained antimatter? One raindrop = 1,440 tons of TNT 🌧️ #whatif #physics
 
 **YouTube description**
-A storm over Seattle starts raining antimatter. Every 5 seconds, 10x more drops.
+A storm over Seattle starts raining antimatter. Every few seconds, 10x more drops.
 1 drop: 1,440 tons of TNT. Every window on the street breaks.
 10 drops: Hiroshima.
-1,000 drops: the city is flattened.
+1,000 drops: downtown Seattle is coming apart.
 35,000 drops: the biggest bomb ever tested.
+59 million drops: the blast reaches Portland, 145 miles away.
 200 million drops: everything within 200 miles is gone.
 72 billion drops: the asteroid that killed the dinosaurs.
 One normal rain shower is 32 trillion drops: 455 dinosaur asteroids.
@@ -696,13 +701,8 @@ Would you run, or film it? 👇
 
 #whatif #physics #simulation #shorts
 
-Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.mjs --cover 0.3`: Pike Street in the rain, the first fireball over the Public Market, people in the street; "One drop = 1,440 tons of TNT")
+Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.mjs --cover 1.6`: Pike Street in the rain, the first drop's fireball and mushroom over the Public Market, people in the street; "One drop = 1,440 tons of TNT")
 
-## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
-
-16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
-title and "In 6 minutes, the whole universe ends." on frame 0 (the first long video showed its title only at 0:06).
-Thumbnail: `longform/out/6-more-ways_thumb_A.jpg` (Moon rubble over the burning city, a giant 6; B is the white ball).
 ## Next Short. A black hole appears in front of you — `week 4/black-hole-appears/out/black-hole-appears_v4_1080x1920_60fps_tiktok.mp4`
 
 45.2 s. The Las Vegas Strip at night: a tiny white-hot point hangs at chest height over the sidewalk, cards, flyers
@@ -735,6 +735,11 @@ How far away would you need to be to survive? 👇
 
 Cover: `week 4/black-hole-appears/out/black-hole-appears_v4_cover.png` (`node render.mjs --cover 39.6`: Earth from space, the western US spiralling into a red-hot drain round the black hole, city lights streaming in). Other option: `--cover 42.7`, the marble itself (black ball, ring of light, the bent disk)
 
+## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
+
+16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
+title and "In 6 minutes, the whole universe ends." on frame 0 (the first long video showed its title only at 0:06).
+Thumbnail: `longform/out/6-more-ways_thumb_A.jpg` (Moon rubble over the burning city, a giant 6; B is the white ball).
 
 **YouTube title (69 chars)**
 6 More Ways the World Could End, Ranked (#1 Ends the Entire Universe)
@@ -949,14 +954,17 @@ Big Rip, Big Crunch or heat death: which ending scares you most? 👇
 
 ## Long video 6. A black hole passes Earth — `longform/out/black-hole-pass_1920x1080.mp4`
 
-16:9, 5:23, **no voice** (owner, Oct 26): the phone (texts from Mom, Dad and Jay, emergency alerts), the avenue's giant
+16:9, 5:29, **no voice** (owner, Oct 26): the phone (texts from Mom, Dad and Jay, emergency alerts), the avenue's giant
 screens (headlines, LIVE pictures from space) and short captions tell it. New scenes (a night avenue, the highway to
 the airport, a subway platform, space with the lensing done per pixel; plan `longform/BLACK-HOLE-PASS.md`). Topic
 picked from the Oct 26 YouTube check (`research/longform_topics_2026-10-26.md`): the channel's biggest Short, and no
 long version over 443 views. Oct 29 (owner, before posting: a competitor's similar video, Scout's Theory 103K): a clear
 opening (the black hole's giant glowing ring over the avenue, taxis and people falling up toward it, the title under
 it, BLACK HOLE · MILES AWAY racing on frame 0), the avenue stretch between Neptune and Saturn cut from 25 s to 12 s
-(Saturn at 0:47 instead of 1:02), a darker, sharper highway with 4 s less of it. **Upload this file.**
+(Saturn at 0:47 instead of 1:02), a darker, sharper highway with 4 s less of it. Oct 29, second pass (owner): people fixed
+(they all faced backwards; now in lanes, nobody walks through anyone, no hopping or popping), an outside view of the
+ocean heaped up toward the hole and pouring over the seawall and down the avenue into the subway (3:22), one look for
+the subway's water, and 6 s more of being pulled up off the street in first person. **Upload this file.**
 Thumbnail: `longform/out/black-hole-pass_thumb.png` (the opening shot: the giant glowing ring over the avenue, buildings
 both sides, taxis falling up, people in the flooded street; small caps "THE BLACK HOLE ARRIVES IN" and a giant gold
 "1 HOUR"; `node render.mjs --cover 0.05` in `longform/black-hole-pass/`).
@@ -981,9 +989,10 @@ Would you have made it? Where would you have gone? 👇
 1:22 8 days left: the last flight
 1:33 Jupiter
 2:13 1 hour left
-3:00 30 minutes left: the subway floods
+3:00 30 minutes left: the subway
+3:22 The ocean comes in
 3:55 7 minutes left: gravity flips
-4:43 Falling in
+4:49 Falling in
 
 #whatif #blackhole #space #simulation #science
 

@@ -81,7 +81,7 @@ async function launch() {
   const page = await browser.newPage();
   page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('404')) console.log('[page]', m.text()); });
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-  await page.goto(`http://127.0.0.1:${PORT}/?render=1${has('grain') ? '&grain=1' : ''}${COVER ? '&cover=1' : ''}${WIDE ? '&wide=1' : ''}${has('clean') ? '&clean=1' : ''}`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${PORT}/?render=1${has('grain') ? '&grain=1' : ''}${COVER ? '&cover=1' : ''}${WIDE ? '&wide=1' : ''}${has('clean') ? '&clean=1' : ''}${arg('off', '') ? '&off=' + arg('off', '') : ''}`, { waitUntil: 'load' });
   await page.waitForFunction('window.__ready === true || window.__error', { timeout: 300000 });
   const err = await page.evaluate('window.__error');
   if (err) throw new Error(err);

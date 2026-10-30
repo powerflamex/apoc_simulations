@@ -1,124 +1,125 @@
 // "What if it rained antimatter?" — the story as functions of VIDEO time v (seconds; the video starts at v = 0).
-// The rule: a storm over Seattle starts raining antimatter, and the number of drops grows 10x every 5 seconds.
+// The rule: a storm over Seattle starts raining antimatter, and the number of drops grows 10x every 4.5 seconds.
 //   One big raindrop (4 mm across) is 33.5 mg. Antimatter and matter turn into pure energy: E = 2 m c^2
-//   = 2 x 33.5e-6 kg x (3e8 m/s)^2 = 6.0e12 J = 1,440 tons of TNT. The drops burst in the air as they fall
-//   (they hit air before anything else), 300-900 m up, like small nuclear airbursts.
-//   10 drops = 14,400 tons: Hiroshima (15,000). 35,000 drops = 50 million tons: the Tsar Bomba, the biggest bomb ever.
-//   The dinosaur asteroid: ~100 million megatons = 1e14 tons = 70 billion drops.
+//   = 2 x 33.5e-6 kg x (3e8 m/s)^2 = 6.0e12 J = 1,440 tons of TNT.
+//   We show each drop falling out of the cloud as a glowing streak (it is already annihilating with the air) and
+//   bursting where it lands: on the bay, the hills, the city.
+//   10 drops = 14,400 tons: Hiroshima (15,000). 35,000 drops = 50 million tons: the Tsar Bomba.
+//   The combined blast flattens everything out to 600 m x (drops)^(1/3): Portland (233 km) at 35 s,
+//   Boise 41 s, San Francisco 44 s, Los Angeles 46 s, Denver 46.4 s, New York 51.5 s, the whole planet by the end.
+//   The dinosaur asteroid: ~100 million megatons = 1e14 tons = 70 billion drops (48.8 s).
 //   A normal 10-minute shower over Seattle (5 mm of rain on 217 km^2 = 1.1 billion kg) is 32 trillion drops
-//   = 4.6e16 tons = 460 dinosaur asteroids. That's the finish line (v = 67.5 s).
-// Places: Pike Street looking west at the Public Market sign (to 12.4 s, the drop that bursts right over you),
-// a drone rising over Seattle in flames (to 30 s), Earth from space (to the end: white flash, loop).
-import { smooth, clamp, lerp, rng } from './util.js';
+//   = 4.6e16 tons = 455 dinosaur asteroids. That's the finish line (60.8 s).
+// Places: Pike Street looking west at the Public Market sign and Elliott Bay (to 11.2 s: a drop lands on the
+// Market), a drone over downtown as it's blown apart (to 22.6 s), a rooftop in Portland 145 miles south as the
+// northern sky burns and the blast comes (to 35.2 s), then Earth from space (white, loop).
+import { smooth, clamp, rng } from './util.js';
+import { seattleH } from './terrain.js';
 
 export const STORY_START = 0;
-export const PER10 = 5;                              // seconds for 10x more drops
+export const PER10 = 4.5;                            // seconds for 10x more drops
 export const dropsAt = (v) => Math.pow(10, v / PER10);
 export const vOfDrops = (n) => PER10 * Math.log10(n);
 export const TONS_PER_DROP = 1440;
 export const tonsAt = (v) => TONS_PER_DROP * dropsAt(v);
 export const DINO_TONS = 1e14;
 export const SHOWER = 3.2e13;
-export const V_END = vOfDrops(SHOWER);               // 67.5: a whole shower has fallen
+export const V_END = vOfDrops(SHOWER);               // 60.8: a whole shower has fallen
 export const T_SWITCH = V_END + 0.75;
 export const LOOP = 1.0;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 export const SOUND = 343;                           // m/s
+export const FALL = 0.45;                            // s: a drop's glowing fall out of the cloud before it lands
+// how far the combined blast has flattened everything (m): 600 m for one drop, growing as the cube root of the energy
+export const blastR = (v) => 600 * Math.cbrt(dropsAt(v));
+export const vOfBlastR = (r) => vOfDrops(Math.pow(r / 600, 3));
 
-export const V_NEAR = 11.75;                         // the drop that bursts right over the street
-export const V_DRONE = 12.4;                         // cut: high over the burning city
-export const V_SPACE = 30.0;                         // cut: Earth from space
-export const V_DINO = vOfDrops(DINO_TONS / TONS_PER_DROP);   // 54.3
-export const place = (v) => (v < V_DRONE ? 'street' : v < V_SPACE ? 'drone' : 'space');
+export const V_FIRST = 0.35;                         // drop 1 lands (it is already falling on frame 0)
+export const V_NEAR = 10.85;                         // a drop lands on the Market, 100 m from you: white
+export const V_DRONE = 11.2;                         // cut: the drone over downtown
+export const V_PDX = 22.6;                           // cut: Portland
+export const PDX_KM = 233;
+export const V_WAVE = vOfBlastR(PDX_KM * 1000);      // 35.0: the blast reaches Portland
+export const V_SPACE = V_WAVE + 0.25;                // cut (under the white): Earth from space
+export const V_DINO = vOfDrops(DINO_TONS / TONS_PER_DROP);   // 48.8
+export const place = (v) => (v < V_DRONE ? 'street' : v < V_PDX ? 'drone' : v < V_SPACE ? 'portland' : 'space');
 
-// ---- the bursts we draw one by one (the first ~3,000 drops), in metres around the Market:
-// x north, z east, y up; you stand at (0, 2, 10) looking west down Pike St ----
+// ---- the drops we follow one by one (the first 3,000), in metres round the Market: x north, z east, y up;
+// you stand at (0, 2, 10) looking west down Pike St at the Market and Elliott Bay ----
 export const CAM0 = { x: 0, y: 2.0, z: 10 };
-export const BURSTS = [];
+// the ground (and whether it's water) where a drop lands
+const inCity = (x, z) => Math.abs(x) < 1500 && z > -1300 && z < 1700;
+const cityWater = (x, z) => (z < -110 && x < 300) || (x > 0 && z < -110 - 0.55 * x);
+export function landAt(x, z) {
+  if (inCity(x, z)) return cityWater(x, z) ? { y: 0, water: true } : { y: 0, water: false };
+  const h = seattleH(x, z);
+  return h < 0 ? { y: 0, water: true } : { y: h, water: false };
+}
+export const DOWNTOWN = { x: -300, z: 500 };
+export const DRONE_XZ = { x: -2300, z: 1750 };          // where the drone hovers (no drops land on it)
+export const DROPS = [];
 {
   const R = rng(777);
-  // the first few, placed where you can see them over the end of the street (west, over the bay and the market)
-  const HAND = [
-    [150, 420, -1150],      // 1: over Elliott Bay, 1.24 km away: its shock breaks every window at 3.6 s
-    [2600, 650, -3900],     // 2
-    [-1800, 520, -2600],    // 3
-    [4200, 800, -5200],     // 4
-    [-500, 700, -6400],     // 5
-    [900, 560, -2300],      // 6
-    [-3800, 900, -4100],    // 7
-    [5800, 720, -3000],     // 8
-    [-2400, 610, -1500],    // 9
-    [300, 850, -8200],      // 10
-  ];
-  const K = 3200;
+  const K = 3000;
   for (let k = 1; k <= K; k++) {
-    const v = vOfDrops(k) - (k === 1 ? 0.25 : 0);   // (drop 1 burst just before the first frame: frame 0 shows its fireball)
-    let x, y, z;
-    if (k <= HAND.length) [x, y, z] = HAND[k - 1];
-    else if (Math.abs(v - V_NEAR) < 0.02 && k > 1 && !BURSTS.some((b) => b.near)) { x = -40; y = 210; z = -430; }
-    else {
-      // anywhere over the city and the Sound (12 km round), but none closer than 1.1 km to you before the near one
-      for (;;) {
-        const r = 12000 * Math.sqrt(R()), a = R() * Math.PI * 2;
-        x = r * Math.cos(a); z = r * Math.sin(a);
-        if (v < V_NEAR + 0.3 && Math.hypot(x - CAM0.x, z - CAM0.z) < 1100) continue;
-        // in the street, keep most of them out west where the street opens (you can't see the others, only their light)
-        if (v < V_NEAR && z > -600 && R() < 0.6) continue;
-        break;
-      }
-      y = 300 + R() * 600;
+    const v = k === 1 ? V_FIRST : vOfDrops(k) + 0.1;
+    let x, z;
+    if (k === 1) { x = 120; z = -1250; }                        // Elliott Bay, straight ahead, 1.26 km away
+    else if (Math.abs(v - V_NEAR) < 0.012 && !DROPS.some((d) => d.near)) { x = 2; z = -92; }   // the Market
+    else if (v < V_DRONE) {
+      // on the street, most land where you can see them: out over the bay and the far shore past the Market
+      if (R() < 0.72) { const d = 1100 + Math.pow(R(), 0.8) * 5200; x = (R() - 0.5) * 0.5 * d; z = -d; }
+      else for (;;) { const r = 1500 + R() * 7000, a = R() * Math.PI * 2; x = r * Math.cos(a); z = r * Math.sin(a); if (z > -300) break; }
+    } else {
+      // later, all over the city and round it, out to 14 km (a few more over downtown)
+      const r = (R() < 0.12 ? 3000 : 14000) * Math.sqrt(R()), a = R() * Math.PI * 2;
+      x = DOWNTOWN.x + r * Math.cos(a); z = DOWNTOWN.z + r * Math.sin(a);
+      if (Math.hypot(x - DRONE_XZ.x, z - DRONE_XZ.z) < 1300) { k--; continue; }   // (none right on top of the drone)
     }
-    const b = { k, v, x, y, z, seed: R(), near: Math.abs(v - V_NEAR) < 0.02 && x === -40 };
-    b.d = Math.hypot(x - CAM0.x, y - CAM0.y, z - CAM0.z);
-    b.vHit = v + b.d / SOUND;                         // when its blast reaches the street
-    BURSTS.push(b);
+    const g = landAt(x, z);
+    const d = { k, v, x, y: g.y, z, water: g.water, seed: R(), near: k > 1 && x === 2 && z === -92 };
+    // on the street the drops burst a little above the ground (the air finishes them): over the Market's roof, in view
+    d.hb = v < V_DRONE && !d.near ? 160 + 120 * d.seed : 0;
+    d.dist = Math.hypot(x - CAM0.x, z - CAM0.z);
+    DROPS.push(d);
   }
 }
-export const NEAR = BURSTS.find((b) => b.near);
-// the fireball: a flash that peaks at once, then a glowing ball that grows to ~76 m and cools as it rises
-export function fireball(b, v) {
-  const t = v - b.v;
-  if (t < 0) return null;
-  const flash = Math.exp(-t / 0.07) + 0.35 * Math.exp(-t / 0.5);
-  const r = 76 * Math.min(1, Math.pow(t / 0.6, 0.4));
-  const heat = Math.exp(-t / 1.3);
-  const rise = 40 * t;
-  return { t, flash, r, heat, y: b.y + rise };
-}
-// blast reaching a point d metres away: how hard it hits (rough overpressure in psi for 1.44 kt, airburst)
-export const psiAt = (d) => 5 * Math.pow(600 / Math.max(d, 50), 1.9);
+export const LAST_DROP = DROPS[DROPS.length - 1];
+export const NEAR = DROPS.find((d) => d.near);
+// the street: the first blast reaches you (windows go), the grid fails
+export const V_GLASS = V_FIRST + DROPS[0].dist / SOUND;      // 4.0 s
+export const V_POWER = 7.0;
+// how hard a blast hits at d metres (rough overpressure in psi for 1.44 kt on the ground)
+export const psiAt = (d) => 5 * Math.pow(480 / Math.max(d, 50), 1.9);
 
-// the street: when the first blast arrives (windows go), the grid fails, people run
-export const V_GLASS = BURSTS[0].vHit;               // 3.6 s
-export const V_POWER = 7.2;
-// a building at (x, z) is flattened by the first burst within 650 m of it (5+ psi)
-export function vDestroyed(x, z) {
-  let best = 1e9;
-  for (const b of BURSTS) {
-    if (b.v > best) break;
-    const d = Math.hypot(x - b.x, z - b.z, b.y);
-    if (d < 650) best = Math.min(best, b.v + d / SOUND);
+// a building at (x, z) is blown apart by the first drop within 480 m of it (5+ psi): when, from where, how hard
+export function wreckOf(x, z) {
+  let best = null;
+  for (const d of DROPS) {
+    if (best && d.v > best.v) break;
+    if (d.v < V_DRONE - 0.5 && !d.near) continue;     // (the street-phase drops land out west, away from the towers)
+    const r = Math.hypot(x - d.x, z - d.z);
+    if (r < 480) { const v = d.v + r / 900; if (!best || v < best.v) best = { v, ox: d.x, oz: d.z, r }; }
   }
-  if (best > 1e8) {   // past the bursts we track one by one: by then every square km has been hit
-    const h = (Math.sin(x * 0.0123 + z * 0.0371) * 43758.5) % 1;
-    best = vOfDrops(3200) + Math.abs(h) * 2.5;
+  if (!best) {   // past the drops we follow one by one: by then every block has been hit
+    const h = Math.abs((Math.sin(x * 0.0123 + z * 0.0371) * 43758.5) % 1);
+    const a = h * 40;
+    best = { v: LAST_DROP.v + h * 3, ox: x + 250 * Math.cos(a), oz: z + 250 * Math.sin(a), r: 250 };
   }
   return best;
 }
 
+// ---- Portland: you on a rooftop 145 miles south (the same street grid, seen from the south, lights still on) ----
+// the front comes in from the north and crosses the city at 1.2 km/s (sped up), reaching you at V_WAVE
+export const PDX_CAM = { x: -2350, y: 64, z: 420 };
+export const vFront = (x) => V_WAVE - (x - PDX_CAM.x) / 1200;
+
 // ---- the beats: one gold phrase pops (no number: the counter has the numbers) ----
 export const BEATS = [
-  { v: V_GLASS, say: '' },                                  // (title still up: the blast only jolts)
-  { v: vOfDrops(10), say: 'THAT’S HIROSHIMA' },
-  { v: vOfDrops(100), say: '' },
+  { v: vOfDrops(10) + 0.1, say: 'THAT’S HIROSHIMA' },
   { v: V_DRONE + 0.5, say: 'SEATTLE IS BURNING' },
-  { v: vOfDrops(1e4), say: '' },
   { v: vOfDrops(50e6 / TONS_PER_DROP), say: 'THE BIGGEST BOMB EVER' },
-  { v: vOfDrops(1e6), say: '' },
-  { v: vOfDrops(1e8), say: '' },
   { v: V_DINO, say: 'THE DINOSAUR KILLER' },
-  { v: vOfDrops(1e12), say: '' },
-  { v: V_END, say: '' },
 ];
 export const POP = 1.7;
 export function popupAt(v) {
@@ -126,30 +127,22 @@ export function popupAt(v) {
   for (const x of BEATS) if (x.say && v >= x.v && v < x.v + POP) b = x;
   return b ? { say: b.say, dt: v - b.v } : null;
 }
-export function beatAt(v) {
-  let b = null;
-  for (const x of BEATS) if (v >= x.v) b = x;
-  return b ? { ...b, dt: v - b.v } : null;
-}
 
 // ---- captions (video time) ----
 export const CAPTIONS = [
-  [3.9, 6.4, 'One drop, under a mile from you. Every window breaks.'],
-  [7.2, 9.8, 'Each drop is 1,440 tons of TNT.'],
-  [9.9, 11.6, 'Every 5 seconds, 10 times more.'],
-  [15.0, 17.6, 'Drop 1,000. The city is being flattened.'],
-  [19.0, 21.4, 'The fires reach across Puget Sound.'],
-  [25.6, 28.4, 'The blasts merge into one firestorm.'],
-  [31.2, 33.8, 'From space, the storm is glowing.'],
-  [41.0, 43.8, 'Everything within 200 miles is flattened.'],
-  [46.5, 49.2, 'Portland. Vancouver. Boise. Gone.'],
-  [51.6, 54.1, 'San Francisco. Los Angeles. Denver.'],
-  [57.0, 60.0, 'And it’s still only one storm.'],
-  [61.5, 65.0, 'One normal rain shower: 32 trillion drops.'],
+  [4.2, 6.6, 'Each drop: 1,440 tons of TNT.'],
+  [6.8, 9.1, 'And every few seconds, 10 times more.'],
+  [14.0, 16.6, 'Drop 1,000. Downtown is coming apart.'],
+  [17.0, 19.6, 'Every drop flattens a city block.'],
+  [23.2, 26.0, 'You’re in Portland, 145 miles south.'],
+  [27.4, 30.2, 'The whole northern sky is on fire.'],
+  [31.2, 33.8, 'Here comes the blast.'],
+  [36.6, 39.4, 'Everything within 200 miles is gone.'],
+  [41.0, 43.6, 'Boise. Then California.'],
+  [44.1, 46.7, 'San Francisco. Los Angeles. Denver.'],
+  [51.3, 53.9, 'The blast reaches New York.'],
+  [55.6, 58.8, 'One normal rain shower: 32 trillion drops.'],
 ];
-// how far the combined blast has flattened everything (m): 600 m for one drop, growing as the cube root of the energy
-// (Portland 233 km at ~38 s, Boise 650 km at ~46 s, Los Angeles 1,540 km at ~51 s; the whole planet by the end)
-export const blastR = (v) => 600 * Math.cbrt(dropsAt(v));
 export function captionAt(v) {
   if (popupAt(v)) return null;
   for (const [a, b, text] of CAPTIONS) {
@@ -181,7 +174,7 @@ export function fmtTons(t) {
 export const COUNTERS = [
   {
     from: -3, to: T_SWITCH + 2, label: '',
-    labelFn: (v) => `ANTIMATTER RAIN · ${fmtDrops(dropsAt(v))}`,
+    labelFn: (v) => `ANTIMATTER RAIN · ${fmtDrops(dropsAt(Math.max(v, 0)))}`,
     fmt: (t) => (t >= DINO_TONS ? `${(t / DINO_TONS) < 10 ? (t / DINO_TONS).toFixed(2) : fmtInt(t / DINO_TONS)}×` : fmtTons(t)),
     // (whole drops while they can be counted, so the tons always match the drops shown)
     value: (v) => { const n = Math.max(1, dropsAt(v)); return TONS_PER_DROP * (n < 1000 ? Math.floor(n) : n); },
@@ -194,9 +187,8 @@ export function state(v) {
   const s = { v };
   s.place = place(v);
   s.drops = dropsAt(v);
-  s.grid = 1 - smooth(V_POWER, V_POWER + 1.2, v);
+  s.grid = s.place === 'portland' ? 1 - smooth(V_WAVE - 2.5, V_WAVE - 1.5, v) * 0.7 : 1 - smooth(V_POWER, V_POWER + 1.2, v);
   s.title = 1 - smooth(3.0, 3.8, v);
-  // the end: white
   s.flash = smooth(V_END - 0.2, V_END + 0.5, v);
   s.flashColor = '#fff';
   s.endcard = 0; s.endText = 0; s.fadeOut = 0;

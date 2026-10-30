@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, STORY_START, LOOP, BURSTS, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_DRONE, V_SPACE, V_END, V_DINO, SOUND, psiAt, BEATS } from './src/timeline.js';
+import { state, VIDEO_DURATION, STORY_START, LOOP, DROPS, LAST_DROP, FALL, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_DRONE, V_PDX, V_WAVE, V_SPACE, V_END, V_DINO, psiAt, BEATS } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -47,18 +47,24 @@ class Reverb {
 const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt / dec));
 
-// when each burst is heard: on the street (where you stand), then from the drone over the city
-const DRONE_EAR = { x: -2500, y: 900, z: 3500 };
+// every drop you see is heard: a sizzle as it falls out of the cloud, a boom on the flash (on the beat with the
+// picture, not delayed by distance), louder the closer it lands. On the street from where you stand, over the
+// city from the drone; after the 3,000th drop, a steady hail of them (as in the picture).
+const DRONE_EAR = { x: -1500, y: 300, z: 1450 };
 const BOOMS = [];
-for (const b of BURSTS) {
-  let vh, g;
-  if (b.vHit < V_NEAR + 0.05) { vh = b.vHit; g = Math.min(2.2, Math.sqrt(psiAt(b.d)) * 1.1); }
-  else if (b.v >= V_DRONE - 2) {
-    const d = Math.hypot(b.x - DRONE_EAR.x, b.y - DRONE_EAR.y, b.z - DRONE_EAR.z);
-    vh = b.v + d / SOUND; g = Math.min(1.2, Math.sqrt(psiAt(d)) * 1.1);
-    if (vh < V_DRONE) continue;
-  } else continue;
-  if (vh < V_SPACE + 1) BOOMS.push({ v: vh, g, seed: b.seed });
+for (const d of DROPS) {
+  if (d.v > V_PDX) break;
+  const ear = d.v < V_DRONE ? { x: 0, y: 2, z: 10 } : DRONE_EAR;
+  const dist = Math.hypot(d.x - ear.x, d.y - ear.y, d.z - ear.z);
+  if (d.near) continue;
+  BOOMS.push({ v: d.v, g: Math.min(1.8, 0.3 + 1.3 * Math.sqrt(psiAt(dist))), seed: d.seed, sz: dist < 7000 ? Math.min(1, 2500 / dist) : 0 });
+}
+{
+  const R = rng(4242);
+  for (let v = LAST_DROP.v; v < V_PDX; v += 1 / 30) {
+    const n = Math.min(4, 1 + (v - LAST_DROP.v) * 0.4);
+    for (let q = 0; q < n; q++) if (R() < 0.5) BOOMS.push({ v: v + R() / 30, g: 0.25 + 0.6 * Math.pow(R(), 3), seed: R(), sz: 0.2 * R() });
+  }
 }
 BOOMS.sort((a, b) => a.v - b.v);
 
@@ -73,7 +79,7 @@ export function makeSoundtrack(outFile) {
   const rainF = [new SVF(), new SVF(), new SVF(), new SVF()], patF = [new SVF(), new SVF()], patE = [new OnePole(30), new OnePole(30)];
   const voiceF = Array.from({ length: 6 }, () => new SVF()), voiceE = Array.from({ length: 6 }, () => new OnePole(5));
   const crackF = [new SVF(), new SVF()], rollF = [new SVF(), new SVF()], rollSub = new OnePole(45);
-  const glassF = [new SVF(), new SVF()];
+  const glassF = [new SVF(), new SVF()], sizF = new SVF(), pdxF = [new SVF(), new SVF()], pdxSub = new OnePole(30);
   const roarF = [new SVF(), new SVF()], roarSub = new OnePole(35), gust = new OnePole(0.6);
   const deepF = new SVF(), deepSub = new OnePole(25);
   const padLP = new OnePole(380), padLP2 = new OnePole(380);
@@ -96,8 +102,8 @@ export function makeSoundtrack(outFile) {
     const v = n / SR;
     if (n % 48 === 0) s = state(v);
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;      // d*: not muffled in space
-    const street = v < V_NEAR + 0.02 ? 1 : 0;
-    const air = v < V_SPACE ? 1 : 0;
+    const street = v < V_NEAR + 0.02 ? 1 : 0, pdx = v >= V_PDX && v < V_SPACE ? 1 : 0;
+    const air = v < V_PDX ? 1 : 0;
 
     // --- the rain: a broad hiss, plus the patter (quieter over the city: the roar takes over) ---
     if (air) {
@@ -166,14 +172,20 @@ export function makeSoundtrack(outFile) {
         if (dt > 0 && dt < 2.5) { ph[2] += (60 * Math.exp(-dt * 1.2) + 18) / SR; const pv = Math.sin(TAU * ph[2]) * env(dt, 0.02, 0.7) * 0.14; dl += pv; dr += pv; }
       }
     }
-    // --- the booms: each burst's blast as it arrives (a crack, then a long rumble) ---
+    // --- the drops: a rising sizzle as each falls, then the boom (a crack, then a long rumble) ---
     {
-      let crackE = 0, rollE = 0;
+      let crackE = 0, rollE = 0, sizE = 0;
       while (bi0 < BOOMS.length && BOOMS[bi0].v + 5 < v) bi0++;
-      for (let i = bi0; i < BOOMS.length && BOOMS[i].v <= v; i++) {
+      for (let i = bi0; i < BOOMS.length && BOOMS[i].v - FALL <= v; i++) {
         const b = BOOMS[i], dt = v - b.v;
-        crackE += b.g * b.g * env(dt, 0.004, 0.09);
-        rollE += b.g * env(dt, 0.06, 1.1) * (0.75 + 0.25 * Math.sin(dt * 6 + b.seed * 30));
+        if (dt < 0) { sizE += b.sz * Math.pow(1 + dt / FALL, 2); continue; }
+        crackE += b.g * b.g * env(dt, 0.003, 0.08);
+        rollE += b.g * env(dt, 0.05, 1.1) * (0.75 + 0.25 * Math.sin(dt * 6 + b.seed * 30));
+      }
+      if (sizE > 0) {
+        ph[44] += (900 + 1800 * Math.min(sizE, 1)) / SR;
+        const sz = (sizF.run(white(), 3800, 0.35).bp * 0.8 + Math.sin(TAU * ph[44]) * 0.15) * Math.min(sizE, 1.5) * 0.22;
+        l += sz; r += sz * 0.9; wet += sz * 0.3;
       }
       const roll = Math.min(rollE, 3) / (1 + 0.15 * Math.max(0, rollE - 3));
       if (crackE > 0) { const c = crackF[0].run(white(), 1100, 0.5).lp * Math.min(crackE, 3) * 0.9; l += c; r += crackF[1].run(white(), 1000, 0.5).lp * Math.min(crackE, 3) * 0.9; wet += c * 0.5; }
@@ -192,9 +204,21 @@ export function makeSoundtrack(outFile) {
         dl += ro; dr += ro;
       }
     }
+    // --- Portland: the north rumbling (far blasts, felt more than heard), growing; then the front: a rising roar ---
+    if (pdx) {
+      const k = smooth(V_PDX, V_WAVE, v);
+      const rum = (pdxSub.run(white()) * 4 + pdxF[0].run(white(), 70 + 40 * k, 0.5).lp * 1.5) * (0.3 + 0.6 * k) * (0.7 + 0.3 * Math.sin(v * 5.1) * Math.sin(v * 2.3));
+      dl += rum; dr += rum;
+      const ap = Math.pow(smooth(V_WAVE - 4.5, V_WAVE, v), 2);
+      if (ap > 0) { const ro = pdxF[1].run(white(), 200 + 1400 * ap, 0.45).lp * ap * 1.6; l += ro; r += ro; wet += ro * 0.3; }
+    }
+    {
+      const dt = v - V_WAVE;
+      if (dt > -0.05 && dt < 2) { const c = crackF[0].run(white(), 1600, 0.3).lp * env(dt + 0.05, 0.01, 0.5) * 2.4; dl += c; dr += c; wet += c * 0.4; }
+    }
     // --- the city burning: one wide roar of fire and wind, rising and falling in gusts ---
     {
-      const k = smooth(V_DRONE - 0.4, V_DRONE + 1, v) * (1 - smooth(V_SPACE - 0.3, V_SPACE + 0.2, v)) + smooth(V_END - 6, V_END, v) * 1.4;
+      const k = smooth(V_DRONE - 0.4, V_DRONE + 1, v) * (1 - smooth(V_PDX - 0.3, V_PDX + 0.1, v)) + 0.55 * smooth(V_SPACE, V_SPACE + 1, v) + smooth(V_END - 6, V_END, v) * 1.0;
       if (k > 0) {
         const g = gust.run(0.6 + 0.4 * Math.sin(v * 0.7) * Math.sin(v * 0.31 + 2) + 0.25 * white());
         const lv = (roarF[0].run(white(), 260 + 300 * g, 0.55).bp * 0.7 + roarSub.run(white()) * 2.0) * (0.13 + 0.07 * g) * k;
@@ -215,7 +239,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- space: a deep rumble under everything; a swell at each big moment ---
     if (v >= V_SPACE) {
-      const dv = (deepF.run(white(), 70, 0.5).lp * 1.5 + deepSub.run(white()) * 3) * 0.12 * smooth(V_SPACE, V_SPACE + 1, v) * (1 + 1.5 * smooth(V_SPACE + 10, V_END, v));
+      const dv = (deepF.run(white(), 70, 0.5).lp * 1.5 + deepSub.run(white()) * 3) * 0.3 * smooth(V_SPACE, V_SPACE + 1, v) * (1 + 1.2 * smooth(V_SPACE + 10, V_END, v));
       dl += dv; dr += dv;
       for (const bt of BEATS) {
         const dt = v - bt.v;

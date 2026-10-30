@@ -84,10 +84,12 @@ vec4 burn(vec2 xz, float d) {
   if (uBurnR <= 0.0) return vec4(0.0);
   float bd = length(xz) + (bf(xz / (uBurnR * 0.35 + 300.0)) - 0.5) * 0.3 * uBurnR;
   float inside = smoothstep(uBurnR, uBurnR * 0.92, bd);
-  float sc = max(70.0, d * 0.004);
+  float sc = max(25.0, d * 0.002);
   float e = bf(xz / sc + vec2(uBurnT * 0.15, -uBurnT * 0.1));
+  float e2 = bf(xz / (sc * 6.0) + 11.0);
   float fl = 0.75 + 0.25 * sin(uBurnT * 6.0 + e * 20.0);
-  vec3 em = (vec3(1.5, 0.45, 0.07) * smoothstep(0.5, 0.75, e) * fl + vec3(0.18, 0.04, 0.005) * e) * inside;
+  // charred ground, dull red where it smoulders, scattered points of open fire
+  vec3 em = (vec3(1.6, 0.5, 0.08) * smoothstep(0.66, 0.8, e) * smoothstep(0.35, 0.6, e2) * fl + vec3(0.09, 0.02, 0.003) * smoothstep(0.3, 0.7, e2)) * inside;
   em += vec3(2.2, 0.9, 0.25) * exp(-pow((bd - uBurnR) / (0.035 * uBurnR + 40.0), 2.0)) * step(0.1, inside + 0.5);
   return vec4(em, inside);
 }`;
