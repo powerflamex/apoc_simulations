@@ -703,6 +703,38 @@ Cover: `week 4/antimatter-rain/out/antimatter-rain_v4_cover.png` (`node render.m
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
 title and "In 6 minutes, the whole universe ends." on frame 0 (the first long video showed its title only at 0:06).
 Thumbnail: `longform/out/6-more-ways_thumb_A.jpg` (Moon rubble over the burning city, a giant 6; B is the white ball).
+## Next Short. A black hole appears in front of you — `week 4/black-hole-appears/out/black-hole-appears_v4_1080x1920_60fps_tiktok.mp4`
+
+45.2 s. The Las Vegas Strip at night: a tiny white-hot point hangs at chest height over the sidewalk, cards, flyers
+and casino tokens already streaming into it, people next to you; it gets 10x heavier every 3 s (counter: its mass in
+tons, the line under it says what that is like). At a small mountain's mass (still smaller than an atom) the man 2 m
+away is pulled in (GONE); the cars slide in, the shop windows burst, people hang off the lampposts and palms; the
+street, then the block pour into a swirl of glowing crushed matter; the skyline leans toward it; 2.6 km away, its pull
+on you passes Earth's and you fall sideways. From the sky: Las Vegas drains into it, the desert, the mountains; from
+space: the West Coast, half the planet spiralling into a red-hot drain (the Moon's mass: a grain of sand); then down
+into it: at Earth's mass it is a black ball the size of a marble with its light bent round it; white, loop.
+Numbers checked in `src/timeline.js` (size 2.97e-27 m per kg; Hawking glow 3.56e32 W / M^2; pull passes Earth's at
+1.47e11 kg x d^2).
+
+**YouTube title (98 chars)**
+What if a black hole appeared in front of you? A marble-sized one is as heavy as the Earth #whatif
+
+**YouTube description**
+A black hole smaller than an atom appears on the Las Vegas Strip. Every 3 seconds it gets 10x heavier.
+As heavy as a small mountain: it pulls in a man 2 meters away.
+10 billion tons: the cars slide in.
+Heavier than Mount Everest: the shop windows burst toward it.
+21 seconds in, its pull on you, a mile and a half away, passes Earth's.
+Las Vegas is gone.
+As heavy as the Moon, and only as wide as a grain of sand.
+As heavy as the whole Earth: the size of a marble.
+
+How far away would you need to be to survive? 👇
+
+#whatif #space #blackhole #physics #shorts
+
+Cover: `week 4/black-hole-appears/out/black-hole-appears_v4_cover.png` (`node render.mjs --cover 39.6`: Earth from space, the western US spiralling into a red-hot drain round the black hole, city lights streaming in). Other option: `--cover 42.7`, the marble itself (black ball, ring of light, the bent disk)
+
 
 **YouTube title (69 chars)**
 6 More Ways the World Could End, Ranked (#1 Ends the Entire Universe)
