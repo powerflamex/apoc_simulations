@@ -185,6 +185,19 @@
   rainy plaza while the ball rolls (the cliff zone was 0:36-0:45), and 2:08-2:40, 32 s of "silence" gliding through the
   same plaza (the quietest part of the track). Everything after 2:40 cuts every ~10-15 s (lightning, fusion, Mars, the
   red overheating, the neon web).
+- **Oct 29 read (Studio data through Oct 28).** punch-10x day 1: 9.7K, **70.8% stayed, 71.3% watched (score 50)**, 25.7K
+  live Oct 29. quake after 2 days: 60.2% / 73.3%. grow-trillion 65.8K (77.2K live). sun-explodes posted Oct 29: 21.1K live
+  the same day (fast start). IQ 1000 long, day 1: 201 views, 28.6% watched (1:35 of 5:35), 6.2% clicked (the best click
+  rate of any long video, the weakest watching). Heat death 1.0K views, 40.9% watched. false-vacuum 98K.
+- **True first 24 hours from posting** (Advanced mode > Report > "First 24 hours video performance";
+  URL time_period=since_publish,time_period_unit_nth_days,1, scatterplot view only; no stayed-to-watch there):
+  views / average watched: trillion 477K / 77%, speed 308K / 83%, moon 114K / 72%, women 99K / 70%, electrons 92K / 67%,
+  gravity 76K / 69%, black hole v4 70K / **86%**, earth-stops 65K / 66%, yellowstone 63K / 64%, big crunch 42K / 61%,
+  false vacuum 41K / 74%, grow-trillion 36K / 75%, jump 35K / 64%, jupiter 32K / 65%, black-hole-fall 31K / 74%, friction
+  23K / 61%, gojo 21K / 60%, oxygen 20K / 62%, punch 12K / 70%, tsunami 10K / 62%, quake 9K / 75%.
+  Recent Shorts now hold 70-75% (near the hits' 77-86%), but their first-24-h test is 5-30x smaller than mid-October's.
+- Studio cannot break stayed-to-watch or average watched down by hour: an hourly breakdown is refused for every metric;
+  the hourly Realtime report only counts views. The finest is the first-24-hours report, then daily (with a ~1-2 day lag).
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
