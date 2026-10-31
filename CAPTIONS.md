@@ -668,6 +668,38 @@ How many punches would you throw before you stopped? 👇
 
 Cover: `week 4/punch-10x/out/punch-10x_v4_cover.png` (`node render.mjs --cover 46.8`: Earth from space, the crust cracked open and glowing round Los Angeles, a ring of fire racing out)
 
+## Next Short. What if you could stop time and leave no DNA? — `week 4/time-stop/out/time-stop_v4_1080x1920_60fps_tiktok.mp4`
+
+54.1 s. Times Square at night in the rain. Frame 0: time is already stopped: raindrops hang in the air like glass beads,
+people frozen mid-step, a taxi's splash frozen beside an armored truck, and you (hood up, back to the camera) are
+pulling $ bags out of its open doors while the counter races ($0 to $2.4 million). 3.4 s: time starts (the rain
+falls again, the city roars back): the truck is empty. 5.6 s: you stop it again (a ripple of bent light from you, the
+world's sound slides down and cuts out, a ringing silence and your heartbeat). A jewelry store: you sweep the cases
+($40 million); time starts: the alarm, hands up, police lights in the window, forensics with a UV lamp: "No DNA. No
+prints." A bank vault ($150 million): the red beacon, the guard's hands on his head. The manhunt: police cruisers,
+helicopters' searchlights, every screen reads $150 MILLION GONE, NO SUSPECTS; you stop time and walk right past a cop
+under a frozen searchlight full of hanging drops. 80 ft under Wall Street, the biggest gold vault on Earth (507,000
+bars): see-through copies of you carry the bars off (6 months of work in stopped time), the first cage, a row, half,
+all of it: $820 billion (gold at ~$4,050/oz, Oct 2026). Time starts: the guards' "Noooo" (the owner's clip). Times
+Square, every screen showing it; you're in the crowd, looking up; you stop time one last time: white, loop.
+
+**YouTube title (84 chars, emoji counted as 2)**
+What if you could stop time and leave no DNA? $820 billion, zero suspects ⏱️ #whatif
+
+**YouTube description**
+You can stop time whenever you want. And you leave no DNA, no fingerprints, nothing.
+An armored truck: $2.4 million.
+A jewelry store: $40 million taken so far.
+A bank vault: $150 million. The whole city is hunting you.
+Then the biggest gold vault on Earth, 80 feet under Wall Street: 507,000 gold bars, about $820 billion.
+It takes you 6 months. For everyone else: zero seconds.
+
+What would you take first? 👇
+
+#whatif #timestop #simulation #shorts
+
+Cover: `week 4/time-stop/out/time-stop_v4_cover.png` (`node render.mjs --cover 1.0`: the armored truck's open doors full of $ bags under the Times Square screens, raindrops hanging in the air, you in the foreground)
+
 ## Next Short. What if it rained antimatter? — `week 4/antimatter-rain/out/antimatter-rain_v4_1080x1920_60fps_tiktok.mp4`
 
 62.5 s (v4, Oct 29: a clear glowing evening with people close to the camera; real blasts: fireball, shock ring, dark
