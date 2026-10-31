@@ -216,6 +216,9 @@
   3:00 26, 3:20 22, then flat ~21 to the end (bump to 24 at 5:10, people skipping to TEN YEARS LATER). No cliff, a
   steady leak; the leakiest stretches are the slow rain/ball/car (0:31-1:16, -12) and SILENCE + lightning
   (2:08-3:00, -9). Anyone still there at 3:20 watches to the end.
+- Oct 31 10 AM Realtime: 677,915 views in 48 h, 17,311 in the last hour (up from 13,231 at ~1 AM). Trillion years
+  3,021/h (from 1,329), black hole 4,471/h, speed 1,968/h; rain climbing on day 2 (26.7K, 830/h, from 568/h);
+  sun explodes 60K in 48 h, 500/h. Black-hole long still under ~1.1K.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
@@ -297,3 +300,9 @@
 - Status Oct 19: jump-doubles (Day 16, "What if every jump went twice as high?", 63 s) built as a new project (Brickell, Miami at dusk; jump 31 hits the Moon). Built for retention: a beat every ~2.5 s, "JUMP n OF 31" progress on the counter, street -> clouds -> space -> Moon.
 - Proven topics not built yet: a black hole follow-up (e.g. through the Moon); more "X disappears" topics.
 - Status Oct 21: rain-1000-years (Day 18, 62.9 s, Seattle to Everest to an ocean planet) and quake-grows (Day 19, 62.9 s, San Francisco to Earth breaking apart at magnitude 18.4) built as new projects, rendered, checked, captions and covers in CAPTIONS.md. Not posted yet. The rain scene's upload copy took ~16 min the first time (rain noise is hard to compress, and another session was using the PC); 7 min the second time.
+- Oct 31 fresh ideas (none made yet, none on the 10x formula): the oceans disappear (sea level counter, a beach
+  draining on frame 0, ships on the sand, the Titanic, the Mariana Trench); other stars replace the Sun (Sirius ->
+  Arcturus -> Rigel -> Betelgeuse -> UY Scuti over one beach); you fall through a hole through the Earth (depth +
+  speed counter, crust -> mantle -> core -> out the other side in 42 min); Earth's magnetic field shuts off (auroras
+  over a city at noon on frame 0, satellites fall, the grid blows, the air is stripped away). Earlier picks still
+  open: gravity off for 5 s, a rogue planet passes Earth.
