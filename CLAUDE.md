@@ -66,6 +66,27 @@ Use this for every new video and every rework:
   must sit inside a full white flash, deep water, or solid ice, never in the middle of a detailed shot.
 - Topics that are proven hits: Earth stops spinning, the Moon crashes into Earth, "X disappears for 5 seconds".
   Silly novelty topics flop.
+- **The question matters most** (Oct 25-31 Studio reads, details in `research/learned.md`): a 10-year-old must get it
+  with zero science knowledge, and it should be about "you". Hit score = day-1 stayed-to-watch x day-1 avg % viewed;
+  target 52+ (black hole 62, trillion 56). Repeating one formula wears off (the doubling videos fell 55 -> 48 -> 39;
+  "10x every few seconds" is in grow-trillion, punch, black-hole-appears and antimatter-rain: vary it).
+- **Shorts are won or lost in the first ~15 s:** a visibly bigger step every ~3 s. On frame 0, people close to the camera
+  in a busy place and the danger big and close (far, small or abstract subjects hold worse). Frame brightness does
+  NOT predict stay. A loud human reaction (a scream) in the first second helped (rain, grow-trillion).
+- **Over 60 s, no copyrighted sounds** (a claim can block a long Short); the owner's own clips go in `sounds/`.
+
+## Long videos (16:9, `longform/`)
+
+- They lose about half the viewers in the first 30-45 s: open on a 3-6 s flash-forward of the biggest moment, no
+  logo, no explaining early, and the next big visible moment within ~10 s of the first one (heat death fell off a
+  cliff when it went dark and quiet right after the lava).
+- A big visible moment every ~45-60 s; viewers skip ahead to the destruction. No slow pans of one scene: cut to a
+  visual for every narrated line.
+- Base topics on the channel's proven Shorts (the black hole long video came from the 3M-view Short) and check YouTube
+  first: the first good video on a topic wins (taken topics: `research/longform_topics_2026-10-26.md`).
+- After posting, the owner sets the long video as the "Related video" on its matching Short (Studio > the Short's
+  details), so the Short's viewers see a link to it.
+- Thumbnails must read at phone size (~360 px wide): one big subject, one short line of big text.
 
 ## Working on the sims
 
