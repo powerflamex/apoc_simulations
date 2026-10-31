@@ -779,6 +779,81 @@ How far away would you need to be to survive? 👇
 
 Cover: `week 4/black-hole-appears/out/black-hole-appears_v4_cover.png` (`node render.mjs --cover 39.6`: Earth from space, the western US spiralling into a red-hot drain round the black hole, city lights streaming in). Other option: `--cover 42.7`, the marble itself (black ball, ring of light, the bent disk)
 
+## Next Short. You fall through the Earth — `week 5/fall-through-earth/out/fall-through-earth_v4_1080x1920_60fps_tiktok.mp4`
+
+60.5 s. Frame 0: you (in a spacesuit) are already falling down a lit 6 m shaft in the Puerta del Sol, Madrid, the
+crowd leaning over the rim above you against the blue sky; the depth counter races, with your speed and the real
+time on the line under it and a small TIME-LAPSE tag. The metro tunnel flashes past at 20 m, the opening shrinks to a
+dot; cutaways of the Earth sliced through the hole show the Burj Khalifa hung upside down (you pass its tip at 828 m),
+the deepest mine, the 12.3 km Kola borehole; the crust ends and the walls glow red-hot, diamonds glint at 150 km, the
+orange mantle streaks past, the whole planet cut in half ("NOT EVEN HALFWAY"), the liquid iron core, the white-hot
+inner core; the center at 21 min 05 s and 17,694 mph (the brightest moment, a deep boom). Then you slow down on the
+way up, upside down, turn over, the night sky of New Zealand appears at the top of the shaft, you come up into a
+Wellington street at night in slow motion, stop right at the top in front of the staring crowd (42 min 10 s), fall
+back, white, loop to Madrid.
+Physics (`src/timeline.js`): no air in the hole, an Earth of even density: x = R cos(wT), w = sqrt(g/R), g = 9.82 m/s^2;
+42 min 10 s across, top speed 7.91 km/s at the center. (With the real Earth, denser in the middle, it would take ~38
+min.) Madrid's exact opposite point is in New Zealand's North Island, about 150 km north-east of Wellington; the
+video only says "New Zealand".
+
+**YouTube title (98 chars)**
+What if you fell through the Earth? 42 minutes, 17,700 mph, and you pop out in New Zealand #whatif
+
+**YouTube description**
+A hole straight through the center of the Earth, from Madrid to New Zealand. No air inside. You jump in.
+13 seconds: deeper than the Burj Khalifa is tall.
+50 seconds: past the deepest hole ever dug (12.3 km).
+Out of the crust, the rock glows red-hot. 150 km down: where diamonds are made.
+The mantle: rock at 1,600°C, hotter than lava, slowly flowing.
+13 minutes: an ocean of liquid iron, over 4,000°C.
+21 minutes: the center of the Earth, 5,400°C, as hot as the Sun's surface. You're going 17,694 mph.
+Then gravity pulls you back, and you slow down exactly as fast as you sped up.
+42 minutes after you jumped, you stop right at the surface in New Zealand, in the middle of the night... and fall back to Madrid.
+
+Would you jump in? 👇
+
+#whatif #earth #physics #science #shorts
+
+Cover: `week 5/fall-through-earth/out/fall-through-earth_v4_cover.png` (`node render.mjs --cover 19.3`: you in the spacesuit falling through the orange glowing tunnel 200 km down, diamonds glinting as white streaks rushing at you)
+
+## Next Short. What if other stars replaced the Sun? — `week 5/star-picker/out/star-picker_v4_1080x1920_60fps_tiktok.mp4`
+
+60.9 s. Santa Monica beach at sunset, people on towels close to you, the pier and its Ferris wheel on the right. Under
+the title a "sun picker" (a scroll wheel like the iPhone's date picker) is already spinning on frame 0; it ticks, slows
+and clicks onto a star, the sky changes to it at once, and the line under it gives the beach's temperature:
+Proxima Centauri at 1 s (0.15x the Sun: dark red sky, the sea freezes where it stands, everyone shivers, −220°C, "Your
+breath freezes"), Sirius at 9 s (1.7x: blinding blue-white, the ice melts, everyone runs past you, towels and umbrellas
+smoke and burn, 370°C), Vega at 17 s (2.6x: the beach burns, the sea starts to boil, 450°C), Arcturus at 24.5 s (25x,
+a giant orange disc: the pier and the wheel burn, 770°C), Aldebaran at 33 s (44x: the city's towers glow and melt,
+1,050°C), Rigel at 42 s (79x, a blue star filling the sky: the ocean boils away down to the glowing sea floor,
+5,100°C), and after a slow last spin past UY Scuti, Antares and Deneb, Betelgeuse at 53 s (760x): bigger than Earth's
+orbit, so the sky becomes the star's boiling surface ("Earth is inside the star"); orange-white, loop.
+Numbers (`src/timeline.js`): each star's real radius and luminosity; size in the sky = asin(R / 215 Suns' radii); the
+beach temperature is a rough estimate, 288 K x (L / L_sun)^0.25, rounded. Music soundtrack (cosmic topic) with picker
+ticks, a click and a braam on every landing, each star's own roar; the owner's scream as the sky turns red.
+
+**YouTube title (88 chars, emoji counted as 2)**
+What if other stars replaced the Sun? At Rigel, the beach hits 5,100°C ⭐ #space #whatif
+
+**YouTube description**
+Every few seconds a different star takes the Sun's place over Santa Monica beach, at the same distance, with its real size and brightness.
+
+Proxima Centauri (0.15x the Sun): the sky turns dark red and the sea freezes. About −220°C.
+Sirius (1.7x): blinding blue-white light. Towels and umbrellas catch fire. About 370°C.
+Vega (2.6x): the sea starts to boil. About 450°C.
+Arcturus (25x): the pier and the Ferris wheel burn. About 770°C.
+Aldebaran (44x): the city melts. About 1,050°C.
+Rigel (79x): it fills the sky and the ocean boils away. About 5,100°C.
+Betelgeuse (760x): it's bigger than Earth's whole orbit. Earth would be inside it.
+
+(Temperatures are rough estimates: Earth's average, scaled by each star's light.)
+
+Which star would you pick? 👇
+
+#whatif #space #stars #astronomy #shorts
+
+Cover: COVER_STAR_TBD
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
