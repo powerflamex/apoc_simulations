@@ -202,6 +202,21 @@
   same day: 25.3K views, **2,337 in the last hour** (punch 341, grow-trillion 609; only black hole v4 3,476 and trillion
   3,012 were higher, both in a second wave). 40 comments on day 1. The content list's view count lags the Realtime report.
   Realtime report: Advanced mode > Report > Realtime performance (views per video, last 48 h and last 60 min; views only).
+### Oct 31 read (Studio data runs to ~Oct 29; Realtime is live)
+- Channel: 648,759 views in the last 48 h (was 493K on Oct 29), 13,231 in the last hour: back up to ~320K/day.
+  Most of it is old hits getting pushed again (black hole 3,014/h, women vanish 1,866/h, speed 1,696/h, trillion 1,329/h).
+- Shorts, lifetime so far (stayed / watched): sun explodes 61.3/76.6 (56K in 48 h, 552/h now), punch 70.7/69.7
+  (27.7K, dead at 115/h), grow trillion 63.7/75.0 (81.6K, second push: 47K in 48 h, 1,269/h), quake 60.6/71.9 (18.4K,
+  dead), rain (Oct 30) 21.4K on day 1, 568/h. The hits' 28-day numbers look the same (black hole 59.5/77.4, speed
+  62.1/77.9): the videos now hold people as well as the hits did; the first test is just smaller (20-35K on day 1),
+  and the ones that hold get a second push days later (grow trillion, sun explodes).
+- Long: IQ 1000 2,625 views and growing late (2,508 in 48 h; day 1 was 201), 32.6% watched, CTR 5.1%. Black-hole
+  long (Oct 30) 445 views in ~30 h, 46/h (about 2x IQ's start). Heat death 1,083, CTR 3.4%.
+- IQ 1000 retention (lifetime, % of starts): 0:00 77, 0:30 59, 0:40 55, 1:00 51, 1:20 45, 1:50 38, 2:00 35, 2:40 29,
+  3:00 26, 3:20 22, then flat ~21 to the end (bump to 24 at 5:10, people skipping to TEN YEARS LATER). No cliff, a
+  steady leak; the leakiest stretches are the slow rain/ball/car (0:31-1:16, -12) and SILENCE + lightning
+  (2:08-3:00, -9). Anyone still there at 3:20 watches to the end.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
