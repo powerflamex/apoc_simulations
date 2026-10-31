@@ -716,7 +716,9 @@ Public Market and Elliott Bay, three people right in front of you looking up. Fr
 already falling as a glowing streak, 3.6 km out; it bursts at 0.35 s. Every drop is seen falling and exploding, each
 with its sizzle and boom, landing closer as they multiply (10x every 4.5 s; one 4 mm drop = 1,440 tons of TNT); drop 10
 (Hiroshima, 4.6 s) lands 1.2 km ahead and its mushroom fills the sky; its blast breaks every window at 8 s, people duck
-and run; a drop lands on the Market: a flash. A drone south-east of downtown (lit towers, the Space Needle beyond):
+and run; at 9.3 s a drop lands on the waterfront a third of a mile ahead and its blast comes up Pike St (slow motion
+for the last 230 m): the Market blows apart, the corner buildings break, cars are thrown, a dark wall of dust rolls at
+you and hits at 12.5 s (a flash). The "1,440 tons" caption now comes after the HIROSHIMA popup. A drone south-east of downtown (lit towers, the Space Needle beyond):
 drops land among the towers one after another and blow them apart; up into space (24 s). Then it alternates: Portland from a rooftop (people at the parapet, a mile-high
 wall rolling over the lit skyline, 35 s), space (200 miles gone), San Francisco from the street (towers lit, the wall
 rising behind them, 44 s), space (Los Angeles, Denver), New York from a helicopter at night (the dinosaur asteroid at

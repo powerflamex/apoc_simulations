@@ -21,10 +21,10 @@ import { makePlanet, RE, SEA, toN } from './planet.js';
 import { makeOverlay } from './overlay.js';
 import { DW } from './drown.js';
 import { F } from './facade.js';
-import { B, CAM0, PIKE } from './layout.js';
+import { B, CAM0, PIKE, MARKET } from './layout.js';
 import {
   state, popupAt, captionAt, POP, dropsAt, VIDEO_DURATION, LOOP, DROPS, LAST_DROP, FALL, psiAt, wreckOf, blastR, statDrops,
-  V_GLASS, V_NEAR, V_DRONE, V_UP, V_END, V_POWER, CITIES, vFrontAt, SOUND, TOWER_HITS,
+  V_GLASS, V_NEAR, V_HIT, V_HIT_V, streetT, NEAR_XZ, V_DRONE, V_UP, V_END, V_POWER, CITIES, vFrontAt, SOUND, TOWER_HITS,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, rng, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -150,15 +150,17 @@ const stampEl = document.getElementById('stamp');
 const stampW = document.getElementById('stampw');
 
 // ---------- the buildings: when each is blown apart, and into which pieces ----------
-const BUILD = B.map((b, i) => {
+const MKT = { x: (MARKET.x0 + MARKET.x1) / 2, z: (MARKET.z0 + MARKET.z1) / 2, w: MARKET.x1 - MARKET.x0, d: MARKET.z1 - MARKET.z0, h: MARKET.h, col: 0xc9bfa8, seed: 0.37, front: true, market: true };
+const BUILD = [...B, MKT].map((b, i) => {
   const R = rng(Math.floor(b.seed * 1e7) + i);
-  const nx = clamp(Math.round(b.w / 18), 1, 2), nz = clamp(Math.round(b.d / 18), 1, 2), ny = clamp(Math.round(b.h / 16), 2, 7);
+  const fine = b.front;   // (the street's own buildings: you see them break from right beside them)
+  const nx = fine ? clamp(Math.round(b.w / 7), 2, 6) : clamp(Math.round(b.w / 18), 1, 2), nz = fine ? clamp(Math.round(b.d / 7), 2, 6) : clamp(Math.round(b.d / 18), 1, 2), ny = fine ? clamp(Math.round(b.h / 4), 2, 10) : clamp(Math.round(b.h / 16), 2, 7);
   const parts = [];
   for (let ix = 0; ix < nx; ix++) for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) {
     parts.push({ fx: (ix + 0.5) / nx - 0.5, fy: (iy + 0.5) / ny, fz: (iz + 0.5) / nz - 0.5, sx: b.w / nx * (0.6 + 0.35 * R()), sy: b.h / ny * (0.6 + 0.35 * R()),
       sz: b.d / nz * (0.6 + 0.35 * R()), r1: R(), r2: R(), r3: R(), wx: (R() - 0.5) * 6, wy: (R() - 0.5) * 6, wz: (R() - 0.5) * 6 });
   }
-  return { b, i, parts, sea: wreckOf(b.x, b.z), stump: Math.min(b.h, 4 + b.h * 0.07), down: false };
+  return { b, i: b.market ? -1 : i, parts, sea: wreckOf(b.x, b.z), stump: Math.min(b.h, 4 + b.h * 0.07), down: false };
 });
 // a building's wreck for this place: Seattle (the drops), Portland (the front from the north)
 function wreckFor(o, city) {
@@ -359,7 +361,11 @@ function standerPose(p, v, tLook, tDuck, tRun, dx, dz, fx, fz) {
 function dropsNow(v, where) {
   const out = [];
   if (where !== 'street' && where !== 'drone') return out;
-  for (const d of DROPS) { if (d.v - FALL > v) break; if (v - d.v < 32) out.push(d); }
+  for (const d of DROPS) {
+    if (d.v - FALL > v) break;
+    if (where === 'street' && d.v > V_NEAR + 0.05 && !d.near) continue;   // (the street's last seconds: only its own blast)
+    if (v - d.v < 32) out.push(d);
+  }
   if (where === 'drone') for (const d of TOWER_HITS) if (d.v - FALL <= v) out.push(d);
   if (v > LAST_DROP.v) {
     for (let j = Math.floor((v - 9) * 30); j <= Math.floor((v + FALL) * 30); j++) for (const d of statDrops(j)) if (d.v - FALL <= v) out.push(d);
@@ -397,18 +403,19 @@ function drawDrop(d, v, cam, out, cf) {
   // the fireball: white-hot, then a churning orange ball riding up into the cap
   const r = 85 * Math.max(0.35, Math.min(1, Math.pow(t / 0.4, 0.4))) * (1 + 0.6 * smooth(0, 4, t)) * (out.drone ? 0.7 : 1);
   const fy = base + r * 0.6 + (top - r * 0.6) * 0.85 * smooth(0.3, 4, t);
-  const h15 = Math.pow(heat, 1.5);
-  const cr = (10 * flash + 4.6 * h15) * bf, cg = (9.2 * flash + 1.8 * h15) * bf, cb = (8.6 * flash + 0.35 * h15) * bf;
+  // (a close one fills the view: after its flash it must cool to a deep orange quickly, or the frame goes white)
+  const closeK = smooth(500, 1500, dc), h15 = Math.pow(heat, 1.5) * lerp(0.1, 1, closeK);
+  const cr = (10 * flash + 4.6 * h15) * bf, cg = (9.2 * flash + 1.5 * h15) * bf, cb = (8.6 * flash + 0.25 * h15) * bf;
   if (cr > 0.03) {
-    fires.add(d.x, fy, d.z, r * 2.3, cr, cg, cb, -1);
-    if (!out.drone || d.tower) fires.add(d.x, fy, d.z, r * 3.5, cr * 0.04, cg * 0.025, cb * 0.012);
+    fires.add(d.x, fy, d.z, r * 2.3 * lerp(0.6, 1, closeK), cr, cg, cb, -1);
+    if ((!out.drone || d.tower) && closeK > 0.5) fires.add(d.x, fy, d.z, r * 3.5, cr * 0.04, cg * 0.025, cb * 0.012);
   }
-  out.light += (flash * near * 0.7 + heat * near * 0.02) * bf;
+  out.light += (flash * near * 0.7 + heat * near * 0.02 * closeK) * bf;
   if (flash > 0.02 || heat > 0.25) out.top.push({ d, fy, w: (flash * near + 0.03 * heat * near) * bf, flash });
   // the shock: a bright shell racing out
-  if (dc < 7000 && dc > 700 && t < (out.drone ? 0.9 : 2.2) && bf > 0.2 && shockR(t) < dc * 0.85) domes.dome(d.x, d.y, d.z, shockR(t), 0.9 * bf * Math.exp(-t / 0.5));
+  if (dc < 7000 && (dc > 700 || d.near) && t < (out.drone ? 0.9 : 2.2) && bf > 0.2 && shockR(t) < dc * 0.85) domes.dome(d.x, d.y, d.z, shockR(t), 0.9 * bf * Math.exp(-t / 0.5));
   if (!clear) return;
-  const g = (out.drone ? 0.08 : 0.2) + 0.9 * heat;    // the fire under the cloud, lighting it from below
+  const g = (out.drone ? 0.08 : 0.12) + 0.6 * heat;   // the fire under the cloud, lighting it from below
   // the ring of dust (white spray over water) the shock throws along the ground
   if (wide && t < 8) {
     const R0 = Math.min(shockR(t), 300 + 70 * t), a = 0.55 * (1 - smooth(2, 8, t)) * smooth(0, 0.12, t);
@@ -451,11 +458,11 @@ function drawWreck(o, w, v, detail) {
   if (t < 0) {
     if (!o.down) return false;
     dummy.position.set(b.x, 0, b.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix();
-    mesh.setMatrixAt(o.i, dummy.matrix); o.down = false;
-    return true;
+    if (o.i >= 0) mesh.setMatrixAt(o.i, dummy.matrix); o.down = false;
+    return o.i >= 0;
   }
   dummy.position.set(b.x, 0, b.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(b.w * 0.92, o.stump, b.d * 0.92); dummy.updateMatrix();
-  mesh.setMatrixAt(o.i, dummy.matrix); o.down = true;
+  if (o.i >= 0) mesh.setMatrixAt(o.i, dummy.matrix); o.down = true;
   let dx = b.x - w.ox, dz = b.z - w.oz;
   const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
   const S = clamp(Math.pow(420 / Math.max(L, 60), 1.1), 0.35, 3.5);
@@ -464,7 +471,7 @@ function drawWreck(o, w, v, detail) {
     if (p.fy * b.h < o.stump) continue;
     const x0 = b.x + p.fx * b.w, y0 = p.fy * b.h, z0 = b.z + p.fz * b.d;
     const hs = Math.max(p.sx, p.sy, p.sz) * 0.35;
-    const S2 = clamp(S, 0.5, 1.4), sp = S2 * (3 + 12 * p.r1) * (0.4 + 0.6 * p.fy);
+    const S2 = w.street ? 2.2 : clamp(S, 0.5, 1.4), sp = S2 * (3 + 12 * p.r1) * (0.4 + 0.6 * p.fy);
     const vx = dx * sp + (p.r2 - 0.5) * 3, vz = dz * sp + (p.r3 - 0.5) * 3, vy = S2 * (1 + 5 * p.r2);
     const tl = (vy + Math.sqrt(vy * vy + 2 * 9.8 * Math.max(0, y0 - hs))) / 9.8;
     const tt = Math.min(t, tl), slide = Math.max(0, Math.min(t - tl, 0.6)) * 0.25;
@@ -493,6 +500,7 @@ function update(v, cover = -1) {
   const inSpace = where === 'space';
   for (const o of SEATTLE) o.visible = !inSpace;
   for (const o of LANDMARKS) o.visible = where === 'street' || where === 'drone';
+  if ((where === 'street' ? streetT(v) : v) >= BUILD[BUILD.length - 1].sea.v) for (const o of props.marketGroup) o.visible = false;   // (the Market is blown apart)
   for (const b of props.boats) b.visible = false;
   const city = s.city;
   roof.visible = !!city && city.kind === 'roof';
@@ -512,6 +520,7 @@ function update(v, cover = -1) {
       }
       // the flash of a landing drop jolts you too (it's that bright)
       for (const d of DROPS) { if (d.v > v) break; const dt = v - d.v; if (dt < 0.25) punch = Math.max(punch, 0.25 * Math.min(1, 2500 / d.dist) * Math.exp(-dt / 0.08)); }
+      punch = Math.max(punch, 0.9 * smooth(V_NEAR + 0.3, V_HIT_V, v) * (0.6 + 0.4 * Math.sin(v * 31) * Math.sin(v * 17)));
     } else if (where === 'drone') punch = 0.3 * (0.5 + 0.5 * Math.sin(v * 13.1) * Math.sin(v * 7.3));
     else punch = (0.15 + 0.6 * smooth(city.arr - 3, city.arr, v)) * (0.5 + 0.5 * Math.sin(v * 17.3) * Math.sin(v * 9.1));
     if (window.__cover) punch = 0;
@@ -561,13 +570,14 @@ function update(v, cover = -1) {
     // the drops: falling, landing, exploding
     const cf = clamp(6 / (0.51 * Math.max(1, dropsAt(v))), 0.03, 1);
     out.drone = where === 'drone';
-    for (const d of dropsNow(v, where)) drawDrop(d, v, camP, out, cf);
+    const sv = where === 'street' ? streetT(v) : v;   // (slow motion at the end of the street)
+    for (const d of dropsNow(sv, where)) drawDrop(d, sv, camP, out, cf);
     // the city: blown apart building by building (pieces only near enough to see)
     let changed = false;
     for (const o of BUILD) {
       const w = wreckFor(o, city);
       const dc = Math.hypot(o.b.x - camP.x, o.b.z - camP.z);
-      if (drawWreck(o, w, v, dc < (where === 'drone' ? 3200 : 5000))) changed = true;
+      if (drawWreck(o, w, sv, dc < (where === 'drone' ? 3200 : 5000))) changed = true;
     }
     if (changed) buildings.mesh.instanceMatrix.needsUpdate = true;
     // another city: the sky the blast comes from. A wall of light over the horizon, the fireball climbing above it,
@@ -595,6 +605,15 @@ function update(v, cover = -1) {
         for (let i = -20; i <= 20; i++) fires.add(ox - fx * 30 + sx * i * 180, 25, oz - fz * 30 + sz * i * 180, 140, 3, 1.0, 0.18);
       }
     }
+    // on the street: the blast front rolling up Pike St toward you (a wall of dust and debris lit by the fire behind it)
+    if (where === 'street' && sv > V_NEAR + 0.15) {
+      const zf = NEAR_XZ.z + (sv - V_NEAR) * SOUND;
+      for (let i = -9; i <= 9; i++) for (let j = 0; j < 4; j++) {
+        const xx = i * 7 + 2 * Math.sin(i * 3.7 + j), hh = 4 + j * 9 + 3 * Math.sin(i * 1.3 + v * 3), rr = 9 + 4 * j;
+        puffs.puff(xx, hh, zf - j * 10 - 6 * Math.abs(Math.sin(i * 2.1)), rr, 0.16, 0.12, 0.09, 0.95, 0.5 - j * 0.1, 0.17 - j * 0.03, 0.03, i * 0.31 + j);
+      }
+      for (let i = -6; i <= 6; i++) fires.add(i * 9, 3, zf - 18, 9, 1.4, 0.45, 0.1);
+    }
     // the brightest blasts light the clouds
     out.top.sort((a, c) => c.w - a.w);
     for (let i = 0; i < 8; i++) {
@@ -616,7 +635,7 @@ function update(v, cover = -1) {
     glowLight.intensity = where === 'street' ? 0.3 : 0.4;
     const t0 = out.top[0];
     if (t0) { if (t0.dir) burstLight.position.copy(camP).addScaledVector(t0.dir, 1000); else burstLight.position.set(t0.d.x, t0.fy, t0.d.z); burstLight.target.position.copy(camP); }
-    burstLight.intensity = 0.6 * flashAll;
+    burstLight.intensity = (where === 'street' ? 0.25 : 0.6) * flashAll;
     burstLight.color.setRGB(1, 0.95, 0.9).lerp(BURN, city ? 0.8 : 0);
     scene.fog.color.copy(FOG0).multiplyScalar(where === 'street' ? 0.8 : 0.5).lerp(tmpC.setRGB(0.3, 0.12, 0.05), clamp(fireGlow * 0.5));
     if (where === 'street') scene.fog.color.setRGB(0.3, 0.2, 0.22);
@@ -637,7 +656,7 @@ function update(v, cover = -1) {
   for (let i = 0; i < NP; i++) { crowd.pose(i, { visible: false }); hideUmb(i); }
   if (where === 'street') {
     props.frame(v, s, glows, L, camera);
-    traffic.frame(v, s, glows, L);
+    traffic.frame(streetT(v), s, glows, L);
     PEOPLE.forEach((p, i) => { const o = crowdPose(p, v); crowd.pose(i, o); showUmb(i, p, o); });
     for (const n of NEON) {
       const on = s.grid * (v > V_POWER - 0.6 ? (Math.sin(v * 47 + n.seed * 9) > -0.3 ? 1 : 0.1) : 1);
@@ -722,8 +741,8 @@ function update(v, cover = -1) {
   }
 
   // ---------- post ----------
-  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 0.85 : city ? 1.15 : 1.05;
-  bloom.strength = inSpace ? 0.8 : 0.5;
+  renderer.toneMappingExposure = inSpace ? 1.1 : where === 'drone' ? 0.85 : city ? 1.15 : lerp(1.05, 0.75, smooth(V_NEAR, V_NEAR + 0.8, v));
+  bloom.strength = inSpace ? 0.8 : where === 'street' ? 0.38 : 0.5;
   const f = finish.uniforms;
   f.uTime.value = v;
   f.uRainK.value = 0;
@@ -731,7 +750,7 @@ function update(v, cover = -1) {
   f.uFlash.value = window.__cover ? 0 : Math.min(0.12, (s.flashAll || 0) * 0.04);
   let white = 0;
   // (quick flashes, a few frames each: the cut happens inside them. Only the end stays white for long: the loop)
-  if (where === 'street') white = smooth(V_NEAR - 0.02, V_NEAR + 0.02, v);
+  if (where === 'street') white = smooth(V_HIT_V - 0.08, V_HIT_V + 0.02, v);
   if (where === 'drone') white = 0.9 * (1 - smooth(V_DRONE, V_DRONE + 0.13, v));
   if (city) white = smooth(city.arr - 0.05, city.arr + 0.01, v);
   if (inSpace) { const prev = CITIES.filter((c) => c.v1 <= v + 1e-6).pop(); if (prev) white = 0.9 * (1 - smooth(prev.v1, prev.v1 + 0.13, v)); }

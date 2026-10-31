@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, STORY_START, LOOP, DROPS, LAST_DROP, FALL, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_DRONE, V_UP, V_END, V_DINO, psiAt, BEATS, CITIES, cityAt, statDrops, DRONE_XZ, DOWNTOWN, TOWER_HITS } from './src/timeline.js';
+import { state, VIDEO_DURATION, STORY_START, LOOP, DROPS, LAST_DROP, FALL, V_GLASS, V_POWER, V_SIGN, V_NEAR, V_HIT, V_HIT_V, streetV, V_DRONE, V_UP, V_END, V_DINO, psiAt, BEATS, CITIES, cityAt, statDrops, DRONE_XZ, DOWNTOWN, TOWER_HITS } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -63,7 +63,7 @@ const addBoom = (d, ear) => {
 };
 for (const d of DROPS) {
   if (d.near) continue;
-  if (d.v < V_DRONE) addBoom(d, { x: 0, y: 2, z: 10 });
+  if (d.v <= V_NEAR + 0.05) addBoom({ ...d, v: streetV(d.v) }, { x: 0, y: 2, z: 10 });   // (after the waterfront drop the street shows only its blast)   // (on the street's clock: slow motion at the end)
   else if (d.v < V_UP && droneSees(d)) addBoom(d, { x: DRONE_XZ.x, y: 500, z: DRONE_XZ.z });
 }
 for (const d of TOWER_HITS) addBoom(d, { x: DRONE_XZ.x, y: 450, z: DRONE_XZ.z });
@@ -104,7 +104,7 @@ export function makeSoundtrack(outFile) {
     const v = n / SR;
     if (n % 48 === 0) s = state(v);
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;      // d*: not muffled in space
-    const street = v < V_NEAR + 0.02 ? 1 : 0, city = cityAt(v), space = v >= V_UP && !city;
+    const street = v < V_DRONE ? 1 : 0, city = cityAt(v), space = v >= V_UP && !city;
 
     // --- the storm: no ordinary rain any more (everything falling is antimatter), just wind gusting in the street ---
     if (street) {
@@ -189,15 +189,20 @@ export function makeSoundtrack(outFile) {
         l += rv; r += rollF[1].run(white(), 160, 0.5).lp * 1.2 * roll * 0.3 + rollSub.y * 3.5 * roll * 0.3; wet += rv * 0.4;
       }
     }
-    // --- the drop right over you: everything white, one enormous crack swallowed by a roar ---
+    // --- the drop on the waterfront, 570 m ahead: the flash and its crack; the blast coming up the street (a rising
+    // roar, buildings cracking apart closer and closer), then it hits you ---
     {
       const dt = v - V_NEAR;
       if (dt > 0 && dt < 3) {
-        const c = crackF[0].run(white(), 2500, 0.3).lp * env(dt, 0.002, 0.25) * 2.2;
+        const c = crackF[0].run(white(), 2500, 0.3).lp * env(dt, 0.002, 0.25) * 1.8;
         l += c; r += c; wet += c * 0.6;
-        const ro = roarF[0].run(white(), 300 + 900 * Math.exp(-dt * 2), 0.4).lp * env(dt, 0.01, 1.2) * 1.4;
-        dl += ro; dr += ro;
       }
+      const ap = Math.pow(smooth(V_NEAR + 0.2, V_HIT_V, v), 1.8) * (v < V_HIT_V + 0.3 ? 1 : 0);
+      if (ap > 0) { const ro = roarF[0].run(white(), 250 + 1500 * ap, 0.4).lp * ap * 1.5; l += ro; r += ro * 0.95; wet += ro * 0.3; }
+      const cr = Math.max(0, Math.sin(v * 41.3) * Math.sin(v * 27.1 + 1) * Math.sin(v * 13.7)) * smooth(V_NEAR + 1.0, V_HIT_V - 0.1, v) * (v < V_HIT_V ? 1 : 0);
+      if (cr > 0.05) { const cv = crackF[1].run(white(), 800, 0.5).lp * cr * 1.3; l += cv; r += cv * 0.85; wet += cv * 0.3; }
+      const dh = v - V_HIT_V;
+      if (dh > -0.02 && dh < 2) { const c2 = crackF[0].run(white(), 1700, 0.3).lp * env(dh + 0.02, 0.004, 0.35) * 2.4; dl += c2; dr += c2; wet += c2 * 0.4; }
     }
     // --- another city: the blasts far off rumbling (felt more than heard), growing; the front: a rising roar,
     // buildings breaking as it comes (crunches), then the hit (each shot ends in white) ---

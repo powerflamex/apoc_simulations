@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { makeFleet } from './cars.js';
 import { CARS } from './layout.js';
-import { V_FLOAT, V_HERO_SINK, V_GLASS } from './timeline.js';
+import { V_FLOAT, V_HERO_SINK, V_GLASS, V_NEAR, NEAR_XZ } from './timeline.js';
 import { underK, drownMat } from './drown.js';
 import { rng, smooth, clamp } from './util.js';
 
@@ -54,7 +54,14 @@ export function makeTraffic(scene, { plainMat, glowMat }) {
     fleet,
     frame(v, s, glows, level) {
       CARS.forEach((c, i) => {
-        const { x, y, z, yaw, pitch, roll } = carFrame(c, v, level);
+        let { x, y, z, yaw, pitch, roll } = carFrame(c, v, level);
+        // the blast up Pike St throws the cars: shoved away from it, lifted, tumbling, then down
+        { const dx = c.x - NEAR_XZ.x, dz = c.z - NEAR_XZ.z, r = Math.hypot(dx, dz), tb = v - (V_NEAR + r / 343);
+          if (tb > 0 && r < 1100) {
+            const sp = 22 * Math.min(2, Math.pow(600 / r, 1.5)) * (0.7 + 0.6 * c.seed), tt = Math.min(tb, 1.4);
+            x += dx / r * sp * tt * 0.4; z += dz / r * sp * tt; y += Math.max(0, (5 + 6 * c.seed) * tt - 4.9 * tt * tt);
+            roll += (c.seed - 0.5) * 5 * tt; pitch += (c.seed - 0.3) * 3 * tt; yaw += (c.seed - 0.5) * 2 * tt;
+          } }
         dummy.position.set(x, y, z); dummy.rotation.set(pitch, yaw, roll, 'YXZ'); dummy.scale.setScalar(1); dummy.updateMatrix();
         const on = c.lights && v < c.vDark && (v < c.vDark - 0.6 || Math.sin(v * 41 + c.seed * 20) > 0);
         fleet.set(i, dummy.matrix, on);
