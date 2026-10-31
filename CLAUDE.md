@@ -6,7 +6,7 @@ the week they were posted (the owner's layout, Oct 18):
 `week 2/`: `moon-falls/`, `women-vanish/`, `yellowstone/`, `gravity-doubles/`, `earth-stops/`, `trillion-years/`, `big-crunch/`;
 `week 3/`: `jupiter/`, `jump-doubles/`, `oxygen-5s/`, `rain-1000-years/`, `quake-grows/`, `false-vacuum/`, `friction/`, `tsunami-nyc/`;
 `week 4/`: `punch-10x/`, `black-hole-appears/`, `antimatter-rain/`, `time-stop/`.
-`week 5/`: `fall-through-earth/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
+`week 5/`: `fall-through-earth/`, `star-picker/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
 folder itself. See README.md for how each project is built.
 
 ## The owner wants to be hands-off

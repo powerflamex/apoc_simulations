@@ -118,6 +118,17 @@
       "env": {
         "PORT": "5197"
       }
+    },
+    {
+      "name": "star-picker",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/star-picker/server.mjs"
+      ],
+      "port": 5199,
+      "env": {
+        "PORT": "5199"
+      }
     }
   ]
 }

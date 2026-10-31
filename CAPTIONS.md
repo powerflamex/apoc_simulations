@@ -852,7 +852,7 @@ Which star would you pick? 👇
 
 #whatif #space #stars #astronomy #shorts
 
-Cover: COVER_STAR_TBD
+Cover: `week 5/star-picker/out/star-picker_v4_cover.png` (`node render.mjs --cover 46.5`: Rigel filling the sky over the boiled-away bay, the sea floor glowing, the burning pier; "WHAT IF / Rigel / replaced the Sun?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
