@@ -682,6 +682,13 @@ under a frozen searchlight full of hanging drops. 80 ft under Wall Street, the b
 bars): see-through copies of you carry the bars off (6 months of work in stopped time), the first cage, a row, half,
 all of it: $820 billion (gold at ~$4,050/oz, Oct 2026). Time starts: the guards' "Noooo" (the owner's clip). Times
 Square, every screen showing it; you're in the crowd, looking up; you stop time one last time: white, loop.
+Nov 1 rework of the middle (owner): the indoor scenes are bright and busy and everyone in them runs on the world
+clock: frozen mid-gesture while you work (a couple trying on a ring, a clerk holding a necklace up, a guard by the
+door), moving and reacting when time starts (hands to mouths, pointing at the empty cases), frozen mid-motion again
+when it stops. The cops and the forensics tech walk in through the store's door (no popping in); the UV lamp shows
+glowing "?" where the prints and DNA should be, "?" over the police's heads. Rain runs down the store window (and
+hangs on it when time stops). The bank has tellers at a counting table and a wall of brass deposit boxes; the gold
+vault is lit up with guards at the cage doors, an inspector who drops his clipboard, glowing copies of you.
 
 **YouTube title (84 chars, emoji counted as 2)**
 What if you could stop time and leave no DNA? $820 billion, zero suspects ⏱️ #whatif

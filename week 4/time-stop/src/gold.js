@@ -58,7 +58,7 @@ export function makeGold(scene) {
   const std = (c, r = 0.5, m = 0, x = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m, ...x });
   const U = { uV: { value: 0 }, uFogC: { value: new THREE.Color(0.05, 0.04, 0.03) }, uFogD: { value: 0.012 } };
   // ---- floors, walls, ceilings ----
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(90, HALL_L + 20).rotateX(-Math.PI / 2).translate(0, 0, -HALL_L / 2), std(0x55524c, 0.55, 0.1));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(90, HALL_L + 20).rotateX(-Math.PI / 2).translate(0, 0, -HALL_L / 2), std(0x8a857a, 0.45, 0.1));
   G.add(floor);
   const wallG = [];
   for (const xc of HALLS) {
@@ -69,10 +69,10 @@ export function makeGold(scene) {
     wallG.push(new THREE.BoxGeometry(4.2, 0.7, 0.6).translate(xc, CEIL - 0.35, 2.2));
   }
   wallG.push(new THREE.BoxGeometry(90, CEIL, 0.6).translate(0, CEIL / 2, 9.5));
-  const walls = new THREE.Mesh(mergeGeometries(wallG), std(0x8a8478, 0.8));
+  const walls = new THREE.Mesh(mergeGeometries(wallG), std(0xb0a896, 0.8));
   G.add(walls);
   const ceilings = HALLS.map((xc) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(2 * (2.1 + CAGE_D + 0.8), HALL_L + 6).rotateX(Math.PI / 2).translate(xc, CEIL, -HALL_L / 2 + 1), std(0xbdb8ae, 0.9));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(2 * (2.1 + CAGE_D + 0.8), HALL_L + 6).rotateX(Math.PI / 2).translate(xc, CEIL, -HALL_L / 2 + 1), std(0xd8d2c4, 0.9));
     G.add(m);
     return m;
   });
@@ -171,7 +171,7 @@ export function makeGold(scene) {
         vec3 c = gold * (0.35 + 0.75 * up + 0.25 * (1.0 - bev)) + gold * spec * (0.6 + 0.4 * (1.0 - bev));
         c *= mix(0.12, 1.0, gap);
         float fog = 1.0 - exp(-uFogD * uFogD * vD * vD);
-        gl_FragColor = vec4(mix(c * 0.5, uFogC, fog), 1.0);
+        gl_FragColor = vec4(mix(c * 0.78, uFogC, fog), 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -192,16 +192,28 @@ export function makeGold(scene) {
     G.add(pal);
   }
   // ---- light ----
-  G.add(new THREE.HemisphereLight(0xfff2dc, 0x4a3a28, 1.3));
+  G.add(new THREE.HemisphereLight(0xfff2dc, 0x6a5a40, 2.0));
   const pls = [];
-  for (const z of [-3, -12, -24]) { const l = new THREE.PointLight(0xfff0d8, 10, 18, 1.4); l.position.set(0, 3.0, z); G.add(l); pls.push(l); }
+  for (const z of [-1, -8, -16, -26]) { const l = new THREE.PointLight(0xfff0d8, 16, 20, 1.4); l.position.set(0, 3.0, z); G.add(l); pls.push(l); }
   const beacon = new THREE.PointLight(0xff1a10, 0, 20, 1.1); beacon.position.set(0, 3.0, 1.0); G.add(beacon);
   // ---- guards at the entrance; the time-lapse copies of you ----
   const pmat = std(0xffffff, 0.6);
-  const guards = makeCrowd(G, 2, pmat, { castShadow: false });
-  guards.color(0, 0x2a3240, 0x1d2028, SKIN[4], HAIR[0]);
-  guards.color(1, 0x2a3240, 0x1d2028, SKIN[1], HAIR[2]);
-  const gmat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, transparent: true, opacity: 0.38, depthWrite: false });
+  // the staff, all frozen while you work: two guards at the entrance (one with a coffee), guards at cage doors down
+  // the corridor, an inspector with a clipboard; when time runs they turn, see the empty cages, hands to their heads
+  const STAFF = [
+    { x: -1.2, z: 3.6, yaw: 2.6, arm: 0.9, c: [0x2a3240, 0x1d2028, SKIN[4], HAIR[0]] },
+    { x: 1.3, z: 4.2, yaw: -2.9, arm: 0.2, c: [0x2a3240, 0x1d2028, SKIN[1], HAIR[2]] },
+    { x: 1.55, z: -3.4, yaw: Math.PI / 2 - 0.3, arm: 0.1, c: [0x2a3240, 0x1d2028, SKIN[2], HAIR[1]] },
+    { x: -1.15, z: -7.2, yaw: -Math.PI / 2 + 0.2, arm: 0.95, clip: true, c: [0xd8d4c8, 0x2a2a30, SKIN[0], HAIR[6]] },
+    { x: 1.5, z: -11.5, yaw: Math.PI / 2, arm: 0.1, c: [0x2a3240, 0x1d2028, SKIN[3], HAIR[0]] },
+    { x: -1.5, z: -17, yaw: -Math.PI / 2, arm: 0.1, c: [0x2a3240, 0x1d2028, SKIN[5], HAIR[7]] },
+    { x: 0.4, z: -24, yaw: 0.4, arm: 0.6, c: [0xd8d4c8, 0x2a2a30, SKIN[1], HAIR[2]] },
+  ];
+  const guards = makeCrowd(G, STAFF.length, pmat, { castShadow: false });
+  STAFF.forEach((p, i) => guards.color(i, ...p.c));
+  const clip = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.02), std(0xf2efe6, 0.8));
+  G.add(clip);
+  const gmat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, transparent: true, opacity: 0.55, depthWrite: false, emissive: new THREE.Color(0.25, 0.4, 0.75) });
   const NG = 14;
   const ghosts = makeCrowd(G, NG, gmat, { castShadow: false });
   for (let i = 0; i < NG; i++) ghosts.color(i, 0x2c2f36, 0x15161a, SKIN[1], 0x2c2f36);
@@ -221,10 +233,20 @@ export function makeGold(scene) {
     // guards: frozen at the entrance (one with a coffee); when time runs they turn, see it, hands to their heads
     const alarm = v >= 43.6;
     const wa = alarm ? s.W - s.Wresume : 0;
-    const gp = [[-1.2, 3.6, 2.6], [1.3, 4.2, -2.9]];
-    gp.forEach(([x, z, yaw], i) => {
-      const turn = smooth(0.1, 0.6, wa);
-      guards.pose(i, { x, y: 0, z: z - 0.5 * smooth(0.2, 0.9, wa), yaw: lerp(yaw, Math.PI * 0 + (i ? -0.15 : 0.15), turn), armR: i === 0 ? lerp(0.9, 1.65, smooth(0.3, 0.7, wa)) : lerp(0.2, 1.65, smooth(0.35, 0.75, wa)), armL: lerp(0, 1.65, smooth(0.35, 0.8, wa)), look: 0.05 });
+    STAFF.forEach((p, i) => {
+      const d = i * 0.07;                       // (not all at once)
+      const turn = smooth(0.1 + d, 0.6 + d, wa);
+      // toward the nearest empty cage, then looking up and down the hall
+      const look = i < 2 ? 0 : (p.x > 0 ? -Math.PI / 2 : Math.PI / 2);
+      const yaw = lerp(p.yaw, (i < 2 ? (i ? -0.15 : 0.15) : look) + 0.5 * Math.sin(wa * 0.9 + i) * smooth(1.0, 1.6, wa), turn);
+      const z = p.z - (i < 2 ? 0.5 : 0) * smooth(0.2, 0.9, wa);
+      guards.pose(i, { x: p.x, y: 0, z, yaw, armR: lerp(p.arm, 1.65, smooth(0.3 + d, 0.7 + d, wa)), armL: p.clip ? lerp(0.9, 0.2, turn) : lerp(0, 1.65, smooth(0.35 + d, 0.8 + d, wa)), look: 0.05 + 0.1 * turn, walk: wa * 3, stride: i < 2 ? 0.6 * smooth(0.2, 0.4, wa) * (1 - smooth(0.7, 0.9, wa)) : 0 });
+      if (p.clip) {
+        // the clipboard: in his left hand, then dropped (it falls flat on the world clock)
+        const fall = clamp((wa - 0.35) / 0.4), y = lerp(1.05, 0.02, fall * fall);
+        clip.position.set(p.x + 0.35, y, z - 0.12);
+        clip.rotation.set(-1.0 - 0.57 * fall, -Math.PI / 2, 0);
+      }
     });
     guards.commit();
     // ghosts: while the vault empties, each hops every 1/12 s to a random spot by a cage being emptied
@@ -257,8 +279,8 @@ export function makeGold(scene) {
       for (let k = 0; k < 3; k++) glows.add(c.x + (Rs() - 0.5) * 5, 0.4 + Rs() * 1.1, c.z + (Rs() - 0.5) * 3, 0.06 + 0.06 * Rs(), 3, 2.2, 0.8);
     }
     const sw = alarm ? 0.5 + 0.5 * Math.sin(s.W * 9) : 0;
-    beacon.intensity = alarm ? 30 + 40 * sw : 0;
-    if (alarm) glows.add(0, 3.05, 1.6, 0.3, 4 + 6 * sw, 0.2, 0.1);
+    beacon.intensity = alarm ? 8 + 12 * sw : 0;
+    if (alarm) glows.add(0, 3.05, 1.6, 0.14, 1.2 + 2.2 * sw, 0.08, 0.04);
   }
   return { G, frame };
 }

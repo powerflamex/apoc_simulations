@@ -13,7 +13,7 @@ import { makeGold } from './gold.js';
 import { makeYou, streetYou, WALK_X } from './you.js';
 import { makeGlows } from './glows.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, T_SWITCH, FREEZES, RESUMES, lastOf, GOLD_STEPS } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, captionAt, POP, T_SWITCH, FREEZES, RESUMES, lastOf, GOLD_STEPS } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp, keys } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -82,12 +82,12 @@ const finish = new ShaderPass({
   uniforms: {
     tDiffuse: { value: null }, uTime: { value: 0 }, uVig: { value: 0.32 }, uTitle: { value: 0 }, uCounter: { value: 0 },
     uFrozen: { value: 0 }, uRip: { value: 9 }, uRes: { value: 9 }, uC: { value: new THREE.Vector2(0.5, 0.5) },
-    uFlash: { value: 0 }, uFlashC: { value: new THREE.Color(0.9, 0.95, 1.0) }, uAb: { value: 0 },
+    uFlash: { value: 0 }, uFlashC: { value: new THREE.Color(0.9, 0.95, 1.0) }, uAb: { value: 0 }, uCap: { value: 0 }, uPop: { value: 0 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uTime; uniform float uVig; uniform float uTitle; uniform float uCounter;
-    uniform float uFrozen; uniform float uRip; uniform float uRes; uniform vec2 uC; uniform float uFlash; uniform vec3 uFlashC; uniform float uAb;
+    uniform float uCap; uniform float uPop; uniform float uFrozen; uniform float uRip; uniform float uRes; uniform vec2 uC; uniform float uFlash; uniform vec3 uFlashC; uniform float uAb;
     varying vec2 vUv;
     void main() {
       vec2 asp = vec2(1.0, ${(H / W).toFixed(4)});
@@ -115,6 +115,9 @@ const finish = new ShaderPass({
       vec2 c = vUv - 0.5;
       col *= 1.0 - (uVig + 0.12 * uFrozen) * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.345) / 0.1, 2.0));
+      // a soft shadow band behind the caption and the gold popup (readable over the bright rooms)
+      col *= 1.0 - uCap * 0.4 * exp(-pow((vUv.y - 0.36) / 0.045, 2.0));
+      col *= 1.0 - uPop * 0.45 * exp(-pow((vUv.y - 0.215) / 0.05, 2.0));
       col *= 1.0 - uCounter * 0.32 * exp(-pow((vUv.y - 0.53) / 0.065, 2.0)) * smoothstep(0.85, 0.2, vUv.x);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -148,16 +151,19 @@ function camAt(v, s) {
     fov = 62;
   } else if (k === 'jewel') {
     const yp = you.lastPos || V(-2, 0, -2);
-    pos = path([[6.0, V(1.4, 1.95, 0.5)], [9.6, V(-0.6, 2.0, 0.0)]], v);
-    tgt = V(yp.x * 0.75 - 0.4, 0.5, yp.z - 1.2);
+    // from just inside the door: the shopper coming in beside you, the couple at the left case, then you round the back
+    pos = path([[6.0, V(0.7, 1.8, 1.0)], [9.6, V(0.2, 1.85, 0.6)]], v);
+    tgt = V(-2.0, 0.9, -3.2).lerp(V(yp.x, 0.9, yp.z), 0.45 + 0.25 * smooth(6.8, 8.5, v));
     fov = 64;
   } else if (k === 'jewelAlarm') {
-    pos = V(lerp(-0.2, 0.1, kl), 1.65, lerp(0.6, 0.2, kl));
-    tgt = V(-1.6, 1.1, -4.0);
-    fov = 62;
+    // from the back of the store toward the front: everyone reacting, the police coming in through the door
+    pos = V(lerp(2.0, 1.6, kl), 1.8, lerp(-6.9, -6.5, kl));
+    tgt = V(-1.0, 1.0, 1.5);
+    fov = 74;
   } else if (k === 'forensic') {
-    pos = V(lerp(1.2, 0.9, kl), lerp(1.8, 1.7, kl), lerp(-1.2, -1.6, kl));
-    tgt = V(-3.0, 1.0, -5.0);
+    // the tech at the right case with the UV lamp, the cops, the clerk on the phone
+    pos = V(lerp(-0.3, 0.1, kl), lerp(2.4, 2.3, kl), lerp(-3.8, -3.5, kl));
+    tgt = V(3.3, 0.95, -1.6);
     fov = 58;
   } else if (k === 'bank') {
     pos = path([[15.8, V(0.3, 1.7, -0.6)], [19.6, V(-0.2, 1.75, -1.6)]], v);
@@ -271,6 +277,11 @@ function update(v, cover = -1) {
   finish.uniforms.uAb.value = 0.0015;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
+  {
+    const c = captionAt(v), p = popupAt(v);
+    finish.uniforms.uCap.value = window.__cover || !c ? 0 : c.alpha * (1 - s.flash);
+    finish.uniforms.uPop.value = window.__cover || !p ? 0 : smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash);
+  }
   bloom.strength = inStreet ? 0.42 : s.place === 'gold' ? 0.22 : 0.3;
 
   overlay(v, s, v);

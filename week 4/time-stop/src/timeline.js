@@ -88,10 +88,10 @@ export function fmtMoney(x) {
 }
 // the one line under the counter: what you're robbing
 export function targetAt(v) {
-  if (v < 5.8) return 'AN ARMORED TRUCK';
-  if (v < 15.6) return 'A JEWELRY STORE';
-  if (v < 28.3) return 'A BANK VAULT';
-  if (v < 45.8) return 'THE BIGGEST GOLD VAULT ON EARTH';
+  if (v < 6.0) return 'AN ARMORED TRUCK';
+  if (v < 15.8) return 'A JEWELRY STORE';
+  if (v < 28.5) return 'A BANK VAULT';
+  if (v < 46.0) return 'THE BIGGEST GOLD VAULT ON EARTH';
   return 'RICHER THAN ANYONE ALIVE';
 }
 export const COUNTERS = [
