@@ -228,7 +228,11 @@
   (Studio: 63% above usual, the best start of the batch: black holes win again); sun-explodes 63.2% / 0:48 of 1:05 / 78.8K
   (+41%); grow-trillion 64.3% / 0:45 of 1:00 / 163K; rain 64.1% / 0:41 of 1:00 / 44.9K (usual); punch 69.5% / 0:43 of 1:03 /
   38.8K (highest stay, fewest views: the question, not the stay, decides the push); antimatter (posted Nov 1) 11.8K on day 1,
-  retention not processed yet; only 75% of its views from the Shorts feed (black-hole-appears 88%).
+  day 1 (Engagement tab): 66.1% stayed, avg 0:33 of 1:03 (52% viewed), score ~35, the lowest of the batch; only 75% of
+  its views from the Shorts feed (black-hole-appears 88%). People watch the same ~33 s as on the 46-s speck, then leave: the
+  close street part (0:00-0:22: Hiroshima, Seattle burning) holds, then it cuts to space and far cities (Portland 145 mi,
+  SF 680 mi), the same skyline -> white -> glowing-Earth shot over and over. Far/abstract + the 4th "10x" video. Lesson: keep
+  the danger on you and close to the end; when the scale grows, show it hitting where you are, not other cities from far.
 - Black hole long video (BqtSGIZciXA, 5:30): 2,825 views, 46.7% avg viewed (IQ 1000: 32.6%), avg 2:34, 68% still watching at
   0:30 (Studio: above typical), 85% of views from Home/recommendations. Curve: ~108% at 0:00, 84 at 0:10, 70 at 0:20, 68 at
   0:30, 60 at 0:45, 53 at 1:00, 50 at 1:20, then FLAT at 44-49% all the way to 5:15 (it even rises a little after 3:00), and
