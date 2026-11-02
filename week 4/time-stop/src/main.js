@@ -9,7 +9,8 @@ import { makeStreet, YOU0, TRUCK, RADIO_COP } from './street.js';
 import { makeRain } from './rain.js';
 import { makeJewel } from './jewel.js';
 import { makeBank } from './bank.js';
-import { makeGold } from './gold.js';
+import { makeGold, CLOSE, handsAt } from './gold.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { makeYou, streetYou, WALK_X } from './you.js';
 import { makeGlows } from './glows.js';
 import { makeOverlay } from './overlay.js';
@@ -46,6 +47,7 @@ const rain = makeRain(scene, street.U);
 const jewel = makeJewel(scene);
 const bank = makeBank(scene);
 const gold = makeGold(scene);
+gold.setEnv(new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture);
 const you = makeYou(scene);
 const glows = makeGlows(scene, 9000);
 const PLACES = { street: [street.G, street.M], jewel: [jewel.G], bank: [bank.G], gold: [gold.G] };
@@ -188,17 +190,24 @@ function camAt(v, s) {
     if (v > 27.3) tgt.set(lerp(-2.3, yp.x, smooth(27.3, 28.3, v)), 1.55, lerp(RADIO_COP.z, yp.z - 3, smooth(27.3, 28.4, v)));
     fov = 60;
   } else if (k === 'gold') {
-    if (v < GOLD_STEPS[1]) {
-      // at the first cage's door looking in at its gold, then turning down the row as it empties
-      pos = path([[28.5, V(-1.2, 1.75, 1.2)], [GOLD_STEPS[0], V(-0.9, 1.8, -0.6)], [GOLD_STEPS[1], V(-1.0, 2.1, -3.5)]], v);
-      tgt = path([[28.5, V(6.5, 0.6, -3.0)], [GOLD_STEPS[0] - 0.3, V(6.0, 0.6, -3.5)], [GOLD_STEPS[1], V(4.0, 0.7, -24)]], v);
-    } else {
-      // through the ceiling: all three halls from above, emptying
-      // (steep enough that the halls fill the frame: nothing but vault beyond them)
-      pos = path([[GOLD_STEPS[1], V(0, 24, 4)], [GOLD_STEPS[2], V(0, 40, -2)], [43.6, V(0, 58, -8)]], v);
-      tgt = path([[GOLD_STEPS[1], V(0, 0, -24)], [GOLD_STEPS[2], V(0, 0, -36)], [43.6, V(0, 0, -42)]], v);
-    }
-    fov = v < GOLD_STEPS[1] ? 64 : 62;
+    // at the first cage's door looking in at its gold, then turning down the row as it empties
+    pos = path([[28.5, V(-1.2, 1.75, 1.2)], [GOLD_STEPS[0], V(-0.9, 1.8, -0.6)], [33.3, V(-1.0, 2.0, -3.0)]], v);
+    tgt = path([[28.5, V(6.5, 0.6, -3.0)], [GOLD_STEPS[0] - 0.3, V(6.0, 0.6, -3.5)], [33.3, V(4.5, 0.7, -20)]], v);
+    fov = 64;
+  } else if (k === 'goldWide') {
+    // the one look from above (half the vault), quick
+    // (steep enough that the halls fill the frame: nothing but vault beyond them)
+    pos = V(0, lerp(57, 60, kl), lerp(-31, -32, kl));
+    tgt = V(0, 0, lerp(-41, -42, kl));
+    fov = 62;
+  } else if (CLOSE[k]) {
+    // close and low: the camera drifts a little; in first person it dips as you bend down to a low bar
+    const c = CLOSE[k].cam;
+    pos = V(...c.p0).lerp(V(...c.p1), smooth(0, 1, kl));
+    tgt = V(...c.t);
+    const h = handsAt(CLOSE[k], v);
+    if (h) { pos.y -= h.bend; tgt.y -= h.bend * 0.6; }
+    fov = c.fov;
   } else if (k === 'goldAlarm') {
     pos = V(0.7, 1.65, lerp(-8.5, -8.0, kl));
     tgt = V(0, 1.45, 4);
@@ -256,7 +265,7 @@ function update(v, cover = -1) {
     glows.mat.uniforms.uFogD.value = street.U.uFogD.value;
   } else if (s.place === 'jewel') jewel.frame(v, s, glows);
   else if (s.place === 'bank') bank.frame(v, s, glows);
-  else gold.frame(v, s, glows, { noCeiling: s.shot.k === 'gold' && v >= GOLD_STEPS[1], cam: camera.position });
+  else gold.frame(v, s, glows, { noCeiling: s.shot.k === 'goldWide', cam: camera.position, camera });
   if (!inStreet) glows.mat.uniforms.uFogD.value = 0;
   glows.end();
   renderer.toneMappingExposure = inStreet ? 1.0 : 1.0;

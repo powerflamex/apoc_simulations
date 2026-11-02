@@ -122,6 +122,30 @@ export const PEOPLE = [
     const r = smooth(0.2, 0.9, wa);
     return { x: -3.9, z: 1.25, yaw: Math.PI * (1 - r) + 0.3 * sway(wa, 0.9, 4) * r, armR: 0.2 + 0.9 * r, armL: 0.1, look: 0.1 };
   } },
+  // more shoppers and staff in the middle of the store, close to the door (frozen right beside you as you come in);
+  // when time runs they jump, hands up, and look round where they stand
+  { name: 'coat', shirt: 0xe8e2d6, pants: 0x2a2a2a, skin: SKIN[0], hair: HAIR[7], s: 0.97, pose: (wa) => {
+    const r = smooth(0.1, 0.5, wa);
+    return { x: 0.2, z: -1.35, yaw: Math.PI / 2 - 0.9 * r + 0.3 * sway(wa, 1.0, 1) * smooth(1, 2, wa), walk: 0.9, stride: 1 - r, armR: lerp(0.15, 1.5, r), armL: lerp(-0.1, 1.5, smooth(0.15, 0.55, wa)), look: 0.05 };
+  } },
+  { name: 'tray', shirt: 0x1a1a1a, pants: 0x1a1a1a, skin: SKIN[2], hair: HAIR[1], pose: (wa) => {
+    const r = smooth(0.2, 0.6, wa);
+    return { x: -0.95, z: -2.75, yaw: -2.5 + 0.5 * sway(wa, 0.8, 2) * r, armR: lerp(0.95, 0.4, r), armL: lerp(0.95, 1.6, r), look: lerp(-0.2, 0.15, r) };
+  } },
+  { name: 'phone', shirt: 0x8a2a2a, pants: 0x30343c, skin: SKIN[4], hair: HAIR[0], s: 1.02, pose: (wa) => {
+    // (then backs off toward the back of the store, out of the forensics shot)
+    const r = smooth(0.15, 0.5, wa);
+    const p = walkTo([[0.85, -3.0], [-0.3, -4.4]], 0.8, 0.9, wa);
+    return { x: p.x, z: p.z, yaw: p.moving ? p.yaw + Math.PI : -2.8 + 1.2 * r, armR: lerp(1.0, 1.15, r), armL: lerp(0.05, 0.5, r), look: lerp(-0.3, 0.1, r), walk: p.d * 2.6, stride: p.moving ? 0.6 : 0 };
+  } },
+  { name: 'kid', shirt: 0x3a7ad9, pants: 0x2a2a44, skin: SKIN[1], hair: HAIR[3], s: 0.6, pose: (wa) => {
+    const r = smooth(0.1, 0.5, wa);
+    return { x: -0.65, z: -1.75, yaw: Math.PI / 2 - 1.6 * r, armR: lerp(1.0, 1.55, r), armL: lerp(0.1, 1.55, r), look: lerp(0.1, 0.3, r) };
+  } },
+  { name: 'lean', shirt: 0xd98ab0, pants: 0x222222, skin: SKIN[6], hair: HAIR[4], s: 0.96, pose: (wa) => {
+    const r = smooth(0.25, 0.7, wa);
+    return { x: -1.2, z: -5.0, yaw: -2.3 + 0.9 * r, armR: lerp(1.0, 1.5, r), armL: lerp(0.85, 1.5, r), look: lerp(-0.35, 0.1, r) };
+  } },
   // the police and forensics, in through the door
   { name: 'cop1', cop: true, shirt: 0x1a2440, pants: 0x161c2e, skin: SKIN[3], hair: 0x0a0a0a, s: 1.02, pose: (wa) => {
     const p = walkTo([[DOOR.x, 3.2], [DOOR.x + 0.3, 0.6], [2.0, -2.0], [2.55, -3.6]], 0.9, 1.5, wa);

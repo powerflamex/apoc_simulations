@@ -129,6 +129,28 @@
       "env": {
         "PORT": "5199"
       }
+    },
+    {
+      "name": "time-stop",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 4/time-stop/server.mjs"
+      ],
+      "port": 5201,
+      "env": {
+        "PORT": "5201"
+      }
+    },
+    {
+      "name": "fall-through-earth",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/fall-through-earth/server.mjs"
+      ],
+      "port": 5202,
+      "env": {
+        "PORT": "5202"
+      }
     }
   ]
 }

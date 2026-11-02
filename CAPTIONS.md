@@ -689,6 +689,14 @@ when it stops. The cops and the forensics tech walk in through the store's door 
 glowing "?" where the prints and DNA should be, "?" over the police's heads. Rain runs down the store window (and
 hangs on it when time stops). The bank has tellers at a counting table and a wall of brass deposit boxes; the gold
 vault is lit up with guards at the cage doors, an inspector who drops his clipboard, glowing copies of you.
+Nov 1 (later), close to "you" all the way (from antimatter's day 1): the jewelry store's first seconds have five more
+frozen shoppers and staff right by the camera (a woman mid-stride, a clerk with a tray, a man on his phone, a kid
+pointing at the case). The gold vault is close and low instead of overhead: 33.3 s your gloved hands lift bars off a
+stack right in front of you while see-through copies across it take the rest and it sinks to the pallet; 35 s low
+beside a frozen guard looking down the emptied row; 36.7 s inside a cage, copies lifting bars as the stacks sink;
+38.5 s one 1.4 s look from above ("HALF THE VAULT": the middle hall bare, gold left in the halls either side); 39.9 s
+your hands take the last bars off the last pallet and hold up the very last one; 42 s you in the empty vault with it,
+the inspector frozen beside you. Same story, numbers, captions and length.
 
 **YouTube title (84 chars, emoji counted as 2)**
 What if you could stop time and leave no DNA? $820 billion, zero suspects ⏱️ #whatif

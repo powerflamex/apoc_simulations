@@ -9,6 +9,7 @@ import { TRUCK_BAGS, FREEZES } from './timeline.js';
 import { YOU0, TRUCK, BAGS } from './street.js';
 import * as jewel from './jewel.js';
 import * as bank from './bank.js';
+import { CLOSE } from './gold.js';
 
 export const HOOD = 0x2b2e35;
 const YAW0 = Math.atan2(-(TRUCK.x - YOU0.x), -(TRUCK.z1 - 0.6 - YOU0.z));
@@ -82,10 +83,16 @@ export function makeYou(scene) {
       armR = 0.9 + 0.4 * Math.sin(v * 10); armL = 0.8 + 0.4 * Math.sin(v * 10 + 2.5);
       pitch = 0.12;
       p.walk = v * 7; p.stride = 0.6;
+    } else if (k === 'goldYou') {
+      // in the empty vault, the last bar in your hands, looking at it
+      const y = CLOSE.goldYou.you;
+      p = { x: y.x, z: y.z, yaw: y.yaw, walk: 0, stride: 0 };
+      armL = armR = 0.62; pitch = 0.04; look = -0.35; carry = false;
     } else vis = false;
     fig.pose(0, { x: p.x, y: 0, z: p.z, yaw: p.yaw, walk: p.walk, stride: p.stride, armL: carry ? 0.05 : armL, armR, pitch, look, visible: vis });
     fig.commit();
-    hood.visible = duffel.visible = vis;
+    hood.visible = vis;
+    duffel.visible = vis && place !== 'gold';
     if (vis) {
       e.set(pitch, p.yaw, 0, 'YXZ'); q.setFromEuler(e);
       v3.set(0, 1.62, -0.01).applyQuaternion(q).add(s3.set(p.x, 0, p.z));

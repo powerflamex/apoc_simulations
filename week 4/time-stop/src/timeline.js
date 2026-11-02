@@ -49,7 +49,15 @@ export const SHOTS = [
   { k: 'bankAlarm', place: 'bank', a: 19.6, b: 21.4 },
   { k: 'hunt', place: 'street', a: 21.4, b: 25.0 },
   { k: 'past', place: 'street', a: 25.0, b: 28.5 },
-  { k: 'gold', place: 'gold', a: 28.5, b: 43.6 },
+  // the vault: the first cage, then close and low (your hands, your copies, a frozen guard beside you), one quick
+  // look from above at half the vault, the last bars, you holding the very last one
+  { k: 'gold', place: 'gold', a: 28.5, b: 33.3 },
+  { k: 'goldHands', place: 'gold', a: 33.3, b: 35.0 },
+  { k: 'goldGuard', place: 'gold', a: 35.0, b: 36.7 },
+  { k: 'goldCopies', place: 'gold', a: 36.7, b: 38.5 },
+  { k: 'goldWide', place: 'gold', a: 38.5, b: 39.9 },
+  { k: 'goldLast', place: 'gold', a: 39.9, b: 42.0 },
+  { k: 'goldYou', place: 'gold', a: 42.0, b: 43.6 },
   { k: 'goldAlarm', place: 'gold', a: 43.6, b: 46.0 },
   { k: 'finale', place: 'street', a: 46.0, b: 99 },
 ];
