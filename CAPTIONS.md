@@ -789,7 +789,7 @@ Cover: `week 4/black-hole-appears/out/black-hole-appears_v4_cover.png` (`node re
 
 ## Next Short. You fall through the Earth — `week 5/fall-through-earth/out/fall-through-earth_v4_1080x1920_60fps_tiktok.mp4`
 
-60.5 s. Frame 0: you (in a spacesuit) are already falling down a lit 6 m shaft in the Puerta del Sol, Madrid, the
+55.3 s. Frame 0: you (in a spacesuit) are already falling down a lit 6 m shaft in the Puerta del Sol, Madrid, the
 crowd leaning over the rim above you against the blue sky; the depth counter races, with your speed and the real
 time on the line under it and a small TIME-LAPSE tag. The metro tunnel flashes past at 20 m, the opening shrinks to a
 dot; cutaways of the Earth sliced through the hole show the Burj Khalifa hung upside down (you pass its tip at 828 m),
@@ -799,6 +799,13 @@ inner core; the center at 21 min 05 s and 17,694 mph (the brightest moment, a de
 way up, upside down, turn over, the night sky of New Zealand appears at the top of the shaft, you come up into a
 Wellington street at night in slow motion, stop right at the top in front of the staring crowd (42 min 10 s), fall
 back, white, loop to Madrid.
+Nov 1 rework (from antimatter's day 1: keep it close to "you", no samey stretches): every layer has its own look as it
+streams past (the wall moves at a readable speed now, not as streaks): dark grey rock with gold and copper ore veins,
+red-hot rock split by glowing cracks (orange and softer deeper down), a churning orange-white ocean of liquid iron,
+the blinding white-hot crystals of the inner core. The cut-away globe with your dot comes back every 5-10 s (the
+Burj and Kola shots open on the whole planet and dive in to you), three close shots of your gold visor with each
+layer's glow in it, the reaching arm at the start no longer flicks back over your head, and 5.2 s of repeated tunnel
+cut (same depths, speeds and times on the counter; the captions just come a little sooner).
 Physics (`src/timeline.js`): no air in the hole, an Earth of even density: x = R cos(wT), w = sqrt(g/R), g = 9.82 m/s^2;
 42 min 10 s across, top speed 7.91 km/s at the center. (With the real Earth, denser in the middle, it would take ~38
 min.) Madrid's exact opposite point is in New Zealand's North Island, about 150 km north-east of Wellington; the
@@ -822,7 +829,7 @@ Would you jump in? 👇
 
 #whatif #earth #physics #science #shorts
 
-Cover: `week 5/fall-through-earth/out/fall-through-earth_v4_cover.png` (`node render.mjs --cover 19.3`: you in the spacesuit falling through the orange glowing tunnel 200 km down, diamonds glinting as white streaks rushing at you)
+Cover: `week 5/fall-through-earth/out/fall-through-earth_v4_cover.png` (`node render.mjs --cover 17.6`: you in the spacesuit diving head-down into the red-hot rock 250 km down, glowing cracks all round, diamonds streaking past as white lines)
 
 ## Next Short. What if other stars replaced the Sun? — `week 5/star-picker/out/star-picker_v4_1080x1920_60fps_tiktok.mp4`
 

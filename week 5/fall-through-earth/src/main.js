@@ -13,7 +13,7 @@ import { makeCutaway } from './cutaway.js';
 import { makeOverlay } from './overlay.js';
 import {
   state, joltAt, sAt, storyT, tempAt, R_KM, VIDEO_DURATION, LOOP, T_SWITCH, V_CENTER, V_STREET, V_APEX,
-  V_BURJ, V_KOLA, V_MINE,
+  V_BURJ, V_KOLA, V_MINE, seenAt, seenFlowAt,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, keys, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -64,6 +64,12 @@ const below = new THREE.PointLight(0xffffff, 0, 14, 1.4);
 scene.add(above, below);
 const fill = new THREE.PointLight(0xfff4e8, 0, 12, 1.5);
 scene.add(fill);
+// the visor reflects the hole round you (a small cube camera at your helmet, drawn every frame)
+const cubeRT = new THREE.WebGLCubeRenderTarget(128, { type: THREE.HalfFloatType });
+const cubeCam = new THREE.CubeCamera(0.05, 3000, cubeRT);
+scene.add(cubeCam);
+suit.visorMat.envMap = cubeRT.texture;
+suit.visorMat.envMapIntensity = 1.6;
 const cut = makeCutaway();
 const overlay = makeOverlay();
 
@@ -109,24 +115,27 @@ composer.addPass(finish);
 // kinds: up (below you, looking up past you), down (above you, looking down the hole), side (beside you, across
 // the hole), cut (the cutaway: views given as [v, center y below Madrid's surface (km), height (km), center x]),
 // street (New Zealand, from the street).
+// (a globe with your dot about every 8 s; zoom: it opens on the whole planet, then dives in to you)
+const GLOBE = [6371, 15500, 0];
 const SHOTS = [
   { v0: -3, v1: 6.4, kind: 'up', a: 0 },
-  { v0: 6.4, v1: 9.3, kind: 'cut', follow: [1.5, 0.08, -0.15], ghost: [1, 1, 0], trail: 1 },
-  { v0: 9.3, v1: 12.3, kind: 'down', a: 0 },
-  { v0: 12.3, v1: 15.4, kind: 'cut', follow: [10, 0.5, 0.2], ghost: [1, 1, 1], trail: 1 },
-  { v0: 15.4, v1: 18.4, kind: 'side', a: 0 },
-  { v0: 18.4, v1: 21.4, kind: 'down', a: 1 },
-  { v0: 21.4, v1: 24.4, kind: 'up', a: 1 },
-  { v0: 24.4, v1: 27.4, kind: 'cut', view: [[24.4, 6371, 15500, 0], [27.4, 6371, 14200, 0]], ghost: [0, 0, 0], trail: 1, places: 1 },
-  { v0: 27.4, v1: 30.7, kind: 'down', a: 2 },
-  { v0: 30.7, v1: 33.4, kind: 'side', a: 1 },
-  { v0: 33.4, v1: V_CENTER, kind: 'down', a: 3 },
-  { v0: V_CENTER, v1: 38.0, kind: 'cut', view: [[V_CENTER, 6371, 5200, 0], [38.0, 6371, 7400, 0]], ghost: [0, 0, 0], trail: 1, places: 0 },
-  { v0: 38.0, v1: 40.7, kind: 'up', a: 2 },
-  { v0: 40.7, v1: 43.2, kind: 'side', a: 2 },
-  { v0: 43.2, v1: 45.8, kind: 'cut', view: [[43.2, 12300, 5600, -560], [45.8, 12500, 2600, -260]], ghost: [0, 0, 0], trail: 1, places: 2 },
-  { v0: 45.8, v1: 48.0, kind: 'side', a: 3 },
-  { v0: 48.0, v1: V_STREET, kind: 'up', a: 3 },
+  { v0: 6.4, v1: 9.0, kind: 'cut', follow: [1.5, 0.08, -0.15], zoom: 1, ghost: [1, 1, 0], trail: 1 },
+  { v0: 9.0, v1: 11.6, kind: 'side', a: 0 },
+  { v0: 11.6, v1: 14.2, kind: 'cut', follow: [10, 0.5, 0.2], zoom: 1, ghost: [1, 1, 1], trail: 1 },
+  { v0: 14.2, v1: 16.8, kind: 'visor', a: 0 },
+  { v0: 16.8, v1: 19.4, kind: 'down', a: 1 },
+  { v0: 19.4, v1: 22.0, kind: 'side', a: 1 },
+  { v0: 22.0, v1: 24.6, kind: 'cut', view: [[22.0, 6371, 15500, 0], [24.6, 6371, 14200, 0]], ghost: [0, 0, 0], trail: 1, places: 1 },
+  { v0: 24.6, v1: 27.4, kind: 'side', a: 2 },
+  { v0: 27.4, v1: 29.2, kind: 'down', a: 3 },
+  { v0: 29.2, v1: V_CENTER, kind: 'visor', a: 1 },
+  { v0: V_CENTER, v1: 34.4, kind: 'cut', view: [[V_CENTER, 6371, 5200, 0], [34.4, 6371, 7400, 0]], ghost: [0, 0, 0], trail: 1, places: 0 },
+  { v0: 34.4, v1: 36.6, kind: 'up', a: 2 },
+  { v0: 36.6, v1: 39.2, kind: 'visor', a: 2 },
+  { v0: 39.2, v1: 41.6, kind: 'cut', view: [[39.2, 12300, 5600, -560], [41.6, 12500, 2600, -260]], ghost: [0, 0, 0], trail: 1, places: 2 },
+  { v0: 41.6, v1: 44.7, kind: 'side', a: 3 },
+  { v0: 44.7, v1: 46.6, kind: 'cut', view: [[44.7, 6371, 15500, 0], [45.3, 6371, 15000, 0], [46.6, 12600, 650, -30]], ghost: [0, 0, 0], trail: 1, places: 2 },
+  { v0: 46.6, v1: V_STREET, kind: 'up', a: 3 },
   { v0: V_STREET, v1: 99, kind: 'street' },
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.v0 && v < s.v1) || SHOTS[SHOTS.length - 1];
@@ -171,6 +180,18 @@ function update(v, cover = -1) {
       // keep you a little below the middle and the surface just inside the top: the view grows as you fall
       const [hMin, x0, x1] = shot.follow;
       hh = Math.max(hMin, 1.9 * s.km); yb = s.km - 0.04 * hh; xc = -0.1 * hh + lerp(x0, x1, clamp((v - shot.v0) / (shot.v1 - shot.v0))) * 0.0;
+      if (shot.zoom) {
+        // open on the whole planet (your dot right at the top), then dive in: the zoom is even in log scale and
+        // your dot glides from where it is on the globe to where it sits in the close view
+        const k = smooth(shot.v0 + 0.55, shot.v1 - 0.55, v);
+        const hF = hh, spF = (yb - s.km) / hF;
+        const sp0 = (R_KM - s.km - (R_KM - GLOBE[0])) / GLOBE[1];
+        hh = Math.exp(lerp(Math.log(GLOBE[1]), Math.log(hF), k));
+        const sp = lerp(sp0, spF, k);
+        const cy = (R_KM - s.km) - sp * hh;
+        yb = R_KM - cy;
+        xc = -0.1 * hh * k;
+      }
     } else {
       const kv = shot.view;
       yb = keys(kv.map((k) => [k[0], k[1]]), v, true); hh = keys(kv.map((k) => [k[0], k[2]]), v, true); xc = keys(kv.map((k) => [k[0], k[3]]), v);
@@ -184,10 +205,10 @@ function update(v, cover = -1) {
     cut.U.uTrail.value = shot.trail;
     const p = cut.toScreen(0, R_KM - sKm);
     marks.you = { x: p.x, y: p.y, a: smooth(shot.v0, shot.v0 + 0.3, v) * (1 - smooth(shot.v1 - 0.2, shot.v1, v)) };
-    if (shot.places) {
+    if (shot.places || shot.zoom) {
       const pa = cut.toScreen(0, R_KM), pb = cut.toScreen(0, -R_KM);
-      const fa = smooth(shot.v0 + 0.2, shot.v0 + 0.6, v) * (1 - smooth(shot.v1 - 0.2, shot.v1, v));
-      if (shot.places === 1) marks.a = { x: pa.x, y: pa.y, a: fa };
+      const fa = smooth(shot.v0 + 0.2, shot.v0 + 0.6, v) * (1 - smooth(shot.v1 - 0.2, shot.v1, v)) * (shot.zoom ? 1 - smooth(shot.v0 + 0.5, shot.v0 + 0.9, v) : 1);
+      if (shot.places === 1 || shot.zoom) marks.a = { x: pa.x, y: pa.y, a: fa };
       marks.b = { x: pb.x, y: pb.y, a: fa };
     }
     renderer.toneMappingExposure = 1.0;
@@ -203,11 +224,11 @@ function update(v, cover = -1) {
     // ---------- you ----------
     // Madrid half: upright, falling feet first. The New Zealand half starts head-down (you keep the same
     // orientation in space, and "down" now points the other way) and you turn over on the way up.
-    const flip = side < 0 ? Math.PI * (1 - smooth(43.3, 45.7, v)) : 0;   // you turn over during the cutaway (43.2-45.8 s)
+    const flip = side < 0 ? Math.PI * (1 - smooth(39.35, 41.45, v)) : 0;   // you turn over during the cutaway (39.2-41.6 s)
     const spin = street ? Math.PI + 0.35 + 0.25 * Math.sin(v * 0.8) : v * 0.12 + wobble(v * 0.15, 2) * 0.25;   // facing the street's camera at the end
     body.rotation.set(flip + wobble(v * 0.2, 4) * 0.06, spin, wobble(v * 0.17, 6) * 0.06);
     const flail = (1 - smooth(1.5, 4.5, v)) + 0.35 * smooth(V_STREET + 1.6, V_APEX + 1.0, v);
-    const look = shot.kind === 'up' ? 0.6 : shot.kind === 'down' ? -0.8 : street ? 0.0 : 0.1;
+    const look = shot.kind === 'up' ? 0.6 : shot.kind === 'down' ? -0.8 : street ? 0.0 : shot.kind === 'visor' ? 0.15 : 0.1;
     suit.pose(v, { arms: street ? 0.9 : 0.6, look, flail, reach: shot.kind === 'up' && v < 6 ? 0.6 * (1 - smooth(3, 6, v)) : 0 });
     body.visible = true;
 
@@ -226,7 +247,7 @@ function update(v, cover = -1) {
     // ---------- the wall ----------
     const near = 1 - smooth(150, 3000, depth);
     shaft.update(s, {
-      blur: s.flow / 60, lightPeriod: 5, k: 300 * (1 - near), time: v, glow: s.glow,
+      blur: seenFlowAt(v) / 60, seen: seenAt(v), lightPeriod: 5, k: 300 * (1 - near), time: v, glow: s.glow,
       lit: 1, surf: side > 0 ? 1 : 0.06, tunnel: side > 0, tunnelTop: depth + METRO_TOP, tunnelBottom: depth + METRO_BOT,
     });
 
@@ -271,6 +292,16 @@ function update(v, cover = -1) {
       pos = new THREE.Vector3(Math.sin(ang) * 2.45, 1.2 + 0.25 * dr, Math.cos(ang) * 2.45);
       tgt = new THREE.Vector3(-Math.sin(ang) * 1.5, 0.9, -Math.cos(ang) * 1.5);
       fov = 66;
+    } else if (shot.kind === 'visor') {
+      // close on your visor: the glow of the layer you're in, reflected in the gold glass
+      const hp = suit.helmetPos(new THREE.Vector3());
+      const hq = suit.head.getWorldQuaternion(new THREE.Quaternion());
+      const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(hq);
+      const rt = new THREE.Vector3(1, 0, 0).applyQuaternion(hq);
+      const a = shot.a;
+      pos = hp.clone().addScaledVector(fwd, lerp(0.78, 0.6, k0)).addScaledVector(rt, 0.2 - 0.18 * a).add(new THREE.Vector3(0, 0.1 - 0.06 * a, 0));
+      tgt = hp.clone().addScaledVector(fwd, 0.05).add(new THREE.Vector3(0, -0.04, 0));
+      fov = 46;
     } else {
       // the street in New Zealand: fixed to the ground (which is depth m above your feet)
       const g = depth;
@@ -291,17 +322,21 @@ function update(v, cover = -1) {
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
     sky.mesh.position.copy(camera.position);
+    suit.helmetPos(cubeCam.position);
+    body.visible = false;
+    cubeCam.update(renderer, scene);
+    body.visible = true;
 
     // the end of the tunnel on screen (where the speed blur streams out from)
     const dir = shot.kind === 'down' ? -1 : 1;
     const vp = tmpV.set(0, dir * 1e4, 0).project(camera);
     const inFront = tmpV.z < 1;
     finish.uniforms.uZC.value.set(clamp(vp.x * 0.5 + 0.5, -0.5, 1.5), clamp(vp.y * 0.5 + 0.5, -0.5, 1.5));
-    finish.uniforms.uZoom.value = (shot.kind === 'side' || street) ? 0 : clamp(0.006 * Math.log10(1 + s.flow / 40), 0, 0.025) * (inFront ? 1 : 0.5);
+    finish.uniforms.uZoom.value = (shot.kind === 'side' || shot.kind === 'visor' || street) ? 0 : clamp(0.006 * Math.log10(1 + s.flow / 40), 0, 0.025) * (inFront ? 1 : 0.5);
     finish.uniforms.uHeat.value = smooth(500, 1500, s.temp) * (street ? 0 : 1);
     finish.uniforms.uWhite.value = 0.45 * s.glow;
-    renderer.toneMappingExposure = street ? 1.0 : 1.0;
-    bloom.strength = 0.16 + 0.18 * smooth(40, 3000, s.km) + (street ? 0.1 : 0);
+    renderer.toneMappingExposure = shot.kind === 'visor' ? 1.0 - 0.3 * smooth(4000, 5400, s.temp) : 1.0;   // (the white-hot core: the gold visor still reads)
+    bloom.strength = (0.16 + 0.18 * smooth(40, 3000, s.km)) * (shot.kind === 'visor' ? 0.6 : 1) + (street ? 0.1 : 0);
   }
   finish.uniforms.uTime.value = v;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;

@@ -41,13 +41,14 @@ const TU = (km) => HALF - TD(km);          // the same depth on the way up
 
 // ---- the big moments (video time) ----
 export const V_METRO = 1.2;
-export const V_BURJ = 6.6, V_MINE = 9.6, V_KOLA = 12.6, V_CRUST = 15.6, V_DIAMOND = 18.6, V_660 = 21.6, V_DEEP = 24.6;
-export const V_OUTER = 27.6, V_INNER = 30.8, V_CENTER = 35.3;
-export const V_INNER_UP = 38.4, V_OUTER_UP = 40.9, V_660_UP = 43.4, V_CRUST_UP = 45.9, V_KOLA_UP = 47.7, V_BURJ_UP = 49.6;
-export const V_STREET = 55.4;              // the cut to the street in New Zealand
-export const V_APEX = 57.4;                // you stop right at the top
-export const V_FLASH = 58.9;               // the white starts
-export const T_SWITCH = 59.6;              // full white; the loop point sits in it
+// (a beat every 2.6 s on the way down; the way up, the same layers again, goes a little faster)
+export const V_BURJ = 6.4, V_MINE = 9.0, V_KOLA = 11.6, V_CRUST = 14.2, V_DIAMOND = 16.8, V_660 = 19.4, V_DEEP = 22.0;
+export const V_OUTER = 24.6, V_INNER = 27.4, V_CENTER = 31.8;
+export const V_INNER_UP = 34.65, V_OUTER_UP = 36.9, V_660_UP = 39.2, V_CRUST_UP = 41.5, V_KOLA_UP = 43.15, V_BURJ_UP = 44.9;
+export const V_STREET = 50.2;              // the cut to the street in New Zealand
+export const V_APEX = 52.2;                // you stop right at the top
+export const V_FLASH = 53.7;               // the white starts
+export const T_SWITCH = 54.4;              // full white; the loop point sits in it
 export const LOOP = 0.9;                   // the white clears onto the first frame over the last LOOP seconds
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
@@ -78,13 +79,26 @@ const T_KEYS = [
   [V_660, TD(D_660)], [V_DEEP, TD(D_DEEP)], [V_OUTER, TD(D_OUTER)], [V_INNER, TD(D_INNER)], [V_CENTER, QUARTER],
   [V_INNER_UP, TU(D_INNER)], [V_OUTER_UP, TU(D_OUTER)], [V_660_UP, TU(D_660)], [V_CRUST_UP, TU(D_CRUST)],
   [V_KOLA_UP, TU(D_KOLA)], [V_BURJ_UP, TU(D_BURJ)],
-  [51.6, HALF - 6.6], [53.6, HALF - 3.3], [55.0, HALF - 1.6], [56.0, HALF - 0.65], [V_APEX, HALF],
-  [58.6, HALF + 0.55], [59.5, HALF + 1.35],
+  [46.7, HALF - 6.6], [48.55, HALF - 3.3], [49.8, HALF - 1.6], [50.8, HALF - 0.65], [V_APEX, HALF],
+  [53.4, HALF + 0.55], [54.3, HALF + 1.35],
 ];
 export const storyT = pchip(T_KEYS);
 export const rateAt = (v) => (storyT(v + 0.02) - storyT(v - 0.02)) / 0.04;
 // how fast the walls stream past in the picture (m of hole per video second)
 export const flowAt = (v) => speedAt(storyT(v)) * rateAt(v);
+
+// where the wall's pattern is: the real flow, eased off above ~50 m per video second (to at most 110), so the rock
+// of each layer can be seen streaming past instead of turning into streaks; tabulated
+const F0 = 50, FCAP = 110;
+const seenFlow = (f) => (f <= F0 ? f : F0 + (FCAP - F0) * (1 - Math.exp(-(f - F0) / (FCAP - F0))));
+const SDT = 1 / 240, SV0 = -3.2;
+const ST = new Float64Array(Math.ceil((80 - SV0) / SDT) + 2);
+{ let x = 0; for (let i = 0; i < ST.length; i++) { ST[i] = x; x += seenFlow(flowAt(SV0 + (i + 0.5) * SDT)) * SDT; } }
+export function seenAt(v) {
+  const x = (v - SV0) / SDT, i = clamp(Math.floor(x), 0, ST.length - 2), f = clamp(x - i, 0, 1);
+  return ST[i] + (ST[i + 1] - ST[i]) * f;
+}
+export const seenFlowAt = (v) => seenFlow(flowAt(v));
 
 // ---- temperatures (deg C) by depth (km): a textbook geotherm ----
 const TEMP = [[0, 15], [4, 60], [12.3, 180], [35, 600], [150, 1300], [410, 1500], [660, 1600], [2890, 3700], [2891, 4000], [5150, 5400], [6371, 5500]];
@@ -125,18 +139,18 @@ export function popupAt(v) {
 
 // ---- captions (video time): in the gaps between the popups, never on screen with one ----
 export const CAPTIONS = [
-  [3.7, 6.35, 'There’s no air in the hole. Nothing slows you down.'],
-  [V_MINE, 12.3, 'Past the deepest mine, the rock is already 60°C.'],
-  [V_CRUST, 18.35, 'You’re through the crust. The rock glows red-hot.'],
-  [V_660, 24.4, 'This rock is 1,600°C, hotter than lava. It slowly flows.'],
-  [V_OUTER, 30.55, 'An ocean of liquid iron, over 4,000°C.'],
-  [32.65, 35.15, '5,400°C: as hot as the surface of the Sun.'],
-  [37.15, 40.0, 'Here, gravity pulls you equally from every side.'],
-  [40.25, 43.2, 'Now it pulls you back. You start slowing down.'],
-  [V_CRUST_UP, 48.6, 'You slow down exactly as fast as you sped up.'],
-  [49.0, 52.0, 'You come out in New Zealand, in the middle of the night.'],
-  [52.35, 55.2, 'Right on time: 42 minutes after you jumped.'],
-  [55.9, 58.85, 'You stop right at the top… and fall back to Madrid.'],
+  [3.7, 6.2, 'There’s no air in the hole. Nothing slows you down.'],
+  [V_MINE, 11.4, 'Past the deepest mine, the rock is already 60°C.'],
+  [V_CRUST, 16.6, 'You’re through the crust. The rock glows red-hot.'],
+  [V_660, 21.8, 'This rock is 1,600°C, hotter than lava. It slowly flows.'],
+  [V_OUTER, 27.2, 'An ocean of liquid iron, over 4,000°C.'],
+  [29.2, 31.65, '5,400°C: as hot as the surface of the Sun.'],
+  [33.5, 36.1, 'Here, gravity pulls you equally from every side.'],
+  [36.35, 39.05, 'Now it pulls you back. You start slowing down.'],
+  [V_CRUST_UP, 44.0, 'You slow down exactly as fast as you sped up.'],
+  [44.7, 47.45, 'You come out in New Zealand, in the middle of the night.'],
+  [47.75, 50.05, 'Right on time: 42 minutes after you jumped.'],
+  [50.7, 53.65, 'You stop right at the top… and fall back to Madrid.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;

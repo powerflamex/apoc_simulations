@@ -256,9 +256,12 @@ export function makeSuit() {
     const fl = (k) => flail * Math.sin(v * (7.3 + k) + k * 2.1) * 0.35;
     const out = 0.35 + 1.0 * arms + wobble(v * 0.35, 3) * 0.1;
     L.sh.rotation.set(-0.15 + wobble(v * 0.4, 3) * 0.12 + fl(1), 0, -out - fl(2) * 0.6);
-    R.sh.rotation.set(-0.15 + wobble(v * 0.4, 5) * 0.12 + fl(3) - reach * 2.6, 0, out + fl(4) * 0.6 - reach * 0.9);
+    // (the reaching arm goes up and forward, over your head toward the opening)
+    // (and stays nearly straight, flailing less: a bent elbow flicked the hand back over your head)
+    const rf = 1 - 0.7 * Math.min(1, reach / 0.6);
+    R.sh.rotation.set(-0.15 + wobble(v * 0.4, 5) * 0.12 + fl(3) * rf + reach * 2.5, 0, out + fl(4) * 0.6 * rf - reach * 0.75);
     L.el.rotation.x = 0.35 + wobble(v * 0.5, 1) * 0.12 + Math.abs(fl(5));
-    R.el.rotation.x = 0.35 + wobble(v * 0.5, 2) * 0.12 + Math.abs(fl(6)) - reach * 0.25;
+    R.el.rotation.x = (0.35 + wobble(v * 0.5, 2) * 0.12 + Math.abs(fl(6)) * rf) * (1 - 0.85 * Math.min(1, reach / 0.6));
     // legs: together, a little bent, kicking in the first seconds
     const sw = wobble(v * 0.4, 9) * 0.08;
     LL.hip.rotation.set(0.12 + sw + fl(7), 0, -0.08);
@@ -273,5 +276,5 @@ export function makeSuit() {
     root.updateMatrixWorld(true);
   }
   const helmetPos = (out) => head.getWorldPosition(out || W);
-  return { root, pose, lamp, head, mats, helmetPos };
+  return { root, pose, lamp, head, mats, helmetPos, visorMat };
 }

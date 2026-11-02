@@ -134,7 +134,7 @@ export function makeSoundtrack(outFile) {
     {
       const top = (1 - smooth(-0.5, 2.6, v)) * 0.9;
       const nzSt = smooth(V_STREET - 0.4, V_STREET + 0.1, v) * (1 - smooth(T_SWITCH - 0.6, T_SWITCH, v));
-      const nzHole = smooth(52, 55, v) * (1 - smooth(V_STREET - 0.4, V_STREET + 0.1, v)) * 0.35;
+      const nzHole = smooth(V_STREET - 3.4, V_STREET - 0.4, v) * (1 - smooth(V_STREET - 0.4, V_STREET + 0.1, v)) * 0.35;
       const g = top + nzSt * 0.75 + nzHole;
       if (g > 1e-4) {
         // babble: a few formant bands on noise, wobbling like voices
