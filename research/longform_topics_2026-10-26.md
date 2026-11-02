@@ -28,3 +28,11 @@ last 2-3 weeks, each with many copies. The first video on a topic wins 10-100x (
   struck by lightning (354), jumped from the edge of space (31), never slept (2.9K).
 - Open topics with tiny-channel videos only show that nobody has done them well, not that people want them;
   the black hole is the one open topic with proven demand (on this channel).
+
+## Re-check 2026-11-01 (YouTube search, upload date: this month)
+- **Asteroid now TAKEN:** Tracer Project "What If Asteroid Apophis Hit Earth?" 5.3M (2 w); MaxiMaps 53K, Mapocalypse 43K, Science Channel 122K.
+- Sun disappears TAKEN (The Last Day 766K, The Cosmic Witness 463K). Moon crash still taken (The Last Day 1.83M; Orbitkins 18K).
+- **Black hole appears on Earth: OPEN** (5 videos, all under 250 views). Black holes are the channel's proven topic three times
+  (3.3M Short, the long video holding flat at ~46% after minute one, black-hole-appears the best Short start of the batch).
+  Chosen as the next long video. Backup: Earth falls into the Sun (open: best 2.8K).
+- Fell into a black hole: open (537), but space-only and abstract.
