@@ -34,5 +34,8 @@ last 2-3 weeks, each with many copies. The first video on a topic wins 10-100x (
 - Sun disappears TAKEN (The Last Day 766K, The Cosmic Witness 463K). Moon crash still taken (The Last Day 1.83M; Orbitkins 18K).
 - **Black hole appears on Earth: OPEN** (5 videos, all under 250 views). Black holes are the channel's proven topic three times
   (3.3M Short, the long video holding flat at ~46% after minute one, black-hole-appears the best Short start of the batch).
-  Chosen as the next long video. Backup: Earth falls into the Sun (open: best 2.8K).
+  First pick, then dropped (owner, Nov 1): too close to the black hole long video in look and story.
+- **Earth falls into the Sun: OPEN** (best 2.8K this month; the channel's Short on it 142K). Planet-scale like the niche's big
+  hits (Apophis 5.3M, Moon crash 1.83M, Sun gone a week 766K). Recommended as the next long video instead.
+- The niche is hit-driven, not dead: a few videos per month get 500K-5M, while most clone channels sit at 1-3K.
 - Fell into a black hole: open (537), but space-only and abstract.
