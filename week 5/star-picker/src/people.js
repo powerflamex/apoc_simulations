@@ -1,11 +1,14 @@
 // The people on the beach, and what each star does to them (video time v throughout).
-//   Before: lying on towels, sitting on the sand or in chairs, standing in groups, walking along the water, a few
+//   Arcturus (frame 0): everyone squints up at the giant disc, a hand up against the glare; the ones lying down sit up.
+//   Before it: lying on towels, sitting on the sand or in chairs, standing in groups, walking along the water, a few
 //   right next to you.
 //   Proxima (the cold): they look up, the ones lying down sit up, everyone hugs themselves and shivers; frost forms on
 //   them; their breath freezes (white puffs, world.js).
-//   Sirius (the glare): an arm up over the eyes, they turn away, and run inland: up the beach, past you, across the bike
-//   path and the road into the city (they go in where the hotels are, behind you). Every path is planned up front:
-//   straight inland, stepping around you, the umbrella poles and the lifeguard towers, nobody running into anybody.
+//   Sirius (the glare): an arm up over the eyes, they turn away; the ones near you run to the umbrellas' shade (and at
+//   Vega on into the sea), the rest run inland: up the beach, past you, across the bike path and the road into the
+//   city (they go in where the hotels are, behind you). Every path is planned up front: straight inland, stepping
+//   around you, the umbrella poles and the lifeguard towers, nobody running into anybody.
+//   Aldebaran: the last few, under two umbrellas toward the pier, run at you as they catch fire. Rigel: only you.
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
 import { landY, UMBRELLAS, LIFEGUARD, PALMS, CAM0, camFront, PIER } from './layout.js';
@@ -61,7 +64,7 @@ const OBS = [...UMBRELLAS.map((u) => [u.x, u.z, 0.45]), ...LIFEGUARD.map((l) => 
     p.tRun = p.tReact + (p.type === 'lie' ? 1.0 : p.type === 'sit' ? 0.6 : 0.3) + 0.3 * ((r * 7) % 1);
     p.ur = 5.2 + 1.6 * ((r * 13) % 1) - (p.kid ? 1.0 : 0);
     // where they are when they start running (walkers have moved on)
-    p.stopV = LAND.proxima + 0.4 + r * 0.6;
+    p.stopV = LAND.arcturus + 0.3 + r * 0.6;            // (walkers stop as Arcturus's heat hits)
     const wz = p.type === 'walk' ? p.z + p.uz * (p.stopV + 10.3) : p.z;
     p.rx = p.x; p.rz = wz;
     // the lane: shift it sideways until nothing is in the way
@@ -84,6 +87,63 @@ const OBS = [...UMBRELLAS.map((u) => [u.x, u.z, 0.45]), ...LIFEGUARD.map((l) => 
   }
 }
 
+// who shelters where: at Sirius the people near you run to the nearest umbrella (up to 4 under each) and crouch in its
+// shade; at Vega, as those umbrellas catch fire, they run past you into the sea. A few under two umbrellas between you
+// and the pier stay put until Aldebaran, when their umbrellas catch fire with the pier burning behind them, and they
+// run toward you: the last ones on the beach. Everyone else runs inland at Sirius (as before). At Rigel only you are
+// left, standing at the edge of the drained sea.
+export let LAST_B = 100;
+const CAM_ALD = { x: CAM0.x - 12, z: CAM0.z - 12 * Math.tan(CAM0.b * Math.PI / 180) };   // (main.js: XX at Aldebaran)
+{
+  const used = new Map();
+  const take = (u) => { const n = used.get(u) || 0; used.set(u, n + 1); const a = n * Math.PI / 2 + u.seed * 6; return { x: u.x + Math.cos(a) * 0.8, z: u.z + Math.sin(a) * 0.8, u }; };
+  // the last few: the two umbrellas nearest a spot 45 m from you toward the pier, and the people round them
+  const spot = { x: CAM_ALD.x + 18, z: CAM_ALD.z - 42 };
+  const lastU = UMBRELLAS.filter((u) => !u.near).sort((a, b) => Math.hypot(a.x - spot.x, a.z - spot.z) - Math.hypot(b.x - spot.x, b.z - spot.z)).slice(0, 2);
+  lastU.forEach((u) => { u.late = true; });
+  const mx = (lastU[0].x + lastU[1].x) / 2, mz = (lastU[0].z + lastU[1].z) / 2;
+  LAST_B = Math.atan2(-(mz - CAM_ALD.z), -(mx - CAM_ALD.x)) * 180 / Math.PI;     // their bearing from the camera
+  const cand = PEOPLE.filter((p) => !p.near && p.type !== 'walk').sort((a, b) => Math.hypot(a.x - spot.x, a.z - spot.z) - Math.hypot(b.x - spot.x, b.z - spot.z)).slice(0, 5);
+  cand.forEach((p, k) => { p.last = true; p.shadeAt = take(lastU[k % 2]); });
+  // the people near you: to the nearest umbrella within 14 m
+  const shadeU = UMBRELLAS.filter((u) => !u.late && Math.hypot(u.x - CAM0.x, u.z - CAM0.z) < 50);
+  for (const p of PEOPLE) {
+    if (p.last || Math.hypot(p.x - CAM0.x, p.z - CAM0.z) > 38) continue;
+    let best = null, bd = 14;
+    for (const u of shadeU) { const d = Math.hypot(u.x - p.x, u.z - p.z); if (d < bd && (used.get(u) || 0) < 4) { bd = d; best = u; } }
+    if (!best) continue;
+    best.shade = true;
+    p.shadeAt = take(best);
+  }
+  for (const p of PEOPLE) {
+    if (!p.shadeAt) continue;
+    p.stay = false;
+    p.ur = Math.min(p.ur, 4.6);
+    if (p.last) {
+      // away from the fire, toward you and past you (a little to one side of the camera)
+      p.tFlee = LAND.aldebaran + 1.1 + p.seed * 0.7;
+      const side = (p.seed < 0.5 ? -1 : 1) * (2.5 + 2 * p.seed);
+      p.fleeTo = { x: CAM_ALD.x + 6 + 3 * p.seed, z: CAM_ALD.z + side + 25 };
+    } else {
+      // into the sea, straight out from the umbrella (kept off the line the camera walks down)
+      p.tSea = LAND.vega + 0.35 + p.seed * 0.7;
+      const camZ = (x) => CAM0.z - (CAM0.x - x) * Math.tan(CAM0.b * Math.PI / 180);
+      let z = p.shadeAt.z;
+      if (Math.abs(z - camZ(p.shadeAt.x)) < 1.6) z = camZ(p.shadeAt.x) + (z >= camZ(p.shadeAt.x) ? 1.6 : -1.6);
+      p.seaTo = { x: -9, z };
+    }
+  }
+}
+// "you", alone in front of the camera at Rigel, looking at the star over the drained sea
+export const YOU = { x: CAM0.x - 16 - 3.6 * Math.cos(CAM0.b * Math.PI / 180), z: CAM0.z - 16 * Math.tan(CAM0.b * Math.PI / 180) - 3.6 * Math.sin(CAM0.b * Math.PI / 180), you: true };
+PEOPLE.push({ ...YOU, type: 'stand', yaw: Math.atan2(-Math.cos(CAM0.b * Math.PI / 180), -Math.sin(CAM0.b * Math.PI / 180)), s: 1.0, seed: 0.5, ph: 0, col: [0xd62828, 0x1d3557, SKIN[1], HAIR[1], true] });
+
+// along a straight leg from a to b, starting at t0 at speed sp (m/s): { x, z, d, moving, yaw }
+function leg(a, b, t0, sp, v) {
+  const L = Math.hypot(b.x - a.x, b.z - a.z), d = clamp((v - t0) * sp, 0, L), k = L > 0 ? d / L : 1;
+  return { x: lerp(a.x, b.x, k), z: lerp(a.z, b.z, k), d, moving: v > t0 && d < L, yaw: Math.atan2(b.x - a.x, b.z - a.z) };
+}
+
 // how far along its run (m inland) person p is at time v
 function runX(p, v) {
   const tr = v - p.tRun;
@@ -92,12 +152,54 @@ function runX(p, v) {
 }
 export function personPose(p, v) {
   const o = { x: p.x, y: 0, z: p.z, yaw: p.yaw, s: p.s, walk: 0, stride: 0, sit: 0, pitch: 0, roll: 0, armL: 0, armR: 0, look: 0.05 };
-  // ---- before Sirius ----
+  if (p.you) {
+    // you: hidden until the whip to Rigel, then standing at the edge, an arm up against the glare, looking up at it
+    if (v < LAND.rigel - 0.2) return { visible: false };
+    o.y = landY(o.x, o.z);
+    o.armR = 1.3; o.armL = 0.12; o.look = 0.3; o.pitch = -0.04;
+    o.roll = 0.01 * Math.sin(v * 1.3);
+    return o;
+  }
+  if (v > LAND.rigel - 0.2) return { visible: false };       // (Rigel: you, alone)
+  // ---- the moving parts: to the shade (Sirius), into the sea (Vega), away from the fire (Aldebaran) ----
+  if (p.shadeAt && v >= p.tRun) {
+    const from = { x: p.rx, z: p.rz };
+    const toShade = leg(from, p.shadeAt, p.tRun + 0.2, p.ur, v);
+    let pos = toShade, run = toShade.moving, crouch = !toShade.moving, gone = false, wade = 0;
+    if (p.tSea && v >= p.tSea) {
+      const sea = leg(p.shadeAt, p.seaTo, p.tSea, 4.4, v);
+      pos = sea; run = sea.moving; crouch = false;
+      const y = landY(sea.x, sea.z);
+      wade = clamp(-y / 1.2);
+      if (y < -1.35 || !sea.moving) gone = true;
+    }
+    if (p.tFlee && v >= p.tFlee) {
+      const fl = leg(p.shadeAt, p.fleeTo, p.tFlee, 5.4, v);
+      pos = fl; run = fl.moving; crouch = false;
+      if (!fl.moving) gone = true;
+    }
+    if (gone) return { visible: false };
+    o.x = pos.x; o.z = pos.z; o.y = landY(pos.x, pos.z);
+    if (run) {
+      o.yaw = pos.yaw;
+      o.walk = p.ph + pos.d / 1.15 * Math.PI;
+      o.stride = (wade > 0 ? 1.0 : 1.5) * (1 - 0.4 * wade);
+      o.armL = wade > 0 ? 0.9 : p.seed < 0.6 ? 1.35 : 0.1; o.armR = wade > 0 ? 0.9 : p.seed > 0.4 ? 1.25 : 0.1;
+      o.pitch = 0.12;
+    } else if (crouch) {
+      // crouched in the shade, arms round the knees, head down
+      o.yaw = Math.atan2(p.shadeAt.u.x - o.x, p.shadeAt.u.z - o.z) + Math.PI;
+      o.sit = 1; o.y -= 0.45; o.pitch = 0.3; o.armL = 0.7; o.armR = 0.7; o.look = -0.25;
+      // the last few, when their umbrella catches fire: up on their feet, looking at it
+      if (p.tFlee) { const up = smooth(p.tFlee - 0.6, p.tFlee, v); o.sit = 1 - up; o.y = landY(o.x, o.z) - 0.45 * (1 - up); o.armL = lerp(0.7, 1.4, up); o.armR = lerp(0.7, 1.5, up); o.pitch = lerp(0.3, -0.05, up); }
+    }
+    return o;
+  }
+  // ---- standing, sitting, lying where they are (walkers walking until the heat stops them) ----
   const cold = smooth(LAND.proxima + 0.1, LAND.proxima + 1.2, v) * (1 - smooth(LAND.sirius, LAND.sirius + 0.8, v));
-  const run = !p.stay && v >= p.tRun;
+  const run = !p.stay && !p.shadeAt && v >= p.tRun;
   if (!run) {
     if (p.type === 'walk') {
-      // walking along the water; they stop when the cold hits
       const stopV = p.stopV;
       const tw = Math.min(v, stopV) + 10 + (v > stopV ? 0.3 * (1 - Math.exp(-(v - stopV) / 0.3)) : 0);
       o.z = p.z + p.uz * tw;
@@ -106,15 +208,23 @@ export function personPose(p, v) {
       o.stride = v < stopV ? 1 : 0;
     }
     o.y = landY(o.x, o.z);
+    // Arcturus (from frame 0): everyone squints up at the giant disc, a hand up against the glare; the ones lying down
+    // sit up (and stay up through the cold)
+    const hot = smooth(LAND.arcturus + 0.05 + p.seed * 0.35, LAND.arcturus + 0.45 + p.seed * 0.35, v) * (1 - smooth(LAND.proxima, LAND.proxima + 0.7, v));
     if (p.type === 'lie') {
-      const up = smooth(LAND.proxima + 0.5 + p.seed * 0.5, LAND.proxima + 1.6 + p.seed * 0.5, v);   // they sit up, cold
+      const up = Math.max(smooth(LAND.arcturus + 0.3 + p.seed * 0.6, LAND.arcturus + 1.3 + p.seed * 0.6, v), smooth(LAND.proxima + 0.5 + p.seed * 0.5, LAND.proxima + 1.6 + p.seed * 0.5, v));
       o.pitch = -Math.PI / 2 * (1 - up);
       o.y += 0.13 * (1 - up) - 0.45 * up;
       o.sit = up;
     }
     if (p.type === 'sit') { o.sit = 1; o.y -= 0.45; }
+    if (hot > 0) {
+      o.armR = lerp(o.armR, 1.3 + 0.08 * Math.sin(v * 2 + p.ph), hot);
+      o.armL = lerp(o.armL, p.seed < 0.35 ? 1.2 : 0.15, hot);
+      o.look = lerp(o.look, 0.3, hot); o.pitch += -0.06 * hot;
+    }
     // the look up at the sky as it goes dark; then hugging themselves, shivering
-    o.look = lerp(0.05, 0.45, smooth(LAND.proxima + 0.05, LAND.proxima + 0.5, v) * (1 - smooth(LAND.proxima + 1.6, LAND.proxima + 2.6, v)));
+    o.look = lerp(o.look, 0.45, smooth(LAND.proxima + 0.05, LAND.proxima + 0.5, v) * (1 - smooth(LAND.proxima + 1.6, LAND.proxima + 2.6, v)));
     if (cold > 0) {
       o.armL = lerp(o.armL, 0.62, cold); o.armR = lerp(o.armR, 0.58, cold);
       o.pitch += 0.12 * cold * (p.type === 'stand' || p.type === 'walk' ? 1 : 0.5);
@@ -127,8 +237,7 @@ export function personPose(p, v) {
     if (fl > 0) {
       o.armL = lerp(o.armL, 1.35, fl); o.armR = lerp(o.armR, 1.45, fl);
       o.pitch += 0.2 * fl; o.look = lerp(o.look, -0.2, fl);
-      if (p.type === 'lie') { const up = smooth(p.tReact + 0.1, p.tRun, v); o.sit = 1 - up; o.y = landY(o.x, o.z) - 0.45 * (1 - up); }
-      if (p.type === 'sit') { const up = smooth(p.tReact + 0.1, p.tRun, v); o.sit = 1 - up; o.y = landY(o.x, o.z) - 0.45 * (1 - up); }
+      if (p.type === 'lie' || p.type === 'sit') { const up = smooth(p.tReact + 0.1, p.tRun, v); o.sit = 1 - up; o.y = landY(o.x, o.z) - 0.45 * (1 - up); }
     }
     return o;
   }

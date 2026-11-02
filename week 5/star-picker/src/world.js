@@ -58,7 +58,7 @@ export function makeWorld(scene) {
   const SAND = Array.from({ length: 150 }, () => ({ r: 7 + Math.pow(R0(), 1.3) * 70, l: (R0() - 0.5) * 1.1, seed: R0() }));
   const STEAM = Array.from({ length: 70 }, () => ({ a: R0(), b: R0(), seed: R0() }));
   const SURF = Array.from({ length: 70 }, () => ({ r: 14 + Math.pow(R0(), 1.4) * 90, l: (R0() - 0.5) * 0.8, seed: R0() }));
-  const near = PEOPLE.map((p, i) => i).filter((i) => Math.hypot(PEOPLE[i].x - CAM0.x, PEOPLE[i].z - CAM0.z) < 30);
+  const near = PEOPLE.map((p, i) => i).filter((i) => !PEOPLE[i].you && Math.hypot(PEOPLE[i].x - CAM0.x, PEOPLE[i].z - CAM0.z) < 30);
   const skin0 = PEOPLE.map((p) => p.col);
   const tmpC = new THREE.Color(), tmpD = new THREE.Color(), FROST = new THREE.Color(0.8, 0.88, 0.96);
   let frostK = -1;

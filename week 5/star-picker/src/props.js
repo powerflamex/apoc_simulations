@@ -72,9 +72,39 @@ export function makeProps(scene, { plainMat, glowMat, shadowy }) {
   const poles = shadowy(new THREE.InstancedMesh(poleGeo, charred(plainMat(0xdedede, 0.4, { metalness: 0.5 }), 'pole', 0.5), UMBRELLAS.length + LAMPS.length));
   const umb = UMBRELLAS.map((u) => ({ ...u, y: landY(u.x, u.z), dc: Math.hypot(u.x - CAM0.x, u.z - CAM0.z) }));
   umb.forEach((u, i) => canopies.setColorAt(i, tmpC.set(u.col)));
-  const towelGeo = new THREE.BoxGeometry(0.9, 0.012, 1.8).translate(0, 0.006, 0);
+  // a towel: a thin sheet with a gentle ruck across it; the stripes, the white border and the fringe are drawn on it
+  const towelGeo = new THREE.PlaneGeometry(0.9, 1.8, 6, 12).rotateX(-Math.PI / 2);
+  {
+    const pa = towelGeo.attributes.position;
+    for (let i = 0; i < pa.count; i++) {
+      const x = pa.getX(i), z = pa.getZ(i);
+      pa.setY(i, 0.012 + 0.018 * Math.max(0, Math.sin(z * 5.1 + 0.6)) * (0.6 + 0.4 * Math.cos(x * 4.0)) + 0.01 * Math.sin(x * 7 + z * 3));
+    }
+    towelGeo.computeVertexNormals();
+  }
   const towelAt = TOWELS.map((t) => ({ x: t.x, y: landY(t.x, t.z), z: t.z, dc: Math.hypot(t.x - CAM0.x, t.z - CAM0.z) }));
-  const towels = shadowy(new THREE.InstancedMesh(towelGeo, charred(plainMat(0xffffff, 0.95), 'towel'), TOWELS.length));
+  const towelMat = charred(plainMat(0xffffff, 0.95, { side: THREE.DoubleSide }), 'towel', 0.35);   // (they scorch, they don't go black)
+  {
+    const prev = towelMat.onBeforeCompile;
+    towelMat.onBeforeCompile = (sh, r) => {
+      prev(sh, r);
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vTU;').replace('#include <uv_vertex>', '#include <uv_vertex>\nvTU = uv;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vTU;').replace('#include <color_fragment>', `#include <color_fragment>
+        {
+          // wide stripes across in the towel's colour and white, a white border, a fringe at the ends
+          float st = step(0.5, fract(vTU.y * 7.0));
+          vec3 base = diffuseColor.rgb;
+          float lum = dot(base, vec3(0.3, 0.59, 0.11));
+          vec3 alt = mix(vec3(0.95, 0.94, 0.9), base * 0.55, step(0.75, lum));
+          diffuseColor.rgb = mix(base, alt, st * 0.85);
+          float bord = 1.0 - step(0.06, min(vTU.x, 1.0 - vTU.x));
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.92, 0.88) * (0.6 + 0.4 * lum / max(lum, 0.3)), bord * 0.7);
+          float fr = 1.0 - step(0.035, min(vTU.y, 1.0 - vTU.y));
+          diffuseColor.rgb *= 1.0 - 0.35 * fr * step(0.5, fract(vTU.x * 30.0));
+        }`);
+    };
+  }
+  const towels = shadowy(new THREE.InstancedMesh(towelGeo, towelMat, TOWELS.length));
   TOWELS.forEach((t, i) => {
     e.set(0, t.yaw, 0); q.setFromEuler(e);
     m4.compose(p.set(t.x, towelAt[i].y, t.z), q, sc.set(1, 1, 1));
@@ -295,7 +325,8 @@ export function makeProps(scene, { plainMat, glowMat, shadowy }) {
       crowns.instanceMatrix.needsUpdate = true; if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
       // umbrellas: the canopy scorches and smokes (Sirius), flares, and burns away
       umb.forEach((u, i) => {
-        const t0 = u.near ? T_IGN(u.seed, LAND.sirius + 2.0, LAND.sirius + 3.4) : T_IGN((u.seed + Math.max(0, -u.z) / 300) % 1, LAND.sirius + 3.0, LAND.vega + 5.0);
+        // (the ones near you shade the people sheltering under them through Sirius, and catch fire at Vega)
+        const t0 = u.late ? T_IGN(u.seed, LAND.aldebaran + 0.3, LAND.aldebaran + 0.9) : u.near || u.shade ? T_IGN(u.seed, LAND.vega + 0.6, LAND.vega + 2.0) : T_IGN((u.seed + Math.max(0, -u.z) / 300) % 1, LAND.sirius + 3.0, LAND.vega + 5.0);
         const k = clamp((v - t0) / (u.near ? 3.0 : 4.0));
         const left = 1 - smooth(0.35, 1, k);
         e.set(u.tilt, u.seed * 6, 0); q.setFromEuler(e);
@@ -328,7 +359,7 @@ export function makeProps(scene, { plainMat, glowMat, shadowy }) {
         const a = towelAt[i];
         const t0 = t.near ? T_IGN(t.seed, LAND.sirius + 1.2, LAND.sirius + 2.6) : T_IGN(t.seed, LAND.sirius + 1.5, LAND.sirius + 5);
         const k = clamp((v - t0) / 2.5);
-        towels.setColorAt(i, tmpC.set(t.col).lerp(new THREE.Color(0.25, 0.17, 0.1), smooth(t0 - 1.0, t0, v) * 0.5).lerp(new THREE.Color(0.04, 0.03, 0.03), smooth(0, 0.6, k)));
+        towels.setColorAt(i, tmpC.set(t.col).lerp(new THREE.Color(0.32, 0.2, 0.11), smooth(t0 - 1.0, t0, v) * 0.5).lerp(new THREE.Color(0.11, 0.07, 0.05), smooth(0, 0.6, k) * 0.85));
         const dc = Math.hypot(a.x - cx, a.z - cz);
         if (dc > 90) return;
         const smo = smooth(t0 - 1.2, t0, v) * (1 - smooth(0.5, 1, k)) * smooth(2.5, 4, dc);
@@ -357,8 +388,10 @@ export function makeProps(scene, { plainMat, glowMat, shadowy }) {
         if (pf > 0) {
           for (const [x, z, sd] of st.burn) {
             // it catches from the sea end and the park (the sunlit, dry planks first), burning along to the shore
-            const t0 = LAND.arcturus + 0.6 + 3.2 * clamp((x + 250) / 480) * sd + 1.5 * sd;
-            const b = smooth(t0, t0 + 1.2, v) * (1 - 0.6 * smooth(0.5, 1, k)) * (1 - s.vapor);
+            // (twice: under Arcturus, put out by Proxima's cold; again under Aldebaran)
+            const dt0 = 0.6 + 3.2 * clamp((x + 250) / 480) * sd + 1.5 * sd;
+            const ign = (L0) => smooth(L0 + dt0, L0 + dt0 + 1.2, v);
+            const b = Math.max(ign(LAND.arcturus) * (1 - s.pierOut), ign(LAND.aldebaran - 0.2)) * (1 - 0.6 * smooth(0.5, 1, k)) * (1 - s.vapor);
             const big = sd < 0.45 ? 1 : 0;      // (it burns in clumps: some planks blaze, others only smoulder)
             if (b > 0.01 && big) fire.add(x, y + 0.1, z, 4 + 5 * sd, (3 + 12 * sd * sd) * (0.4 + 0.6 * b) * (0.8 + 0.4 * Math.sin(v * 2.3 + sd * 40)), b, sd);
             if (b > 0.3 && sd < 0.14 && s.vapor < 0.99) for (let j = 0; j < 3; j++) {
@@ -399,7 +432,7 @@ export function makeProps(scene, { plainMat, glowMat, shadowy }) {
           glows.add(v3.x, v3.y, v3.z, 0.9, tmpC.r * 5 * lit, tmpC.g * 5 * lit, tmpC.b * 5 * lit);
         }
         // the wheel burns: its gondolas and hub flare
-        const wf = smooth(LAND.arcturus + 1.2, LAND.arcturus + 3.5, v) * (1 - s.vapor);
+        const wf = Math.max(smooth(LAND.arcturus + 1.2, LAND.arcturus + 3.5, v) * (1 - s.pierOut), smooth(LAND.aldebaran + 0.8, LAND.aldebaran + 3.0, v)) * (1 - s.vapor);
         if (wf > 0) for (let i = 0; i < 20; i += 2) {
           const a = ang + (i / 20) * Math.PI * 2;
           v3.set(Math.cos(a) * WHEEL.r, WHEEL.hub - PIER.deck + Math.sin(a) * WHEEL.r - 1.6, 0);

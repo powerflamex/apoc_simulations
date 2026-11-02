@@ -833,7 +833,14 @@ Cover: `week 5/fall-through-earth/out/fall-through-earth_v4_cover.png` (`node re
 
 ## Next Short. What if other stars replaced the Sun? — `week 5/star-picker/out/star-picker_v4_1080x1920_60fps_tiktok.mp4`
 
-60.9 s. Santa Monica beach at sunset, people on towels close to you, the pier and its Ferris wheel on the right. Under
+59.3 s. Nov 1 rework (owner: start on the big sun, then the cold): the picker now lands on Arcturus just before
+frame 0, so the video opens on its giant orange disc with the beach already squinting and the owner's scream in the
+first second; then Proxima's cold, Sirius, Vega, Aldebaran, Rigel, Betelgeuse. People stay close to you through every
+star: they shiver at Proxima, run for the umbrellas' shade at Sirius, run past you into the sea at Vega, the last few
+run at you from their burning umbrellas at Aldebaran (the pier on fire again behind them), and at Rigel you stand
+alone in the foreground. Sirius and Vega are a deep blue sky with hard shadows and a small, sharp star (no white
+haze); the towels are striped towels that scorch instead of black slabs. Order before the rework, for reference:
+Santa Monica beach at sunset, people on towels close to you, the pier and its Ferris wheel on the right. Under
 the title a "sun picker" (a scroll wheel like the iPhone's date picker) is already spinning on frame 0; it ticks, slows
 and clicks onto a star, the sky changes to it at once, and the line under it gives the beach's temperature:
 Proxima Centauri at 1 s (0.15x the Sun: dark red sky, the sea freezes where it stands, everyone shivers, −220°C, "Your
@@ -853,11 +860,11 @@ What if other stars replaced the Sun? At Rigel, the beach hits 5,100°C ⭐ #spa
 **YouTube description**
 Every few seconds a different star takes the Sun's place over Santa Monica beach, at the same distance, with its real size and brightness.
 
-Proxima Centauri (0.15x the Sun): the sky turns dark red and the sea freezes. About −220°C.
-Sirius (1.7x): blinding blue-white light. Towels and umbrellas catch fire. About 370°C.
-Vega (2.6x): the sea starts to boil. About 450°C.
-Arcturus (25x): the pier and the Ferris wheel burn. About 770°C.
-Aldebaran (44x): the city melts. About 1,050°C.
+Arcturus (25x the Sun): a giant orange disc. The pier and the Ferris wheel burn. About 770°C.
+Proxima Centauri (0.15x): the sky turns dark red and the sea freezes. About −220°C.
+Sirius (1.7x): blinding blue-white light. Everyone runs for shade, the towels catch fire. About 370°C.
+Vega (2.6x): people run into the sea, and it starts to boil. About 450°C.
+Aldebaran (44x): the pier burns again and the city melts. About 1,050°C.
 Rigel (79x): it fills the sky and the ocean boils away. About 5,100°C.
 Betelgeuse (760x): it's bigger than Earth's whole orbit. Earth would be inside it.
 
@@ -867,7 +874,7 @@ Which star would you pick? 👇
 
 #whatif #space #stars #astronomy #shorts
 
-Cover: `week 5/star-picker/out/star-picker_v4_cover.png` (`node render.mjs --cover 46.5`: Rigel filling the sky over the boiled-away bay, the sea floor glowing, the burning pier; "WHAT IF / Rigel / replaced the Sun?")
+Cover: `week 5/star-picker/out/star-picker_v4_cover.png` (`node render.mjs --cover 1.2`: Arcturus's giant orange disc over the sea, the pier and its Ferris wheel, people squinting up close to you; "WHAT IF / Arcturus / replaced the Sun?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

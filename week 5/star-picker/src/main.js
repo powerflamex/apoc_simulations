@@ -11,6 +11,7 @@ import { H } from './heat.js';
 import { BU } from './buildings.js';
 import { state, VIDEO_DURATION, LOOP, LAND } from './timeline.js';
 import { lookAt } from './looks.js';
+import { LAST_B } from './people.js';
 import { CAM0, STAR_POS, landY } from './layout.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -103,21 +104,23 @@ function spline(list, t) {
   const u = (t - t0) / (t1 - t0), u2 = u * u, u3 = u2 * u;
   return (2 * u3 - 3 * u2 + 1) * p0 + (u3 - 2 * u2 + u) * m0 + (-2 * u3 + 3 * u2) * p1 + (u3 - u2) * m1;
 }
-// The camera (video time). You open standing on the sand among the towels at eye height, looking out to sea at the
-// star, the pier and its wheel on the right. People run past you (Sirius); you walk down toward the water as it steams
-// (Vega); look right at the burning pier, rising (Arcturus); turn round to the melting city (Aldebaran) and back; rise
-// like a drone over the drained bay under Rigel; and tilt up into Betelgeuse.
+// The camera (video time). You open standing on the sand among the towels and the people at eye height, looking out
+// to sea at Arcturus's giant disc, the pier and its wheel on the right; you turn toward the pier as it catches fire.
+// Proxima: you rise a little over the shivering people; Sirius: they run past you to the umbrellas; Vega: you walk
+// down toward the water with them as it steams; Aldebaran: the last few running at you from their burning umbrellas, the pier on fire behind them,
+// then round to the melting city; Rigel: low behind you, alone at the edge of the drained sea, then up like a drone;
+// Betelgeuse: tilt up into it.
 const L = LAND;
 const X0 = CAM0.x;
-const XX = [[-4, X0], [0, X0], [L.sirius, X0 - 1.2], [L.sirius + 2.2, X0 - 1.3], [L.vega - 0.5, X0 - 4], [L.vega + 4, X0 - 9], [L.arcturus, X0 - 12], [L.arcturus + 4, X0 - 14], [L.aldebaran, X0 - 15], [L.aldebaran + 6, X0 - 15], [L.rigel, X0 - 16], [L.rigel + 5, X0 - 30], [L.betelgeuse, X0 - 40], [64, X0 - 46]];
-const HH = [[-4, CAM0.eye], [0, CAM0.eye], [L.proxima + 0.9, CAM0.eye], [L.proxima + 5.5, 5.2], [L.sirius + 0.6, 5.4], [L.sirius + 5, 3.6], [L.vega + 1, 3.0], [L.arcturus + 1, 2.6], [L.arcturus + 4.5, 9], [L.aldebaran, 11], [L.aldebaran + 3, 16], [L.rigel, 18], [L.rigel + 4, 45], [L.rigel + 8, 75], [L.betelgeuse, 85], [64, 95]];
-const BB = [[-4, 13], [0, 13], [L.sirius, 12], [L.vega, 11], [L.vega + 0.3, 12], [L.vega + 1.3, 92], [L.vega + 2.3, 88], [L.vega + 3.3, 13], [L.vega + 6.6, 11], [L.arcturus + 0.6, 10], [L.arcturus + 2.6, 15], [L.arcturus + 4.6, 27], [L.arcturus + 6.6, 26], [L.aldebaran, 12],
-  [L.aldebaran + 0.9, 11], [L.aldebaran + 2.3, 70], [L.aldebaran + 3.6, 152], [L.aldebaran + 5.6, 166], [L.aldebaran + 6.6, 150], [L.rigel - 0.3, 22], [L.rigel + 0.3, 11], [L.rigel + 5, 9], [L.betelgeuse, 9], [64, 9]];
-const PP = [[-4, 3.2], [0, 3.2], [L.proxima + 0.5, 3.0], [L.proxima + 5.5, -1.5], [L.sirius, -1.0], [L.sirius + 5, 1.5], [L.vega - 1, 2.6], [L.vega + 3, 0.5], [L.vega + 5, 0.5], [L.arcturus + 1, 3], [L.arcturus + 4.5, 1], [L.arcturus + 6.6, 0.5], [L.aldebaran, 3],
-  [L.aldebaran + 1, 3], [L.aldebaran + 3, -1.5], [L.aldebaran + 5.6, -2], [L.aldebaran + 6.6, -1], [L.rigel - 0.3, 3], [L.rigel + 0.5, 6], [L.rigel + 4, 9], [L.rigel + 8, 8], [L.betelgeuse, 8], [L.betelgeuse + 2, 12], [L.betelgeuse + 5, 30], [64, 34]];
+const XX = [[-4, X0], [L.proxima, X0], [L.sirius, X0 - 1.2], [L.sirius + 2.2, X0 - 1.3], [L.vega - 0.5, X0 - 4], [L.vega + 4, X0 - 9], [L.aldebaran, X0 - 12], [L.aldebaran + 4, X0 - 14], [L.aldebaran + 7, X0 - 15], [L.rigel - 0.3, X0 - 15.5], [L.rigel + 0.3, X0 - 16], [L.rigel + 4.5, X0 - 17], [L.rigel + 8, X0 - 28], [L.betelgeuse, X0 - 40], [64, X0 - 46]];
+const HH = [[-4, CAM0.eye], [L.arcturus + 2.5, CAM0.eye], [L.arcturus + 5, 1.9], [L.proxima + 0.9, CAM0.eye], [L.proxima + 5.5, 5.2], [L.sirius + 0.6, 5.4], [L.sirius + 5, 3.6], [L.vega + 1, 3.0], [L.vega + 5, 2.6], [L.aldebaran + 1, 2.6], [L.aldebaran + 4.5, 9], [L.aldebaran + 7, 13], [L.rigel + 4.5, 16], [L.rigel + 8, 40], [L.betelgeuse, 70], [64, 85]];
+const BB = [[-4, 13], [L.arcturus + 1.2, 13], [L.arcturus + 3.2, 21], [L.arcturus + 5.6, 23], [L.proxima - 0.4, 14], [L.proxima + 0.4, 13], [L.sirius, 12], [L.vega, 11], [L.vega + 0.3, 12], [L.vega + 1.3, 92], [L.vega + 2.3, 88], [L.vega + 3.3, 13], [L.vega + 6.2, 11],
+  [L.aldebaran + 0.3, 14], [L.aldebaran + 1.3, LAST_B], [L.aldebaran + 3.6, LAST_B + 4], [L.aldebaran + 4.8, 128], [L.aldebaran + 5.9, 152], [L.aldebaran + 7.0, 162], [L.rigel - 0.3, 20], [L.rigel + 0.3, 13], [L.rigel + 5, 10], [L.betelgeuse, 9], [64, 9]];
+const PP = [[-4, 3.2], [L.arcturus + 3, 3.0], [L.arcturus + 5.6, 2.0], [L.proxima + 0.5, 3.0], [L.proxima + 5.5, -1.5], [L.sirius, -1.0], [L.sirius + 5, 1.5], [L.vega - 1, 2.6], [L.vega + 3, 0.5], [L.vega + 5, 0.5],
+  [L.aldebaran, 3], [L.aldebaran + 3.4, 1.5], [L.aldebaran + 4.6, 0.5], [L.aldebaran + 6.4, -2], [L.aldebaran + 7.2, -1], [L.rigel - 0.3, 3], [L.rigel + 0.3, 6.5], [L.rigel + 4.5, 7.5], [L.rigel + 8, 8], [L.betelgeuse, 8], [L.betelgeuse + 2, 12], [L.betelgeuse + 5, 30], [64, 34]];
 
-// the lens: zoomed in on the burning pier (Arcturus) and on the melting city (Aldebaran)
-const FF = [[-4, 60], [L.arcturus + 1.5, 60], [L.arcturus + 4.5, 42], [L.arcturus + 6.6, 42], [L.aldebaran + 0.2, 60], [L.aldebaran + 1.6, 60], [L.aldebaran + 3.6, 34], [L.aldebaran + 6.0, 34], [L.aldebaran + 7.0, 60], [64, 60]];
+// the lens: zoomed in on the burning pier (Arcturus, and again at Aldebaran) and on the melting city (Aldebaran)
+const FF = [[-4, 60], [L.arcturus + 2.0, 60], [L.arcturus + 4.5, 47], [L.arcturus + 5.8, 47], [L.proxima - 0.3, 60], [L.aldebaran + 0.5, 60], [L.aldebaran + 2.0, 48], [L.aldebaran + 3.4, 48], [L.aldebaran + 4.8, 40], [L.aldebaran + 6.6, 36], [L.aldebaran + 7.4, 60], [64, 60]];
 const dirOf = (b, el) => new THREE.Vector3(-Math.cos(b * DEG) * Math.cos(el * DEG), Math.sin(el * DEG), -Math.sin(b * DEG) * Math.cos(el * DEG));
 const STAR_DIR = dirOf(STAR_POS.b, STAR_POS.el);
 const HEAT_DIR = dirOf(STAR_POS.b, 42);          // (what heats: the star as if high in the sky, so the ground heats too)
@@ -134,14 +137,17 @@ function update(v, cover = -1) {
   const cx = spline(XX, v);
   let x = cx, z = CAM0.z - (CAM0.x - cx) * Math.tan(CAM0.b * DEG);
   let y = landY(Math.max(cx, 1), z) + spline(HH, v);
+  // Rigel: a whip down to eye level behind you (blended, not splined: a spline through that drop overshoots underground)
+  const low = smooth(L.rigel - 0.25, L.rigel + 0.15, v) * (1 - smooth(L.rigel + 4.5, L.rigel + 6.5, v));
+  y = lerp(y, landY(Math.max(cx, 1), z) + 1.45 + 0.15 * smooth(L.rigel + 0.3, L.rigel + 4.5, v), low);
   const B = spline(BB, v);
   s.camB = B * DEG;
   let yaw = (90 - B) * DEG, pitch = spline(PP, v) * DEG, roll = 0;
-  const hand = 1 + 0.6 * smooth(L.arcturus + 2, L.arcturus + 5, v);
+  const hand = 1 + 0.6 * smooth(L.aldebaran + 2, L.aldebaran + 5, v);
   x += wobble(v * 0.5, 2) * 0.04 * hand; y += wobble(v * 0.4, 3) * 0.03 * hand;
   yaw += wobble(v * 0.35, 5) * 0.25 * DEG; pitch += wobble(v * 0.3, 7) * 0.2 * DEG; roll += wobble(v * 0.27, 9) * 0.3 * DEG;
   // each landing: a jolt (harder for the bigger stars); Betelgeuse: shaking
-  const big = [0, 0.6, 0.9, 1, 1.3, 1.5, 1.9, 2.4][s.i] || 0;
+  const big = [0, 1.3, 0.6, 0.9, 1, 1.5, 1.9, 2.4][s.i] || 0;
   const punch = window.__cover ? 0 : s.snap * big;
   pitch -= punch * 0.7 * DEG; roll += punch * 0.5 * DEG * Math.sin(v * 31);
   const sh = s.inside * (1 - 0.5 * s.cover);
@@ -184,10 +190,12 @@ function update(v, cover = -1) {
   H.uSunW.value.copy(HEAT_DIR);
   H.uTK.value = s.heatK;
   H.uAmbK.value = s.ambK;
+  H.uTKP.value = s.heatKP;
+  H.uAmbKP.value = s.ambKP;
   H.uGlowGain.value = 2.2 + 1.2 * smooth(L.rigel, L.rigel + 6, v);
   H.uCharK.value = 1;
   H.uFrost.value = s.cold;
-  BU.uWhiteB.value = lk.exp < 0.7 ? 1 : 0;
+  BU.uWhiteB.value = lk.exp < 0.69 ? 1 : 0;
   // the sea's mirror
   const su = world.sea.u;
   su.uTime.value = v;

@@ -5,7 +5,7 @@
 // passes the middle, a deeper click when it locks onto a star) and each star's own sound: Proxima a hollow cold wind
 // (the surf stops dead as the sea freezes), Sirius and Vega a searing hiss, the giants a deep roar that grows with
 // each one, Betelgeuse everything at once. The beach (surf, voices, traffic) at the start; the owner's scream
-// (sfx/scream.mp3) as the sky goes dark red.
+// (sfx/scream.mp3) in the first second, at Arcturus's giant disc.
 // The loop: the whole track is made in one run that starts before frame 0, so the moments just before the first frame
 // exist; under the full cover at the end the track fades over into them, and the last sample runs straight into the first.
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const SCREAM_AT = LAND.proxima + 0.05;
+const SCREAM_AT = 0.12;                    // (in the first second: everyone screams at Arcturus's giant disc)
 class OnePole { constructor(fc) { this.y = 0; this.set(fc); } set(fc) { this.a = 1 - Math.exp(-TAU * fc / SR); } run(x) { return (this.y += this.a * (x - this.y)); } }
 class SVF {
   constructor() { this.l = 0; this.b = 0; }
@@ -88,9 +88,10 @@ export function makeSoundtrack(outFile) {
     // --- the beach: surf (stops dead as the sea freezes, back as it thaws), voices, traffic ---
     const waves = 1 - smooth(LAND.proxima, LAND.proxima + 1.0, t) * (1 - smooth(LAND.sirius + 0.6, LAND.sirius + 3, t));
     const swell = 0.55 + 0.45 * Math.sin(t * 0.7) * Math.sin(t * 0.23 + 1);
-    const surf = surfLP2.run(surfLP.run(white())) * 0.5 * swell * waves * (1 - smooth(LAND.vega, LAND.arcturus, t) * 0.7);
+    const surf = surfLP2.run(surfLP.run(white())) * 0.5 * swell * waves * (1 - smooth(LAND.vega, LAND.vega + 6, t) * 0.7);
     const vox = crowdF.run(white(), 700 + 300 * Math.sin(t * 3.1), 2.2).bp * 0.06 + crowdF2.run(white(), 1100 + 200 * Math.sin(t * 2.3), 2.5).bp * 0.04;
     const crowdG = (1 - 0.7 * smooth(LAND.proxima + 0.5, LAND.proxima + 2, t)) * (1 - smooth(LAND.sirius + 2, LAND.sirius + 6, t))
+      + 1.3 * smooth(LAND.arcturus + 0.1, LAND.arcturus + 0.4, t) * (1 - smooth(LAND.arcturus + 2.5, LAND.arcturus + 5.5, t))
       + 1.6 * smooth(LAND.sirius + 0.1, LAND.sirius + 0.5, t) * (1 - smooth(LAND.sirius + 1.5, LAND.sirius + 5, t));
     const crowd = vox * (0.5 + 0.5 * Math.abs(Math.sin(t * 5.3 + Math.sin(t * 1.7)))) * crowdG;
     bL = clamp(bL + white() * 0.02, -1, 1) * 0.998;
@@ -146,7 +147,7 @@ export function makeSoundtrack(outFile) {
     if (coldG > 0) for (let k = 0; k < 3; k++) { shimPh[k] += ([1760, 2217, 2637][k] * (1 + 0.002 * Math.sin(t * (3 + k)))) / SR; shim += Math.sin(TAU * shimPh[k]) * (0.5 + 0.5 * Math.sin(t * (1.1 + k * 0.7))); }
     shim *= coldG * 0.012;
     // --- sub rumble, growing with the giants ---
-    const sub = subLP.run(white()) * 2.5 * (0.05 * smooth(LAND.arcturus, LAND.aldebaran, t) + 0.12 * smooth(LAND.rigel, LAND.rigel + 3, t) + 0.18 * smooth(LAND.betelgeuse, LAND.betelgeuse + 1, t)) * fade;
+    const sub = subLP.run(white()) * 2.5 * (0.05 * smooth(LAND.vega, LAND.aldebaran, t) + 0.12 * smooth(LAND.rigel, LAND.rigel + 3, t) + 0.18 * smooth(LAND.betelgeuse, LAND.betelgeuse + 1, t)) * fade;
     // --- the last spin: a riser into Betelgeuse ---
     let riser = 0;
     const sp = STOPS[STOPS.length - 2].spin, bl = LAND.betelgeuse;
@@ -158,7 +159,7 @@ export function makeSoundtrack(outFile) {
     let r = surf * 0.95 + crowd * 0.9 + traffic + tk + ck + dr + braam + rr + rl * 0.3 + hs2 + wind * 0.9 + shim * 0.9 + sub + riser + wr * 0.9;
     L[n] = l; R[n] = r;
   }
-  // the owner's scream (sfx/scream.mp3): everyone screams as the sky goes dark red. The file's 0.57 s of silence is cut
+  // the owner's scream (sfx/scream.mp3): everyone screams at Arcturus's giant disc. The file's 0.57 s of silence is cut
   {
     const pcm = execFileSync('ffmpeg', ['-v', 'error', '-ss', '0.55', '-i', path.join(path.dirname(fileURLToPath(import.meta.url)), 'sfx', 'scream.mp3'),
       '-t', '2.6', '-f', 'f32le', '-ac', '2', '-ar', String(SR), '-'], { maxBuffer: 1 << 26 });

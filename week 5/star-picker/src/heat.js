@@ -11,10 +11,13 @@ export const H = {
   uGlowGain: { value: 1 },      // how bright the glow reads at the current exposure
   uCharK: { value: 1 },         // 0: nothing chars
   uFrost: { value: 0 },         // Proxima: white rime on everything (most on the tops)
+  uTKP: { value: 300 },         // the hottest uTK / uAmbK so far: what has charred stays charred
+  uAmbKP: { value: 300 },
 };
 
 export const HEAT_GLSL = /* glsl */ `
 uniform vec3 uSunW; uniform float uTK; uniform float uAmbK; uniform float uGlowGain; uniform float uCharK; uniform float uFrost;
+uniform float uTKP; uniform float uAmbKP;
 // rime: white-blue, thickest on surfaces facing up
 vec3 frosted(vec3 c, vec3 n) { return mix(c, vec3(0.84, 0.9, 0.97), uFrost * (0.3 + 0.55 * clamp(n.y, 0.0, 1.0))); }
 // blackbody colour (normalised) for T in K (fit to the Planck locus, 800 K - 12,000 K)
@@ -37,6 +40,10 @@ vec3 heatGlow(float T) { float Td = T < 1400.0 ? T : 1400.0 + (T - 1400.0) * 0.0
 float surfT(vec3 n, float k) {
   float c = max(dot(n, uSunW), 0.0) * k;
   return pow(pow(uTK, 4.0) * c + pow(uAmbK, 4.0), 0.25);
+}
+float surfTP(vec3 n, float k) {
+  float c = max(dot(n, uSunW), 0.0) * k;
+  return pow(pow(uTKP, 4.0) * c + pow(uAmbKP, 4.0), 0.25);
 }
 `;
 
@@ -61,7 +68,7 @@ export function patchHeat(mat, key, { charCol = new THREE.Color(0.05, 0.04, 0.03
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {
           float Ts = surfT(normalize(vHeatN), 1.0);
-          float ch = smoothstep(560.0, ${(900 / burnK).toFixed(1)}, Ts) * uCharK;
+          float ch = smoothstep(560.0, ${(900 / burnK).toFixed(1)}, surfTP(normalize(vHeatN), 1.0)) * uCharK;
           diffuseColor.rgb = mix(diffuseColor.rgb, uCharCol, ch);
           diffuseColor.rgb = frosted(diffuseColor.rgb, normalize(vHeatN));
           totalEmissiveRadiance += heatGlow(Ts) * uGlowGain * ${glow.toFixed(2)};

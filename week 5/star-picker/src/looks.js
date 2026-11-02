@@ -17,17 +17,19 @@ export const LOOKS = {
     light: [1.0, 0.3, 0.14], li: 0.9, hemiSky: [0.3, 0.06, 0.07], hemiGnd: [0.16, 0.05, 0.04], hi: 0.55,
     exp: 2.6, fog: [0.22, 0.04, 0.035], fogD: 0.00008, seaHi: [0.12, 0.02, 0.03], seaLo: [0.35, 0.06, 0.04], glint: 8, bright: 0.3, nightL: 1,
   },
+  // Sirius and Vega: a deep blue sky, the star small, sharp and blinding, hard shadows (strong direct light, little
+  // fill), no milky haze over the frame (small glare, thin fog, a modest glitter path)
   sirius: {
-    star: [0.82, 0.9, 1.0], starI: 40, gran: 0, glare: 0.8, glareCol: [0.85, 0.92, 1.0],
-    top: [0.12, 0.28, 0.8], low: [0.6, 0.72, 0.95], near: [1.0, 1.05, 1.15], night: 0, cloud: 0.4,
-    light: [0.88, 0.93, 1.0], li: 5.5, hemiSky: [0.75, 0.85, 1.0], hemiGnd: [0.85, 0.8, 0.74], hi: 1.1,
-    exp: 0.55, fog: [0.88, 0.92, 1.0], fogD: 0.00006, seaHi: [0.3, 0.5, 0.9], seaLo: [0.7, 0.8, 0.98], glint: 18, bright: 1.1, nightL: 0,
+    star: [0.85, 0.92, 1.0], starI: 40, gran: 0, glare: 0.16, glareCol: [0.8, 0.9, 1.0],
+    top: [0.008, 0.05, 0.4], low: [0.1, 0.27, 0.75], near: [0.38, 0.58, 1.0], night: 0, cloud: 0.15,
+    light: [0.9, 0.95, 1.0], li: 6.5, hemiSky: [0.32, 0.46, 0.9], hemiGnd: [0.55, 0.5, 0.45], hi: 0.5,
+    exp: 0.72, fog: [0.22, 0.38, 0.82], fogD: 0.00003, seaHi: [0.04, 0.17, 0.6], seaLo: [0.16, 0.36, 0.82], glint: 7, bright: 0.85, nightL: 0,
   },
   vega: {
-    star: [0.84, 0.9, 1.0], starI: 40, gran: 0, glare: 0.9, glareCol: [0.86, 0.92, 1.0],
-    top: [0.13, 0.29, 0.82], low: [0.62, 0.74, 0.96], near: [1.05, 1.1, 1.2], night: 0, cloud: 0.2,
-    light: [0.9, 0.94, 1.0], li: 6, hemiSky: [0.78, 0.86, 1.0], hemiGnd: [0.85, 0.78, 0.7], hi: 1.15,
-    exp: 0.52, fog: [0.9, 0.92, 1.0], fogD: 0.00007, seaHi: [0.32, 0.52, 0.9], seaLo: [0.72, 0.82, 0.98], glint: 20, bright: 1.1, nightL: 0,
+    star: [0.86, 0.92, 1.0], starI: 40, gran: 0, glare: 0.18, glareCol: [0.82, 0.9, 1.0],
+    top: [0.01, 0.06, 0.43], low: [0.12, 0.3, 0.78], near: [0.42, 0.6, 1.0], night: 0, cloud: 0.1,
+    light: [0.9, 0.95, 1.0], li: 7, hemiSky: [0.34, 0.48, 0.92], hemiGnd: [0.55, 0.48, 0.42], hi: 0.52,
+    exp: 0.7, fog: [0.24, 0.4, 0.84], fogD: 0.00003, seaHi: [0.05, 0.18, 0.62], seaLo: [0.18, 0.38, 0.84], glint: 7, bright: 0.85, nightL: 0,
   },
   arcturus: {
     star: [1.0, 0.52, 0.2], starI: 5, gran: 1, glare: 0.35, glareCol: [1.0, 0.6, 0.32],

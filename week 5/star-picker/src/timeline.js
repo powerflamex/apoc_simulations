@@ -10,18 +10,19 @@
 import { smooth, clamp, lerp, rng } from './util.js';
 
 export const STORY_START = 0;            // everything runs on the video clock
-export const T_SWITCH = 60.0;            // inside Betelgeuse: a full orange-white cover; the loop point sits in it
+export const T_SWITCH = 58.4;            // inside Betelgeuse: a full orange-white cover; the loop point sits in it
 export const LOOP = 0.9;                 // the cover clears onto the first frame over the last LOOP seconds
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
 export const AU_R = 215.03;              // 1 AU in solar radii
-// the stars, in the order the picker lands on them. R, L in Suns; teff in K
+// the stars, in the order the picker lands on them (Arcturus first: the giant orange disc is already in the sky on
+// frame 0; then the cold of Proxima, and on up). R, L in Suns; teff in K
 export const STARS = [
   { key: 'sun', name: 'THE SUN', R: 1, L: 1, teff: 5772, size: '' },
+  { key: 'arcturus', name: 'ARCTURUS', R: 25.4, L: 170, teff: 4286, size: '25× THE SUN' },
   { key: 'proxima', name: 'PROXIMA CENTAURI', R: 0.154, L: 0.00157, teff: 3042, size: '0.15× THE SUN' },
   { key: 'sirius', name: 'SIRIUS', R: 1.71, L: 25.4, teff: 9940, size: '1.7× THE SUN' },
   { key: 'vega', name: 'VEGA', R: 2.6, L: 40.1, teff: 9600, size: '2.6× THE SUN' },
-  { key: 'arcturus', name: 'ARCTURUS', R: 25.4, L: 170, teff: 4286, size: '25× THE SUN' },
   { key: 'aldebaran', name: 'ALDEBARAN', R: 44, L: 440, teff: 3900, size: '44× THE SUN' },
   { key: 'rigel', name: 'RIGEL', R: 79, L: 120000, teff: 12100, size: '79× THE SUN' },
   { key: 'betelgeuse', name: 'BETELGEUSE', R: 760, L: 126000, teff: 3600, size: '760× THE SUN' },
@@ -39,14 +40,16 @@ const fmtC = (c) => `${c < 0 ? '−' : ''}${Math.abs(c).toLocaleString('en-US')}
 // ---- the stops: when the picker starts spinning away from each star (spin) and lands on it (land) ----
 // lines: what the one line under the picker says while it sits there [from (s after landing), text]
 export const STOPS = [
-  { key: 'sun', land: -9, spin: -0.45, lines: [] },
-  { key: 'proxima', land: 1.0, spin: 7.4, lines: [[0.15, `The beach: ${fmtC(STAR.proxima.tC)}`], [3.2, 'Your breath freezes']] },
-  { key: 'sirius', land: 8.9, spin: 15.2, lines: [[0.15, `The beach: ${fmtC(STAR.sirius.tC)}`], [3.2, 'The sand starts smoking']] },
-  { key: 'vega', land: 16.7, spin: 23.0, lines: [[0.15, `The beach: ${fmtC(STAR.vega.tC)}`], [3.0, 'The sea starts to boil']] },
-  { key: 'arcturus', land: 24.5, spin: 31.6, lines: [[0.15, `The beach: ${fmtC(STAR.arcturus.tC)}`], [3.2, 'The pier burns']] },
-  { key: 'aldebaran', land: 33.1, spin: 40.3, lines: [[0.15, `The beach: ${fmtC(STAR.aldebaran.tC)}`], [3.0, 'The city melts']] },
-  { key: 'rigel', land: 41.8, spin: 50.0, lines: [[0.15, `The beach: ${fmtC(STAR.rigel.tC)}`], [3.4, 'The ocean boils away']] },
-  { key: 'betelgeuse', land: 53.0, spin: 1e9, lines: [[0.15, 'Earth is inside the star']] },
+  // (Arcturus lands just before frame 0, while the end's cover is still up: on frame 0 the giant disc and its line
+  // are already there, the beach already reacting)
+  { key: 'sun', land: -9, spin: -1.6, lines: [] },
+  { key: 'arcturus', land: -0.75, spin: 6.3, lines: [[0.0, `The beach: ${fmtC(STAR.arcturus.tC)}`], [3.2, 'The pier burns']] },
+  { key: 'proxima', land: 7.9, spin: 14.0, lines: [[0.15, `The beach: ${fmtC(STAR.proxima.tC)}`], [3.2, 'Your breath freezes']] },
+  { key: 'sirius', land: 15.6, spin: 21.6, lines: [[0.15, `The beach: ${fmtC(STAR.sirius.tC)}`], [3.2, 'The sand starts smoking']] },
+  { key: 'vega', land: 23.2, spin: 29.6, lines: [[0.15, `The beach: ${fmtC(STAR.vega.tC)}`], [3.0, 'The sea starts to boil']] },
+  { key: 'aldebaran', land: 31.3, spin: 38.6, lines: [[0.15, `The beach: ${fmtC(STAR.aldebaran.tC)}`], [3.0, 'The city melts']] },
+  { key: 'rigel', land: 40.2, spin: 48.4, lines: [[0.15, `The beach: ${fmtC(STAR.rigel.tC)}`], [3.4, 'The ocean boils away']] },
+  { key: 'betelgeuse', land: 51.4, spin: 1e9, lines: [[0.15, 'Earth is inside the star']] },
 ];
 for (const s of STOPS) s.star = STAR[s.key];
 export const LAND = Object.fromEntries(STOPS.map((s) => [s.key, s.land]));
@@ -63,7 +66,7 @@ const DECOYS = [
   ['ALPHERATZ', 13800], ['MIRFAK', 6350], ['WEZEN', 6100], ['ADHARA', 22000], ['SAIPH', 26000], ['DENEBOLA', 8500],
 ];
 // rows passed per spin (more for the last, slow one)
-const PASS = [11, 12, 12, 13, 13, 13, 19];
+const PASS = [7, 12, 12, 13, 13, 13, 19];
 export const DRUM = [];
 {
   // decoys drawn at random, never one seen in the last 20 rows; the last, slow spin crawls past three giants
@@ -139,31 +142,35 @@ export function state(v) {
   s.drum = drumPos(v);
   // the snap: a short pulse at every landing
   s.snap = i === 0 ? 0 : Math.exp(-Math.max(0, s.since) / 0.12) * smooth(-0.01, 0.02, s.since);
+  // ---- Arcturus (frame 0): the giant orange disc: the heat comes on, the sand smokes, the sea steams, the pier burns ----
+  const frozeOut = after('proxima', 0.2, 1.8, v);    // Proxima's cold puts Arcturus's fires out (what burnt stays black)
   // ---- Proxima: dark red, frost, the sea freezes, your breath freezes ----
   s.cold = after('proxima', 0.05, 2.4, v) * (1 - after('sirius', 0.1, 2.2, v));
   s.ice = after('proxima', 0.15, 2.0, v) * (1 - after('sirius', 0.4, 3.0, v));     // the sea's ice
   s.iceR = 4 + 4000 * Math.pow(after('proxima', 0.1, 2.6, v), 2.2);                // how far out it reaches (m)
   s.breath = after('proxima', 0.8, 1.6, v) * (1 - after('sirius', 0.0, 0.4, v));
-  // ---- the heat: a dark surface facing the star (K), and everything else (lags) ----
-  const H = [['sirius', 650, 2.5], ['vega', 760, 2.5], ['arcturus', 1060, 2.5], ['aldebaran', 1330, 2.5], ['rigel', 5400, 3.5], ['betelgeuse', 9000, 1.0]];
-  let hk = 300, amb = 300;
+  // ---- the heat: a dark surface facing the star (K), and everything else (lags); the hottest each has been (chars) ----
+  const H = [['arcturus', 1060, 2.0], ['proxima', 230, 1.6], ['sirius', 650, 2.5], ['vega', 760, 2.5], ['aldebaran', 1330, 2.5], ['rigel', 5400, 3.5], ['betelgeuse', 9000, 1.0]];
+  let hk = 300, amb = 300, hkP = 300, ambP = 300;
   for (const [key, T, d] of H) {
     hk = lerp(hk, T, after(key, 0.05, d, v));
     amb = lerp(amb, 300 + (T - 300) * 0.55, after(key, 1.0, d + 3.0, v));
+    hkP = Math.max(hkP, hk); ambP = Math.max(ambP, amb);
   }
-  s.heatK = hk; s.ambK = amb;
-  s.smolder = after('sirius', 0.3, 2.5, v);     // the sand smokes, towels scorch
-  s.steam = after('vega', 0.8, 3.5, v);         // the sea steams...
-  s.boil = Math.max(after('vega', 3.0, 6.0, v) * 0.45, after('arcturus', 0.5, 3.0, v));   // ...and boils
-  s.pierFire = after('arcturus', 0.6, 4.0, v);  // the pier burns (decks and the Ferris wheel)
-  s.carFire = after('arcturus', 1.0, 5.0, v);
+  s.heatK = hk; s.ambK = amb; s.heatKP = hkP; s.ambKP = ambP;
+  s.smolder = Math.max(after('arcturus', 0.3, 2.5, v) * (1 - frozeOut), after('sirius', 0.3, 2.5, v));   // the sand smokes, towels scorch
+  s.steam = Math.max(after('arcturus', 0.8, 3.0, v) * 0.6 * (1 - frozeOut), after('vega', 0.8, 3.5, v));  // the sea steams...
+  s.boil = Math.max(after('vega', 3.0, 6.0, v) * 0.45, after('aldebaran', 0.5, 3.0, v));                 // ...and boils
+  s.pierOut = frozeOut;
+  s.pierFire = Math.max(after('arcturus', 0.6, 4.0, v) * (1 - frozeOut), after('aldebaran', 0.4, 3.0, v));   // the pier burns (twice)
+  s.carFire = Math.max(after('arcturus', 1.0, 5.0, v) * (1 - frozeOut), after('aldebaran', 0.5, 4.0, v));
   s.win = after('aldebaran', 0.2, 1.8, v) + 0.25 * after('arcturus', 2, 6, v);        // windows break
-  s.melt = after('aldebaran', 1.2, 7.0, v);     // the towers glow, sag and slump
+  s.melt = after('aldebaran', 2.5, 8.0, v);     // the towers glow, sag and slump
   s.fall = after('rigel', 1.0, 7.5, v);         // and fall
   s.pierFall = after('rigel', 2.0, 7.0, v);     // the pier's deck collapses into the drained sea
   // the ocean boils away: the sea level drops (m)
   s.drop = 140 * Math.pow(after('rigel', 1.2, 8.0, v), 1.6) + 260 * after('betelgeuse', 0.2, 4.0, v);
-  s.smoke = Math.max(after('arcturus', 1.0, 6.0, v), after('vega', 2.0, 6.0, v) * 0.3);   // smoke in the sky
+  s.smoke = Math.max(after('arcturus', 1.0, 6.0, v) * (1 - after('proxima', 0.5, 3.0, v)), after('vega', 2.0, 6.0, v) * 0.3, after('aldebaran', 1.0, 6.0, v));   // smoke in the sky
   // ---- Betelgeuse: inside the star ----
   s.inside = after('betelgeuse', 0.0, 0.2, v);
   s.vapor = after('betelgeuse', 0.3, 3.5, v);   // everything glows white and is gone
