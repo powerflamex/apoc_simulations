@@ -699,7 +699,7 @@ your hands take the last bars off the last pallet and hold up the very last one;
 the inspector frozen beside you. Same story, numbers, captions and length.
 
 **YouTube title (84 chars, emoji counted as 2)**
-What if you could stop time and leave no DNA? $820 billion, zero suspects ⏱️ #whatif
+What If You Could Stop Time and Leave No DNA? $820 Billion, Zero Suspects ⏱️ #whatif
 
 **YouTube description**
 You can stop time whenever you want. And you leave no DNA, no fingerprints, nothing.
