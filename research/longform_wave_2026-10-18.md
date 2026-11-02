@@ -110,3 +110,13 @@ Before calling a topic "free", search YouTube for it in 3-4 phrasings ("...every
   **Big Rip:** only explainers (What If "Big Rip Happened Tomorrow" 595K, 6 y; PBS Space Time 1.2M, 7 y) and
   tiny new uploads (2-1,234 views). Nobody has done it as a ground-level "you" sim with a countdown, and none of the
   9 wave channels has touched it.
+
+## Update 2026-11-01: the sim wave is cooling
+- Minute Zero (the format leader, low-poly, no voice) on Nov 1: Sped Up 2.1M, Time Sped Up 2.0M, Time Backwards 391K,
+  Grew 254K, Car Couldn't Stop Speeding Up 383K (10 d), Stronger 71K (11 d), Time Slowed 61K, Gravity Weaker 47K,
+  Jumped Higher 33K; then the last week: Electric 18K, Threw Harder 11K, Louder 10K, Sped Up Part 2 6.5K, Slowed Down
+  4.9K (1 d). Even the leader is down to 5-18K per new upload: the no-voice sim long video is saturated.
+- The long videos with millions this month are a different format: narrated explainers over clips/maps/drawings
+  (Tracer Project "What If Asteroid Apophis Hit Earth?" 5.3M, The Last Day Moon crash 1.83M and Sun gone a week 766K,
+  Jack Stone stick-figure trillion years 1.49M, OminiAM drawings 922K). All have a voiceover.
+- Owner's black hole long video (no voice): 2.8K in 2 days, but 46.7% viewed and flat after minute one.
