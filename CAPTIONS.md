@@ -919,6 +919,50 @@ Where would you go with 9 hours left? 👇
 
 Cover: `week 5/rogue-planet/out/rogue-planet_v4_cover.png` (`node render.mjs --cover 22.5`: the planet's banded face filling the sky over the avenue, its whole curved edge showing, the crowd and the flooded crossing below; "WHAT IF A / rogue planet / hit Earth?")
 
+## Next Short. What if the Moon exploded? — `week 5/moon-explodes/out/moon-explodes_v4_1080x1920_60fps_tiktok.mp4`
+
+50.3 s. One crowded harbour promenade at night (a Hong Kong-style skyline across the water, neon, a red-sailed junk and
+ferries, no real brands); you stay among the crowd the whole video, no cutaways. Frame 0: the title, the full Moon huge
+over the skyline (telephoto look) with glowing cracks already across it, people right next to you filming it, the
+counter racing (MOON PIECES 4, RIGHT NOW). At 0.45 s it comes apart into 7 pieces (the owner's scream); the counter
+races on with a TIME-LAPSE tag and the true time since the explosion under it. A leap in the time-lapse every ~3 s (a
+whoosh and a braam): the pieces drift apart, tumble and smash into each other with flashes (minutes, hours), shrinking
+as the lens zooms out to their true size; at 2 days you step forward and watch the sea climb the harbour terraces to
+the crowd's feet and drain (the people sitting on them get up); the dust stretches along the Moon's orbit into a ring
+across the whole sky (weeks, months), so bright everyone casts a sharp shadow at midnight; at 5-8 months the first
+pieces fall in as streaks over the skyline; at 1 year a fireball comes down in the harbour 500 m out (its boom 1.5 s
+later), its wave washes over the deck and everyone hurries back; at 2 years the hard rain: the sky fills with burning
+streaks and the clouds glow orange; people run; the towers across the water are hit one after another and burn, the
+city's lights fail, dust rolls across the water; a giant chunk comes down over the harbour, a fireball filling the
+screen, white, loop (the white clears onto the cracking Moon of frame 0).
+Numbers (`src/timeline.js`): the real Moon (1,737 km radius, 384,400 km away); 7 pieces 1,000-2,000 km wide; a breakup
+that only just breaks it (Neal Stephenson's "Seveneves" idea), so the pieces stay loosely together for days and grind
+each other down while the dust shears into a ring; the piece count runs from 7 to ~12 trillion over two years (average
+piece then ~120 m); anything falling in from there hits the air at ~11 km/s (25,000 mph); Hong Kong-size tides (2.5 m).
+The time-lapse clock is true (seconds, hours, days, months, then "2 YEARS, n DAYS" ticking through the hard rain).
+
+**YouTube title (86 chars, emoji counted as 2)**
+What if the Moon exploded? Two years later, it starts falling on you 🌕 #space #whatif
+
+**YouTube description**
+The full Moon cracks and breaks into 7 pieces, each over 1,000 km wide, right above a harbour city at night.
+
+A time-lapse, with the real time since the explosion on the counter:
+Hours later: the pieces drift apart and keep smashing into each other.
+2 days: the tide still climbs the steps every 12 hours.
+2 months: the rubble spreads into a glowing ring across the whole sky. At midnight, you cast a shadow.
+8 months: the first pieces fall in at 25,000 mph.
+1 year: one makes it down, 500 m from the crowd.
+2 years: the ring starts coming down. Over 11 trillion pieces, and the sky glows with the heat.
+
+(The slow breakup is the idea from Neal Stephenson's novel Seveneves; the sizes and distances are the real Moon's.)
+
+Would you stay and watch, or run? 👇
+
+#whatif #moon #space #science #shorts
+
+Cover: `week 5/moon-explodes/out/moon-explodes_v4_cover.png` (`node render.mjs --cover 38.6`: the hard rain, burning streaks pouring down over the lit skyline and the harbour, the crowd close to you with arms up; "WHAT IF THE / Moon / exploded?" at the top)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

@@ -358,3 +358,4 @@
   speed counter, crust -> mantle -> core -> out the other side in 42 min); Earth's magnetic field shuts off (auroras
   over a city at noon on frame 0, satellites fall, the grid blows, the air is stripped away). Earlier picks still
   open: gravity off for 5 s, a rogue planet passes Earth.
+- Status Nov 2: moon-explodes ("What if the Moon exploded?", 50.3 s, week 5) built as a new project from the Nov 2 topic check: one harbour promenade at night, never leaving the crowd (no cutaways), pieces counter + TIME-LAPSE tag with the true time (seconds to "2 YEARS, n DAYS"), a leap every ~3 s; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
