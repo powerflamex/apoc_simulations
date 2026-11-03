@@ -68,7 +68,7 @@ export function makeWorld(scene, camera) {
         else for (int i = 0; i < 7; i++) { float fi = float(i); vec2 c = (i == 0 ? vec2(0.0) : vec2(cos(fi * 0.9 + 0.3), sin(fi * 0.9 + 0.3))) * uSpread * 0.38 * (0.8 + 0.4 * h(fi)); m += smoothstep(r * 0.42, r * 0.32, length(p - c)); }
         col += vec3(1.5, 1.45, 1.35) * m * (1.0 - uRing);
         col += vec3(0.8, 0.7, 0.6) * exp(-dot(p, p) * 14.0 / (1.0 + uSpread * 5.0)) * 0.3 * min(1.0, uSpread * 2.0) * (1.0 - uRing);
-        col += vec3(1.1, 1.05, 0.95) * exp(-pow((p.y * 0.62 - p.x * 0.78 + 0.08) / 0.09, 2.0)) * uRing;
+        col += vec3(1.1, 1.05, 0.95) * exp(-pow((p.y * 0.88 - p.x * 0.47 + 0.08) / 0.09, 2.0)) * uRing;
         col += vec3(1.0, 0.32, 0.08) * uRain * 0.5 * smoothstep(0.7, 0.1, uv.y);
         col = mix(col, vec3(1.6, 0.1, 0.1), smoothstep(0.035, 0.022, length((uv - vec2(0.16, 0.93)) * vec2(1.0, 2.1))));
         col *= step(0.045, uv.x) * step(uv.x, 0.955) * step(0.025, uv.y) * step(uv.y, 0.975);
@@ -131,8 +131,8 @@ export function makeWorld(scene, camera) {
   {
     const R = rng(808);
     for (let k = 0; k < 70; k++) {
-      const v = 35.8 + Math.pow(R(), 0.8) * 12.4;
-      const x = (R() * 2 - 1) * 2600, z = -2300 - R() * 2400;
+      const v = V_RAIN + 2.6 + Math.pow(R(), 0.8) * (V_HIT - V_RAIN - 2.85);
+      const x = (R() * 2 - 1) * 2600, z = -2600 - R() * 2400;
       GROUND_HITS.push({ v, p: [x, farY(x, z), z], size: 0.5 + R() * 0.9, seed: R() });
     }
   }
@@ -160,7 +160,7 @@ export function makeWorld(scene, camera) {
       const ringR = v > V_SPLASH ? 215 * (v - V_SPLASH) : -1;
       s.level = s.tide + 1.15 * s.surge + 0.18 * s.slosh * Math.sin(v * 5.1) * Math.sin(v * 1.7 + 1);
       s.surgeAt = (x, z) => (ringR < 0 ? 0 : Math.exp(-Math.pow((Math.hypot(x - SPLASH.x, z - SPLASH.z) - ringR) / 25, 2)) * Math.exp(-(v - V_SPLASH) / 2.5));
-      s.lampsOut = smooth(45.3, 45.5, v) * (0.6 + 0.4 * (Math.sin(v * 41) > 0 ? 1 : 0)) + smooth(45.6, 45.7, v) * 0.4;
+      s.lampsOut = smooth(V_CHUNK - 0.6, V_CHUNK - 0.4, v) * (0.6 + 0.4 * (Math.sin(v * 41) > 0 ? 1 : 0)) + smooth(V_CHUNK - 0.3, V_CHUNK - 0.2, v) * 0.4;
       HU.uSplash.value.set(SPLASH.x, SPLASH.z, ringR, ringR < 0 ? 0 : 1.6 * Math.exp(-(v - V_SPLASH) / 1.6));
       HU.uChop.value = 0.85 + 0.9 * s.slosh + 0.6 * s.rain;
       HU.uFoam.value = 0.6 * smooth(V_SPLASH, V_SPLASH + 0.5, v) * (1 - smooth(V_SPLASH + 3, V_SPLASH + 7, v)) + 0.3 * s.rain;
@@ -170,7 +170,7 @@ export function makeWorld(scene, camera) {
       FL.uFront.value = EDGE_Z + 6.6 * s.flood - 0.3; FL.uTime.value = v; FL.uAmt.value = smooth(0.0, 0.08, s.flood);
 
       // ---- the light ----
-      const ringK = smooth(13.5, 17.0, v);
+      const ringK = smooth(12.0, 13.4, v);
       const L = tmpV.copy(MOON_DIR).lerp(ringDir(0.7), ringK).normalize();
       skyL.position.set(cp.x + L.x * 200, L.y * 200, cp.z + L.z * 200);
       skyL.target.position.set(cp.x, 0, cp.z - 8);
@@ -239,19 +239,29 @@ export function makeWorld(scene, camera) {
         }
       }
 
-      // ---- the splash (a column of white water, a flash) ----
+      // ---- the splash: an orange flash, a fireball on the water, then a tall column of water lit by the fire inside it ----
       if (v > V_SPLASH - 0.05 && v < V_SPLASH + 9) {
-        const t = v - V_SPLASH, lvl = SEA0 + s.level;
-        const fl = Math.exp(-Math.max(0, t) / 0.22);
-        glows.add(SPLASH.x, lvl + 8, SPLASH.z, 120 * fl + 20, 4 * fl, 3.2 * fl, 2.4 * fl);
-        flashAt([SPLASH.x, lvl + 20, SPLASH.z], 2.5 * fl, 1.0, 0.85, 0.7);
-        const H = 150 * smooth(0, 0.9, t) - 60 * smooth(1.8, 4.5, t);
+        const t = v - V_SPLASH, lvl = SEA0 + s.level, tt = Math.max(0, t);
+        const fl = Math.exp(-tt / 0.22);
+        glows.add(SPLASH.x, lvl + 10, SPLASH.z, 150 * fl + 30, 5.0 * fl, 2.9 * fl, 1.1 * fl);
+        flashAt([SPLASH.x, lvl + 20, SPLASH.z], 2.6 * fl, 1.0, 0.62, 0.3);
+        // the fireball sitting on the water, and flames round the foot of the column
+        const fb = smooth(0, 0.08, t) * Math.exp(-tt / 0.9);
+        glows.add(SPLASH.x, lvl + 15 + 25 * smooth(0, 1.2, t), SPLASH.z + 8, 70 + 70 * smooth(0, 1.0, t), 2.8 * fb, 1.2 * fb, 0.3 * fb);
+        const burn = smooth(0, 0.1, t) * (1 - smooth(1.5, 4.0, t));
+        if (burn > 0) for (let k = 0; k < 14; k++) {
+          const a = k / 14 * Math.PI * 2 + 0.3, r = 10 + 16 * smooth(0, 1.2, t) + 6 * Math.sin(k * 2.7);
+          fire.add(SPLASH.x + Math.cos(a) * r, lvl, SPLASH.z + Math.sin(a) * r * 0.6 + 6, 22 + 8 * Math.sin(k * 1.9), (50 + 50 * Math.abs(Math.sin(k * 3.3))) * burn, 1.3 * burn, V_SPLASH + k * 0.17);
+        }
+        // the column of water: tall and narrow, then it collapses and spreads; glowing orange low down at first
+        const H = 190 * smooth(0, 0.8, t) - 75 * smooth(1.8, 4.5, t);
         for (const c of COL) {
           const y = lvl + H * c.k * (1 - 0.3 * smooth(2, 5, t) * (1 - c.k));
-          const spread = (4 + 22 * c.k * smooth(0, 1.5, t) + 30 * smooth(1.5, 6, t) * c.r);
+          const spread = (3 + 12 * c.k * smooth(0, 1.2, t) + 32 * smooth(1.5, 6, t) * c.r);
           const x = SPLASH.x + Math.cos(c.a) * spread * c.r, z = SPLASH.z + Math.sin(c.a) * spread * c.r;
-          const a = smooth(0, 0.15, t) * (1 - smooth(2.5, 7, t)) * 0.5;
-          smoke.puff(x, y, z, 7 + 16 * c.k + 10 * smooth(1, 5, t), a, 0.8, 0.3 * fl, c.seed);
+          const a = smooth(0, 0.12, t) * (1 - smooth(2.5, 7, t)) * 0.7;
+          const glow = (1.4 * Math.exp(-tt / 0.9) + 0.25 * Math.exp(-tt / 3)) * (1 - 0.65 * c.k);
+          smoke.puff(x, y, z, 6 + 13 * c.k + 10 * smooth(1, 5, t), a, 0.85, glow, c.seed);
         }
       }
       // ---- the hits on the towers ----
@@ -311,7 +321,7 @@ export function makeWorld(scene, camera) {
         glows.add(p[0], p[1] + 20, p[2], (200 * fl + 40) * g.size, 4 * fl + 0.6, 2.4 * fl + 0.25, 1 * fl + 0.06);
         flashAt(p, 1.2 * fl * g.size, 1, 0.65, 0.4);
         fire.add(p[0], p[1], p[2], 50 * g.size, 70 * g.size * (0.6 + 0.4 * smooth(0, 1, t)), 1.1, g.seed * 40);
-        if (t < 8) smoke.puff(p[0] + t * 8, p[1] + 60 * g.size + t * 25, p[2], (40 + t * 15) * g.size, 0.5 * smooth(0, 0.8, t) * (1 - smooth(5, 8, t)), 0.1, 0.5 * Math.exp(-t / 2), g.seed);
+        if (t < 7) smoke.puff(p[0] + t * 8, p[1] + 50 * g.size + t * 18, p[2], (30 + t * 10) * g.size, 0.32 * smooth(0, 0.8, t) * (1 - smooth(4, 7, t)), 0.1, 0.5 * Math.exp(-t / 2), g.seed);
       }
       // ---- the dust rolling across the water toward you ----
       if (s.dustWall > 0) {
@@ -397,7 +407,7 @@ export function makeWorld(scene, camera) {
       you.commit();
       phoneBody.instanceMatrix.needsUpdate = true; screen.instanceMatrix.needsUpdate = true;
       SCR.uSpread.value = v < V_BURST ? 0 : smooth(V_BURST, 6, v) * (1 - smooth(11, 14, v)) + 0.01;
-      SCR.uRing.value = smooth(12.5, 16, v); SCR.uRain.value = s.rain;
+      SCR.uRing.value = smooth(12.0, 13.4, v); SCR.uRain.value = s.rain;
 
       fire.mat.uniforms.uTime.value = v;
       smoke.mat.uniforms.uTime.value = v;

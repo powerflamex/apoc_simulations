@@ -1,8 +1,9 @@
 // The camera (video time): you, at eye height among the crowd on the promenade, 10 m back from the steps.
-// You look at the Moon over the skyline; step 2.5 m forward and look down through a gap in the crowd as the tide
-// floods the steps (7-12.6 s); the ring (16-21 s: low enough that the deck and the shadows on it are in shot); the
-// first falling pieces; toward the splash, then hurry back from its wave; up into the hard rain; back to the towers
-// being hit; up at the giant chunk as it comes down, into the white. (people.js keeps your few steps clear.)
+// You watch the Moon's pieces grind over the skyline (up a little as they spread); step 3 m forward and look down
+// through a gap in the crowd as the tide floods the steps (10-12.3 s); back up for the ring (13-16 s: low enough that
+// the deck and the shadows on it are in shot, wide); the first falling pieces; up into the meteor rain (20.6 s); down
+// to the fireball in the harbour (24.6 s), then hurry back from its wave; across the towers being hit (30-43 s); up at
+// the giant chunk as it comes down, into the white. (people.js keeps your few steps clear.)
 // Keys run from before frame 0 (the loop's lead-in plays v < 0) so the start is smooth.
 const sm = (k) => {
   const xs = k.map((p) => p[0]), ys = k.map((p) => p[1]), n = xs.length;
@@ -19,12 +20,16 @@ const sm = (k) => {
     return (2 * u3 - 3 * u2 + 1) * p0 + (u3 - 2 * u2 + u) * m0 + (-2 * u3 + 3 * u2) * p1 + (u3 - u2) * m1;
   };
 };
-const X = sm([[-2, 0], [6.6, 0], [9.8, -0.3], [22, -0.2], [31.9, -0.25], [33.6, 0], [46, 0.1], [51, 0.05]]);
-const Z = sm([[-2, 0], [6.6, -0.2], [9.8, -3.2], [12.8, -3.4], [14.5, -2.7], [29, -2.7], [31.9, -2.8], [33.4, -0.6], [36, -0.3], [46, 0.2], [51, 0.2]]);
-const YAW = sm([[-2, 0.4], [3, 1.4], [6.6, 1.0], [10.6, 0], [14, 1.5], [20.5, 2.0], [26, 1.2], [29.3, 4.5], [31.5, 3.0], [34, 0], [40, -1.5], [43, 1.5], [45.6, 1.0], [48.5, -0.5], [51, -0.5]]);
-const PITCH = sm([[-2, 4], [6.6, 4], [10.0, -7], [12.6, -7], [14.2, 4], [16.4, 2], [20.6, 3], [22.7, 7], [28.8, 6], [29.9, 1], [31.4, -8], [32.4, -6], [33.6, -2], [35.3, 12], [39.4, 12], [40.6, 6], [45.4, 6], [46.8, 21], [48.5, 30], [51, 30]]);
-const FOV = sm([[-2, 52], [13.2, 52], [16.3, 66], [20.6, 66], [22.7, 55], [33.3, 55], [35.2, 58], [39.4, 58], [40.6, 55], [45.4, 55], [48.5, 64], [51, 64]]);
+const X = sm([[-2, 0], [8.4, 0], [10.0, -0.3], [16, -0.2], [26.9, -0.25], [28.6, 0], [40, 0.1], [50, 0.05]]);
+const Z = sm([[-2, 0], [8.4, -0.2], [10.0, -3.1], [11.8, -3.3], [13.0, -2.7], [24, -2.7], [26.9, -2.8], [28.4, -0.6], [31, -0.3], [44, 0.2], [50, 0.2]]);
+// (from 30 s: you look toward each tower as it is hit, about halfway)
+const YAW = sm([[-2, 0.4], [3, 1.4], [6.6, 0.6], [9.6, 0], [12.6, 1.5], [15.8, 2.0], [18.5, 1.2], [22.4, 1.0], [24.3, 4.5], [26.5, 3.0], [28.5, 0],
+  [29.8, -5.5], [31.2, 7], [32.7, 6.5], [33.9, -4.5], [35.4, -2.5], [36.8, 2.5], [38.4, -0.8], [40.0, 3], [41.5, -10], [42.8, 9.5], [44.2, 2],
+  [46.7, -0.5], [50, -0.5]]);
+const PITCH = sm([[-2, 4], [2.5, 4], [7.5, 6.5], [9.0, 5], [10.3, -7], [11.9, -7], [12.9, 3], [16.0, 3], [17.2, 7], [19.6, 7.5], [21.4, 12],
+  [23.0, 11.5], [24.3, 1], [26.4, -8], [27.4, -6], [28.6, -2], [30.0, 6], [43.6, 6], [45.1, 21], [46.7, 30], [50, 30]]);
+const FOV = sm([[-2, 52], [11.9, 52], [12.9, 66], [16.0, 66], [17.2, 55], [20.4, 55], [21.6, 58], [23.0, 58], [24.3, 55], [43.6, 55], [46.7, 64], [50, 64]]);
 export const EYE = 1.62;
 export function camAt(v) {
-  return { x: X(v), y: EYE - 0.12 * Math.exp(-Math.pow((v - 31.4) / 0.9, 2)), z: Z(v), yaw: YAW(v), pitch: PITCH(v), fov: FOV(v) };
+  return { x: X(v), y: EYE - 0.12 * Math.exp(-Math.pow((v - 26.4) / 0.9, 2)), z: Z(v), yaw: YAW(v), pitch: PITCH(v), fov: FOV(v) };
 }

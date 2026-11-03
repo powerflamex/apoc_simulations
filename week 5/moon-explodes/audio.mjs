@@ -49,7 +49,7 @@ const env = (t, a, d) => (t < 0 ? 0 : t < a ? t / a : Math.exp(-(t - a) / d));
 
 // the drone's chords, darkening as it goes (the ring opens up for a moment)
 const CHORDS = [[-9, [110, 164.81, 220, 261.63]], [V_BURST, [73.42, 110, 146.83, 174.61]], [9.0, [87.31, 130.81, 174.61, 220]],
-  [15.6, [98, 146.83, 196, 246.94]], [22.0, [82.41, 123.47, 164.81, 196]], [31.8, [69.3, 103.83, 138.59, 164.81]], [41.0, [55, 58.27, 82.41, 110]]];
+  [12.3, [98, 146.83, 196, 246.94]], [16.6, [82.41, 123.47, 164.81, 196]], [V_RAIN, [69.3, 103.83, 138.59, 164.81]], [38.0, [55, 58.27, 82.41, 110]]];
 const chordAt = (t) => { let c = CHORDS[0][1]; for (const [ts, ch] of CHORDS) if (t >= ts) c = ch; return c; };
 
 export function makeSoundtrack(outFile) {
@@ -111,7 +111,7 @@ export function makeSoundtrack(outFile) {
         const amp = talkE[q].run(Math.max(0, Math.sin(t * (2.3 + q * 0.7) + q * 1.3) + white() * 0.2));
         cv += talkF[q].run(white(), 360 + q * 230 + 90 * Math.sin(t * (1.1 + q * 0.3)), 0.25).bp * amp;
       }
-      const talk = (1 - 0.8 * smooth(V_BURST, V_BURST + 0.6, t)) + 0.6 * smooth(3, 6, t) * (1 - smooth(V_RAIN, V_RAIN + 3, t)) + 0.5 * smooth(V_RUN - 1, V_RUN + 1, t) * (1 - smooth(46, 48, t));
+      const talk = (1 - 0.8 * smooth(V_BURST, V_BURST + 0.6, t)) + 0.6 * smooth(3, 6, t) * (1 - smooth(V_RAIN, V_RAIN + 3, t)) + 0.5 * smooth(V_RUN - 1, V_RUN + 1, t) * (1 - smooth(V_HIT - 2.45, V_HIT - 0.45, t));
       l += cv * 0.03 * talk; r += cv * 0.028 * talk;
     }
     // --- the tide washing up the terraces and back (louder the faster the water moves), the wave over the deck ---
@@ -156,7 +156,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- the ring: a high shimmer while it glows over you ---
     {
-      const g = smooth(13.5, 16.5, t) * (1 - smooth(22, 26, t)) * 0.014;
+      const g = smooth(12.0, 13.4, t) * (1 - smooth(16.5, 19.5, t)) * 0.014;
       if (g > 0) {
         let sh = 0;
         for (let q = 0; q < 4; q++) { shPh[q] += ([1174.7, 1568, 1760, 2349.3][q] * (1 + 0.002 * Math.sin(t * (2 + q)))) / SR; sh += Math.sin(TAU * shPh[q]) * (0.5 + 0.5 * Math.sin(t * (0.9 + q * 0.6) + q)); }
@@ -195,7 +195,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- the hard rain's roar, and the giant chunk's ---
     {
-      const g = (0.12 * smooth(V_FIRST, 30, t) + 0.5 * st.rain + 0.35 * smooth(42, 46, t) + 0.9 * Math.pow(st.chunk, 2)) * fade;
+      const g = (0.12 * smooth(V_FIRST, V_RAIN, t) + 0.5 * st.rain + 0.35 * smooth(V_CHUNK - 3.9, V_CHUNK + 0.1, t) + 0.9 * Math.pow(st.chunk, 2)) * fade;
       if (g > 0.001) {
         const wn = white();
         const fc = 140 + 200 * st.rain + 380 * Math.pow(st.chunk, 2);

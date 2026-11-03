@@ -25,18 +25,8 @@ export const ANTI_SUN = MOON_DIR.clone().addScaledVector(SCR_UP, -3.5 * DEG).nor
 // a point on the ring at angle phi along the orbit from where the Moon was
 export const ringDir = (phi) => MOON_DIR.clone().multiplyScalar(Math.cos(phi)).addScaledVector(ORB_U, Math.sin(phi));
 
-const GLSL = /* glsl */ `
-  uniform vec3 uD, uRt, uUp, uU, uW, uAnti, uCamPos, uFlashSky, uChunkDir;
-  uniform float uM, uPx, uTime, uCrack, uBurst, uHot, uPieces, uCut;
-  uniform vec2 uOff[7];
-  uniform float uRot[7];
-  uniform float uShat[7];
-  uniform float uSubRot[7];
-  uniform vec4 uFlash[8];
-  uniform float uDust, uDustR, uStretch, uRing, uBand, uSkyL, uStars, uCity, uHeat, uRain, uChunkI, uLeap, uClear, uBlack;
-  varying vec3 vDir;
-  const float ALPHA = ${ALPHA.toFixed(8)};
-
+// the Moon's face (also used by the 3D pieces in rocks.js)
+export const MOON_FNS = /* glsl */ `
   float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
   float h31(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
   float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -62,6 +52,22 @@ const GLSL = /* glsl */ `
     return a;
   }
 
+`;
+
+const GLSL = /* glsl */ `
+  uniform vec3 uD, uRt, uUp, uU, uW, uAnti, uCamPos, uFlashSky, uChunkDir;
+  uniform float uM, uPx, uTime, uCrack, uBurst, uHot, uPieces, uCut;
+  uniform vec2 uOff[7];
+  uniform float uRot[7];
+  uniform float uScale[7];
+  uniform float uShat[7];
+  uniform float uSubRot[7];
+  uniform vec4 uFlash[8];
+  uniform float uDust, uDustR, uStretch, uRing, uBand, uSkyL, uStars, uCity, uHeat, uRain, uChunkI, uLeap, uClear, uBlack;
+  varying vec3 vDir;
+  const float ALPHA = ${ALPHA.toFixed(8)};
+
+  ${MOON_FNS}
   // ---- the cut: 7 pieces (jagged lines), each later cut in 5 ----
   const vec2 SEED0 = vec2(0.03, -0.04), SEED1 = vec2(0.62, 0.15), SEED2 = vec2(0.17, 0.64), SEED3 = vec2(-0.48, 0.43),
              SEED4 = vec2(-0.63, -0.19), SEED5 = vec2(-0.14, -0.64), SEED6 = vec2(0.46, -0.46);
@@ -100,10 +106,13 @@ const GLSL = /* glsl */ `
     return vec4(col, a);
   }
   // the pieces at q (true position in Moon radii, screen-aligned)
-  vec4 pieces(vec2 q, float aa) {
+  vec4 pieces(vec2 q, float aa0) {
+    float aa = aa0;
     for (int i = 0; i < 7; i++) {
       vec2 c = seedOf(i);
-      vec2 xp = rot2(q - c - uOff[i], -uRot[i]) + c;
+      // (uScale: a piece drifting toward you looks bigger)
+      vec2 xp = rot2((q - c - uOff[i]) / uScale[i], -uRot[i]) + c;
+      aa = aa0 / uScale[i];
       float sh = uShat[i];
       if (length(xp - c) > 0.95 + sh * 1.6) continue;
       if (sh <= 0.0) {
@@ -134,6 +143,21 @@ const GLSL = /* glsl */ `
     float dp = length(f - o) * csz / uPx;
     float tw = 0.75 + 0.25 * sin(uTime * (3.0 + 6.0 * h21(id + 1.3)) + h * 40.0);
     return exp(-dp * dp * 1.4) * (0.25 + 0.75 * pow(h21(id + seed + 5.3), 3.0)) * tw;
+  }
+
+  // rocks: lumpy discs (sunlit on one side), one per grid cell (cell size csz in radians on screen)
+  float rocks(vec2 g, float csz, float dens, float seed) {
+    vec2 id = floor(g), f = fract(g) - 0.5;
+    float h = h21(id + seed);
+    if (h > dens) return 0.0;
+    vec2 o = (vec2(h21(id + seed + 3.1), h21(id + seed + 7.7)) - 0.5) * 0.5;
+    vec2 dd = f - o;
+    float a = atan(dd.y, dd.x);
+    float r = (0.07 + 0.2 * pow(h21(id + seed + 2.3), 2.0)) * (1.0 + 0.22 * sin(a * 3.0 + h * 40.0) + 0.12 * sin(a * 5.0 + h * 17.0));
+    float pxc = uPx / csz;
+    float disc = smoothstep(r + pxc, r - pxc, length(dd));
+    float lit = 0.45 + 0.55 * clamp(dot(dd / max(r, 1e-4), vec2(0.6, 0.8)) * 0.8 + 0.5, 0.0, 1.0);
+    return disc * lit * (0.35 + 0.65 * h21(id + seed + 5.3));
   }
 
   vec3 skyColor(vec3 d) {
@@ -169,9 +193,12 @@ const GLSL = /* glsl */ `
       vec2 w = vec2(tr.x / (sR * uStretch), tr.y / sR);
       float wr = length(w);
       float blobD = exp(-wr * wr * 2.2) * (0.35 + 1.0 * fbm(w * 2.4 + 3.1)) * (0.7 + 0.6 * fbm(w * 7.0 - 2.3));
-      float bandD = (exp(-0.5 * pow(psi / 0.045, 2.0)) + 0.16 * exp(-0.5 * pow(psi / 0.11, 2.0)) + 0.025 * exp(-0.5 * pow(psi / 0.26, 2.0)))
-        * (0.45 + 0.8 * fbm(vec2(phi * 7.0, psi * 22.0))) * (0.88 + 0.12 * sin(psi * 260.0 + 3.0 * fbm(vec2(phi * 3.0, 1.0))))
-        * (1.0 - 0.65 * exp(-pow((psi - 0.018) / 0.004, 2.0)) - 0.5 * exp(-pow((psi + 0.031) / 0.005, 2.0)));
+      // the ring: a band of rubble with a ragged edge, lumpy along its length (clumps ~1-3 degrees across, the same
+      // size both ways, so it reads as heaps of rock and dust, not as smooth strands or rays)
+      float edgeN = (fbm(vec2(phi * 18.0, 4.0)) - 0.5) * 0.03;
+      float core = smoothstep(0.052, 0.03, abs(psi - edgeN));
+      float clump = smoothstep(0.32, 0.78, fbm(vec2(phi, psi) * 46.0 + 3.0)) * 0.8 + 0.35 * fbm(vec2(phi, psi) * 150.0 - 1.7);
+      float bandD = core * (0.18 + 1.2 * clump) + 0.12 * exp(-0.5 * pow(psi / 0.09, 2.0)) * (0.5 + fbm(vec2(phi, psi) * 30.0));
       float dens = mix(blobD, bandD, uRing);
       // Earth's shadow on the ring (at the anti-Sun point), and the phase: brighter toward it
       float sa = acos(clamp(dot(d, uAnti), -1.0, 1.0));
@@ -187,11 +214,15 @@ const GLSL = /* glsl */ `
         sp += sparks(w / 0.05, max(cs1, px * 3.0), 0.5 * k, 1.0);
         sp += sparks(w / 0.024, max(cs1 * 0.48, px * 3.0), 0.55 * k * smoothstep(2.0, 6.0, uTime), 2.0);
       }
+      float rk = 0.0;
       if (uRing > 0.0) {
-        float k = (exp(-0.5 * pow(psi / 0.05, 2.0)) + 0.25 * exp(-0.5 * pow(psi / 0.12, 2.0))) * uRing;
+        float k = (smoothstep(0.06, 0.03, abs(psi - edgeN)) + 0.2 * exp(-0.5 * pow(psi / 0.1, 2.0))) * uRing;
         sp += sparks(vec2(phi, psi) / 0.004, 0.004, 0.45 * k, 5.0) + sparks(vec2(phi, psi) / 0.0021, 0.0021, 0.4 * k, 6.0);
+        // single rocks big enough to see as rocks (a few pixels to ~8 across), thickest in the clumps
+        rk = rocks(vec2(phi, psi) / 0.011, 0.011, 0.5 * k * (0.4 + clump), 11.0) + rocks(vec2(phi, psi) / 0.0055, 0.0055, 0.45 * k * (0.4 + clump), 12.0);
       }
       deb += vec3(2.4, 2.3, 2.1) * sp * (0.5 + 0.5 * uDust) * mix(1.0, shade, uRing);
+      deb += vec3(1.5, 1.42, 1.32) * rk * mix(1.0, shade, uRing);
       // the pieces themselves (screen-aligned gnomonic coordinates round the Moon, in true Moon radii)
       if (uPieces > 0.0 && dd0 > 0.9) {
         vec2 p = vec2(dot(d, uRt), dot(d, uUp)) / dd0;
@@ -242,7 +273,7 @@ export function makeSky() {
     uCamPos: { value: new THREE.Vector3() }, uFlashSky: { value: new THREE.Color(0, 0, 0) }, uChunkDir: { value: new THREE.Vector3(0, 1, 0) },
     uM: { value: 18.5 }, uPx: { value: 0.0005 }, uTime: { value: 0 }, uCut: { value: 0 }, uCrack: { value: 0 }, uBurst: { value: 0 }, uHot: { value: 0 }, uPieces: { value: 1 },
     uOff: { value: Array.from({ length: 7 }, () => new THREE.Vector2()) },
-    uRot: { value: new Array(7).fill(0) }, uShat: { value: new Array(7).fill(0) }, uSubRot: { value: new Array(7).fill(0) },
+    uRot: { value: new Array(7).fill(0) }, uScale: { value: new Array(7).fill(1) }, uShat: { value: new Array(7).fill(0) }, uSubRot: { value: new Array(7).fill(0) },
     uFlash: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 1, 0)) },
     uDust: { value: 0 }, uDustR: { value: 1 }, uStretch: { value: 1 }, uRing: { value: 0 }, uBand: { value: 1 }, uSkyL: { value: 0 },
     uStars: { value: 1 }, uCity: { value: 1 }, uHeat: { value: 0 }, uRain: { value: 0 }, uChunkI: { value: 0 }, uLeap: { value: 0 }, uClear: { value: 1 }, uBlack: { value: 0 },

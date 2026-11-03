@@ -59,36 +59,44 @@ export function makeCity(scene) {
         vec3 col = base * (uAmb + max(dot(N, uLightDir), 0.0) * uLightC + uFlashC * (0.4 + 0.6 * max(N.z, 0.0)));
         vec3 emis = vec3(0.0);
         if (side) {
-          float fy = y / 3.6, fi = floor(fy), ff = fract(fy);
-          float cw = style > 0.5 && style < 1.5 ? 1.6 : 2.3;
+          // clean window grids: each tower one colour (warm or cool white), whole stretches of a floor (an office)
+          // lit or dark together, a few single windows out; far off, the grid fades to its average (no pixel noise)
+          float fy = y / 4.0, fi = floor(fy), ff = fract(fy);
+          float cw = style > 0.5 && style < 1.5 ? 2.6 : 3.2;
           float fu = u / cw, ci = floor(fu), fc = fract(fu);
           float faceId = N.x > 0.5 ? 1.0 : N.x < -0.5 ? 2.0 : N.z > 0.5 ? 3.0 : 4.0;
-          float hh = h31(vec3(ci, fi, seed * 91.0 + faceId * 17.0));
+          float hh = h31(vec3(floor(ci / 5.0), fi, seed * 91.0 + faceId * 17.0));
+          float hw = h31(vec3(ci, fi, seed * 37.0 + faceId * 5.0));
           float hh2 = h31(vec3(floor(ci / 6.0), fi, seed * 13.0 + faceId));
           vec2 fw = fwidth(vec2(fu, fy)) + 1e-4;
-          float wx = smoothstep(0.14 - fw.x, 0.14 + fw.x, fc) * (1.0 - smoothstep(0.86 - fw.x, 0.86 + fw.x, fc));
-          float wy = smoothstep(0.22 - fw.y, 0.22 + fw.y, ff) * (1.0 - smoothstep(0.84 - fw.y, 0.84 + fw.y, ff));
-          float win = mix(wx * wy, 0.55, smoothstep(0.35, 0.8, max(fw.x, fw.y)));
-          vec3 wc = mix(vec3(1.0, 0.72, 0.42), vec3(0.8, 0.88, 1.0), step(0.55, fract(hh * 7.3))) * (0.45 + 0.9 * fract(hh * 13.1));
+          float wx = smoothstep(0.16 - fw.x, 0.16 + fw.x, fc) * (1.0 - smoothstep(0.84 - fw.x, 0.84 + fw.x, fc));
+          float wy = smoothstep(0.25 - fw.y, 0.25 + fw.y, ff) * (1.0 - smoothstep(0.82 - fw.y, 0.82 + fw.y, ff));
+          float far = smoothstep(0.2, 0.5, max(fw.x, fw.y));
+          float win = mix(wx * wy, 0.39, far);
+          vec3 tc = fract(seed * 5.7) < 0.55 ? vec3(1.0, 0.76, 0.48) : vec3(0.84, 0.9, 1.0);
+          vec3 wc = tc * (0.85 + 0.2 * fract(hh * 13.1));
           float inside = step(5.0, y) * step(y, vS.y - 2.5);
-          float lit = step(hh, vX.y) * inside;
-          if (style < 0.5) emis = wc * win * lit * 1.15;
+          float lit = step(hh, vX.y + 0.15) * mix(step(0.07, hw), 0.93, far) * inside;
+          if (style < 0.5) emis = wc * win * lit * 1.1;
           else if (style < 1.5) {
-            float band = step(0.3, hh2);
-            float mull = 0.6 + 0.4 * smoothstep(0.0, 0.08 + fw.x, fc) * (1.0 - smoothstep(0.92 - fw.x, 1.0, fc));
-            emis = mix(vec3(0.72, 0.84, 1.0), vec3(1.0, 0.84, 0.6), step(0.72, hh2)) * band * mull * wy * inside * 1.05;
+            float band = step(0.38, hh2);
+            float mull = 0.65 + 0.35 * mix(smoothstep(0.0, 0.08 + fw.x, fc) * (1.0 - smoothstep(0.92 - fw.x, 1.0, fc)), 0.85, far);
+            emis = tc * band * mull * mix(wy, 0.57, far) * inside * 0.8;
           } else if (style < 2.5) {
-            float line = smoothstep(0.86 - fw.x, 0.9, abs(fract(u / 5.0) - 0.5) * 2.0);
-            vec3 lc = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + y * 0.004 - uTime * 0.18 + seed));
-            emis = wc * win * lit * 0.8 + lc * line * 1.4 * step(5.0, y);
+            // windows with a clean white line of light up every 8 m
+            float line = 1.0 - smoothstep(0.0, 0.05 + 1.5 * fwidth(u / 8.0), abs(fract(u / 8.0) - 0.5) * 2.0 - 0.9);
+            emis = wc * win * lit * 0.85 + vec3(1.0, 1.15, 1.4) * clamp(line, 0.0, 1.0) * 0.9 * step(5.0, y);
           } else if (style < 3.5) {
-            float px = floor(u / 7.0), py = floor(y / 5.0);
-            float hp = h31(vec3(px, py, seed * 50.0));
-            vec3 nc = hp < 0.18 ? vec3(3.0, 0.25, 0.6) : hp < 0.34 ? vec3(0.2, 1.6, 3.0) : hp < 0.48 ? vec3(3.0, 0.7, 0.1) : hp < 0.6 ? vec3(2.2, 0.2, 2.6) : hp < 0.66 ? vec3(0.3, 2.6, 0.8) : vec3(0.0);
-            vec2 pf = vec2(fract(u / 7.0), fract(y / 5.0));
-            float panel = step(0.08, pf.x) * step(pf.x, 0.92) * step(0.15, pf.y) * step(pf.y, 0.85);
-            float glyph = step(0.42, vn(vec2(u * 1.4, y * 1.2) + seed * 20.0));
-            emis = nc * panel * (0.35 + 0.65 * glyph) * (0.9 + 0.1 * sin(uTime * (2.0 + hp * 5.0) + hp * 30.0)) + wc * win * lit * 0.5;
+            // the waterfront podiums: one neon sign per shopfront (a clean strip along the top and a lit panel), one colour each
+            float sx = floor(u / 16.0), sf = fract(u / 16.0);
+            float hp = h31(vec3(sx, 3.0, seed * 50.0));
+            vec3 nc = hp < 0.2 ? vec3(2.6, 0.35, 0.9) : hp < 0.4 ? vec3(0.35, 1.6, 2.6) : hp < 0.55 ? vec3(2.6, 0.9, 0.2) : hp < 0.7 ? vec3(2.0, 1.9, 1.8) : vec3(0.0);
+            float fwy = fwidth(y) + 1e-3, fwu = fwidth(sf) + 1e-3;
+            float strip = smoothstep(vS.y - 3.6 - fwy, vS.y - 3.6 + fwy, y) * (1.0 - smoothstep(vS.y - 2.6 - fwy, vS.y - 2.6 + fwy, y));
+            float py = vS.y * 0.45;
+            float panel = smoothstep(py - fwy, py + fwy, y) * (1.0 - smoothstep(py + 3.5 - fwy, py + 3.5 + fwy, y))
+              * smoothstep(0.18 - fwu, 0.18 + fwu, sf) * (1.0 - smoothstep(0.82 - fwu, 0.82 + fwu, sf));
+            emis = nc * (strip * 1.1 + panel * 0.8) + wc * win * lit * 0.45;
           } else {
             float uu = (abs(N.x) > 0.5 ? vLoc.z : vLoc.x) + 0.5, yy = y / vS.y;
             float dx = min(abs(uu - fract(yy * 3.0)), abs(1.0 - uu - fract(yy * 3.0)));

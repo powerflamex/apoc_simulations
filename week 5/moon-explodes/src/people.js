@@ -198,7 +198,7 @@ export function personPose(p, v) {
   else if (w.leg && w.leg.kind !== 'run') o.yaw = lerpAng(w.leg.yaw, p.face, smooth(0, 0.6, w.since));
   // ---- what they do with their arms and heads ----
   const burst = smooth(V_BURST + 0.05 + sd * 0.3, V_BURST + 0.3 + sd * 0.3, v) * (1 - smooth(V_BURST + 1.6 + sd, V_BURST + 2.6 + sd, v));
-  const ringUp = smooth(13.5 + sd, 15 + sd, v) * (1 - smooth(21 + sd, 22.5 + sd, v));
+  const ringUp = smooth(12.6 + sd, 13.8 + sd, v) * (1 - smooth(16.4 + sd, 17.6 + sd, v));
   const flinch = smooth(V_SPLASH + 0.05 + sd * 0.15, V_SPLASH + 0.2 + sd * 0.15, v) * (1 - smooth(V_SPLASH + 0.9, V_SPLASH + 1.7, v));
   const rain = smooth(V_RAIN + sd, V_RAIN + 1.2 + sd, v);
   const act = p.act;
@@ -207,7 +207,7 @@ export function personPose(p, v) {
     o.look = 0.16 + 0.25 * ringUp;
     if (ringUp > 0) { o.armR += 0.35 * ringUp; if (act === 'phone2') o.armL += 0.35 * ringUp; }
   } else if (act === 'point') {
-    const pt = Math.max(smooth(1.0 + sd, 1.4 + sd, v) * (1 - smooth(4 + sd * 2, 4.6 + sd * 2, v)), ringUp, smooth(V_FIRST + 0.3 + sd, V_FIRST + 0.7 + sd, v) * (1 - smooth(27 + sd, 28, v)));
+    const pt = Math.max(smooth(1.0 + sd, 1.4 + sd, v) * (1 - smooth(4 + sd * 2, 4.6 + sd * 2, v)), ringUp, smooth(V_FIRST + 0.3 + sd, V_FIRST + 0.7 + sd, v) * (1 - smooth(V_RAIN + 0.8 + sd, V_RAIN + 1.8, v)));
     o.armR = lerp(0.05, 1.3 + 0.35 * ringUp, pt); o.look = 0.15 + 0.3 * ringUp;
   } else if (act === 'hug') {
     o.armL = 0.45; o.armR = 0.4; o.roll = (p === PEOPLE[3] ? 1 : -1) * 0.04; o.look = 0.15 + 0.3 * ringUp;

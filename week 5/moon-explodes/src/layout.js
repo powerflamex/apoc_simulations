@@ -74,5 +74,6 @@ export const WHEEL = { x: -420, z: -1500, y: 36, r: 30 };
 
 // The Moon: low in the south over the skyline, a little right of the middle of the view
 export const MOON_AZ = 3.2, MOON_EL = 15.2;     // degrees (az: + to the right of straight ahead)
-// The Moon's orbit crosses the sky from the Moon's spot up to the upper right (on the screen, 55° from the horizon)
-export const ORBIT_TILT = 55;
+// The Moon's orbit crosses the sky from the Moon's spot up to the upper right (on the screen, 28° from the horizon: the
+// ring arches across the sky over the skyline instead of rising out of it like a searchlight beam)
+export const ORBIT_TILT = 28;

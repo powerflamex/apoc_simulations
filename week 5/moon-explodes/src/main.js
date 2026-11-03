@@ -6,8 +6,9 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky, MOON_DIR } from './sky.js';
 import { makeWorld } from './world.js';
+import { makeMoonRocks } from './rocks.js';
 import { makeOverlay } from './overlay.js';
-import { state, VIDEO_DURATION, LOOP, V_BURST, SHATTER, ALPHA, storyT, HITS, V_SPLASH, V_WAVE, V_CHUNK, V_HIT } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, V_BURST, HITS, V_SPLASH, V_WAVE, V_CHUNK, V_HIT } from './timeline.js';
 import { camAt } from './camera.js';
 import { DEG, smooth, wobble, clamp, rng } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -39,6 +40,7 @@ scene.add(camera);
 const sky = makeSky();
 scene.add(sky.mesh);
 const world = makeWorld(scene, camera);
+const rocks = makeMoonRocks(scene);
 const overlay = makeOverlay();
 
 // post: MSAA -> bloom -> tone map -> the time-lapse leap (a zoom blur out of the Moon), grade, vignette, a band behind the title
@@ -77,14 +79,6 @@ const finish = new ShaderPass({
 });
 composer.addPass(finish);
 
-// the 7 cells' starting points (the same as in the sky shader) and how each drifts and tumbles
-const SEEDS = [[0.03, -0.04], [0.62, 0.15], [0.17, 0.64], [-0.48, 0.43], [-0.63, -0.19], [-0.14, -0.64], [0.46, -0.46]];
-const CELL = SEEDS.map((sd, i) => { const R = rng(30 + i); return { sd, k: 0.75 + 0.5 * R(), perp: (R() - 0.5) * 0.5, w: (R() < 0.5 ? -1 : 1) * (0.6 + 0.8 * R()) * 2 * Math.PI / (20 * 3600), sw: (R() < 0.5 ? -1 : 1) * (0.5 + R()) }; });
-const SHAT = SHATTER.map(([cell, v]) => ({ cell, v, T: storyT(v) }));
-// small flashes as the bits keep hitting each other (8-14 s)
-const SMALL = (() => { const R = rng(12), out = []; for (let t = 7.6; t < 14; t += 0.18 + R() * 0.3) out.push({ v: t, a: R() * 6.283, r: 0.15 + 0.55 * Math.sqrt(R()), I: 0.5 + R() * 0.6 }); return out; })();
-const ONE_H = 3600;
-
 function update(v, cover = -1) {
   const s = state(v);
   if (cover >= 0) s.flash = Math.max(s.flash, cover);
@@ -111,6 +105,7 @@ function update(v, cover = -1) {
   const px = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
 
   world.frame(v, s, camera, px);
+  rocks.frame(v, s, camera, px);
 
   // ---- the sky ----
   const u = sky.uniforms;
@@ -119,48 +114,20 @@ function update(v, cover = -1) {
   u.uPx.value = px; u.uTime.value = v;
   u.uM.value = s.M; u.uCut.value = v >= V_BURST ? 1 : 0;
   u.uCrack.value = v < V_BURST ? s.crack : 0;
-  u.uBurst.value = s.burst; u.uHot.value = s.hot; u.uPieces.value = s.pieces;
-  const T = Math.max(0, s.T);
-  CELL.forEach((cl, i) => {
-    const d = s.drift * cl.k;
-    u.uOff.value[i].set(cl.sd[0] * d - cl.sd[1] * d * cl.perp, cl.sd[1] * d + cl.sd[0] * d * cl.perp);
-    u.uRot.value[i] = cl.w * T;
-    u.uShat.value[i] = 0; u.uSubRot.value[i] = 0;
-  });
-  for (const e of SHAT) {
-    if (v < e.v) continue;
-    const dT = Math.max(0, T - e.T);
-    u.uShat.value[e.cell] = 0.16 * smooth(e.v, e.v + 0.35, v) + 0.75 * (1 - Math.exp(-dT / (5 * ONE_H)));
-    u.uSubRot.value[e.cell] = CELL[e.cell].sw * dT / (30 * ONE_H);
-  }
-  // flashes where they hit (screen-aligned, radians round the Moon)
-  let nf = 0;
-  const MA = s.M * ALPHA;
-  for (const f of u.uFlash.value) f.w = 0;
-  for (const e of SHAT) {
-    const dt = v - e.v;
-    if (dt < 0 || dt > 1.2 || nf >= 8) continue;
-    const o = u.uOff.value[e.cell], sd = SEEDS[e.cell];
-    u.uFlash.value[nf++].set((sd[0] * 0.75 + o.x) * MA, (sd[1] * 0.75 + o.y) * MA, Math.max(0.28 * MA, 5 * px), 2.2 * Math.exp(-dt / 0.2));
-  }
-  for (const f of SMALL) {
-    const dt = v - f.v;
-    if (dt < 0 || dt > 0.5 || nf >= 8) continue;
-    const r = f.r * s.dustR * 0.5 * MA;
-    u.uFlash.value[nf++].set(Math.cos(f.a) * r, Math.sin(f.a) * r, Math.max(0.12 * MA, 3 * px), f.I * Math.exp(-dt / 0.1));
-  }
+  // the whole Moon (and its cracks) until it comes apart; from then on the 3D pieces (rocks.js)
+  u.uBurst.value = s.burst; u.uHot.value = s.hot; u.uPieces.value = v < V_BURST ? 1 : 0;
   u.uDust.value = 0.2 * s.dust * (1 - 0.45 * s.rain); u.uDustR.value = s.dustR; u.uStretch.value = s.stretch;
   u.uRing.value = s.ring; u.uBand.value = 3.2; u.uSkyL.value = s.skyL;
   u.uStars.value = 1 - 0.6 * smooth(0.1, 1.2, s.skyL);
   u.uCity.value = 1 - 0.8 * s.black;
   u.uHeat.value = s.heat; u.uRain.value = s.rain; u.uLeap.value = s.leap;
-  u.uClear.value = 1 - smooth(14, 18, v);
+  u.uClear.value = 1 - smooth(12.4, 13.6, v);
   u.uFlashSky.value.setRGB(...s.flashSky);
   if (s.chunkI > 0) u.uChunkDir.value.set(...s.chunkDir);
   u.uChunkI.value = s.chunkI;
 
   // ---- exposure and post ----
-  renderer.toneMappingExposure = (1.35 - 0.3 * smooth(14, 18, v)) * (1 - 0.3 * s.rain - 0.25 * smooth(41, 45, v));
+  renderer.toneMappingExposure = (1.35 - 0.3 * smooth(12.6, 13.8, v)) * (1 - 0.3 * s.rain - 0.25 * smooth(V_CHUNK - 5, V_CHUNK - 1, v));
   bloom.strength = 0.35 + 0.1 * s.burst + 0.2 * s.chunk;
   bloom.threshold = 1.2;
   finish.uniforms.uLeap.value = window.__cover ? 0 : s.leap * (1 - smooth(20, 24, v));
