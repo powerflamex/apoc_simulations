@@ -876,6 +876,49 @@ Which star would you pick? 👇
 
 Cover: `week 5/star-picker/out/star-picker_v4_cover.png` (`node render.mjs --cover 1.2`: Arcturus's giant orange disc over the sea, the pier and its Ferris wheel, people squinting up close to you; "WHAT IF / Arcturus / replaced the Sun?")
 
+## Next Short. What if a rogue planet hit Earth? — `week 5/rogue-planet/out/rogue-planet_v4_1080x1920_60fps_tiktok.mp4`
+
+48.5 s. A time-lapse of the last 9 hours, all from one scramble crossing at night (a generic neon city, no real
+brands): you stand on the crossing among the crowd, the planet hangs over the avenue ahead. Frame 0: the title, the
+counter racing (IMPACT IN · TIME-LAPSE, 9h 00m, 750,000 miles away), a planet the size of Jupiter already 12x wider
+than the Moon with the Moon beside it, people around you filming it, the owner's "Noooo" in the first second. A
+time-lapse jump every 3 s (a hit in the sound, the camera jolts, the planet visibly bigger); the screens switch to an
+emergency alert; the Moon is dragged across the sky and smashes into the planet's edge at 12 s (2h 41m left); the sea
+surges up the avenue and round everyone's legs at 16-19 s; cracks across the crossing at 21 s; the planet fills the
+sky, papers and umbrellas blow up toward it (26-30 s); the crust tears open down the avenue with lava fountains and
+the volcano glow on the horizon (32 s); 8 minutes out (Earth's Roche limit) Earth starts to come apart: things,
+people and cars lift off (38-43 s); one 1.4 s cutaway of Earth from space stretched like an egg toward it ("It never
+even touches us"); the crust splits under you, white, loop.
+Numbers (`src/timeline.js`): Jupiter's mass and size, 30 km/s far out, speeding up as it falls (79,000 mph at 5 h,
+121,000 mph at 15 min); distance vs time integrated; the Moon's path integrated as a three-body problem (it hits the
+planet 2.7 h before Earth would); tides vs the Moon's = 25,860 x (384,400 km / d)^3; the solid Earth stretched
+0.6 x (M/M_E)(R_E/d)^3 R_E = 25 miles; its direct pull on you passes Earth's at 12.3 min; Earth's Roche limit 106,000
+km (8.1 min), contact at 76,282 km. The planet comes from beside the pole star, so it hangs in one spot all night
+while Earth turns (no honest "overhead" version would stay in the sky that long).
+Physics note: on a straight-in hit, Earth starts tearing apart minutes before contact; you are killed by that, not
+by the planet itself (what was left of Earth would still hit it a few minutes later).
+
+**YouTube title (76 chars, emoji counted as 2)**
+What if a rogue planet hit Earth? It never even touches us 🪐 #space #whatif
+
+**YouTube description**
+A rogue planet as heavy as Jupiter (318 Earths) falls straight at Earth. A time-lapse of the last 9 hours, from a city crossing at night.
+
+9 hours out: 750,000 miles away, already 12x wider than the Moon, coming at 79,000 mph.
+2 h 41 min out: it drags our Moon across the sky, and the Moon smashes into it.
+Its tides are 20,000x the Moon's: the sea floods the streets.
+It stretches Earth 25 miles out of shape: the ground cracks, the crust tears open.
+12 minutes out: its pull on you is stronger than Earth's.
+8 minutes out: Earth starts to come apart.
+
+It never even touches us.
+
+Where would you go with 9 hours left? 👇
+
+#whatif #space #rogueplanet #planets #shorts
+
+Cover: `week 5/rogue-planet/out/rogue-planet_v4_cover.png` (`node render.mjs --cover 22.5`: the planet's banded face filling the sky over the avenue, its whole curved edge showing, the crowd and the flooded crossing below; "WHAT IF A / rogue planet / hit Earth?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
