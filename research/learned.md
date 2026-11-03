@@ -260,6 +260,12 @@
   Short demand (989K, 332K for a Jupiter-size planet passing 184,000 km, 28K, 14K) and its new copies sit at 0-1K. Pattern:
   every classic topic is "done", including the black hole one that got this channel 3.3M; the winners on each topic are
   the few well-made ones, and the pile of low-effort copies gets nothing.
+- **The black hole Short was NOT first on its topic** (checked Nov 2): FactLayer "If a Black Hole Passed by Earth" 12M
+  (Jul 31), Shockora 4.3M (Aug 8), prodbeatsbymat "Earth fell into a black hole" 4M (Oct 5, two days before ours), Pavel
+  Sevecek's long "What if a Black Hole flew by Earth?" 2.2M (2 years old). Ours (Oct 7) got 3.4M anyway; later copies got
+  75K (What If Lab, Oct 16), 39K, 34K, and the newest 4-553. So joining a topic that is already hot, with a clearly better
+  video, works; it's the low-effort late copies that get nothing. Rogue planet looks the same: 3D Poly Films 989K (Apr,
+  low-poly 3D like ours), Behind Scenes 332K (Oct 9, a Jupiter-size planet passing).
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
