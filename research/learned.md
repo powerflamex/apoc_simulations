@@ -255,6 +255,11 @@
   grow-trillion 0:45). Either keep a Short tight (45-55 s) or make sure the 0:15-0:35 stretch earns more seconds.
 - time-stop (posted Nov 2, 3RhIDawgbz4): 5.2K at ~10 h, 66.3% stayed, 0:34 of 0:55 (score ~41), 82% from the Shorts feed.
 - Black-hole-appears stalled at 62.8K (142/h); antimatter stalled at 16K (164/h).
+- Topic checks (YouTube search, Nov 2): "gravity off for 5 seconds" is saturated (What If 2.3M and Peekaboo Kidz 3.2M,
+  years old; Shorts 378K, 90K, 36K, 27K, plus a dozen new copies at 4-1K views): dropped. Rogue planet hits Earth has proven
+  Short demand (989K, 332K for a Jupiter-size planet passing 184,000 km, 28K, 14K) and its new copies sit at 0-1K. Pattern:
+  every classic topic is "done", including the black hole one that got this channel 3.3M; the winners on each topic are
+  the few well-made ones, and the pile of low-effort copies gets nothing.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
