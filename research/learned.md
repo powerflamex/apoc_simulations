@@ -240,6 +240,22 @@
   new big sight) before Saturn at 1:02. The no-voice texts + countdown format works: reuse it for the next long video, with
   a big new sight by ~0:35 and nothing talky before it. Its traffic shows no Related-video link from the black hole Short yet.
 
+
+## Nov 2 read
+
+- Channel 647K views / 48 h (787K on Nov 1): the old hits' second push is cooling (black hole Short 152K / 48 h, was 205K).
+- **Antimatter retention curve (corrects the Nov 1 guess):** ~128% at 0:00, 106 at 0:05, 87 at 0:10, 78 at 0:12.5, 70 at 0:15,
+  53 at 0:20, 47 at 0:25, then nearly flat (42 at 0:30, 37 at 0:42, 30 at 0:60). Black-hole-appears for comparison: 84 at
+  0:10, 78 at 0:12.5, 73 at 0:15, 68 at 0:20, 65 at 0:25, 61 at 0:30, 54 at 0:40. The two match until ~0:12, then antimatter
+  loses 25 points in 8 s: exactly when the blast reaches you and it cuts from your street to the drone over downtown
+  ("Drop 1,000. Downtown is coming apart"). The space/far-city part after 0:25 barely loses anyone; the cut away from
+  you at 0:12 does. Same lesson, earlier: never leave "you" in the first 20 s.
+- Average view duration is 0:32-0:34 on every new Short whatever its length (speck 0:32 of 0:46 = 70%, time-stop 0:34 of
+  0:55 = 62%, antimatter 0:32 of 1:03 = 51%). The ones that became bigger hits held longer in seconds (sun-explodes 0:48,
+  grow-trillion 0:45). Either keep a Short tight (45-55 s) or make sure the 0:15-0:35 stretch earns more seconds.
+- time-stop (posted Nov 2, 3RhIDawgbz4): 5.2K at ~10 h, 66.3% stayed, 0:34 of 0:55 (score ~41), 82% from the Shorts feed.
+- Black-hole-appears stalled at 62.8K (142/h); antimatter stalled at 16K (164/h).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
