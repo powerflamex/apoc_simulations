@@ -266,6 +266,11 @@
   75K (What If Lab, Oct 16), 39K, 34K, and the newest 4-553. So joining a topic that is already hot, with a clearly better
   video, works; it's the low-effort late copies that get nothing. Rogue planet looks the same: 3D Poly Films 989K (Apr,
   low-poly 3D like ours), Behind Scenes 332K (Oct 9, a Jupiter-size planet passing).
+- More Short topic checks (Nov 2, top Shorts by views + upload date; "copies" = share of results under 1K):
+  Moon explodes: 28M (Feb 2024), 7.7M (Jun 2026), 226K, 59K (Oct 20), 13K (Oct 29); 8/14 copies. Huge, still paying. PICK.
+  Jump off the space station: 25M (Aug 2025), recent copies 3.7K and 1.1K. Big "you" premise; backup (not right after
+  fall-through-earth). Solar storm: 2.4M (Sep 2025), 61K (Oct 20); weaker visuals. Moon disappears: a same-day flood
+  (5 new uploads Nov 1-2, 1-14K): skip.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
