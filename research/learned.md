@@ -272,6 +272,22 @@
   fall-through-earth). Solar storm: 2.4M (Sep 2025), 61K (Oct 20); weaker visuals. Moon disappears: a same-day flood
   (5 new uploads Nov 1-2, 1-14K): skip.
 
+## Nov 3 read (per-video pages, afternoon)
+| Short | Length | Views | Stayed | Avg watched | % viewed | Score |
+|---|---|---|---|---|---|---|
+| rogue planet (Nov 3) | 0:49 | 39.9K in hours, 6.3K in the last hour, "55% above your other Shorts" | 65.6% | 0:36 | 73.5% | 48 |
+| time-stop (Nov 2) | 0:55 | 26.5K ("usual" 25.7-37.4K) | 68.1% | 0:36 | 65.5% | 45 |
+| antimatter (Nov 1) | 1:03 | 21.6K (4.8K below usual) | 66.7% | 0:32 | 50.8% | 34 |
+| black-hole-appears (Oct 31) | 0:46 | 67K | | | | |
+- Rogue planet is the best start since sun-explodes: a simple space disaster coming at Earth/you, a proven topic
+  (332K Oct 9), one street angle the whole time with the planet visibly bigger every 3 s. Back in the lane.
+- People watch ~0:32-0:36 of every Short whatever its length, so shorter Shorts get a higher % viewed: 49 s -> 73%,
+  55 s -> 65%, 63 s -> 51%. Aim for ~45-50 s (the 60-80 s rule in CLAUDE.md is out of date for Shorts).
+- time-stop curve (lifetime): 140% at 0:00, 99 at 0:06, 81 at 0:11, 70 at 0:16, 63 at 0:22, then a slow slide
+  60 -> 52 to 0:51. A smooth fade, no cliff.
+- Moon explodes v2 (66b7afc, 48.5 s) checked from the upload copy: big tumbling rock pieces 0-10 s, ring by 0:12,
+  first meteors 0:16, harbour fireball 0:22, rain on the city 0:25-0:43, white, clean loop; windows fixed. Ready.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
