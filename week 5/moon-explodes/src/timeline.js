@@ -4,8 +4,8 @@
 // time since the explosion; the sky is a TIME-LAPSE (the counter's tag) whose clock shows the true time passing.
 // The real numbers:
 //   - the Moon: 1,737 km radius, 384,400 km away (0.26° radius in the sky). On frame 0 it is drawn M0 = 18.5x bigger
-//     (the telephoto look) and stays that big for the first 10 s, so the pieces and their cloud grow on screen; while
-//     you look down at the tide (10.5-12.2 s) the lens goes back to true size (M = 1) for the ring.
+//     (the telephoto look) and stays that big through the tide (12 s), so the pieces and their cloud grow on screen;
+//     then the lens pulls back to true size (M = 1) as the rubble is dragged out into the ring (lensM).
 //   - an explosion that only just breaks it (Neal Stephenson's "Seveneves" idea): the 7 pieces stay loosely held
 //     together by their own gravity for days (the Moon's pull reaches ~60,000 km), drifting apart a little,
 //     tumbling and hitting each other; every hit breaks them smaller. The dust and the bits knocked loose escape
@@ -19,7 +19,7 @@ import { smooth, clamp, lerp, rng } from './util.js';
 import { TOWERS, TIDE_A } from './layout.js';
 
 export const STORY_START = 0;
-export const T_SWITCH = 47.6;            // inside the full white; the loop point sits in it
+export const T_SWITCH = 48.4;            // inside the full white; the loop point sits in it (the final blast rings out first)
 export const LOOP = 0.9;                 // the white clears onto the first frame over the last LOOP seconds
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
@@ -66,8 +66,20 @@ export function storyT(v) {
 export const TIDE_PHASE = Math.PI / 2 - 2 * Math.PI * storyT(11.2) / 44712;
 export const rateAt = (v) => (storyT(v + 0.004) - storyT(v - 0.004)) / 0.008;    // story s per video s
 
-// ---- the lens: the Moon drawn M0x its size (held while the pieces grind; true size, M = 1, once you look back up) ----
-export const lensM = (v) => (v <= 10.5 ? M0 : v >= 12.2 ? 1 : Math.exp(Math.log(M0) * (1 - smooth(10.5, 12.2, v))));
+// ---- the lens: the Moon drawn M0x its size (held while the pieces grind, through the tide) ----
+// As you look back up (12.2 s), the time-lapse leaps from 2 days to 3 weeks and the rubble is dragged out along the
+// orbit (shearR: how far, in Moon radii); the lens pulls back just as fast, so the strung-out rubble keeps about the
+// same length on screen (a little longer) while the pieces shrink to dots in it: it becomes the band. True size
+// (M = 1) by ~13.6 s.
+export const shearR = (T) => 2.2 * Math.pow(Math.max(0, T) / DAY, 1.2);
+const V_ZOOM = 12.2;
+let LEN0 = 0;
+export const lensM = (v) => {
+  if (v <= V_ZOOM) return M0;
+  const len = LEN0 * (1 + 0.35 * smooth(V_ZOOM, 13.6, v));
+  return clamp(len / (shearR(storyT(v)) * ALPHA), 1, M0);
+};
+LEN0 = shearR(storyT(V_ZOOM)) * M0 * ALPHA;
 // the 7 pieces drift apart (bound: they slow and stay within a few Moon radii) - how far, as a multiple of where
 // each started from the middle
 export const driftAt = (T) => 1.9 * (1 - Math.exp(-Math.max(0, T) / (8 * HR)));
@@ -136,9 +148,16 @@ export function captionAt(v) {
 }
 
 // ---- events ----
-// the 7 big pieces each shatter in a collision (video time); a flash where they hit
-// (piece 4, the big one lower left, stays whole: it tumbles slowly down toward you, growing - BIG_PIECE)
-export const SHATTER = [[3, 2.3], [5, 3.4], [1, 4.5], [6, 5.6], [0, 6.6], [2, 8.0]];
+// the big pieces shatter in collisions (video time), all in the first seconds and overlapping, as the blast shoves
+// them into each other: the big piece rams 3, 5 and 6 grind into each other, so do 0 and 1, and a fragment flung from
+// that crash breaks 2 (piece 4, the big one lower left, stays whole: it tumbles slowly toward you, growing - BIG_PIECE)
+export const SHATTER = [[3, 1.7], [5, 1.85], [6, 1.85], [1, 2.05], [0, 2.05], [2, 2.4]];
+// then the fragments keep crashing into each other, more and more often (a flash, a puff of dust, a spray of gravel)
+export const CRASHES = [];
+{
+  const R = rng(321);
+  for (let t = 2.8; t < 12.0;) { CRASHES.push({ v: t, seed: R(), size: 0.6 + 0.6 * R() }); t += lerp(0.6, 0.22, smooth(2.8, 9, t)) * (0.6 + 0.8 * R()); }
+}
 export const BIG_PIECE = 4;
 // the tide: the clock runs ~5 hours per second from 9.6 to 12.3 s, so the sea floods up the terraces and drains once
 export const V_FIRST = 16.6;             // the first piece falls in
@@ -242,11 +261,11 @@ export function state(v) {
   const days = Math.max(0, s.T) / DAY;
   s.stretch = 1 + Math.pow(days / 1.5, 1.1);
   // (the shapes go and the ring comes while you look down at the tide; it lights the sky as you look back up)
-  s.ring = smooth(11.0, 12.8, v);
+  s.ring = smooth(12.2, 13.4, v);
   s.dust = smooth(0.4, 3, v) * 0.4 + 0.6 * smooth(3, 11, v) + 0.6 * smooth(12, 15, v) + 0.4 * smooth(V_RAIN, 30, v);
-  s.pieces = 1 - smooth(10.5, 11.5, v);                                   // the 7 (and their bits) as shapes
+  s.pieces = 1 - smooth(13.2, 15.0, v);                                   // the fragments, dragged out along the orbit, ground to dust
   // the light from the sky: the full Moon, then the ring (bright enough to cast shadows), then the falling rock
-  s.skyL = 0.06 + 0.25 * smooth(3, 10, v) + 1.0 * smooth(12.6, 13.6, v) + 0.25 * smooth(V_RAIN, 32, v);
+  s.skyL = 0.06 + 0.25 * smooth(3, 10, v) + 1.0 * smooth(12.8, 13.8, v) + 0.25 * smooth(V_RAIN, 32, v);
   // the tide (story clock), its swing blurred away when the clock races too fast to follow
   const cyc = s.rate / 44712;
   const tideK = (1 - smooth(1.0, 2.0, cyc)) * (1 - smooth(12.3, 13.0, v));

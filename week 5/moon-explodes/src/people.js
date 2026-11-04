@@ -52,7 +52,7 @@ export const PEOPLE = [];
   }
   // sitting on the top steps
   for (let x = -55; x < 55; x += 0.9 + R() * 1.4) {
-    const k = R() < 0.6 ? 1 : 2, z = EDGE_Z - STEP_D * (k - 0.5) - 0.05;
+    const k = R() < 0.6 ? 1 : 2, z = EDGE_Z - STEP_D * k + 0.3;      // (on the step's front edge, legs over the next one down)
     if (free(x, z, 0.75)) { const p = add({ x, z, type: 'sit' }); p.yaw = Math.PI + (R() - 0.5) * 0.3; p.face = p.yaw; if (p.act === 'phone2') p.act = 'phone'; }
   }
   // the rest of the deck (busiest near the edge and round you)
@@ -225,6 +225,7 @@ export function personPose(p, v) {
   if (p.type === 'sit') {
     const up = p.up ? smooth(p.up, p.up + 0.55, v) : 0;
     o.sit = 1 - up;
+    o.y -= 0.4 * o.sit;                                   // (hips on the stone: the pose alone would sit them on a bench)
     if (up < 1 && act !== 'phone') { o.armL = lerp(0.5, o.armL, up); o.armR = lerp(0.45, o.armR, up); }
   }
   // ---- moving: walking, hurrying, running ----

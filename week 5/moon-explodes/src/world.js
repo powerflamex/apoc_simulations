@@ -170,7 +170,7 @@ export function makeWorld(scene, camera) {
       FL.uFront.value = EDGE_Z + 6.6 * s.flood - 0.3; FL.uTime.value = v; FL.uAmt.value = smooth(0.0, 0.08, s.flood);
 
       // ---- the light ----
-      const ringK = smooth(12.0, 13.4, v);
+      const ringK = smooth(12.3, 13.6, v);
       const L = tmpV.copy(MOON_DIR).lerp(ringDir(0.7), ringK).normalize();
       skyL.position.set(cp.x + L.x * 200, L.y * 200, cp.z + L.z * 200);
       skyL.target.position.set(cp.x, 0, cp.z - 8);
@@ -407,7 +407,7 @@ export function makeWorld(scene, camera) {
       you.commit();
       phoneBody.instanceMatrix.needsUpdate = true; screen.instanceMatrix.needsUpdate = true;
       SCR.uSpread.value = v < V_BURST ? 0 : smooth(V_BURST, 6, v) * (1 - smooth(11, 14, v)) + 0.01;
-      SCR.uRing.value = smooth(12.0, 13.4, v); SCR.uRain.value = s.rain;
+      SCR.uRing.value = smooth(12.3, 13.6, v); SCR.uRain.value = s.rain;
 
       fire.mat.uniforms.uTime.value = v;
       smoke.mat.uniforms.uTime.value = v;

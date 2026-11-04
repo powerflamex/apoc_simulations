@@ -1,11 +1,12 @@
 // The Moon coming apart as real 3D rock (from the burst until the pieces are ground into the ring):
 //   - the 7 big pieces (rockgeo.js) fit the cracks exactly at the burst, then drift apart and tumble, so their sunlit
 //     faces turn away (the dark side goes black) and the broken grey walls, glowing hot at first, come round;
-//   - collisions (timeline SHATTER): something rams each piece - the big piece, another piece, or a fragment flung
-//     from an earlier crash - with a flash and a puff of dust; the piece breaks into its 5 fragments, which spring
-//     apart and tumble faster, and a spray of rubble squirts out sideways from the crash;
-//   - the fragments keep grinding: they shed gravel and shrink, and the gravel and fragments are dragged out along
-//     the Moon's orbit (the shear that makes the ring);
+//   - collisions (timeline SHATTER), all in the first seconds and overlapping: the big piece rams one, two pairs grind
+//     into each other, a fragment flung from a crash breaks the last; each crash flashes, puffs dust, and breaks the
+//     piece into its 5 fragments, which spring apart and tumble faster, with a spray of rubble squirting out sideways;
+//   - then the fragments keep crashing into each other, more and more often (timeline CRASHES: they jolt apart, a
+//     flash, dust, gravel), shed gravel and shrink; everything is dragged out along the Moon's orbit (the shear that
+//     makes the ring), and in the time-lapse's leap from 2 days to 3 weeks it is strung out into the band;
 //   - the big piece (BIG_PIECE) never breaks: it rams two others and slowly grows as it sinks toward you.
 // All of it hangs in a group 20 km out along the Moon's direction, scaled so 1 unit = 1 Moon radius at the lens's
 // magnification (the same mapping as the sky shader), drawn on top of the sky; the city in front hides it as usual.
@@ -13,7 +14,7 @@ import * as THREE from 'three';
 import { buildMoonPieces, SEEDS } from './rockgeo.js';
 import { MOON_FNS, MOON_DIR, SCR_R, SCR_UP } from './sky.js';
 import { makeGlows } from './glows.js';
-import { ALPHA, V_BURST, SHATTER, BIG_PIECE, storyT } from './timeline.js';
+import { ALPHA, V_BURST, SHATTER, CRASHES, BIG_PIECE, storyT, shearR } from './timeline.js';
 import { ORBIT_TILT } from './layout.js';
 import { smooth, clamp, rng } from './util.js';
 
@@ -24,8 +25,9 @@ const UORB = new THREE.Vector3(Math.cos(ORBIT_TILT * Math.PI / 180), Math.sin(OR
 const L_LOCAL = new THREE.Vector3(-0.3, 0.14, 1).normalize();
 
 // how far the big pieces have drifted apart (x where each started from the middle), and the shear along the orbit
-const drift = (T) => 1.9 * (1 - Math.exp(-Math.pow(Math.max(0, T) / (8 * HR), 0.5)));
-const shear = (T) => 2.2 * Math.pow(Math.max(0, T) / DAY, 1.2);
+// (a quick first shove from the blast, then the slow drift of a loosely bound pile)
+const drift = (T) => 1.9 * (1 - Math.exp(-Math.pow(Math.max(0, T) / (8 * HR), 0.5))) + 0.4 * (1 - Math.exp(-Math.max(0, T) / 500));
+const shear = shearR;       // (Moon radii: ~5 at 2 days, ~85 at 3 weeks)
 
 const ROCK_VS = /* glsl */ `
   varying vec3 vO, vS, vN;
@@ -109,9 +111,9 @@ export function makeMoonRocks(scene) {
       vBreak: Infinity, frags: [],
     };
   });
-  // who hits whom: [victim, video time, striker] - the big piece rams two neighbours; later ones are hit by
-  // fragments flung out of the earlier crashes (striker: { piece } or { frag: parent })
-  const STRIKER = { 3: { piece: BIG_PIECE }, 5: { piece: BIG_PIECE }, 1: { piece: 6 }, 6: { frag: 5 }, 0: { frag: 3 }, 2: { frag: 0 } };
+  // who hits whom: the big piece rams 3; 5 and 6 grind into each other, so do 0 and 1 (mutual: both move, half way
+  // each); a fragment flung out of the 0-1 crash breaks 2 (striker: { piece } or { frag: parent })
+  const STRIKER = { 3: { piece: BIG_PIECE }, 5: { piece: 6, mutual: true }, 6: { piece: 5, mutual: true }, 1: { piece: 0, mutual: true }, 0: { piece: 1, mutual: true }, 2: { frag: 1 } };
   const EV = SHATTER.map(([cell, v]) => ({ cell, v, T: storyT(v), by: STRIKER[cell] || { piece: BIG_PIECE } }));
   for (const e of EV) PC[e.cell].vBreak = e.v;
   const LEAD = 0.9;          // how long (video s) a striker takes to close in
@@ -129,6 +131,8 @@ export function makeMoonRocks(scene) {
       const g = smooth(2.0, 10.5, v);
       out.s = 1 + 0.6 * g;
       out.p.y -= 0.3 * g; out.p.x -= 0.15 * g;
+      out.p.addScaledVector(UORB, 0.3 * shear(T));                       // (dragged along the orbit with the rest)
+      out.s *= 1 - 0.6 * smooth(11.5, 14.5, v);                          // (and ground down too)
     }
     return out;
   }
@@ -137,7 +141,7 @@ export function makeMoonRocks(scene) {
     freePiece(i, v, out);
     for (const e of EV) {
       if (e.by.piece !== i) continue;
-      const u = clamp((v - (e.v - LEAD)) / LEAD), pull = v <= e.v ? u * u * u : Math.exp(-(v - e.v) / 0.6) * 0.85;
+      const u = clamp((v - (e.v - LEAD)) / LEAD), pull = (v <= e.v ? u * u * u : Math.exp(-(v - e.v) / 0.6) * 0.85) * (e.by.mutual ? 0.5 : 1);
       if (pull <= 0) continue;
       const vic = freePiece(e.cell, Math.min(v, e.v), { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 });
       const target = vic.p.clone().addScaledVector(tmpV.copy(PC[i].c).sub(PC[e.cell].c), 0.84 * (0.5 + 0.5 * out.s));
@@ -166,7 +170,7 @@ export function makeMoonRocks(scene) {
       const p0 = tmpV2.copy(sub.c).sub(vic.c).applyQuaternion(pv.q).add(pv.p).clone();
       const f = { parent: e.cell, j, e, sub, mesh, p0, q0: pv.q.clone(), vBorn: e.v, TBorn: e.T, vDie: Infinity,
         ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), w: (R() < 0.5 ? -1 : 1) * 2 * Math.PI / ((0.25 + 0.5 * R()) * DAY),
-        sh: (R() * 2 - 1) * 0.55, speed: 0.08 + 0.12 * R(), pop: 0.05 + 0.07 * R(), rnd: new THREE.Vector3(R() - 0.5, R() - 0.5, (R() - 0.5) * 0.5) };
+        sh: (R() * 2 - 1) * 1.0, speed: 0.08 + 0.12 * R(), pop: 0.05 + 0.07 * R(), rnd: new THREE.Vector3(R() - 0.5, R() - 0.5, (R() - 0.5) * 0.5), kicks: [] };
       FR.push(f);
       return f;
     });
@@ -191,15 +195,17 @@ export function makeMoonRocks(scene) {
     const dtH = Math.max(0, storyT(v) - f.TBorn) / HR, dv = Math.max(0, v - f.vBorn);
     out.p.copy(f.p0).addScaledVector(f.dir, f.pop * (1 - Math.exp(-dv / 0.3)) + f.speed * 10 * (1 - Math.exp(-dtH / 10)));
     out.p.addScaledVector(UORB, f.sh * (shear(storyT(v)) - shear(f.TBorn)));
+    // the jolts from crashing into other fragments
+    for (const k of f.kicks) if (v > k.v) out.p.addScaledVector(k.dir, k.amt * (1 - Math.exp(-(v - k.v) / 0.4)));
     out.q.setFromAxisAngle(f.ax, f.w * dtH * HR).multiply(f.q0);
     // ground down: it sheds gravel and shrinks
-    out.s = 1 - 0.45 * smooth(f.vBorn + 1.0, 10.5, v);
+    out.s = 1 - 0.45 * smooth(f.vBorn + 1.0, 10.5, v) - 0.25 * smooth(11, 13.5, v);
     return out;
   }
   function fragPose(f, v, out) {
     fragFree(f, v, out);
     if (f.strike) {
-      const e = f.strike, u = clamp((v - (e.v - LEAD * 1.3)) / (LEAD * 1.3)), pull = u * u * u;
+      const e = f.strike, v0 = Math.max(e.v - LEAD * 1.3, f.vBorn + 0.02), u = clamp((v - v0) / (e.v - v0)), pull = u * u * u;
       if (pull > 0) {
         const vic = freePiece(e.cell, Math.min(v, e.v), { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 });
         out.p.lerp(vic.p.clone().addScaledVector(tmpV.copy(f.p0).sub(PC[e.cell].c).normalize(), 0.42), pull);
@@ -243,7 +249,7 @@ export function makeMoonRocks(scene) {
     const zf = Math.sqrt(1 - x * x - y * y);
     const p0 = new THREE.Vector3(x, y, zf * (0.6 + 0.4 * R()));
     const dir = new THREE.Vector3(x, y, 0.6 + R()).normalize().add(rdir().multiplyScalar(0.5)).normalize();
-    addG(V_BURST, p0, dir, 0.3 + 1.2 * R(), 0.15 + 0.6 * Math.pow(R(), 1.5), sizeOf(0.006, 0.04), 1, (R() * 2 - 1) * 0.8);
+    addG(V_BURST, p0, dir, 0.3 + 1.2 * R(), 0.15 + 0.6 * Math.pow(R(), 1.5), sizeOf(0.006, 0.04), 1, (R() * 2 - 1) * 1.3);
     n++;
   }
   // each crash: a spray squirting out sideways (across the line of the hit), and a puff
@@ -253,13 +259,40 @@ export function makeMoonRocks(scene) {
     for (let n = 0; n < 150; n++) {
       const d = rdir();
       d.addScaledVector(axis, -0.85 * d.dot(axis)).normalize();
-      addG(e.v, e.C.clone().addScaledVector(rdir(), 0.08 * R()), d, 0.1 + 0.6 * R(), 0.08 + 0.4 * Math.pow(R(), 1.6), sizeOf(0.005, 0.035), 0.9, (R() * 2 - 1) * 0.8);
+      addG(e.v, e.C.clone().addScaledVector(rdir(), 0.08 * R()), d, 0.1 + 0.6 * R(), 0.08 + 0.4 * Math.pow(R(), 1.6), sizeOf(0.005, 0.035), 0.9, (R() * 2 - 1) * 1.3);
+    }
+  }
+  // the fragments crashing into each other (timeline CRASHES): a fragment and its nearest neighbour jolt apart, with a
+  // flash, a puff and a spray of gravel where they meet
+  const CR = [];
+  {
+    const pa = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 }, pb = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 };
+    for (const c of CRASHES) {
+      const alive = FR.filter((f) => f.vBorn < c.v - 0.25 && f.vDie > c.v + 0.3);
+      if (alive.length < 2) continue;
+      const f = alive[Math.floor(c.seed * alive.length)];
+      fragPose(f, c.v, pa);
+      let g = null, bd = 1e9;
+      for (const o of alive) { if (o === f) continue; fragPose(o, c.v, pb); const d = pb.p.distanceTo(pa.p); if (d < bd) { bd = d; g = o; } }
+      fragPose(g, c.v, pb);
+      const axis = pb.p.clone().sub(pa.p).normalize();
+      const C = pa.p.clone().lerp(pb.p, 0.5);
+      const R4 = rng(Math.floor(c.seed * 1e6));
+      const puffs = Array.from({ length: 5 }, () => ({ d: new THREE.Vector3(R4() - 0.5, R4() - 0.5, 0.3 + R4() * 0.4).normalize(), s: 0.5 + 0.6 * R4() }));
+      CR.push({ v: c.v, C, size: c.size, puffs });
+      f.kicks.push({ v: c.v, dir: axis.clone().negate(), amt: 0.08 * c.size });
+      g.kicks.push({ v: c.v, dir: axis.clone(), amt: 0.08 * c.size });
+      for (let n = 0; n < 40 * c.size; n++) {
+        const d = rdir();
+        d.addScaledVector(axis, -0.85 * d.dot(axis)).normalize();
+        addG(c.v, C.clone().addScaledVector(rdir(), 0.05 * R()), d, 0.05 + 0.3 * R(), 0.05 + 0.25 * Math.pow(R(), 1.6), sizeOf(0.004, 0.025), 0.7, (f.sh + g.sh) / 2 + (R() - 0.5) * 0.6);
+      }
     }
   }
   // the grinding: gravel shed by the fragments as they keep knocking together
   const tmpPose = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 };
   for (let n = 0; n < 900; n++) {
-    const v0 = 3.0 + 7.5 * Math.pow(R(), 0.8);
+    const v0 = 2.6 + 9.6 * Math.pow(R(), 0.8);
     const alive = FR.filter((f) => f.vBorn < v0 - 0.3 && f.vDie > v0);
     if (!alive.length) continue;
     const f = alive[Math.floor(R() * alive.length)];
@@ -274,7 +307,7 @@ export function makeMoonRocks(scene) {
 
   // the small flashes as the fragments keep hitting each other (on a fragment, picked at random)
   const SPARK = [];
-  { const R2 = rng(31); for (let t = 3.2; t < 10.8; t += 0.16 + R2() * 0.28) SPARK.push({ v: t, pick: R2(), off: new THREE.Vector3(R2() - 0.5, R2() - 0.5, 0.5).multiplyScalar(0.4), I: 0.5 + R2() * 0.7 }); }
+  { const R2 = rng(31); for (let t = 2.6; t < 12.6; t += 0.16 + R2() * 0.28) SPARK.push({ v: t, pick: R2(), off: new THREE.Vector3(R2() - 0.5, R2() - 0.5, 0.5).multiplyScalar(0.4), I: 0.5 + R2() * 0.7 }); }
   // the puffs at each crash
   for (const e of EV) { const R3 = rng(400 + e.cell); e.puffs = Array.from({ length: 9 }, () => ({ d: new THREE.Vector3(R3() - 0.5, R3() - 0.5, 0.3 + R3() * 0.4).normalize(), s: 0.6 + 0.8 * R3() })); }
 
@@ -329,7 +362,8 @@ export function makeMoonRocks(scene) {
         tmpV.copy(g.p0).addScaledVector(g.dir, g.pop * (1 - Math.exp(-dv / 0.35)) + g.speed * 6 * (1 - Math.exp(-Tg / HR / 6)));
         tmpV.addScaledVector(UORB, g.sh * (shear(T) - shear(g.T0)));
         tmpQ.setFromAxisAngle(g.ax, g.w * Tg);
-        const sz = g.size * fade * smooth(g.v0, g.v0 + 0.08, v);
+        // (never smaller than ~1 pixel: far off, the gravel stays a glint instead of flickering out)
+        const sz = Math.max(g.size, 1.1 * px / (ALPHA * s.M)) * fade * smooth(g.v0, g.v0 + 0.08, v);
         gravel.setMatrixAt(n, m4.compose(tmpV, tmpQ, sc.set(sz, sz, sz)));
         aHot.setX(n, g.hot * Math.exp(-dv / 0.6) * 1.2);
         n++;
@@ -342,13 +376,13 @@ export function makeMoonRocks(scene) {
       for (const e of EV) {
         const dt = v - e.v;
         if (dt < -0.03 || dt > 2.5) continue;
-        const C = toWorld(tmpV.copy(e.C).add(tmpV2.set(0, 0, 0.6)));
+        const C = toWorld(tmpV.copy(e.C).add(tmpV2.set(0, 0, 1.4)));
         const fl = Math.exp(-Math.max(0, dt) / 0.16);
         glows.add(C.x, C.y, C.z, W(0.5 + 0.8 * Math.max(0, dt)), 4.5 * fl, 3.4 * fl, 2.4 * fl);
         for (const p of e.puffs) {
           const a = smooth(0, 0.15, dt) * Math.exp(-Math.max(0, dt) / 0.9) * fade;
           const hot = Math.exp(-Math.max(0, dt) / 0.25);
-          const P2 = toWorld(tmpV.copy(e.C).addScaledVector(p.d, (0.1 + 0.35 * Math.sqrt(Math.max(0, dt))) * p.s).add(tmpV2.set(0, 0, 0.5)));
+          const P2 = toWorld(tmpV.copy(e.C).addScaledVector(p.d, (0.1 + 0.35 * Math.sqrt(Math.max(0, dt))) * p.s).add(tmpV2.set(0, 0, 1.3)));
           glows.add(P2.x, P2.y, P2.z, W((0.18 + 0.4 * Math.sqrt(Math.max(0, dt))) * p.s), (0.32 + 1.6 * hot) * a, (0.3 + 0.7 * hot) * a, (0.27 + 0.2 * hot) * a);
         }
       }
@@ -356,6 +390,18 @@ export function makeMoonRocks(scene) {
       if (db < 1.5) {
         const C = toWorld(tmpV.set(0, 0, 1.2)), a = Math.exp(-db / 0.25);
         glows.add(C.x, C.y, C.z, W(1.6), 2.2 * a, 1.6 * a, 1.0 * a);
+      }
+      for (const c of CR) {
+        const dt = v - c.v;
+        if (dt < -0.02 || dt > 1.8) continue;
+        const C = toWorld(tmpV.copy(c.C).add(tmpV2.set(0, 0, 1.2)));
+        const fl = Math.exp(-Math.max(0, dt) / 0.12) * c.size;
+        glows.add(C.x, C.y, C.z, W(0.25 + 0.4 * Math.max(0, dt)), 3.6 * fl, 2.6 * fl, 1.7 * fl);
+        for (const p of c.puffs) {
+          const a = smooth(0, 0.12, dt) * Math.exp(-Math.max(0, dt) / 0.7) * fade * c.size, hot = Math.exp(-Math.max(0, dt) / 0.2);
+          const P2 = toWorld(tmpV.copy(c.C).addScaledVector(p.d, (0.05 + 0.2 * Math.sqrt(Math.max(0, dt))) * p.s).add(tmpV2.set(0, 0, 1.1)));
+          glows.add(P2.x, P2.y, P2.z, W((0.1 + 0.25 * Math.sqrt(Math.max(0, dt))) * p.s), (0.3 + 1.4 * hot) * a, (0.28 + 0.6 * hot) * a, (0.25 + 0.2 * hot) * a);
+        }
       }
       const alive = FR.filter((f) => v >= f.vBorn + 0.4 && v < f.vDie);
       for (const sp of SPARK) {
