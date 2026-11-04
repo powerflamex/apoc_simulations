@@ -282,7 +282,7 @@
 - Rogue planet is the best start since sun-explodes: a simple space disaster coming at Earth/you, a proven topic
   (332K Oct 9), one street angle the whole time with the planet visibly bigger every 3 s. Back in the lane.
 - People watch ~0:32-0:36 of every Short whatever its length, so shorter Shorts get a higher % viewed: 49 s -> 73%,
-  55 s -> 65%, 63 s -> 51%. Aim for ~45-50 s (the 60-80 s rule in CLAUDE.md is out of date for Shorts).
+  55 s -> 65%, 63 s -> 51%. Aim for ~45-50 s (now the rule in CLAUDE.md, owner agreed Nov 3).
 - time-stop curve (lifetime): 140% at 0:00, 99 at 0:06, 81 at 0:11, 70 at 0:16, 63 at 0:22, then a slow slide
   60 -> 52 to 0:51. A smooth fade, no cliff.
 - Moon explodes v2 (66b7afc, 48.5 s) checked from the upload copy: big tumbling rock pieces 0-10 s, ring by 0:12,

@@ -62,7 +62,8 @@ Use this for every new video and every rework:
   stall at <300 views; same-channel twins that open on the spectacle get the first ~1,000.
 - **Scenes:** bright and busy, with people, cars and city lights, so the viewer pictures themselves there.
 - **On-screen captions:** short, put "you" somewhere concrete, and give one hard number.
-- **Length:** 60-80 s. **Loop:** always (nobody else in the niche does it).
+- **Length:** 45-50 s (owner's call, Nov 3). Viewers watch ~32-36 s of every Short whatever its length, so shorter
+  ones get a bigger share watched (49 s -> 73%, 55 s -> 65%, 63 s -> 51%). **Loop:** always (nobody else in the niche does it).
 - **Loop point on a plain screen:** TikTok and Shorts freeze the last frame for a moment when they loop, so the cut
   must sit inside a full white flash, deep water, or solid ice, never in the middle of a detailed shot.
 - Topics that are proven hits: Earth stops spinning, the Moon crashes into Earth, "X disappears for 5 seconds".
