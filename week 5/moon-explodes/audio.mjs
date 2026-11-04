@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, T_SWITCH, LOOP, V_BURST, JUMPS, SHATTER, CRASHES, METEORS, HITS, FAR_HITS, V_SPLASH, V_WAVE, V_RAIN, V_RUN,
+import { VIDEO_DURATION, T_SWITCH, LOOP, V_BURST, JUMPS, SHATTER, CRASHES, METEORS, HITS, FAR_HITS, V_SPLASH, V_WAVE, V_RAIN, V_RUN, GROUND_HITS,
   V_FIRST, V_CHUNK, V_HIT, state } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -61,18 +61,20 @@ export function makeSoundtrack(outFile) {
   // ---- events ----
   const leaps = JUMPS.map((t, i) => ({ t, k: 0.45 + 0.07 * i }));
   // { t, f (Hz), g, d (decay s), pan, bl: how much blast (the crack and roar you hear on a phone speaker, which can't
-  // play the deep part) }
+  // play the deep part) }. Every impact you see is heard AT the moment you see it (the real delay of sound over 0.5-2 km
+  // made them look silent).
   const booms = [];
-  booms.push({ t: V_BURST, f: 34, g: 1.0, d: 2.2, pan: 0.1, bl: 0.7 });
-  for (const [, v] of SHATTER) booms.push({ t: v + 0.05, f: 42 + R0() * 10, g: 0.35, d: 1.2, pan: R0() * 0.8 - 0.4, bl: 0.4 });
-  for (const c of CRASHES) booms.push({ t: c.v + 0.04, f: 48 + R0() * 14, g: 0.12 * c.size, d: 0.8, pan: R0() * 0.8 - 0.4, bl: 0.18 * c.size });
-  booms.push({ t: V_SPLASH + 1.46, f: 30, g: 1.0, d: 2.5, pan: 0.25, bl: 1.1 });       // the splash's boom, 500 m off
-  for (const h of HITS) booms.push({ t: h.v + 1.0, f: 30 + 6 * R0(), g: 0.55 + 0.2 * h.size, d: 2.0, pan: clamp(h.t.x / 600, -0.8, 0.8), bl: 0.45 + 0.15 * h.size });
-  for (const h of FAR_HITS) booms.push({ t: h.v + 1.5, f: 26, g: 0.35, d: 2.6, pan: clamp(h.p[0] / 9000, -0.7, 0.7), bl: 0.12 });
-  for (const m of METEORS) if (m.kind === 1 && R0() < 0.35) booms.push({ t: m.v1 + 0.6 + R0() * 0.8, f: 38 + R0() * 18, g: 0.12 + 0.08 * R0(), d: 1.0, pan: R0() * 1.4 - 0.7, bl: 0.06 });
+  booms.push({ t: V_BURST, f: 34, g: 1.0, d: 2.2, pan: 0.1, bl: 0.9 });
+  for (const [, v] of SHATTER) booms.push({ t: v + 0.02, f: 42 + R0() * 10, g: 0.35, d: 1.2, pan: R0() * 0.8 - 0.4, bl: 0.65 });
+  for (const c of CRASHES) booms.push({ t: c.v + 0.02, f: 48 + R0() * 14, g: 0.12 * c.size, d: 0.8, pan: R0() * 0.8 - 0.4, bl: 0.32 * c.size });
+  booms.push({ t: V_SPLASH + 0.04, f: 30, g: 1.0, d: 2.5, pan: 0.25, bl: 1.7 });       // the fireball hitting the harbour
+  for (const h of HITS) booms.push({ t: h.v + 0.04, f: 30 + 6 * R0(), g: 0.55 + 0.2 * h.size, d: 2.0, pan: clamp(h.t.x / 600, -0.8, 0.8), bl: 1.25 + 0.3 * h.size });
+  for (const h of FAR_HITS) booms.push({ t: h.v + 0.1, f: 26, g: 0.35, d: 2.6, pan: clamp(h.p[0] / 9000, -0.7, 0.7), bl: 0.2 });
+  for (const g of GROUND_HITS) booms.push({ t: g.v + 0.04, f: 32 + R0() * 10, g: 0.18 * g.size, d: 1.4, pan: clamp(g.p[0] / 2600, -0.8, 0.8), bl: 0.12 + 0.14 * g.size });
+  for (const m of METEORS) if (m.kind === 1) booms.push({ t: m.v1 + 0.05, f: 38 + R0() * 18, g: 0.12 + 0.08 * R0(), d: 1.0, pan: R0() * 1.4 - 0.7, bl: 0.07 });
   // the giant chunk: the loudest thing in the video, and it rings on into the white (it alone isn't faded early)
   booms.push({ t: V_HIT, f: 24, g: 1.9, d: 3.5, pan: 0, bl: 3.2, fin: true });
-  for (const b of booms) if (b.bl) { b.F = new SVF(); b.F2 = new SVF(); b.mph = 0; }
+  for (const b of booms) if (b.bl) { b.F = new SVF(); b.F2 = new SVF(); b.F3 = new SVF(); b.mph = 0; }
   // whooshes: the first piece, the fireballs that hit, the splash's fireball
   const whoosh = [];
   for (const m of METEORS) if (m.kind >= 2 || (m.kind === 0 && m.v0 === V_FIRST)) whoosh.push({ t0: m.v0, t1: m.v1, g: m.kind === 0 ? 0.25 : 0.5, pan: clamp(m.p1[0] / 1500, -0.7, 0.7) });
@@ -97,6 +99,7 @@ export function makeSoundtrack(outFile) {
   const revL = new Reverb(1), revR = new Reverb(2);
   const ph = new Float64Array(16);
   let bL = 0, bR = 0, tideVel = 0, braamPh = [0, 0, 0, 0], shPh = [0, 0, 0, 0];
+  let xl = 0, xr = 0, duck = 0;           // the impacts' blast (its own bus) and how much it pushes everything else down
   const bph = booms.map(() => 0);
   let st = S(T0), stT = T0;
   for (let n = 0; n < N; n++) {
@@ -176,7 +179,8 @@ export function makeSoundtrack(outFile) {
     }
     // --- booms (deep, soft: the pieces hitting, the splash, the towers, the big ones) ---
     {
-      let bm = 0, sub = 0, bp = 0, xl = 0, xr = 0;
+      let bm = 0, sub = 0, bp = 0;
+      xl = 0; xr = 0; duck = 0;
       const finFade = 1 - smooth(T_SWITCH - 1.0, T_SWITCH - 0.05, t);
       booms.forEach((b, i) => {
         const dt = t - b.t;
@@ -196,12 +200,14 @@ export function makeSoundtrack(outFile) {
           b.mph += (62 * (1 + 1.6 * Math.exp(-dt * 9))) / SR;
           const thump = Math.tanh(2.5 * Math.sin(TAU * b.mph)) * env(dt, 0.003, 0.18) * b.bl * fd * 0.5;
           const crk = R0() < 0.004 * Math.exp(-dt / 0.6) ? white() * 1.25 * eb : 0;
-          const v = crack + rumble + thump + crk;
+          const snap = b.F3.run(wn, 2500, 0.8).hp * env(dt, 0.0008, 0.03) * b.bl * fd * 0.8;      // the first crack
+          const v = crack + rumble + thump + crk + snap;
+          duck += Math.min(1, b.bl) * env(dt, 0.004, 0.35) * fd;
           xl += v * (1 - 0.6 * b.pan); xr += v * (1 + 0.6 * b.pan); wet += v * 0.35;
         }
       });
       const rb = boomLP.run(white()) * 1.5 * Math.min(1, Math.abs(sub)) ;
-      l += (bm + rb * 0.5) * 0.55 + xl * 0.5; r += (bp + rb * 0.5) * 0.55 + xr * 0.5; wet += sub * 0.25;
+      l += (bm + rb * 0.5) * 0.55; r += (bp + rb * 0.5) * 0.55; wet += sub * 0.25;
     }
     // --- whooshes (the pieces coming down) ---
     {
@@ -236,7 +242,9 @@ export function makeSoundtrack(outFile) {
       }
     }
     const wl = revL.run(wet * 0.5), wr = revR.run(wet * 0.5);
-    L[n] = l + wl * 0.8; R[n] = r + wr * 0.8;
+    // everything else dips for a moment under each impact, so the hits punch through the rain's roar
+    const dk = 1 - 0.5 * Math.min(1, duck);
+    L[n] = (l + wl * 0.8) * dk + xl * 1.3; R[n] = (r + wr * 0.8) * dk + xr * 1.3;
   }
   // the owner's scream (sfx/scream.mp3) as it comes apart. The file's 0.57 s of silence is cut
   {

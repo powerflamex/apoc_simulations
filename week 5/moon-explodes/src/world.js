@@ -13,7 +13,7 @@ import { makeGlows } from './glows.js';
 import { makeStreaks } from './streaks.js';
 import { PEOPLE, personPose, phoneOf } from './people.js';
 import { EDGE_Z, SEA0, farY, deckY as deckYAt } from './layout.js';
-import { METEORS, HITS, FAR_HITS, V_SPLASH, SPLASH, V_WAVE, V_CHUNK, V_HIT, CHUNK, V_RAIN, V_BURST } from './timeline.js';
+import { METEORS, HITS, FAR_HITS, GROUND_HITS, V_SPLASH, SPLASH, V_WAVE, V_CHUNK, V_HIT, CHUNK, V_RAIN, V_BURST } from './timeline.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 import { MOON_DIR, ringDir } from './sky.js';
 
@@ -127,15 +127,7 @@ export function makeWorld(scene, camera) {
   scene.add(chunk);
 
   // ---- the hard rain on the hills and the far shore (each with its own streak; fires that stay) ----
-  const GROUND_HITS = [];
-  {
-    const R = rng(808);
-    for (let k = 0; k < 70; k++) {
-      const v = V_RAIN + 2.6 + Math.pow(R(), 0.8) * (V_HIT - V_RAIN - 2.85);
-      const x = (R() * 2 - 1) * 2600, z = -2600 - R() * 2400;
-      GROUND_HITS.push({ v, p: [x, farY(x, z), z], size: 0.5 + R() * 0.9, seed: R() });
-    }
-  }
+  // (timeline GROUND_HITS, so the soundtrack has them too)
   const DUST = [];
   {
     const R = rng(606);

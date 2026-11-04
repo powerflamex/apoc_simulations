@@ -16,7 +16,7 @@
 //   - anything that falls in from up there hits the air at ~11 km/s (25,000 mph); the hard rain's streaks heat the sky.
 //   - the count reaches ~12 trillion by the end (average piece ~120 m across: the Moon is 2.2e19 m³).
 import { smooth, clamp, lerp, rng } from './util.js';
-import { TOWERS, TIDE_A } from './layout.js';
+import { TOWERS, TIDE_A, farY } from './layout.js';
 
 export const STORY_START = 0;
 export const T_SWITCH = 48.4;            // inside the full white; the loop point sits in it (the final blast rings out first)
@@ -198,6 +198,17 @@ export const FAR_HITS = [];
 {
   const R = rng(91);
   for (let k = 0; k < 14; k++) FAR_HITS.push({ v: 30.5 + k * 0.95 + R() * 0.4, p: [(R() * 2 - 1) * 9000, 0, -14000 - R() * 30000], size: 0.7 + R() * 0.8 });
+}
+
+// the hard rain on the hills and the far shore (each with its own streak; fires that stay)
+export const GROUND_HITS = [];
+{
+  const R = rng(808);
+  for (let k = 0; k < 70; k++) {
+    const v = V_RAIN + 2.6 + Math.pow(R(), 0.8) * (V_HIT - V_RAIN - 2.85);
+    const x = (R() * 2 - 1) * 2600, z = -2600 - R() * 2400;
+    GROUND_HITS.push({ v, p: [x, farY(x, z), z], size: 0.5 + R() * 0.9, seed: R() });
+  }
 }
 
 // ---- the falling pieces: streaks (world metres; you are at the origin) ----
