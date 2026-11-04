@@ -41,14 +41,14 @@ const TU = (km) => HALF - TD(km);          // the same depth on the way up
 
 // ---- the big moments (video time) ----
 export const V_METRO = 1.2;
-// (a beat every 2.6 s on the way down; the way up, the same layers again, goes a little faster)
+// (a beat every 2.6 s on the way down; the way up, the same layers again, goes faster: ~1.8 s a beat)
 export const V_BURJ = 6.4, V_MINE = 9.0, V_KOLA = 11.6, V_CRUST = 14.2, V_DIAMOND = 16.8, V_660 = 19.4, V_DEEP = 22.0;
 export const V_OUTER = 24.6, V_INNER = 27.4, V_CENTER = 31.8;
-export const V_INNER_UP = 34.65, V_OUTER_UP = 36.9, V_660_UP = 39.2, V_CRUST_UP = 41.5, V_KOLA_UP = 43.15, V_BURJ_UP = 44.9;
-export const V_STREET = 50.2;              // the cut to the street in New Zealand
-export const V_APEX = 52.2;                // you stop right at the top
-export const V_FLASH = 53.7;               // the white starts
-export const T_SWITCH = 54.4;              // full white; the loop point sits in it
+export const V_INNER_UP = 34.1, V_OUTER_UP = 35.8, V_660_UP = 37.6, V_CRUST_UP = 39.5, V_KOLA_UP = 40.5, V_BURJ_UP = 41.5;
+export const V_STREET = 44.6;              // the cut to the street in New Zealand
+export const V_APEX = 46.6;                // you stop right at the top
+export const V_FLASH = 48.1;               // the white starts
+export const T_SWITCH = 48.8;              // full white; the loop point sits in it
 export const LOOP = 0.9;                   // the white clears onto the first frame over the last LOOP seconds
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
@@ -79,8 +79,8 @@ const T_KEYS = [
   [V_660, TD(D_660)], [V_DEEP, TD(D_DEEP)], [V_OUTER, TD(D_OUTER)], [V_INNER, TD(D_INNER)], [V_CENTER, QUARTER],
   [V_INNER_UP, TU(D_INNER)], [V_OUTER_UP, TU(D_OUTER)], [V_660_UP, TU(D_660)], [V_CRUST_UP, TU(D_CRUST)],
   [V_KOLA_UP, TU(D_KOLA)], [V_BURJ_UP, TU(D_BURJ)],
-  [46.7, HALF - 6.6], [48.55, HALF - 3.3], [49.8, HALF - 1.6], [50.8, HALF - 0.65], [V_APEX, HALF],
-  [53.4, HALF + 0.55], [54.3, HALF + 1.35],
+  [42.6, HALF - 6.6], [43.7, HALF - 3.3], [44.25, HALF - 1.6], [45.2, HALF - 0.65], [V_APEX, HALF],
+  [47.8, HALF + 0.55], [48.7, HALF + 1.35],
 ];
 export const storyT = pchip(T_KEYS);
 export const rateAt = (v) => (storyT(v + 0.02) - storyT(v - 0.02)) / 0.04;
@@ -145,12 +145,11 @@ export const CAPTIONS = [
   [V_660, 21.8, 'This rock is 1,600°C, hotter than lava. It slowly flows.'],
   [V_OUTER, 27.2, 'An ocean of liquid iron, over 4,000°C.'],
   [29.2, 31.65, '5,400°C: as hot as the surface of the Sun.'],
-  [33.5, 36.1, 'Here, gravity pulls you equally from every side.'],
-  [36.35, 39.05, 'Now it pulls you back. You start slowing down.'],
-  [V_CRUST_UP, 44.0, 'You slow down exactly as fast as you sped up.'],
-  [44.7, 47.45, 'You come out in New Zealand, in the middle of the night.'],
-  [47.75, 50.05, 'Right on time: 42 minutes after you jumped.'],
-  [50.7, 53.65, 'You stop right at the top… and fall back to Madrid.'],
+  [33.5, 35.5, 'Here, gravity pulls you equally from every side.'],
+  [35.6, 37.55, 'Now it pulls you back. You start slowing down.'],
+  [39.35, 41.85, 'You come out in New Zealand, in the middle of the night.'],
+  [42.05, 44.3, 'Right on time: 42 minutes after you jumped.'],
+  [45.1, 48.05, 'You stop right at the top… and fall back to Madrid.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;

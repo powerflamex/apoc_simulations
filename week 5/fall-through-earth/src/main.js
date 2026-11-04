@@ -129,13 +129,13 @@ const SHOTS = [
   { v0: 24.6, v1: 27.4, kind: 'side', a: 2 },
   { v0: 27.4, v1: 29.2, kind: 'down', a: 3 },
   { v0: 29.2, v1: V_CENTER, kind: 'visor', a: 1 },
-  { v0: V_CENTER, v1: 34.4, kind: 'cut', view: [[V_CENTER, 6371, 5200, 0], [34.4, 6371, 7400, 0]], ghost: [0, 0, 0], trail: 1, places: 0 },
-  { v0: 34.4, v1: 36.6, kind: 'up', a: 2 },
-  { v0: 36.6, v1: 39.2, kind: 'visor', a: 2 },
-  { v0: 39.2, v1: 41.6, kind: 'cut', view: [[39.2, 12300, 5600, -560], [41.6, 12500, 2600, -260]], ghost: [0, 0, 0], trail: 1, places: 2 },
-  { v0: 41.6, v1: 44.7, kind: 'side', a: 3 },
-  { v0: 44.7, v1: 46.6, kind: 'cut', view: [[44.7, 6371, 15500, 0], [45.3, 6371, 15000, 0], [46.6, 12600, 650, -30]], ghost: [0, 0, 0], trail: 1, places: 2 },
-  { v0: 46.6, v1: V_STREET, kind: 'up', a: 3 },
+  { v0: V_CENTER, v1: 33.9, kind: 'cut', view: [[V_CENTER, 6371, 5200, 0], [33.9, 6371, 7400, 0]], ghost: [0, 0, 0], trail: 1, places: 0 },
+  { v0: 33.9, v1: 35.6, kind: 'up', a: 2 },
+  { v0: 35.6, v1: 37.6, kind: 'visor', a: 2 },
+  { v0: 37.6, v1: 39.6, kind: 'cut', view: [[37.6, 12300, 5600, -560], [39.6, 12500, 2600, -260]], ghost: [0, 0, 0], trail: 1, places: 2 },
+  { v0: 39.6, v1: 41.4, kind: 'side', a: 3 },
+  { v0: 41.4, v1: 42.9, kind: 'cut', view: [[41.4, 6371, 15500, 0], [41.85, 6371, 15000, 0], [42.9, 12600, 650, -30]], ghost: [0, 0, 0], trail: 1, places: 2 },
+  { v0: 42.9, v1: V_STREET, kind: 'up', a: 3 },
   { v0: V_STREET, v1: 99, kind: 'street' },
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.v0 && v < s.v1) || SHOTS[SHOTS.length - 1];
@@ -224,7 +224,7 @@ function update(v, cover = -1) {
     // ---------- you ----------
     // Madrid half: upright, falling feet first. The New Zealand half starts head-down (you keep the same
     // orientation in space, and "down" now points the other way) and you turn over on the way up.
-    const flip = side < 0 ? Math.PI * (1 - smooth(39.35, 41.45, v)) : 0;   // you turn over during the cutaway (39.2-41.6 s)
+    const flip = side < 0 ? Math.PI * (1 - smooth(37.75, 39.45, v)) : 0;   // you turn over during the cutaway (37.6-39.6 s)
     const spin = street ? Math.PI + 0.35 + 0.25 * Math.sin(v * 0.8) : v * 0.12 + wobble(v * 0.15, 2) * 0.25;   // facing the street's camera at the end
     body.rotation.set(flip + wobble(v * 0.2, 4) * 0.06, spin, wobble(v * 0.17, 6) * 0.06);
     const flail = (1 - smooth(1.5, 4.5, v)) + 0.35 * smooth(V_STREET + 1.6, V_APEX + 1.0, v);

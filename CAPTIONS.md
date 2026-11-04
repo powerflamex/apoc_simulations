@@ -789,7 +789,7 @@ Cover: `week 4/black-hole-appears/out/black-hole-appears_v4_cover.png` (`node re
 
 ## Next Short. You fall through the Earth — `week 5/fall-through-earth/out/fall-through-earth_v4_1080x1920_60fps_tiktok.mp4`
 
-55.3 s. Frame 0: you (in a spacesuit) are already falling down a lit 6 m shaft in the Puerta del Sol, Madrid, the
+49.7 s (Nov 3 trim to the new 45-50 s rule: the way back up, the same layers again, now takes 12.8 s instead of 18.4; the way down is unchanged). Frame 0: you (in a spacesuit) are already falling down a lit 6 m shaft in the Puerta del Sol, Madrid, the
 crowd leaning over the rim above you against the blue sky; the depth counter races, with your speed and the real
 time on the line under it and a small TIME-LAPSE tag. The metro tunnel flashes past at 20 m, the opening shrinks to a
 dot; cutaways of the Earth sliced through the hole show the Burj Khalifa hung upside down (you pass its tip at 828 m),
@@ -833,7 +833,7 @@ Cover: `week 5/fall-through-earth/out/fall-through-earth_v4_cover.png` (`node re
 
 ## Next Short. What if other stars replaced the Sun? — `week 5/star-picker/out/star-picker_v4_1080x1920_60fps_tiktok.mp4`
 
-59.3 s. Nov 1 rework (owner: start on the big sun, then the cold): the picker now lands on Arcturus just before
+49.8 s (Nov 3 trim to the new 45-50 s rule: every star stays on screen ~1.3 s less, Rigel 2.6 s less; same stars, same order). Nov 1 rework (owner: start on the big sun, then the cold): the picker now lands on Arcturus just before
 frame 0, so the video opens on its giant orange disc with the beach already squinting and the owner's scream in the
 first second; then Proxima's cold, Sirius, Vega, Aldebaran, Rigel, Betelgeuse. People stay close to you through every
 star: they shiver at Proxima, run for the umbrellas' shade at Sirius, run past you into the sea at Vega, the last few
@@ -921,17 +921,19 @@ Cover: `week 5/rogue-planet/out/rogue-planet_v4_cover.png` (`node render.mjs --c
 
 ## Next Short. What if the Moon exploded? — `week 5/moon-explodes/out/moon-explodes_v4_1080x1920_60fps_tiktok.mp4`
 
-48.5 s (reworked Nov 2: the breakup as real 3D rock, the rain from 0:21, clean windows, a fireball splash). One crowded
+49.3 s (reworked Nov 2-3: the breakup as real 3D rock, the rain from 0:21, clean windows, a fireball splash, a louder final blast). One crowded
 harbour promenade at night (a Hong Kong-style skyline across the water, neon, a red-sailed junk and ferries, no real
 brands); you stay among the crowd the whole video, no cutaways. Frame 0: the title, the full Moon huge over the skyline
 (telephoto look) with glowing cracks already across it, people right next to you filming it, the counter racing (MOON
 PIECES 4, RIGHT NOW). At 0.45 s it comes apart into 7 pieces (the owner's scream) and rubble sprays out of the cracks;
 the counter races on with a TIME-LAPSE tag and the true time since the explosion under it. 0-10 s, still zoomed in so
-the pieces stay big: they tumble as 3D rocks (sunlit face, black far side, grey broken walls glowing hot), the big
-lower-left piece rams two others, and every crash (2.3, 3.4, 4.5, 5.6, 6.6, 8.0 s) flashes, throws out a puff of dust
-and a spray of rubble and breaks the piece into fragments that keep grinding and shedding gravel while the big piece
-grows toward you. ~0:10 (2 days) you step forward and watch the sea climb the harbour terraces to the crowd's feet;
-~0:13 (3 weeks) the rubble is a glowing band across the sky, so bright everyone casts a sharp shadow at midnight; 0:17
+the pieces stay big: they tumble as 3D rocks (sunlit face, black far side, grey broken walls glowing hot); in the
+first 2.5 s the blast shoves them into each other all at once (the big lower-left piece rams one, two pairs grind
+together, a flung fragment breaks the last), each crash flashing, puffing dust and spraying rubble as the pieces break
+into fragments; then the fragments keep crashing into each other more and more often, shedding gravel, while the big
+piece grows toward you. ~0:10 (2 days) you step forward and watch the sea climb the harbour terraces to the crowd's
+feet; as you look back up (~0:12) the time-lapse leaps to 3 weeks and the rubble is dragged out along the orbit into a
+glowing band across the sky, so bright everyone casts a sharp shadow at midnight; 0:17
 (6 months) the first pieces fall in as streaks, then quickly many; 0:21 (1 year 10 months) the hard rain fills the sky
 and the clouds glow orange; 0:25 a fireball hits the harbour 500 m out (an orange flash, flames on the water, a tall
 column of water lit from inside), its wave washes over the deck and everyone hurries back; 0:30-0:43 the towers across

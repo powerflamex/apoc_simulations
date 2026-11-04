@@ -10,7 +10,7 @@
 import { smooth, clamp, lerp, rng } from './util.js';
 
 export const STORY_START = 0;            // everything runs on the video clock
-export const T_SWITCH = 58.4;            // inside Betelgeuse: a full orange-white cover; the loop point sits in it
+export const T_SWITCH = 48.9;            // inside Betelgeuse: a full orange-white cover; the loop point sits in it
 export const LOOP = 0.9;                 // the cover clears onto the first frame over the last LOOP seconds
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
@@ -43,13 +43,13 @@ export const STOPS = [
   // (Arcturus lands just before frame 0, while the end's cover is still up: on frame 0 the giant disc and its line
   // are already there, the beach already reacting)
   { key: 'sun', land: -9, spin: -1.6, lines: [] },
-  { key: 'arcturus', land: -0.75, spin: 6.3, lines: [[0.0, `The beach: ${fmtC(STAR.arcturus.tC)}`], [3.2, 'The pier burns']] },
-  { key: 'proxima', land: 7.9, spin: 14.0, lines: [[0.15, `The beach: ${fmtC(STAR.proxima.tC)}`], [3.2, 'Your breath freezes']] },
-  { key: 'sirius', land: 15.6, spin: 21.6, lines: [[0.15, `The beach: ${fmtC(STAR.sirius.tC)}`], [3.2, 'The sand starts smoking']] },
-  { key: 'vega', land: 23.2, spin: 29.6, lines: [[0.15, `The beach: ${fmtC(STAR.vega.tC)}`], [3.0, 'The sea starts to boil']] },
-  { key: 'aldebaran', land: 31.3, spin: 38.6, lines: [[0.15, `The beach: ${fmtC(STAR.aldebaran.tC)}`], [3.0, 'The city melts']] },
-  { key: 'rigel', land: 40.2, spin: 48.4, lines: [[0.15, `The beach: ${fmtC(STAR.rigel.tC)}`], [3.4, 'The ocean boils away']] },
-  { key: 'betelgeuse', land: 51.4, spin: 1e9, lines: [[0.15, 'Earth is inside the star']] },
+  { key: 'arcturus', land: -0.75, spin: 5.4, lines: [[0.0, `The beach: ${fmtC(STAR.arcturus.tC)}`], [3.0, 'The pier burns']] },
+  { key: 'proxima', land: 7.0, spin: 11.8, lines: [[0.15, `The beach: ${fmtC(STAR.proxima.tC)}`], [2.7, 'Your breath freezes']] },
+  { key: 'sirius', land: 13.4, spin: 18.0, lines: [[0.15, `The beach: ${fmtC(STAR.sirius.tC)}`], [2.5, 'The sand starts smoking']] },
+  { key: 'vega', land: 19.6, spin: 24.6, lines: [[0.15, `The beach: ${fmtC(STAR.vega.tC)}`], [2.7, 'The sea starts to boil']] },
+  { key: 'aldebaran', land: 26.3, spin: 32.5, lines: [[0.15, `The beach: ${fmtC(STAR.aldebaran.tC)}`], [2.8, 'The city melts']] },
+  { key: 'rigel', land: 34.1, spin: 39.7, lines: [[0.15, `The beach: ${fmtC(STAR.rigel.tC)}`], [3.2, 'The ocean boils away']] },
+  { key: 'betelgeuse', land: 42.7, spin: 1e9, lines: [[0.15, 'Earth is inside the star']] },
 ];
 for (const s of STOPS) s.star = STAR[s.key];
 export const LAND = Object.fromEntries(STOPS.map((s) => [s.key, s.land]));
