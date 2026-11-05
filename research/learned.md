@@ -434,4 +434,3 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
   glow at 120 km, the suit torn apart at 80 km, one 1.5-s cutaway of two people on a hill seeing the shooting star,
   "That shooting star was you", white, loop. Cover at 33.5 s, copy in CAPTIONS.md. Not posted yet. fall-through-earth
   was still unposted when this was built, so "you falling" had no numbers to judge by.
-- Status Nov 4: giant-tornado ("What if a tornado was 10 miles wide?", 48.1 s, week 5) built as a new project from the Nov 4 topic check: one Midwest Main Street, one wall coming down it with a REACHES YOU IN countdown (a time-lapse of the last 10 minutes, a jump every 3 s), something new every ~6 s (green sky and sirens, the pile-up and runners, things lifting, the far end of town torn apart and hail, roofs and a van flying, inside the wall with lightning, the street peeling up), white flash, loop; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.

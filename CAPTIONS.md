@@ -1057,55 +1057,6 @@ Would you jump? 👇
 
 Cover: `week 5/iss-jump/out/iss-jump_v4_cover.png` (`node render.mjs --cover 33.5`: the whole suit tumbling head-down in the first fire, 95 km up, the air glowing orange round it and the white-hot plasma trail streaming off behind, the Earth's pale haze below; "WHAT IF YOU / jumped / off the space station?" over it)
 
-## Next Short. What if a tornado was 10 miles wide? — `week 5/giant-tornado/out/giant-tornado_v4_1080x1920_60fps_tiktok.mp4`
-
-48.1 s. Main Street of a small Midwest town, late afternoon (generic brick storefronts, no real brands); you stand in
-the road among the crowd and never leave it. Frame 0: the title, the counter racing (REACHES YOU IN · TIME-LAPSE,
-10:00, 8.3 MILES AWAY), the whole end of the street a black rotating wall under a dark green-grey storm sky, leaves and
-papers already skittering past, people right by you with their phones up, the owner's scream in the first second. A
-time-lapse jump every 3 s (a hit in the sound, the camera jolts, the wall visibly taller each time). 0:06 the sky turns
-green, the sirens wind up and every phone buzzes the alert; 0:11 the first cars race down the street toward you with
-their lights on and pile up in front of you (one backing out gets hit, the next swerves into it, the rest queue up
-with horns and hazard lights) while everyone on the sidewalks runs past you; 0:18 awnings, signs, trash cans and the
-flags lift off, and a car up the street rises and tumbles away with its headlights on; 0:24 the far end of town (the
-grain elevator, the water tower, the church steeple, the last blocks) is torn into pieces that fly into the wall, and
-baseball hail smashes on the cars round you; 0:29 people grab the lamp posts and stream out flat; 0:30 roofs peel off
-whole and fly, a van tumbles across the frame; 0:33 every window bursts, the power dies, people and then the cars are
-lifted one by one, the far ones first; 0:36 the wall fills the screen: dark, lightning flickering inside it; 0:42 the
-street itself peels up and curls toward the wall; 0:44 you lose your footing; 0:46 one huge flash, white, loop (the
-white clears onto frame 0).
-Numbers (`src/timeline.js`): the widest tornado ever measured was 2.6 miles (El Reno, Oklahoma, 2013); the fastest
-wind ever measured in one is just over 300 mph (Bridge Creek-Moore 1999, El Reno 2013), which is what the wall's edge
-gets here and never more. The wall is a 10-mile cylinder up to 6,000 ft, turning at the edge speed, coming at 50 mph
-(fast for a tornado), so 10 minutes out is 8.3 miles. The wind on you (the captions: 60, 80, 110, 170, 200, 300 mph) is
-an estimate that follows the EF scale, and each caption says what that speed really does: ~75 mph you can't stay on
-your feet, 86-110 roofs stripped, 136-165 heavy cars thrown, 200+ asphalt scoured off roads; baseball-size hail falls
-at ~100 mph; the green sky is sunlight through a deep, hail-filled cloud.
-
-**YouTube title (92 chars, emoji counted as 2)**
-What if a tornado was 10 miles wide? It reaches your town in 10 minutes 🌪️ #whatif #tornado
-
-**YouTube description**
-A tornado 10 miles wide comes straight down Main Street at 50 mph. The widest ever recorded was 2.6 miles (El Reno, Oklahoma, 2013).
-
-A time-lapse of its last 10 minutes, from the middle of the street:
-8 miles out: the whole horizon is a black rotating wall. The sky turns green. The sirens start.
-2.6 miles: 60 mph on you already. Everyone runs, and the cars pile up trying to leave.
-1 mile: 110 mph. Signs, awnings and a car lift off.
-4,000 feet: the far end of town is gone. Hail hits the cars at 100 mph.
-2,000 feet: 170 mph. Roofs and trucks fly. People hang on to the lamp posts.
-1,000 feet: you're inside the wall. 200 mph, lightning, dark.
-600 feet: the street itself peels up.
-At the wall: 300 mph, the fastest wind ever measured.
-
-Where would you hide? 👇
-
-#whatif #tornado #weather #storm #shorts
-
-Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs --cover 25.5`: the black wall filling the sky over the street, signs, awnings and hail flying, the crowd close to you with their phones up, the cars' headlights on; "WHAT IF A / tornado / was 10 miles wide?")
-
----
-
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
