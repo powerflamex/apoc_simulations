@@ -304,6 +304,16 @@ Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, su
   2 s and a countdown says when it arrives. Moon explodes' rubble leaves at ~0:13, then the sky barely changes for ~8 s,
   and the counter climbs with no end point. Rule: the danger must come toward you, with a finish line on screen.
 
+## Short topic check, Nov 4 (YouTube search; views and dates read from each video's own page)
+- **Tungsten rod from space: picked.** OutwardAnimates 7.95M (Oct 25) and 7.7M (Oct 21); everyone else under 3K. Two weeks old.
+- **Tornado coming at you: picked.** OutwardAnimates "tornado hit F12" 876K (Oct 31); others under 8K.
+- **Jump off the ISS: picked.** Zack D. Films 25M (Aug 2025); others under 4K.
+- Biggest nuke on New York: Zack D. Films 16.4M (Feb 2025). Backup, owner's call (a real weapon on a real city).
+- Skipped: Jupiter hits Earth (1.2M, 760K, but too close to rogue planet), Mars hits Earth (928K, 2024, same), neutron star
+  passes Earth (every Short under 1K), satellite hits you (114K, 2025), fall from the Moon (40K), dinosaur asteroid (25K).
+- OutwardAnimates' last 20 Shorts: real objects are the hits (tungsten 7.95M + 7.7M, ice cream colder every 2 s 3.97M, tornado
+  876K); space and universe ones get 30-125K. It also posted "Earthquake hit Magnitude 18" (238K, Nov 2) after ours (29K).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
