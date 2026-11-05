@@ -313,6 +313,9 @@ Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, su
   passes Earth (every Short under 1K), satellite hits you (114K, 2025), fall from the Moon (40K), dinosaur asteroid (25K).
 - OutwardAnimates' last 20 Shorts: real objects are the hits (tungsten 7.95M + 7.7M, ice cream colder every 2 s 3.97M, tornado
   876K); space and universe ones get 30-125K. It also posted "Earthquake hit Magnitude 18" (238K, Nov 2) after ours (29K).
+- OutwardAnimates vs us on Nov 4: joined Oct 21, 48.5K subs, 21.6M views, 27 videos. Us: joined Oct 3, 24.1K subs, 12.3M views,
+  41 videos. Three of its Shorts are ~19.6M of its 21.6M; the other 24 average ~82K (our last 11 Shorts: ~63K). Its long
+  videos get 5-19K.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
