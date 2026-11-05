@@ -426,3 +426,12 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
   open: gravity off for 5 s, a rogue planet passes Earth.
 - Status Nov 2: moon-explodes ("What if the Moon exploded?", 50.3 s, week 5) built as a new project from the Nov 2 topic check: one harbour promenade at night, never leaving the crowd (no cutaways), pieces counter + TIME-LAPSE tag with the true time (seconds to "2 YEARS, n DAYS"), a leap every ~3 s; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
 - Status Nov 4: giant-tornado ("What if a tornado was 10 miles wide?", 48.1 s, week 5) built as a new project from the Nov 4 topic check: one Midwest Main Street, one wall coming down it with a REACHES YOU IN countdown (a time-lapse of the last 10 minutes, a jump every 3 s), something new every ~6 s (green sky and sirens, the pile-up and runners, things lifting, the far end of town torn apart and hail, roofs and a van flying, inside the wall with lightning, the street peeling up), white flash, loop; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
+- Status Nov 4 (night): iss-jump ("What if you jumped off the space station?", 48.5 s, week 5) built as a new project from
+  the Nov 4 topic check (Zack D. Films 25M, everyone else under 4K; theirs is 34 s of narration over a smiling cartoon
+  astronaut, no numbers, a stock fireball). Ours: you beside the Cupola with two crew banging on the glass on frame 0,
+  HEIGHT + OXYGEN LEFT counters, the push-off that doesn't make you fall, a sunrise every 93 min in an 8-hour lapse,
+  the air out at 0:14, the true 1 year 166 days of drag (a full orbit simulation; SuitSat took 7 months in 2006), the
+  glow at 120 km, the suit torn apart at 80 km, one 1.5-s cutaway of two people on a hill seeing the shooting star,
+  "That shooting star was you", white, loop. Cover at 33.5 s, copy in CAPTIONS.md. Not posted yet. fall-through-earth
+  was still unposted when this was built, so "you falling" had no numbers to judge by.
+- Status Nov 4: giant-tornado ("What if a tornado was 10 miles wide?", 48.1 s, week 5) built as a new project from the Nov 4 topic check: one Midwest Main Street, one wall coming down it with a REACHES YOU IN countdown (a time-lapse of the last 10 minutes, a jump every 3 s), something new every ~6 s (green sky and sirens, the pile-up and runners, things lifting, the far end of town torn apart and hail, roofs and a van flying, inside the wall with lightning, the street peeling up), white flash, loop; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.

@@ -1017,6 +1017,95 @@ Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs -
 
 ---
 
+## Next Short. What if you jumped off the space station? — `week 5/iss-jump/out/iss-jump_v4_1080x1920_60fps_tiktok.mp4`
+
+48.5 s (built Nov 4, week 5). Frame 0: you (the spacesuit) hold a handrail beside the station's Cupola, 420 km up, the
+Earth's blue curve filling the bottom of the frame; two of the crew are at the slanted window next to you, banging on
+the glass; the title, HEIGHT 420 km with 17,138 MPH under it, and OXYGEN LEFT 7:59:59 ticking; the owner's scream in
+the first second. 0:03 you kick off toward the Earth, and the twist: "YOU DON'T FALL" (you keep the station's 17,140
+mph, so you only drift; the station, with its gold arrays, slides away above you). 0:08 TIME-LAPSE: 8 hours in 6 s,
+the station shrinks to a dot, a sunrise flashes over the Earth every 93 minutes, the oxygen counter races to 0:00:00
+at 0:14 ("YOUR AIR IS GONE", a close shot of the gold visor with the Earth in it; the heartbeat and the alarm stop).
+0:17 the body goes limp and the second counter becomes SINCE YOU JUMPED (8 hours, 2 days...). 0:20 "THE AIR DRAGS YOU
+DOWN": the long drop, the counter finally falling (400 km after 167 days, 300 km after 1 year 90 days...) with the
+Earth growing under you until 120 km at 1 YEAR, 166 DAYS. 0:28 "THE AIR STARTS TO GLOW": a pink sheath, then a
+streaming plasma trail; 0:35 "THE SUIT COMES APART": close on the suit glowing orange, the visor cracking, the arms,
+legs and backpack torn off and flung back into the trail, over a sunset rim. 0:42 one 1.5-s cutaway: two people on a
+dark hill at dusk look up at the shooting star ("SOMEONE MAKES A WISH"). 0:43.5 back to the fireball over the dusk
+Earth ("That shooting star was you"), 0:46.6 it bursts into white, loop (the white clears onto frame 0).
+Physics (`src/timeline.js`, from a full orbit simulation with Vallado's exponential atmosphere at moderate solar
+activity): 420 km up you do 7,661 m/s (17,138 mph), one orbit every 92.8 min; a 207 kg person-plus-suit tumbling
+with 0.8 m² facing the air (Cd 2.2) takes 531 days (1 year 166 days) to come down to 120 km (at solar maximum about
+half that, at solar minimum twice); the last 120 km take half an hour; at 100 km you are doing 17,500 mph; the suit
+breaks up around 70-80 km. A real EVA suit carries about 8 hours of oxygen. (Reality check: SuitSat-1, an empty
+Orlan suit thrown off the station in Feb 2006 from a lower orbit, came down after 7 months.) The clocks on screen are
+the true ones; the sunrises and the ground sliding under you are slowed to a readable pace in the time-lapses.
+
+**YouTube title (96 chars, emoji counted as 2)**
+What if you jumped off the space station? You don’t fall. You burn up 1.5 years later 🚀 #whatif
+
+**YouTube description**
+You push off the space station, 420 km up. And nothing happens: you're still doing 17,140 mph, exactly like the station, so you just float beside it.
+A new sunrise every 93 minutes. Your suit has 8 hours of oxygen. Nobody is coming to get you.
+Then the wisp of air up there starts dragging you down. From 420 km it takes 1 year and 166 days to reach the top of the atmosphere (worked out for a real person in a real suit; an empty suit tossed off the station in 2006 took 7 months from a lower orbit).
+100 km up, at 17,500 mph, the air around you starts to glow. Around 80 km the suit comes apart at over 2,000°C. Nothing of you reaches the ground.
+Somebody down there sees a shooting star and makes a wish.
+
+Would you jump? 👇
+
+#whatif #space #physics #science #shorts
+
+Cover: `week 5/iss-jump/out/iss-jump_v4_cover.png` (`node render.mjs --cover 33.5`: the whole suit tumbling head-down in the first fire, 95 km up, the air glowing orange round it and the white-hot plasma trail streaming off behind, the Earth's pale haze below; "WHAT IF YOU / jumped / off the space station?" over it)
+
+## Next Short. What if a tornado was 10 miles wide? — `week 5/giant-tornado/out/giant-tornado_v4_1080x1920_60fps_tiktok.mp4`
+
+48.1 s. Main Street of a small Midwest town, late afternoon (generic brick storefronts, no real brands); you stand in
+the road among the crowd and never leave it. Frame 0: the title, the counter racing (REACHES YOU IN · TIME-LAPSE,
+10:00, 8.3 MILES AWAY), the whole end of the street a black rotating wall under a dark green-grey storm sky, leaves and
+papers already skittering past, people right by you with their phones up, the owner's scream in the first second. A
+time-lapse jump every 3 s (a hit in the sound, the camera jolts, the wall visibly taller each time). 0:06 the sky turns
+green, the sirens wind up and every phone buzzes the alert; 0:11 the first cars race down the street toward you with
+their lights on and pile up in front of you (one backing out gets hit, the next swerves into it, the rest queue up
+with horns and hazard lights) while everyone on the sidewalks runs past you; 0:18 awnings, signs, trash cans and the
+flags lift off, and a car up the street rises and tumbles away with its headlights on; 0:24 the far end of town (the
+grain elevator, the water tower, the church steeple, the last blocks) is torn into pieces that fly into the wall, and
+baseball hail smashes on the cars round you; 0:29 people grab the lamp posts and stream out flat; 0:30 roofs peel off
+whole and fly, a van tumbles across the frame; 0:33 every window bursts, the power dies, people and then the cars are
+lifted one by one, the far ones first; 0:36 the wall fills the screen: dark, lightning flickering inside it; 0:42 the
+street itself peels up and curls toward the wall; 0:44 you lose your footing; 0:46 one huge flash, white, loop (the
+white clears onto frame 0).
+Numbers (`src/timeline.js`): the widest tornado ever measured was 2.6 miles (El Reno, Oklahoma, 2013); the fastest
+wind ever measured in one is just over 300 mph (Bridge Creek-Moore 1999, El Reno 2013), which is what the wall's edge
+gets here and never more. The wall is a 10-mile cylinder up to 6,000 ft, turning at the edge speed, coming at 50 mph
+(fast for a tornado), so 10 minutes out is 8.3 miles. The wind on you (the captions: 60, 80, 110, 170, 200, 300 mph) is
+an estimate that follows the EF scale, and each caption says what that speed really does: ~75 mph you can't stay on
+your feet, 86-110 roofs stripped, 136-165 heavy cars thrown, 200+ asphalt scoured off roads; baseball-size hail falls
+at ~100 mph; the green sky is sunlight through a deep, hail-filled cloud.
+
+**YouTube title (92 chars, emoji counted as 2)**
+What if a tornado was 10 miles wide? It reaches your town in 10 minutes 🌪️ #whatif #tornado
+
+**YouTube description**
+A tornado 10 miles wide comes straight down Main Street at 50 mph. The widest ever recorded was 2.6 miles (El Reno, Oklahoma, 2013).
+
+A time-lapse of its last 10 minutes, from the middle of the street:
+8 miles out: the whole horizon is a black rotating wall. The sky turns green. The sirens start.
+2.6 miles: 60 mph on you already. Everyone runs, and the cars pile up trying to leave.
+1 mile: 110 mph. Signs, awnings and a car lift off.
+4,000 feet: the far end of town is gone. Hail hits the cars at 100 mph.
+2,000 feet: 170 mph. Roofs and trucks fly. People hang on to the lamp posts.
+1,000 feet: you're inside the wall. 200 mph, lightning, dark.
+600 feet: the street itself peels up.
+At the wall: 300 mph, the fastest wind ever measured.
+
+Where would you hide? 👇
+
+#whatif #tornado #weather #storm #shorts
+
+Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs --cover 25.5`: the black wall filling the sky over the street, signs, awnings and hail flying, the crowd close to you with their phones up, the cars' headlights on; "WHAT IF A / tornado / was 10 miles wide?")
+
+---
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
