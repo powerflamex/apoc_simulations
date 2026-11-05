@@ -288,6 +288,19 @@
 - Moon explodes v2 (66b7afc, 48.5 s) checked from the upload copy: big tumbling rock pieces 0-10 s, ring by 0:12,
   first meteors 0:16, harbour fireball 0:22, rain on the city 0:25-0:43, white, clean loop; windows fixed. Ready.
 
+## Nov 4 read
+| Short | Length | Views | Stayed | Avg watched | % viewed | Score |
+|---|---|---|---|---|---|---|
+| rogue planet (Nov 3) | 0:49 | 77K ("75% above your other Shorts"), +60 subs | 65.1% | 0:36 | 73.5% | 48 |
+| Moon explodes v2 (Nov 4) | 0:49 | 24.3K same day, 2.6K/h ("21% above"), +20 subs | 64.5% | 0:31 | 63% | 41 |
+Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, sun explodes 93.9K, trillion 189K.
+- Rogue planet curve: 155% at 0:00, 108 at 0:05, 84 at 0:09, 80 at 0:12, 73 at 0:17, 72 at 0:20, 69 at 0:28, 66 at 0:38,
+  59 at the end. Lost 8 points over 0:12-0:20, where antimatter (78 -> 53) lost 25. Best hold of the recent Shorts, from
+  one street angle with a planet that only ever gets bigger: staying on "you" with one growing danger beats cutting away,
+  and wreckage does not have to come early. 59% at the very end is also why the loop keeps paying.
+- Moon explodes starts the same (64.5% stayed) but is watched 5 s less than rogue planet. Its curve arrives ~Nov 6; suspect
+  the calm ring stretch at 0:12-0:16. Don't change anything before the curve is in.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
