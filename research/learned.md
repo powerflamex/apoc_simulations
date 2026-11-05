@@ -300,6 +300,9 @@ Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, su
   and wreckage does not have to come early. 59% at the very end is also why the loop keeps paying.
 - Moon explodes starts the same (64.5% stayed) but is watched 5 s less than rogue planet. Its curve arrives ~Nov 6; suspect
   the calm ring stretch at 0:12-0:16. Don't change anything before the curve is in.
+- Frames 0:08-0:26 side by side (posted version, 49.3 s, both posted 10 AM ET): rogue planet's danger is bigger every
+  2 s and a countdown says when it arrives. Moon explodes' rubble leaves at ~0:13, then the sky barely changes for ~8 s,
+  and the counter climbs with no end point. Rule: the danger must come toward you, with a finish line on screen.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
