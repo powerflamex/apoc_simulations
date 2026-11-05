@@ -272,7 +272,7 @@
   fall-through-earth). Solar storm: 2.4M (Sep 2025), 61K (Oct 20); weaker visuals. Moon disappears: a same-day flood
   (5 new uploads Nov 1-2, 1-14K): skip.
 
-## Nov 3 read (per-video pages, afternoon)
+## Nov 3 read (per-video pages, ~9:30 PM)
 | Short | Length | Views | Stayed | Avg watched | % viewed | Score |
 |---|---|---|---|---|---|---|
 | rogue planet (Nov 3) | 0:49 | 39.9K in hours, 6.3K in the last hour, "55% above your other Shorts" | 65.6% | 0:36 | 73.5% | 48 |
@@ -292,7 +292,7 @@
 | Short | Length | Views | Stayed | Avg watched | % viewed | Score |
 |---|---|---|---|---|---|---|
 | rogue planet (Nov 3) | 0:49 | 77K ("75% above your other Shorts"), +60 subs | 65.1% | 0:36 | 73.5% | 48 |
-| Moon explodes v2 (Nov 4) | 0:49 | 24.3K same day, 2.6K/h ("21% above"), +20 subs | 64.5% | 0:31 | 63% | 41 |
+| Moon explodes v2 (Nov 4) | 0:49 | 24.3K by 7:30 PM, 2.6K/h ("21% above"), +20 subs | 64.5% | 0:31 | 63% | 41 |
 Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, sun explodes 93.9K, trillion 189K.
 - Rogue planet curve: 155% at 0:00, 108 at 0:05, 84 at 0:09, 80 at 0:12, 73 at 0:17, 72 at 0:20, 69 at 0:28, 66 at 0:38,
   59 at the end. Lost 8 points over 0:12-0:20, where antimatter (78 -> 53) lost 25. Best hold of the recent Shorts, from
