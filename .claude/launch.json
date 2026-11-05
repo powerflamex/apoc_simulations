@@ -151,6 +151,17 @@
       "env": {
         "PORT": "5202"
       }
+    },
+    {
+      "name": "metal-rod",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/metal-rod/server.mjs"
+      ],
+      "port": 5203,
+      "env": {
+        "PORT": "5203"
+      }
     }
   ]
 }

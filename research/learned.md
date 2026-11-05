@@ -425,6 +425,13 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
   over a city at noon on frame 0, satellites fall, the grid blows, the air is stripped away). Earlier picks still
   open: gravity off for 5 s, a rogue planet passes Earth.
 - Status Nov 2: moon-explodes ("What if the Moon exploded?", 50.3 s, week 5) built as a new project from the Nov 2 topic check: one harbour promenade at night, never leaving the crowd (no cutaways), pieces counter + TIME-LAPSE tag with the true time (seconds to "2 YEARS, n DAYS"), a leap every ~3 s; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
+- Status Nov 4: metal-rod ("What if a metal rod as tall as a skyscraper fell on your city?", 48.7 s, week 5) built as a new
+  project from the Nov 4 topic check, on the rogue-planet pattern (one street, one danger nearer every 3 s, a countdown):
+  a daylight avenue, the rod a dark spear over the far end on frame 0, phones/screens alert at 0:06, the jam at 0:12, the
+  glow at 0:18, fire at 0:24, "you never hear it coming" at 0:30 (an honest swap for the storyboard's sonic boom: at
+  12x the speed of sound nothing it makes reaches you first), the hit at 0:42, the blast wall at 0:47, white, loop.
+  Different from OutwardAnimates' two rod Shorts (theirs: the rod over Earth from space, an altitude ruler, a lab).
+  Numbers in CAPTIONS.md. The one drawn liberty: the rod is visible from frame 0 (really a dot 1,000 km up).
 - Status Nov 4: giant-tornado ("What if a tornado was 10 miles wide?", 48.1 s, week 5) built as a new project from the Nov 4 topic check: one Midwest Main Street, one wall coming down it with a REACHES YOU IN countdown (a time-lapse of the last 10 minutes, a jump every 3 s), something new every ~6 s (green sky and sirens, the pile-up and runners, things lifting, the far end of town torn apart and hail, roofs and a van flying, inside the wall with lightning, the street peeling up), white flash, loop; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
 - Status Nov 4 (night): iss-jump ("What if you jumped off the space station?", 48.5 s, week 5) built as a new project from
   the Nov 4 topic check (Zack D. Films 25M, everyone else under 4K; theirs is 34 s of narration over a smiling cartoon
