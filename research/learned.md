@@ -316,6 +316,18 @@ Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, su
 - OutwardAnimates vs us on Nov 4: joined Oct 21, 48.5K subs, 21.6M views, 27 videos. Us: joined Oct 3, 24.1K subs, 12.3M views,
   41 videos. Three of its Shorts are ~19.6M of its 21.6M; the other 24 average ~82K (our last 11 Shorts: ~63K). Its long
   videos get 5-19K.
+- OutwardAnimates hits vs flops (titles, views, lengths for all 23 Shorts; storyboard frames for 8; no retention data for them):
+  - Hits are one real object you can hold, and the rule is simple: 10 kg of tungsten 7.72M (67 s), a 100-tonne rod 7.96M (179 s),
+    ice cream colder every 2 s 3.97M (168 s). Space and universe sightseeing, 14 Shorts: 30-128K, with 12+ days to settle.
+  - The object is big and clear on frame 0: the rod filling the frame over Earth, a kid holding the ice cream to their face.
+    Weak openings: a tiny figure on a trampoline (36K, only 1 day old), Earth from far away (volcano 57K), title on black.
+  - Same formula, different result: coffee hotter every 2 s 123K vs ice cream 3.97M. Coffee is 68 s on a mug. Ice cream keeps
+    moving the story: the shop, a crowd, people in protective suits, a lab, rockets, a whole town.
+  - A repeat of a hit can hit again: the second rod video equalled the first four days later.
+  - "No limit" ladder series fades as it repeats: tornado 877K, then hurricane 134K, tsunami 73K, volcano 57K (the later ones
+    are younger, so not final). Same wear-out as our doubling videos.
+  - Length doesn't separate hits from flops: 67 s and 179 s both got ~7.8M, and flops run 65-115 s. Keep 45-50 s unless a Short
+    has enough new story to fill more. Nothing here proves longer is better.
 
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
