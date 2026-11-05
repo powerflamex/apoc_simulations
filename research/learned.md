@@ -329,6 +329,11 @@ Older: time-stop 28.9K, antimatter 25.2K, black-hole-appears 71K, rain 63.7K, su
   - Length doesn't separate hits from flops: 67 s and 179 s both got ~7.8M, and flops run 65-115 s. Keep 45-50 s unless a Short
     has enough new story to fill more. Nothing here proves longer is better.
 
+## Oxygen 5 s curve (read Nov 4, for the redo test)
+137% at 0:00, 99 at 0:07, 81 at 0:12, 73 at 0:17, 68 at 0:22, 61 at 0:25, 56 at 0:28, 54 at 0:31, 48 at 0:38, 43 at 0:44, 40 at
+0:50, flat at 40 to the end. Steepest loss after the opening is 0:22-0:28, then a long slide while one collapse follows another.
+Whoever reaches 0:50 stays for the ending. Redo test: cut ~12 s from 0:21-0:50, then compare with this curve.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
