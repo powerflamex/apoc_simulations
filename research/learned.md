@@ -338,6 +338,20 @@ Whoever reaches 0:50 stays for the ending. Redo test: cut ~12 s from 0:21-0:50, 
 Peak ~8-11 AM every day, medium until ~2 PM, darkest from ~6 PM to midnight. 95.9% of the monthly audience are new viewers (the
 Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day slots: ~7 AM and ~1 PM ET.
 
+## Nov 5 read (~7 PM)
+| Short | Length | Views | Stayed | Avg watched | % viewed | Score |
+|---|---|---|---|---|---|---|
+| fall-through trimmed (Nov 5, 10 AM) | 0:50 | 25.7K at 9 h, 3K/h ("39% above"), +23 subs | 63.1% | 0:39 | 78.5% | 50 |
+| Moon explodes (Nov 4) | 0:49 | 70.1K at 33 h ("92% above"), +50 subs | 64.3% | 0:31 | 63% | 41 |
+| rogue planet (Nov 3) | 0:49 | 99K at 57 h (77K at 34 h) | 65.1% | 0:36 | 73.5% | 48 |
+- Moon explodes curve: 130% at 0:00, 80 at 0:10, 75 at 0:13, 66 at 0:18, 62 at 0:21, 55 at 0:28, 46 at 0:36, 40 at 0:46, 31 at the end.
+  Rogue planet: 80, 79, 73, 72, 69, 66, 62, 59 at the same moments. The gap opens at 0:13 and keeps widening through the meteor
+  rain, so the slow ring stretch was not the only leak: the rain's sameness loses people too.
+- Correction to Nov 4: views said "behind", but by day 2 Moon explodes is level with rogue planet (70K vs 77K at ~34 h). A same-day
+  count at 9 h says little. Worse watch time did not cost it views so far: the topic carried it.
+- Fall-through is the best share watched of the recent Shorts, with no crowd and no countdown: a trip with a new layer every 2.6 s
+  and a fixed destination. Trimming the repeat of the way up worked. "You falling" works: the ISS Short can go ahead.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
