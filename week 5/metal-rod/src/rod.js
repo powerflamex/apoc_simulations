@@ -99,8 +99,8 @@ export function makeRod(scene) {
         float x = vUv.x * 2.0 - 1.0;
         float t = vT;
         // streaming up and away: noise scrolling up the sheet, ragged at the sides
-        float n = fbm(vec3(x * 2.5, t * uLen / 60.0 - uTime * 3.0, 2.0));
-        float n2 = n3(vec3(x * 7.0, t * uLen / 18.0 - uTime * 7.0, 5.0));
+        float n = fbm(vec3(x * 2.5, t * uLen / 60.0 - uTime * 7.0, 2.0));
+        float n2 = n3(vec3(x * 7.0, t * uLen / 18.0 - uTime * 16.0, 5.0));
         float body = exp(-x * x * 2.6) * smoothstep(0.22, 0.62, n + 0.18 * n2);
         float hollow = 1.0 - 0.95 * exp(-x * x * 6.0);            // the rod itself stays visible
         float fade = pow(max(1.0 - t, 0.0), 1.4) * smoothstep(0.0, 0.02, t);

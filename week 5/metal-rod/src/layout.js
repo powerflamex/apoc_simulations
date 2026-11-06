@@ -8,7 +8,9 @@ export const ROAD_X = 15, ROAD_Z = 10, WALK = 7, MED = 2.2;
 export const FX = ROAD_X + WALK, FZ = ROAD_Z + WALK;     // building fronts
 export const AVE_END = -1500;                             // where the avenue's buildings end (the towers beyond)
 export const CAM0 = { x: -3.0, z: 8.0 };                  // you: on the crossing, near its south edge
-export const HIT = { x: 0, z: -500 };                     // where the tip comes down
+export const HIT = { x: 0, z: -500 };                     // where the fireball and the blast wall start
+export const ROD_Z = -150;                                // where the rod is drawn coming down: close, between the fronts
+                                                          // (the white flash of the hit covers the jump to HIT)
 
 // ---- buildings: { x, z, w (along x), d (along z), h, kind, col } ----
 // kind 0: stone and concrete offices (punched windows), 1: glass tower, 2: older block (small windows, cornices),

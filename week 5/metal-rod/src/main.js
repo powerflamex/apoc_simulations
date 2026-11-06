@@ -14,7 +14,7 @@ import { makeBlast } from './blast.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makeOverlay } from './overlay.js';
-import { CAM0, HIT } from './layout.js';
+import { CAM0, ROD_Z } from './layout.js';
 import { state, VIDEO_DURATION, LOOP, popupAt, POP, ROD_L, ROD_DRAW, V_PANIC, V_HIT, V_WALL, T_SWITCH } from './timeline.js';
 import { lerp, smooth, wobble, clamp } from './util.js';
 
@@ -132,7 +132,7 @@ composer.addPass(finish);
 const C0 = new THREE.Vector3(CAM0.x, 1.75, CAM0.z);
 // (P0 is set by frame 0: the tip 32° up, the whole drawn rod spanning to 46°, about 430 px of the frame)
 const P0X = ROD_L * ROD_DRAW / 0.415;
-const P0 = new THREE.Vector3(0, P0X * 0.625, CAM0.z - P0X), P1 = new THREE.Vector3(HIT.x, 0, HIT.z);
+const P0 = new THREE.Vector3(0, P0X * 0.625, CAM0.z - P0X), P1 = new THREE.Vector3(0, 0, ROD_Z);
 const D0 = P0.distanceTo(C0), D1 = P1.distanceTo(C0);
 const tmpA = new THREE.Vector3();
 function tipAt(p, out) {
@@ -146,17 +146,12 @@ const tip = new THREE.Vector3(), rodDir = new THREE.Vector3(), fireC = new THREE
 // ---------- the camera ----------
 function camAt(v, s) {
   const pos = new THREE.Vector3(CAM0.x, 1.75, CAM0.z);
-  // aim: the tip above the middle of the frame, the crowd below; you tilt down with it as it comes
-  const horiz = Math.hypot(tip.x - pos.x, tip.z - pos.z);
-  const el = Math.atan2(tip.y - pos.y, horiz);
-  const az = Math.atan2(tip.x - pos.x, -(tip.z - pos.z));
-  const above = s.p < 12 / 14 ? lerp(11.3, -1.0, s.p / (12 / 14)) : lerp(-1.0, -0.6, (s.p - 12 / 14) / (2 / 14));
-  let pitch = el - above * DEG;
-  // the panic: you look down at the people rushing past you, then back up at it
-  pitch -= 9 * DEG * (smooth(V_PANIC - 0.3, V_PANIC + 0.5, v) - smooth(V_PANIC + 3.2, V_PANIC + 4.8, v));
+  // you don't follow it: the camera holds still and the rod does the moving. At the panic you look down from the sky to
+  // the street and stay there, and from then on the tip drops down the frame to the ground
+  let pitch = lerp(20.7, 11, smooth(V_PANIC - 0.3, V_PANIC + 0.7, v)) * DEG;
   // after the hit: the fireball and the wall down the avenue
   pitch = lerp(pitch, 7 * DEG, smooth(V_HIT - 0.4, V_HIT + 1.8, v));
-  let yaw = -az * 0.9;
+  let yaw = -0.3 * DEG * smooth(V_PANIC, V_PANIC + 2, v);
   let fov = lerp(62, 66, smooth(16, 40, v));
   let roll = wobble(v * 0.3, 7) * 0.5 * DEG;
   // creeping forward a little into the crowd, swaying like a handheld phone
@@ -220,7 +215,9 @@ function update(v, cover = -1) {
   hemi.color.setRGB(0.61, 0.76, 1.0).lerp(tmpC.setRGB(1, 0.6, 0.35), Math.max(s.light * 0.7, wF * 0.9));
   hemi.groundColor.setRGB(0.54, 0.48, 0.4).lerp(tmpC.setRGB(0.6, 0.3, 0.12), Math.max(s.light * 0.6, wF));
   hemi.intensity = 1.25 + 0.25 * s.light + 3 * s.flashPop - 0.55 * smooth(0.5, 3, s.age);
-  rodL.position.copy(tip).add(tmpS.set(0, 30, 0));
+  // (its light on the street is as bright as from 500 m, or the crowd would burn out as it comes close)
+  tmpS.copy(tip).setY(tip.y + 30).sub(C0);
+  rodL.position.copy(C0).addScaledVector(tmpS, Math.max(1, 500 / tmpS.length()));
   rodL.intensity = s.hit ? 0 : 1.4e5 * s.fire * (0.85 + 0.15 * Math.sin(v * 21));
   fireL.position.copy(fireC);
   fireL.intensity = s.hit ? 2.5e5 * (1 - 0.6 * smooth(1, 5, s.age)) : 0;
