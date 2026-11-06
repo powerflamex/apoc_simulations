@@ -3,17 +3,28 @@
 //   - the crowd on the crossing and the corners: some still walking across on frame 0 (they slow and stop to stare),
 //     most looking up, half of them filming it;
 //   - at the alert (6 s) everyone with a phone looks down at it for a moment, the screens flashing white;
-//   - runners from 12 s: each runs straight away from the rod (south, or along the cross street), and only if their
-//     whole path stays clear of everyone else (checked here at load);
-//   - from 36 s the ones left crouch and cover their heads; when the wall arrives they are blown off their feet.
+//   - at 12 s the people round you turn and sprint past you on both sides, and most of the street goes with them; a
+//     second wave breaks at 24 s, gets as far as the middle of the frame and gives up. Every path is booked at load so
+//     that nobody passes through anybody (see the table below);
+//   - from 36 s everyone left drops to the ground, heads down, arms over them; the wall blows them off the street.
 import * as THREE from 'three';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
-import { CAM0, FX, FZ, HIT, ROAD_X, ROAD_Z } from './layout.js';
+import { CAM0, FX, FZ, HIT, SIGNALS, LAMPS } from './layout.js';
 import { rng, clamp, smooth, wobble, lerp } from './util.js';
-import { V_ALERT, V_PANIC, V_FILL, V_WALL } from './timeline.js';
+import { CARS } from './traffic.js';
+import { V_ALERT, V_PANIC, V_FIRE, V_FILL } from './timeline.js';
 
 const SHIRTS = [0x1d2230, 0xe8e2d6, 0x3a3328, 0x6b5a44, 0xc8d4e8, 0x7a2a2a, 0x24384a, 0xf0c060, 0x2f3d2c, 0xb8b0a0, 0x15151a, 0x8a5a8a, 0xd05030, 0x3a4a6a, 0xffffff, 0x60a0d0];
 const PANTS = [0x15161a, 0x23252b, 0x2c3340, 0x4a4238, 0x1a1a1a, 0x3a3a40, 0x8a7a66, 0xc9c2b6];
+
+// how far along their line someone is at time v: pushing off, full speed, slowing into the stop
+const RUN_TAU = 0.28;
+function runDist(r, v) {
+  const t = v - r.t0;
+  if (t <= 0) return 0;
+  const s = r.sp * (t - RUN_TAU * (1 - Math.exp(-t / RUN_TAU)));
+  return s < r.L - 1.2 ? s : r.L - 1.2 + 1.2 * (1 - Math.exp(-(s - r.L + 1.2) / 1.2));
+}
 
 export const PEOPLE = [];
 {
@@ -60,7 +71,7 @@ export const PEOPLE = [];
     p.yaw0 = Math.PI + (R() - 0.5) * 0.6;            // facing north (yaw PI faces -z), toward the rod
     p.tReact = 0.3 + R() * 2.4;                      // when they start pointing / crying
     p.tAlert = V_ALERT + R() * 0.5;                  // when their phone buzzes
-    p.tCrouch = V_FILL + R() * 1.6;
+    p.tCrouch = V_FILL - 0.5 + R() * 0.9;
     p.spin = (R() - 0.5) * 3;
     p.walk = null; p.run = null;
   });
@@ -81,59 +92,120 @@ export const PEOPLE = [];
     if (!clearSeg(p, ax, az, p.x, p.z, 0.8)) continue;
     p.walk = { dx: d[0], dz: d[1], tStop, sp };
   }
-  // runners, from 12 s on: the people on the avenue's sidewalks stream straight south past you; the ones on the crossing
-  // fan out southward (never toward it)
-  const runners = [];
-  // who wants to run (most of the crossing, many on the sidewalks, a few right by you); the rest stand and are the
-  // ones a path must keep clear of
-  for (const p of PEOPLE) {
-    const onCross = Math.abs(p.x) < 14.5 && Math.abs(p.z) < 10;
-    p.wants = !p.near && R() < (onCross ? 0.88 : 0.6) || (p.near && R() < 0.25);
-  }
-  const stayers = PEOPLE.filter((q) => !q.wants);
-  for (const p of PEOPLE) {
-    if (!p.wants) continue;
-    const onWalk = Math.abs(p.x) > ROAD_X + 0.3 && Math.abs(p.z) > ROAD_Z;
-    let dx, dz;
-    if (onWalk) { dx = 0; dz = 1; }
-    else {
-      const ox = 0, oz = -14;
-      const r0 = Math.hypot(p.x - ox, p.z - oz);
-      if (r0 < 1) continue;
-      dx = (p.x - ox) / r0 * 0.7 + (p.x > CAM0.x ? 0.22 : -0.22); dz = (p.z - oz) / r0 + 0.35;
-      const nn = Math.hypot(dx, dz); dx /= nn; dz /= nn;
-    }
-    if (dz < 0.15) continue;
-    const sp = 3.0 + R() * 1.6, t0 = V_PANIC + (p.near ? 1.5 + R() * 9 : Math.pow(R(), 2.0) * 8.5);
-    // run until a building front (or 80 m along the sidewalk, 40 m across the crossing: past you), then stop there
-    let L = onWalk ? 80 : 40;
-    for (let s = 0.5; s < L; s += 0.5) {
-      const x = p.x + dx * s, z = p.z + dz * s;
-      if (Math.abs(x) > FX - 0.6 && Math.abs(z) > FZ - 0.6) { L = s - 0.5; break; }
-    }
-    if (L < 3) continue;
-    const ex = p.x + dx * L, ez = p.z + dz * L;
-    if ((ex - CAM0.x) ** 2 + (ez - CAM0.z) ** 2 < 25) continue;
-    const segOK = stayers.every((q) => {
-      const t = clamp(((q.x - p.x) * dx + (q.z - p.z) * dz) / L);
-      if (t <= 0) return true;
-      return (p.x + dx * L * t - q.x) ** 2 + (p.z + dz * L * t - q.z) ** 2 > 0.45 * 0.45;     // (brushing past is fine)
-    });
-    const camOK = (() => { const t = clamp(((CAM0.x - p.x) * dx + (CAM0.z - p.z) * dz) / L); return (p.x + dx * L * t - CAM0.x) ** 2 + (p.z + dz * L * t - CAM0.z) ** 2 > 2.5 * 2.5; })();
-    if (!segOK || !camOK) continue;
-    const run = { dx, dz, sp, t0, L };
-    const posAt = (q, v) => { const s = clamp((v - q.run.t0) * q.run.sp, 0, q.run.L); return [q.x + q.run.dx * s, q.z + q.run.dz * s]; };
-    p.run = run;
-    let clash = false;
-    for (const q of runners) {
-      for (let v = Math.min(t0, q.run.t0); v < Math.max(t0, q.run.t0) + 25 && !clash; v += 0.1) {
-        const [ax, az] = posAt(p, v), [bx, bz] = posAt(q, v);
-        if ((ax - bx) ** 2 + (az - bz) ** 2 < 0.45 * 0.45) clash = true;
+  // ---- the run (planned here, once, so nobody passes through anybody) ----
+  // Every person's position is booked in a table (0.1 s slots, 1 m cells), standing at home to start with. Planning
+  // someone's run means trying a path against everyone's bookings: it is taken only if they stay clear of everyone
+  // the whole way, otherwise they try a later start or another line, and if nothing fits they stay where they are.
+  // Paths are planned from the south end north, so the people nearest the way out go first. Past the camera nobody is
+  // booked (you can't see them).
+  const SL = 0.1, V0 = V_PANIC - 0.1, V1 = 37, NS = Math.ceil((V1 - V0) / SL), MIN = 0.75;     // (0.75 at each slot keeps two sprinters 0.6 m apart between slots)
+  const key = (slot, ix, iz) => (slot * 4096 + (ix + 2048)) * 4096 + (iz + 2048);
+  const table = new Map();
+  const book = (id, pts) => pts.forEach((pt, slot) => {
+    if (!pt) return;
+    const k = key(slot, Math.floor(pt[0]), Math.floor(pt[1]));
+    let c = table.get(k);
+    if (!c) table.set(k, c = []);
+    c.push(id, pt[0], pt[1]);
+  });
+  const unbook = (id, pts) => pts.forEach((pt, slot) => {
+    if (!pt) return;
+    const c = table.get(key(slot, Math.floor(pt[0]), Math.floor(pt[1])));
+    if (c) for (let i = c.length - 3; i >= 0; i -= 3) if (c[i] === id) c.splice(i, 3);
+  });
+  const clear = (id, pts) => {
+    for (let slot = 0; slot < NS; slot++) {
+      const pt = pts[slot];
+      if (!pt) continue;
+      const ix = Math.floor(pt[0]), iz = Math.floor(pt[1]);
+      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+        const c = table.get(key(slot, ix + a, iz + b));
+        if (c) for (let i = 0; i < c.length; i += 3) if (c[i] !== id && (c[i + 1] - pt[0]) ** 2 + (c[i + 2] - pt[1]) ** 2 < MIN * MIN) return false;
       }
-      if (clash) break;
     }
-    if (clash) { p.run = null; continue; }
-    runners.push(p);
+    return true;
+  };
+  const SEEN_Z = CAM0.z + 0.5;
+  const pathOf = (p) => Array.from({ length: NS }, (_, slot) => {
+    const v = V0 + slot * SL;
+    const s = p.run ? runDist(p.run, v) : 0;
+    const x = p.x + (p.run ? p.run.dx * s : 0), z = p.z + (p.run ? p.run.dz * s : 0);
+    return z > SEEN_Z ? null : [x, z];
+  });
+  // what a straight line can't go through: walls, parked cars, poles
+  const STILL_CARS = CARS.filter((c) => !c.mv);
+  const POLES = [...SIGNALS, ...LAMPS.filter((l) => Math.abs(l.z) < 90 && Math.abs(l.x) < 40)];
+  const blocked = (x, z) => {
+    if (Math.abs(x) > FX - 0.4 && Math.abs(z) > FZ - 0.4) return true;
+    for (const c of STILL_CARS) {
+      const along = Math.abs(Math.sin(c.yaw)) > 0.5;            // true: the car lies east-west
+      if (Math.abs(x - c.x) < (along ? 2.8 : 1.4) && Math.abs(z - c.z) < (along ? 1.4 : 2.8)) return true;
+    }
+    return POLES.some((q) => (x - q.x) ** 2 + (z - q.z) ** 2 < 0.45 * 0.45);
+  };
+  const reach = (p, dx, dz, Lmax) => {
+    for (let s = 0.25; s < Lmax; s += 0.25) {
+      const z = p.z + dz * s;
+      if (z > SEEN_Z) return Lmax;
+      if (blocked(p.x + dx * s, z)) return s - 0.7;
+    }
+    return Lmax;
+  };
+  const setRun = (p, dx, dz, L, sp, t0, turnBack) => { p.run = { dx, dz, L, sp, t0, turnBack, tStop: t0 + RUN_TAU + (L + 2) / sp }; };
+  // try one line at a list of start times; true if it was taken (booked)
+  function tryRun(p, dx, dz, Lmax, sp, t0, tries, step, turnBack = false) {
+    const home = pathOf(p);                                     // (p.run is still null here)
+    unbook(p.i, home);
+    const n = Math.hypot(dx, dz); dx /= n; dz /= n;
+    const L = reach(p, dx, dz, Lmax);
+    if (L > 1.5) {
+      for (let k = 0; k < tries; k++) {
+        const t = t0 + k * step;
+        setRun(p, dx, dz, Math.min(L, sp * (34.6 - t - RUN_TAU) - 2), sp, t, turnBack);
+        if (p.run.L < 1.5) break;
+        const pts = pathOf(p);
+        const byCam = pts.some((pt) => pt && (pt[0] - CAM0.x) ** 2 + (pt[1] - CAM0.z + 0.4) ** 2 < 1.3 * 1.3);    // not through you
+        if (!byCam && clear(p.i, pts)) { book(p.i, pts); return true; }
+      }
+    }
+    p.run = null;
+    book(p.i, home);
+    return false;
+  }
+  for (const p of PEOPLE) book(p.i, pathOf(p));
+
+  // who runs: all of the people round you, most of the crossing, most of the sidewalks. The rest freeze where they are.
+  const onCross = (p) => Math.abs(p.x) < 15 && Math.abs(p.z) < 10.4;
+  // (the ones who freeze are all in the north half of the crossing, so nobody between them and you blocks the way)
+  const wants = PEOPLE.filter((p) => p.near || (onCross(p) ? p.z > -1 || R() < 0.62 : R() < 0.8)).sort((a, b) => b.z - a.z);
+  const SP = new Map(wants.map((p) => [p.i, 4.2 + R() * 1.3]));
+  // a few passes: someone blocked on the first go gets another once the people in front of them have moved off
+  for (let pass = 0; pass < 5; pass++) {
+    for (const p of wants) {
+      if (p.run || p.z > SEEN_Z) continue;                      // (behind you: out of the picture)
+      const sp = SP.get(p.i);
+      const t0 = V_PANIC + (p.near ? R() * 0.4 + (CAM0.z - p.z) * 0.05 : pass * 0.45 + R() * 0.8 + (CAM0.z - p.z) * 0.035);
+      const beyond = SEEN_Z + 3 - p.z;
+      if (Math.abs(p.x) > FX) { tryRun(p, Math.sign(p.x), 0, 60, sp, t0, 8, 0.25); continue; }    // along the cross street
+      const off = p.x - CAM0.x, side = Math.abs(off) > 0.15 ? Math.sign(off) : R() < 0.5 ? -1 : 1;
+      // through a gate beside you, a little out from where they stand; never straight at the camera
+      for (let g = 0; g < (p.near ? 14 : 8); g++) {
+        const gate = CAM0.x + (g % 4 === 3 ? -side : side) * (1.5 + Math.abs(off) * 0.55 + R() * 0.8 + g * 0.5);
+        const dz = Math.max(CAM0.z - 0.5 - p.z, 0.5), dx = gate - p.x, n = Math.hypot(dx, dz);
+        if (tryRun(p, dx, dz, beyond * n / dz, sp, t0, p.near ? 14 : 8, p.near ? 0.15 : 0.2)) break;
+      }
+    }
+  }
+
+  // the second wave: as the air catches fire, people who froze at the far side of the crossing break for it too, get as
+  // far as the middle of the frame, give up, turn to look at it, and go down there. They are the crowd round you at the end.
+  const SPOTS = [[3.2, 1.5], [3.9, -1.3], [5.0, 0.3], [5.6, 2.4], [6.3, -2.1], [7.3, 1.0], [8.1, -0.7], [8.8, 3.0], [9.5, -3.1], [4.5, 3.5], [4.7, -3.6], [10.6, 1.8]];
+  for (const [a, r] of SPOTS) {
+    const sx = CAM0.x + r, sz = CAM0.z - a;
+    const who = PEOPLE.filter((p) => !p.run && !p.near && onCross(p) && p.z < sz - 4).sort((u, w) => Math.hypot(u.x - sx, u.z - sz) - Math.hypot(w.x - sx, w.z - sz));
+    for (const p of who.slice(0, 8)) {
+      if (tryRun(p, sx - p.x, sz - p.z, Math.hypot(sx - p.x, sz - p.z), 3.6 + R() * 1.2, V_FIRE + 0.2 + R() * 2.5, 12, 0.4, true)) break;
+    }
   }
 }
 
@@ -166,20 +238,23 @@ export function makePeople(scene) {
           alert = smooth(p.tAlert, p.tAlert + 0.35, v) * (1 - smooth(p.tAlert + 2.2, p.tAlert + 3.0, v));
           armR = lerp(armR, 0.62, alert); look = lerp(look, -0.1, alert);
         }
-        let moving = 0;
+        let moving = false;
         if (p.run && v > p.run.t0) {
-          const sx = clamp((v - p.run.t0) * p.run.sp, 0, p.run.L);
-          x += p.run.dx * sx; z += p.run.dz * sx;
-          moving = sx < p.run.L ? 1 : 0;
-          const turn = smooth(p.run.t0, p.run.t0 + 0.35, v);
-          yaw = lerp(yaw, Math.atan2(-p.run.dx, -p.run.dz) + Math.PI, turn);
-          if (moving) { walk = v * 11 + p.ph; stride = 1.5 * turn; armL = armR = 0.25; look = 0.2; }
-          else { look = 0.6; armL = armR = 0.3; }
+          const r = p.run, sx = runDist(r, v);
+          x += r.dx * sx; z += r.dz * sx;
+          moving = v < r.tStop;
+          const turn = smooth(r.t0, r.t0 + 0.3, v);
+          const back = r.turnBack ? smooth(r.tStop, r.tStop + 0.9, v) : 0;        // gave up: turns to look at it
+          yaw = lerp(yaw, Math.atan2(-r.dx, -r.dz) + Math.PI, turn * (1 - back));
+          if (moving) { walk = (v - r.t0) * r.sp * 2.4 + p.ph; stride = 1.5 * turn * clamp((r.tStop - v) / 0.7); armL = armR = 0.25; look = 0.2; alert = 0; }
+          else { look = 0.7; armL = armR = 0.3; }
         }
-        // the last seconds: crouching, arms over the head
-        if (!moving && v > p.tCrouch) {
-          const c = smooth(p.tCrouch, p.tCrouch + 0.9, v);
-          sit = 0.5 * c; armL = lerp(armL, 1.6, c); armR = lerp(armR, 1.6, c); look = lerp(look, 0.3, c); pitch += 0.25 * c;
+        // the last seconds: down on the ground, head down, arms over it
+        let crouch = 0;
+        if (!moving && v > p.tCrouch) crouch = smooth(p.tCrouch, p.tCrouch + 0.7, v);
+        if (crouch > 0) {
+          sit = crouch; y = -0.13 * crouch; pitch += 0.35 * crouch;
+          armL = lerp(armL, 1.45, crouch); armR = lerp(armR, 1.45, crouch); look = lerp(look, -0.5, crouch);
         }
         // the shock through the ground after the hit
         if (s.hit) { x += wobble(v * 19, p.ph) * 0.03 * smooth(0.3, 0.8, s.age); roll += wobble(v * 13, p.ph + 3) * 0.06 * smooth(0.3, 0.8, s.age); }
@@ -191,10 +266,11 @@ export function makePeople(scene) {
           x += ax * 16 * t; z += az * 16 * t; y += Math.max(0, 9 * t - 7 * t * t);
           pitch += 5 * t * (1 + 0.3 * p.spin); roll += p.spin * 2 * t;
           armL = 1.5; armR = 1.4; stride = 0.9; walk = t * 12;
+          sit *= 1 - clamp(t * 5);
         }
         crowd.pose(p.i, { x, y, z, yaw, s: p.s, walk, stride, sit, pitch, roll, armL, armR, look });
         // the phone's screen (it faces them; seen from behind it glows; the alert flashes it white)
-        if (p.act === 'phone' && (!p.run || v < p.run.t0) && s.front < rHit - 10) {
+        if (p.act === 'phone' && (!p.run || v < p.run.t0) && v < p.tCrouch + 0.2 && s.front < rHit - 10) {
           const hx = x + (Math.sin(yaw) * 0.6 + Math.cos(yaw) * 0.215) * p.s, hz = z + (Math.cos(yaw) * 0.6 - Math.sin(yaw) * 0.215) * p.s;
           const fl = alert * (0.6 + 0.4 * (Math.sin(v * 12 + p.ph) > 0 ? 1 : 0));
           glows.add(hx, y + (1.42 - 0.5 * sit) * p.s, hz, 0.09 + 0.05 * fl, 0.9 + 3.5 * fl, 0.95 + 3.2 * fl, 1.1 + 3.0 * fl);

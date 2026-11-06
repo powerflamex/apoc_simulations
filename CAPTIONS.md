@@ -1076,19 +1076,23 @@ Cover: `week 5/iss-jump/out/iss-jump_v4_cover.png` (`node render.mjs --cover 33.
 
 ## Next Short. What if a metal rod as tall as a skyscraper fell on your city? — `week 5/metal-rod/out/metal-rod_v4_1080x1920_60fps_tiktok.mp4`
 
-48.7 s. A packed avenue in daylight (a generic city, big LED screens on the corners, no real brands); you stand on the
-scramble crossing in the crowd and never leave it. Frame 0: the title, the counter racing (IMPACT IN · TIME-LAPSE,
-8m 00s, 490 MPH climbing), a dark metal spear already hanging over the far end of the avenue, tip down, people right
-by you with their phones up, the owner's scream in the first second. A time-lapse jump every 3 s (a hit in the sound,
-the camera jolts, the rod nearer and bigger each time). 0:06 every phone flashes the same alert (the alert tone from
-every pocket) and the big screens switch to EMERGENCY ALERT; 0:12 traffic jams up the avenue with horns and hazard
-lights, and people run past you; 0:18 (25 s left, 100 km up: it enters the air) the tip starts to glow; 0:24 the air
-round it catches fire, a burning streak up the sky; 0:30 the fire lights the whole street, everyone's shadow swings
-toward it ("You never hear it coming": it is 12x faster than sound); 0:36 it fills the sky over the avenue, white-hot,
-the crowd crouches; 0:42 it hits the far end of the avenue: a silent flash, then a fireball dome rising over the
-towers; 0:44-0:47 the blast wall (torn-up ground and dust, the buildings nearest the hit crumpling, every window it
-passes bursting, cars and then people flung at you) races down the avenue and reaches you: white, loop (the white
-clears onto frame 0).
+48.7 s (reworked Nov 5: a much bigger rod, the near crowd really runs, a counter that never stalls). A packed avenue
+in daylight (a generic city, big LED screens on the corners, no real brands); you stand on the scramble crossing in
+the crowd and never leave it. Frame 0: the title, the counter racing (IMPACT IN · TIME-LAPSE, 8m 00s, 490 MPH climbing),
+a thick metal spear already hanging over the far end of the avenue, tip down, about 430 px long, people right by you
+with their phones up, the owner's scream in the first second. A time-lapse jump every 3 s (a hit in the sound, the
+camera jolts, the rod about 17% bigger each time, its top leaving the frame by ~0:12). 0:06 every phone flashes the
+same alert (the alert tone from every pocket) and the big screens switch to EMERGENCY ALERT; 0:12 traffic jams up the
+avenue with horns and hazard lights, you look down, and the people round you turn and sprint past you on both sides,
+most of the street behind them; 0:18 (25 s left, 100 km up: it enters the air) the tip starts to glow; 0:24 the air
+round it catches fire and a second wave of people breaks for it, gets as far as the middle of the frame and gives
+up; 0:27 the label changes to SLOW MOTION and the counter shows tenths of a second; 0:30 the fire lights the whole
+street, everyone's shadow swings toward it ("You never hear it coming": it is 12x faster than sound); 0:36 the molten
+rod runs off the top of the screen, a quarter of the frame wide, and everyone left drops to the ground, arms over their
+heads; 0:38 "You have 1 second left." as the counter reads 0m 01.0s; 0:42 it hits the far end of the avenue: a silent
+flash (the counter fades out under it), then a fireball dome rising over the towers; 0:44-0:47 the blast wall (torn-up
+ground and dust, the buildings nearest the hit crumpling, every window it passes bursting, cars and then people flung
+at you) races down the avenue and reaches you: white, loop (the white clears onto frame 0).
 Numbers (`src/timeline.js`): a solid tungsten rod (19,300 kg/m^3), 300 m long (1,000 ft, as tall as a skyscraper),
 25 m wide: 2.84 million tonnes (3.1 million US tons: "3 million tons"); dropped from rest 1,000 km up (620 miles,
 twice the height of the space station); the fall integrated from G M_earth: 8 min 29 s, entering the air (100 km)
@@ -1098,8 +1102,11 @@ tons of TNT = 384 Hiroshima bombs ("380"); the air at its nose: the ideal-gas st
 8,600 K, real (dissociating) air nearer 6,000-7,000 K, so "over 10,000 °F"; its own sound can't reach you first (12x
 faster than sound; the shock of its entry at 100 km would take 5 minutes to come down), so the 0:30 beat is the
 silence, not a boom, and the hit is a silent flash followed by the ground shock and then the air blast with the wall.
-Picture vs numbers: every number on screen comes from that fall; the rod itself is drawn big enough to see from frame 0
-(at 8 minutes out the real rod would be a dot 1,000 km up) and is drawn at its true size and place in the last seconds.
+Picture vs numbers: every number on screen comes from the real 300 m rod's fall. The rod you see is NOT to scale: it is
+drawn 5.5x bigger than real, same shape (1,650 m long, 137 m wide, as if about five skyscrapers tall), on a made-up
+path that brings it nearer by the same factor every 3 s (`ROD_DRAW`, `P0`, `tipAt`). The real rod would be a dot 1,000 km up
+at 8 minutes out, and from 500 m it would never fill more than about a third of the frame. The time-lapse and slow-motion
+labels are true to the counter (faster than real time until 0:27, slower after).
 
 **YouTube title (95 chars)**
 What if a metal rod as tall as a skyscraper fell on your city? You never hear it coming #whatif
@@ -1108,16 +1115,16 @@ What if a metal rod as tall as a skyscraper fell on your city? You never hear it
 A solid tungsten rod 1,000 ft long and 80 ft wide (3 million tons), dropped from space 620 miles up, onto a city avenue. A time-lapse of its last 8 minutes, from the crowd on the crossing.
 
 8 minutes out: it's already doing 490 mph, and nothing can stop it.
-25 seconds out: it hits the air at 8,700 mph. The tip glows white, then the air around it catches fire.
+25 seconds out: it hits the air at 8,700 mph. The tip starts to glow, then the air around it catches fire.
 It's 12 times faster than its own sound: you never hear it coming.
 It hits at 9,200 mph with the energy of 5.8 million tons of TNT: 380 Hiroshima bombs.
 Then the blast wall comes down the street.
 
-Where would you be at 0m 03s? 👇
+Where would you run with 3 seconds left? 👇
 
 #whatif #space #tungsten #physics #shorts
 
-Cover: `week 5/metal-rod/out/metal-rod_v4_cover.png` (`node render.mjs --cover 33`: the rod big over the avenue with its white-hot tip and the fire streak above it, the alert screens on both sides, the crowd below; "WHAT IF A SKYSCRAPER-SIZED / metal rod / fell on your city?")
+Cover: `week 5/metal-rod/out/metal-rod_v4_cover.png` (`node render.mjs --cover 36.4`: the molten rod towering over the avenue and running off the top, the EMERGENCY ALERT boards on both sides, a man dropping to the ground in front of you; "WHAT IF A SKYSCRAPER-SIZED / metal rod / fell on your city?")
 
 ---
 

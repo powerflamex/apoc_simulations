@@ -15,7 +15,7 @@ import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makeOverlay } from './overlay.js';
 import { CAM0, HIT } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, ROD_L, V_HIT, V_WALL, T_SWITCH } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, POP, ROD_L, ROD_DRAW, V_PANIC, V_HIT, V_WALL, T_SWITCH } from './timeline.js';
 import { lerp, smooth, wobble, clamp } from './util.js';
 
 const W = 1080, H = 1920, DEG = Math.PI / 180;
@@ -130,12 +130,14 @@ composer.addPass(finish);
 // ---------- the rod's path (what is drawn: from high over the far city down to the avenue 500 m ahead; it comes
 // nearer at an even rate per step, so it is visibly bigger every 3 s) ----------
 const C0 = new THREE.Vector3(CAM0.x, 1.75, CAM0.z);
-const P0 = new THREE.Vector3(0, 1036, -1585), P1 = new THREE.Vector3(HIT.x, 0, HIT.z);
+// (P0 is set by frame 0: the tip 32° up, the whole drawn rod spanning to 46°, about 430 px of the frame)
+const P0X = ROD_L * ROD_DRAW / 0.415;
+const P0 = new THREE.Vector3(0, P0X * 0.625, CAM0.z - P0X), P1 = new THREE.Vector3(HIT.x, 0, HIT.z);
 const D0 = P0.distanceTo(C0), D1 = P1.distanceTo(C0);
 const tmpA = new THREE.Vector3();
 function tipAt(p, out) {
   const d = D0 * Math.pow(D1 / D0, p);
-  let a = 0, b = 1;
+  let a = -0.5, b = 1;
   for (let i = 0; i < 40; i++) { const m = (a + b) / 2; tmpA.lerpVectors(P0, P1, m); if (tmpA.distanceTo(C0) > d) a = m; else b = m; }
   return out.lerpVectors(P0, P1, (a + b) / 2);
 }
@@ -144,11 +146,14 @@ const tip = new THREE.Vector3(), rodDir = new THREE.Vector3(), fireC = new THREE
 // ---------- the camera ----------
 function camAt(v, s) {
   const pos = new THREE.Vector3(CAM0.x, 1.75, CAM0.z);
-  // aim: the rod in the upper part of the frame, the crowd below; you tilt down with it as it comes
-  rodDir.copy(tip).addScaledVector(new THREE.Vector3(0, 1, 0), ROD_L * 0.5).sub(pos);
-  const el = Math.asin(rodDir.y / rodDir.length());
-  const az = Math.atan2(rodDir.x, -rodDir.z);
-  let pitch = el - 16 * DEG;
+  // aim: the tip above the middle of the frame, the crowd below; you tilt down with it as it comes
+  const horiz = Math.hypot(tip.x - pos.x, tip.z - pos.z);
+  const el = Math.atan2(tip.y - pos.y, horiz);
+  const az = Math.atan2(tip.x - pos.x, -(tip.z - pos.z));
+  const above = s.p < 12 / 14 ? lerp(11.3, -1.0, s.p / (12 / 14)) : lerp(-1.0, -0.6, (s.p - 12 / 14) / (2 / 14));
+  let pitch = el - above * DEG;
+  // the panic: you look down at the people rushing past you, then back up at it
+  pitch -= 9 * DEG * (smooth(V_PANIC - 0.3, V_PANIC + 0.5, v) - smooth(V_PANIC + 3.2, V_PANIC + 4.8, v));
   // after the hit: the fireball and the wall down the avenue
   pitch = lerp(pitch, 7 * DEG, smooth(V_HIT - 0.4, V_HIT + 1.8, v));
   let yaw = -az * 0.9;
@@ -255,7 +260,7 @@ function update(v, cover = -1) {
   finish.uniforms.uCenter.value.set(clamp(pc.x * 0.5 + 0.5, 0.05, 0.95), clamp(pc.y * 0.5 + 0.5, 0.05, 0.95));
   finish.uniforms.uFlash.value = s.flashPop * 0.75;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
-  finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.9;
+  finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * (1 - smooth(V_HIT, V_HIT + 0.45, v)) * 0.9;
 
   overlay(v, s, v);
   {

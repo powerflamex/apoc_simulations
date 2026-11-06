@@ -45,7 +45,7 @@ export function makeSky() {
         sky = mix(sky, vec3(0.62, 0.64, 0.68), smoothstep(0.0, -0.05, h));
         // the burning air round the rod: an orange glow in the sky round it, fading with the angle from it
         float ang = acos(clamp(dot(d, uRodDir), -1.0, 1.0));
-        sky += vec3(1.0, 0.45, 0.12) * uFire * (0.9 * exp(-ang / 0.12) + 0.35 * exp(-ang / 0.5)) * (0.85 + 0.15 * n3(vec3(d * 20.0 + uTime * 2.0)));
+        sky += vec3(1.0, 0.45, 0.12) * uFire * (0.22 * exp(-ang / 0.12) + 0.16 * exp(-ang / 0.5)) * (0.85 + 0.15 * n3(vec3(d * 20.0 + uTime * 2.0)));
         sky = mix(sky, sky * vec3(1.0, 0.72, 0.5) + vec3(0.25, 0.1, 0.02), uFire * 0.45 * smoothstep(0.7, 0.0, h));
         // after the hit: the dust pall climbing over the north, the sky darkening
         float north = smoothstep(0.3, 0.98, -d.z);

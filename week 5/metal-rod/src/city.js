@@ -170,6 +170,8 @@ function makeScreenAtlas() {
   const cv = document.createElement('canvas');
   cv.width = 2048; cv.height = 1152;
   const g = cv.getContext('2d');
+  // text that fits the picture: a line wider than its 512 px cell would be cut off on the board
+  const fit = (text, weight, size, x, y) => { g.font = `${weight} ${size}px Georgia, serif`; const w = g.measureText(text).width; if (w > 480) { g.font = `${weight} ${size * 480 / w}px Georgia, serif`; } g.fillText(text, x, y); };
   ADS.forEach(([word, c1, c2], i) => {
     const x0 = (i % 4) * 512, y0 = Math.floor(i / 4) * 288;
     const gr = g.createLinearGradient(x0, y0, x0 + 512, y0 + 288);
@@ -187,9 +189,9 @@ function makeScreenAtlas() {
     g.fillStyle = k ? '#d01010' : '#200000'; g.fillRect(x0, y0, 512, 288);
     g.fillStyle = k ? '#200000' : '#ff2020'; g.fillRect(x0, y0 + 10, 512, 50); g.fillRect(x0, y0 + 228, 512, 50);
     g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
-    g.font = '900 60px Georgia, serif'; g.fillText('EMERGENCY ALERT', x0 + 256, y0 + 112);
-    g.font = '900 54px Georgia, serif'; g.fillText('TAKE SHELTER', x0 + 256, y0 + 176);
-    g.font = '700 26px Georgia, serif'; g.fillStyle = k ? '#fff' : '#ff8080'; g.fillText('OBJECT FALLING - GET UNDERGROUND', x0 + 256, y0 + 253);
+    fit('EMERGENCY ALERT', 900, 60, x0 + 256, y0 + 112);
+    fit('TAKE SHELTER', 900, 54, x0 + 256, y0 + 176);
+    g.fillStyle = k ? '#fff' : '#ff8080'; fit('OBJECT FALLING - GET UNDERGROUND', 700, 26, x0 + 256, y0 + 253);
   }
   // cell 10: a news picture: the rod over a skyline
   {
@@ -202,7 +204,7 @@ function makeScreenAtlas() {
     g.fillStyle = '#c8ccd2'; g.fillRect(x0 + 300, y0 + 20, 16, 150); g.beginPath(); g.moveTo(x0 + 300, y0 + 170); g.lineTo(x0 + 316, y0 + 170); g.lineTo(x0 + 308, y0 + 196); g.fill();
     g.fillStyle = '#ffffff'; g.fillRect(x0 + 304, y0 + 20, 4, 150);
     g.fillStyle = '#d01010'; g.fillRect(x0, y0 + 236, 512, 52);
-    g.fillStyle = '#fff'; g.font = '900 34px Georgia, serif'; g.textAlign = 'center'; g.fillText('BREAKING: ROD FALLING ON THE CITY', x0 + 256, y0 + 263);
+    g.fillStyle = '#fff'; g.textAlign = 'center'; fit('BREAKING: ROD FALLING ON THE CITY', 900, 34, x0 + 256, y0 + 263);
   }
   const t = new THREE.CanvasTexture(cv);
   t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
@@ -270,8 +272,11 @@ export function makeCity(scene, ctx) {
         float fl = step(0.5, fract(uTime * 1.6 + vSeed * 0.3));
         vec3 al = mod(floor(uTime / 2.4 + vSeed), 3.0) < 1.0 ? cell(10.0, uv) : cell(8.0 + fl, uv);
         vec3 c = mix(ad, al, alertOn);
-        vec2 px = fract(vUv * vec2(160.0, 90.0));
-        c *= 0.8 + 0.2 * smoothstep(0.0, 0.25, px.x) * smoothstep(0.0, 0.25, px.y);
+        // the LED dots; once a dot is smaller than a video pixel they fade to an even tone (or they shimmer like static)
+        vec2 led = vUv * vec2(160.0, 90.0);
+        vec2 px = fract(led);
+        float ledW = max(fwidth(led.x), fwidth(led.y));
+        c *= mix(0.8 + 0.2 * smoothstep(0.0, 0.25, px.x) * smoothstep(0.0, 0.25, px.y), 0.9, smoothstep(0.2, 0.6, ledW));
         float dead = uBlastR > 0.0 ? step(length(vC - uHit), uBlastR + 25.0) : 0.0;
         gl_FragColor = vec4(c * 2.6 * (1.0 - dead) + vec3(0.02) * dead, 1.0);
       }`,

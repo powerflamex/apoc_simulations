@@ -14,13 +14,15 @@
 //   - its own sound never reaches you before it does: it is 12x faster than sound, and the shock from its entry at
 //     100 km would take 5 minutes to reach the ground.
 // What is drawn vs what is real: every number on screen (the countdown, the speed, the captions) comes from the fall
-// above. The rod itself is drawn big enough to see from frame 0 (at 8 minutes out the real rod would be a dot
-// 1,000 km up); it is drawn at its true size and place in the last seconds.
+// above. The rod itself is a picture, not to scale: drawn ROD_DRAW times bigger than real (same shape), on a path that
+// brings it nearer by the same factor every 3 s. The real one would be a dot 1,000 km up at 8 minutes out, and never
+// more than a third of the frame high from 500 m away.
 import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
 export const GM = 3.986004e14, RE = 6.371e6, H0 = 1000e3, R0 = RE + H0;
 export const ROD_L = 300, ROD_R = 12.5, RHO = 19300;
+export const ROD_DRAW = 5.5;                                     // how much bigger than real the rod is drawn (see above)
 export const MASS = RHO * Math.PI * ROD_R * ROD_R * ROD_L;       // 1.023e9 kg
 export const MILE = 1609.344;
 export const KT = 4.184e12;                                      // J per kiloton of TNT
@@ -57,24 +59,30 @@ export const T_AIR = (() => { let a = 0, b = T_FALL; for (let i = 0; i < 60; i++
 // ---- the time-lapse: time left at video time v. A jump every 3 s (most of each step in its first half second), then
 // smoother near the end, where it slows past real time into slow motion ----
 export const T_START = 480;
-const KEYS = [480, 330, 225, 150, 95, 55, 25, 16, 9.5, 6, 3.6, 2.2, 1.4, 0.6, 0];
+const KEYS = [480, 330, 225, 150, 95, 55, 25, 16, 9.5, 6, 3.6, 2.2, 1.4, 0.9, 0];
 const STEP = 3, C = 0.2;
 export const V_HIT = (KEYS.length - 1) * STEP;                   // 42: the tip touches the ground
+const N = KEYS.length - 1;
+const stepAt = (v) => { const k = Math.min(Math.floor(v / STEP), N - 1); return { k, u: clamp((v - k * STEP) / STEP) }; };
+// how far through a step: most of it in the first half second if jump > 0, even if jump = 0
+const eased = (u, jump) => jump * smooth(0, 0.17, u) + (1 - jump) * u;
+export const V_SLOW = 27;             // from here the clock runs slower than real time (the label says so)
 export function Tleft(v) {
   if (v <= 0) return KEYS[0] * Math.pow(KEYS[0] / KEYS[1], -v / STEP);   // (before frame 0: the same race)
   if (v >= V_HIT) return 0;
-  const k = Math.min(Math.floor(v / STEP), KEYS.length - 2);
-  const u = clamp((v - k * STEP) / STEP);
-  const jump = k === 0 ? 0 : 0.72 - smooth(27, 40, v) * 0.55;
-  const f = jump * smooth(0, 0.17, u) + (1 - jump) * u;
-  return Math.exp(lerp(Math.log(KEYS[k] + C), Math.log(KEYS[k + 1] + C), f)) - C;
+  const { k, u } = stepAt(v);
+  if (k === N - 1) return KEYS[k] * (1 - u);        // the last 3 s: an even 0.3x
+  const jump = k === 0 || v >= V_SLOW ? 0 : 0.72;    // the first 3 s are all race; no jumps in the slow motion
+  return Math.exp(lerp(Math.log(KEYS[k] + C), Math.log(KEYS[k + 1] + C), eased(u, jump))) - C;
 }
 export const STEPS = KEYS.slice(1).map((_, i) => (i + 1) * STEP);
-// how far along the fall the picture is (0 at frame 0, 1 at the hit), evenly spread over the steps: the drawn rod's
-// place and size follow this
+// how far along the fall the picture is: 0 on frame 0, 1 at the hit, the same share on every 3 s step, so the rod
+// looks the same factor bigger after each one (it still lurches on the beat in the slow motion; the clock doesn't)
 export function progress(v) {
-  const T = Math.max(0, Tleft(v));
-  return clamp((Math.log(T_START + 1) - Math.log(T + 1)) / Math.log(T_START + 1));
+  if (v <= 0) return v / (STEP * N);
+  if (v >= V_HIT) return 1;
+  const { k, u } = stepAt(v);
+  return (k + eased(u, k === 0 || k === N - 1 ? 0 : v < V_SLOW ? 0.72 : 0.45)) / N;
 }
 export function vOfT(T) {
   let a = -1, b = V_HIT;
@@ -124,7 +132,7 @@ export const CAPTIONS = [
   [V_GLOW + 0.3 + POP + gap, V_FIRE + 0.1, 'The air can’t slow it down.'],
   [V_FIRE + 0.3 + POP + gap, V_SILENT + 0.1, `It’s ${Math.round(MACH)} times faster than sound.`],
   [V_SILENT + 0.3 + POP + gap, V_FILL + 0.1, 'The air in front of it is over 10,000 °F.'],
-  [V_FILL + 0.3 + POP + gap, V_HIT - 0.3, 'You have 1 second left.'],
+  [V_FILL + 0.3 + POP + 0.05, 39.4, 'You have 1 second left.'],      // (while the counter reads 1.0 to 0.8)
   [V_HIT + 0.45 + POP + gap, V_WALL - 0.2, `That’s ${Math.round(HIROSHIMAS / 10) * 10} Hiroshima bombs.`],
 ];
 export function captionAt(v) {
@@ -142,12 +150,14 @@ export function captionAt(v) {
 // ---- the counter: time left, racing down; its speed under it ----
 const pad = (n) => String(n).padStart(2, '0');
 export function fmtLeft(T) {
-  const s = Math.max(0, Math.floor(T + 1e-6));
+  if (T < 10) return `0m 0${(Math.floor(Math.max(0, T) * 10 + 1e-6) / 10).toFixed(1)}s`;     // tenths: it never sits still
+  const s = Math.floor(T + 1e-6);
   return `${Math.floor(s / 60)}m ${pad(s % 60)}s`;
 }
 export const COUNTERS = [
   {
-    from: -3, to: T_SWITCH + 2, label: 'IMPACT IN  ·  TIME-LAPSE',
+    from: -3, to: V_HIT + 0.45, label: 'IMPACT IN  ·  TIME-LAPSE',          // (it fades under the flash of the hit)
+    labelFn: (v) => `IMPACT IN  ·  ${v < V_SLOW ? 'TIME-LAPSE' : 'SLOW MOTION'}`,
     fmt: (T) => fmtLeft(T),
     value: (v) => Tleft(v),
     unit: (v) => `${(Math.round(speedAtT(Math.max(0, Tleft(v))) / MILE * 3600 / 10) * 10).toLocaleString('en-US')} MPH`,

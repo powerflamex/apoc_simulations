@@ -72,19 +72,14 @@ export const BLD = [];
 
 // ---- the big screens (LED boards on the corners, facing the crossing): { x, y, z, w, h, yaw (the way it faces), seed } ----
 export const SCREENS = [
-  { x: -24.6, y: 31, z: -19.6, w: 22, h: 13, yaw: Math.PI / 4, seed: 8 },          // NW corner, across the corner, facing the crossing
-  { x: 24.6, y: 36, z: -19.6, w: 22, h: 13, yaw: -Math.PI / 4, seed: 9 },          // NE corner, the same
-  { x: -19.6, y: 26, z: -62, w: 16, h: 9, yaw: Math.PI / 2 - 0.62, seed: 10 },     // up the avenue, west side, angled toward the crossing
-  { x: 19.6, y: 33, z: -96, w: 16, h: 9, yaw: -Math.PI / 2 + 0.62, seed: 11 },     // up the avenue, east side, the same
-  { x: -22.3, y: 22, z: -150, w: 14, h: 10, yaw: Math.PI / 2, seed: 12 },          // further up, west side
-  { x: 22.3, y: 26, z: -200, w: 14, h: 10, yaw: -Math.PI / 2, seed: 13 },          // further up, east side
-  { x: -26, y: 34, z: -17.3, w: 24, h: 14, yaw: 0, seed: 1 },                     // NW corner, facing south (to you)
-  { x: -22.3, y: 28, z: -32, w: 22, h: 12, yaw: Math.PI / 2, seed: 2 },          // NW corner, facing east over the avenue
-  { x: 22.3, y: 36, z: -30, w: 24, h: 14, yaw: -Math.PI / 2, seed: 3 },          // NE tower, facing west
-  { x: 32, y: 24, z: -17.3, w: 18, h: 10, yaw: 0, seed: 4 },                      // NE, facing south
-  { x: 22.3, y: 18, z: 30, w: 14, h: 8, yaw: -Math.PI / 2, seed: 5 },            // SE, facing west
-  { x: -22.3, y: 22, z: -96, w: 12, h: 18, yaw: Math.PI / 2, seed: 6 },          // up the avenue, west side
-  { x: 22.3, y: 26, z: -150, w: 12, h: 18, yaw: -Math.PI / 2, seed: 7 },         // up the avenue, east side
+  // (every board stands clear of the walls: one buried in a wall or poking past a corner shimmers and cuts its picture)
+  { x: -21.6, y: 31, z: -17, w: 22, h: 13, yaw: Math.PI / 4, seed: 8 },            // NW corner, across the corner, facing the crossing
+  { x: 21.6, y: 36, z: -17, w: 22, h: 13, yaw: -Math.PI / 4, seed: 9 },            // NE corner, the same
+  { x: -17.2, y: 26, z: -62, w: 16, h: 9, yaw: Math.PI / 2 - 0.62, seed: 10 },     // up the avenue, west side, angled toward the crossing
+  { x: 17.2, y: 33, z: -96, w: 16, h: 9, yaw: -Math.PI / 2 + 0.62, seed: 11 },     // up the avenue, east side, the same
+  { x: -21.7, y: 22, z: -150, w: 14, h: 10, yaw: Math.PI / 2, seed: 12 },          // further up, west side
+  { x: 21.7, y: 26, z: -200, w: 14, h: 10, yaw: -Math.PI / 2, seed: 13 },          // further up, east side
+  { x: 21.7, y: 18, z: 30, w: 14, h: 8, yaw: -Math.PI / 2, seed: 5 },              // SE, facing west (behind you)
 ];
 
 // ---- flat shop signs over the shop fronts along the avenue and the cross street ----

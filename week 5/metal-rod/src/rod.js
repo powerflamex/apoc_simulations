@@ -1,14 +1,14 @@
 // The rod: a 300 m solid tungsten cylinder with a conical tip, drawn as a real mesh in the scene (so the towers hide it
 // where they should and it hides the far skyline). Brushed grey metal mirroring the sky and the Sun, with a bright
 // specular line down its sunlit side; from 18 s its tip glows white-hot and the heat climbs the rod; from 24 s the
-// burning air round it streams up and away as a ragged column of fire (three crossed sheets, additive). The mesh's
-// origin is the tip's point; local y runs up the rod.
+// burning air wraps it, streaming up its sides as ragged sheets of fire (three crossed sheets, additive, hollow in the
+// middle so the rod still shows through). The mesh's origin is the tip's point; local y runs up the rod. All of it is
+// drawn ROD_DRAW times bigger than real.
 import * as THREE from 'three';
-import { ROD_L, ROD_R } from './timeline.js';
+import { ROD_L, ROD_R, ROD_DRAW } from './timeline.js';
 import { smooth } from './util.js';
 
 const TIP = ROD_R * 2.4;
-export const TRAIL_MAX = 14000;
 
 export function makeRod(scene) {
   const U = {
@@ -49,17 +49,22 @@ export function makeRod(scene) {
         float nh = max(dot(N, H), 0.0);
         col += vec3(1.0, 0.97, 0.9) * (pow(nh, 90.0) * 1.6 + pow(nh, 12.0) * 0.25) * uSkyLit;
         // the heat: white at the tip, climbing the rod as the air burns round it, flickering
-        float reach = ${ROD_L.toFixed(1)} * (0.05 + 0.4 * uFire);
+        float reach = ${ROD_L.toFixed(1)} * (0.05 + 0.04 * uFire);
         float heat = uGlow * exp(-vY / reach) * (0.9 + 0.1 * n3(vec3(vY * 0.1, uTime * 9.0, N.x * 3.0)));
         heat = clamp(heat * (1.0 + 0.6 * uFire), 0.0, 1.0);
-        vec3 hot = mix(vec3(1.2, 0.26, 0.04), vec3(1.5, 1.35, 1.15), heat * heat);
-        col = mix(col, hot * (1.0 + 2.2 * heat), heat);
+        // dark metal, deep red, orange, and yellow-white only on the point itself, so the rod stays a solid thing
+        vec3 hot = mix(vec3(0.75, 0.07, 0.01), vec3(1.7, 0.55, 0.07), smoothstep(0.25, 0.7, heat));
+        hot = mix(hot, vec3(1.9, 1.5, 0.9), smoothstep(0.8, 1.0, heat));
+        // still a round bar: darker toward its edges, with brighter streaks of molten metal running up it
+        hot *= (0.4 + 0.6 * nv) * (0.75 + 0.5 * n3(vec3(atan(N.x, N.z) * 7.0, vY * 0.05 + uTime * 2.0, 2.0)));
+        col = mix(col, hot, smoothstep(0.02, 0.35, heat));
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
   });
   const mesh = new THREE.Mesh(cyl, mat);
+  mesh.scale.setScalar(ROD_DRAW);
   const tip = new THREE.Mesh(cone, mat);
   mesh.add(tip);
   mesh.frustumCulled = false; tip.frustumCulled = false;
@@ -78,10 +83,10 @@ export function makeRod(scene) {
     vertexShader: /* glsl */ `uniform float uLen; uniform float uRad; varying vec2 vUv; varying float vT;
       void main(){
         float t = uv.y; vT = t; vUv = uv;
-        // a quad of width 1 along its own x (already turned); widen with height, lift from the tail
+        // a quad of width 1 along its own x (already turned), from just under the tip up past the top of the rod
         vec3 p = position;
-        float w = uRad * (2.6 + 22.0 * t);
-        p.xz *= w; p.y = ${ROD_L.toFixed(1)} * 0.92 + t * uLen;
+        float w = uRad * (3.6 + 3.0 * t);
+        p.xz *= w; p.y = -uRad * 0.4 + t * uLen;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }`,
     fragmentShader: /* glsl */ `uniform float uTime; uniform float uFire; uniform float uLen; varying vec2 vUv; varying float vT;
@@ -94,15 +99,14 @@ export function makeRod(scene) {
         float x = vUv.x * 2.0 - 1.0;
         float t = vT;
         // streaming up and away: noise scrolling up the sheet, ragged at the sides
-        float n = fbm(vec3(x * 2.5, t * uLen / 160.0 - uTime * 2.2, 2.0));
-        float n2 = n3(vec3(x * 7.0, t * uLen / 40.0 - uTime * 6.0, 5.0));
-        float core = exp(-x * x * (14.0 - 9.0 * t));
-        float body = exp(-x * x * 3.2) * smoothstep(0.25, 0.6, n + 0.15 * n2);
-        float fade = pow(1.0 - t, 0.8) * smoothstep(0.0, 0.03, t);
-        float a = (core * 0.5 + body * 0.45) * fade * uFire;
-        vec3 c = mix(vec3(1.2, 0.35, 0.06), vec3(1.4, 0.9, 0.5), core * (1.0 - 0.6 * t));
-        c = mix(c, vec3(1.1, 0.22, 0.03), t * 0.6);
-        gl_FragColor = vec4(c * a * 0.6, a);
+        float n = fbm(vec3(x * 2.5, t * uLen / 60.0 - uTime * 3.0, 2.0));
+        float n2 = n3(vec3(x * 7.0, t * uLen / 18.0 - uTime * 7.0, 5.0));
+        float body = exp(-x * x * 2.6) * smoothstep(0.22, 0.62, n + 0.18 * n2);
+        float hollow = 1.0 - 0.95 * exp(-x * x * 6.0);            // the rod itself stays visible
+        float fade = pow(max(1.0 - t, 0.0), 1.4) * smoothstep(0.0, 0.02, t);
+        float a = body * hollow * fade * uFire;
+        vec3 c = mix(vec3(1.3, 0.38, 0.06), vec3(1.5, 1.0, 0.5), n2 * (1.0 - t));
+        gl_FragColor = vec4(c, a * 0.13);
       }`,
   });
   const trail = new THREE.Mesh(trailGeo, trailMat);
@@ -120,21 +124,23 @@ export function makeRod(scene) {
       U.uGlow.value = s.glow;
       U.uFire.value = s.fire;
       U.uTime.value = v;
-      TU.uLen.value = TRAIL_MAX * (0.08 + 0.92 * s.trail) * (0.9 + 0.1 * Math.sin(v * 3.1));
+      TU.uLen.value = ROD_L * (0.3 + 0.5 * s.fire) * (0.92 + 0.08 * Math.sin(v * 3.1));
+      trail.visible = s.fire > 0;
       if (s.hit) return;
       // the glow round the tip and up the burning rod (billboards, sized to the distance so they read from anywhere)
       const d = tmp.copy(tipPos).distanceTo(glows.cam);
       const k = d / 600;
       if (s.glow > 0) {
         const g = s.glow * (1 + 1.0 * s.fire);
-        glows.add(tipPos.x, tipPos.y + TIP * 0.5, tipPos.z, (18 + 24 * s.fire) * k, 1.6 * g, 0.85 * g, 0.35 * g);
-        glows.add(tipPos.x, tipPos.y + TIP * 0.5, tipPos.z, (60 + 100 * s.fire) * k, 0.4 * g, 0.15 * g, 0.03 * g);
+        const yT = TIP * 0.5 * ROD_DRAW;
+        glows.add(tipPos.x, tipPos.y + yT, tipPos.z, (18 + 24 * s.fire) * k, 0.5 * g, 0.26 * g, 0.1 * g);
+        glows.add(tipPos.x, tipPos.y + yT, tipPos.z, (60 + 100 * s.fire) * k, 0.2 * g, 0.07 * g, 0.015 * g);
       }
       if (s.fire > 0) {
         for (let i = 0; i < 6; i++) {
-          const y = TIP + (i + 0.5) / 6 * (ROD_L - TIP) * (0.3 + 0.7 * s.fire);
+          const y = (TIP + (i + 0.5) / 6 * (ROD_L - TIP) * (0.3 + 0.7 * s.fire)) * ROD_DRAW;
           const fl = 0.8 + 0.2 * Math.sin(v * 17 + i * 2.1);
-          glows.add(tipPos.x, tipPos.y + y, tipPos.z, (24 + 24 * s.fire) * k, 0.4 * s.fire * fl, 0.14 * s.fire * fl, 0.03 * s.fire * fl);
+          glows.add(tipPos.x, tipPos.y + y, tipPos.z, (24 + 24 * s.fire) * k, 0.12 * s.fire * fl, 0.04 * s.fire * fl, 0.01 * s.fire * fl);
         }
       }
     },
