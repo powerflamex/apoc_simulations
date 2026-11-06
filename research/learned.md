@@ -407,6 +407,11 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
   its own filters (`c.ph`, `c.fA`/`c.fB`), as fixed in punch-10x and black-hole-appears (copy those).
 - **Sound:** no harsh clicks/clacks/crackles. The owner noticed "plastic breaking" clacks from many short noise bursts
   (car bumps, dropped items). Use soft, low thuds and distance falloff, and scan the track for sharp spikes before rendering.
+- **The title's action must be plain to someone seeing it cold (iss-jump, Nov 5: "I just can't tell what's happening").** First cut:
+  an astronaut holding a floating rod, the arm lowered and the camera slid, so it looked like the rod broke off; nobody saw a
+  jump. Fixed by giving the verb a stage (a diving board: the end of the robot arm), a wind-up (crouch, arms back), and a
+  camera that stays on the thing being left, so you see the person leave it. Also: never move the camera or tumble the subject
+  during a day/night time-lapse; one locked shot per idea, and let each sunrise linger.
 - A human moment lands well (the last man dying on a bench, counter 1 -> 0, heartbeat stopping).
 
 ## Long-form competitors (Oct 18)
@@ -449,8 +454,9 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
 - Status Nov 4: giant-tornado ("What if a tornado was 10 miles wide?", 48.1 s, week 5) built as a new project from the Nov 4 topic check: one Midwest Main Street, one wall coming down it with a REACHES YOU IN countdown (a time-lapse of the last 10 minutes, a jump every 3 s), something new every ~6 s (green sky and sirens, the pile-up and runners, things lifting, the far end of town torn apart and hail, roofs and a van flying, inside the wall with lightning, the street peeling up), white flash, loop; rendered, checked, cover and copy in CAPTIONS.md. Not posted yet.
 - Status Nov 4 (night): iss-jump ("What if you jumped off the space station?", 48.5 s, week 5) built as a new project from
   the Nov 4 topic check (Zack D. Films 25M, everyone else under 4K; theirs is 34 s of narration over a smiling cartoon
-  astronaut, no numbers, a stock fireball). Ours: you beside the Cupola with two crew banging on the glass on frame 0,
-  HEIGHT + OXYGEN LEFT counters, the push-off that doesn't make you fall, a sunrise every 93 min in an 8-hour lapse,
+  astronaut, no numbers, a stock fireball). Ours (reworked Nov 5): you on the end of the robot arm under the Cupola, two crew
+  banging on the glass on frame 0,
+  HEIGHT + OXYGEN LEFT counters, the leap that doesn't make you fall, a locked 8-hour lapse with the station shrinking ahead,
   the air out at 0:14, the true 1 year 166 days of drag (a full orbit simulation; SuitSat took 7 months in 2006), the
   glow at 120 km, the suit torn apart at 80 km, one 1.5-s cutaway of two people on a hill seeing the shooting star,
   "That shooting star was you", white, loop. Cover at 33.5 s, copy in CAPTIONS.md. Not posted yet. fall-through-earth

@@ -11,7 +11,7 @@ import { makePlasma } from './plasma.js';
 import { makeGround } from './ground.js';
 import { makeOverlay } from './overlay.js';
 import {
-  state, joltAt, stationAt, pchip, VIDEO_DURATION, LOOP, T_SWITCH, V_JUMP, V_LAPSE, V_O2, V_DROP, V_GLOW, V_FIRE, V_GROUND, V_BACK, V_BURST,
+  state, joltAt, stationAt, stationAhead, pchip, VIDEO_DURATION, LOOP, T_SWITCH, V_JUMP, V_LAPSE, V_FRONT, V_O2, V_DROP, V_GLOW, V_FIRE, V_GROUND, V_BACK, V_BURST,
 } from './timeline.js';
 import { DEG, lerp, smooth, wobble, clamp } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -74,10 +74,6 @@ const dotTex = (() => {
 const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
 dot.visible = false;
 scene.add(dot);
-// the handrail you hold at the start: put where your glove is in the opening pose
-const railMat = new THREE.MeshStandardMaterial({ color: 0xb9bcc2, roughness: 0.35, metalness: 0.8 });
-const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.9, 10), railMat);
-station.group.add(rail);
 const overlay = makeOverlay();
 
 const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
@@ -117,7 +113,8 @@ composer.addPass(finish);
 // ---------- the shots ----------
 const SHOTS = [
   { v0: -3, v1: V_LAPSE, kind: 'open' },
-  { v0: V_LAPSE, v1: V_O2, kind: 'lapse' },
+  { v0: V_LAPSE, v1: V_FRONT, kind: 'shoulder' },
+  { v0: V_FRONT, v1: V_O2, kind: 'front' },
   { v0: V_O2, v1: 17.0, kind: 'visor' },
   { v0: 17.0, v1: V_DROP, kind: 'wide' },
   { v0: V_DROP, v1: V_GLOW, kind: 'down' },
@@ -128,7 +125,7 @@ const SHOTS = [
 ];
 const shotAt = (v) => SHOTS.find((s) => v >= s.v0 && v < s.v1) || SHOTS[SHOTS.length - 1];
 // how far you have tumbled (rad): slow after the push, kept readable through the time-lapses
-const TUMBLE = pchip([[V_JUMP - 0.2, 0], [V_LAPSE, 0.55], [V_O2, 2.6], [17, 2.9], [V_DROP, 3.7], [V_GLOW, 6.3], [V_FIRE, 8.0], [V_GROUND, 9.6], [T_SWITCH + LOOP + 1, 11.2]]);
+const TUMBLE = pchip([[V_LAPSE, 0], [V_FRONT, 0.02], [V_O2, 0.4], [17, 0.8], [V_DROP, 2.4], [V_GLOW, 6.3], [V_FIRE, 8.0], [V_GROUND, 9.6], [T_SWITCH + LOOP + 1, 11.2]]);
 const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3(), mLook = new THREE.Matrix4(), tmpC = new THREE.Color();
 const OFF = { L: { pos: new THREE.Vector3(), rot: 0 }, R: { pos: new THREE.Vector3(), rot: 0 }, LL: { pos: new THREE.Vector3(), rot: 0 }, RL: { pos: new THREE.Vector3(), rot: 0 }, pack: { pos: new THREE.Vector3(), rot: 0 } };
 // a part tears off at k0 and flies back, spinning
@@ -157,16 +154,14 @@ function update(v, cover = -1) {
     renderPass.scene = scene; renderPass.camera = camera;
 
     // ---------- the station: still, until you push off; then drifting away; then a dot ----------
-    const st = stationAt(s.T);
+    const st = v < V_LAPSE ? stationAt(s.T) : stationAhead(s.T);
     const dotLit = earth.U.uSunAlt.value > 5 ? 1 : 0.08;   // (last frame's Sun: a dot only shines in sunlight)
     const near = st.d < 1600;
-    const dirSt = tmpV2.set(st.x - 1.9, st.y - 1.45, st.z).normalize();   // where the station is, from you
     station.group.visible = near;
-    station.group.position.set(st.x - 1.9, st.y - 1.45, st.z);   // the Cupola is at your left shoulder
+    station.group.position.set(st.x - station.YOU.x, st.y - station.YOU.y, st.z - station.YOU.z);   // you start on the end of its arm
     station.update(v, 1 - smooth(V_JUMP + 1.5, V_JUMP + 4, v));
-    station.lamp.intensity = 14;
     if (!near) {
-      tmpV.set(st.x - 1.9, st.y - 1.45, st.z).normalize().multiplyScalar(1500);
+      tmpV.copy(station.group.position).normalize().multiplyScalar(1500);
       dot.position.copy(tmpV);
       const size = clamp(100 * 1500 / st.d, 5, 100);
       dot.scale.set(size, size, 1);
@@ -175,47 +170,50 @@ function update(v, cover = -1) {
     } else dot.visible = false;
 
     // ---------- you ----------
+    // the leap: a crouch, then the legs drive you up and out (feet on the plate until V_JUMP); after that you sail on
+    // in a straight line, arms and legs going, turned side-on to the camera; for the time-lapse you face forward
     const tb = TUMBLE(v);
     const jit = s.glow * 0.08;
-    body.rotation.set(tb * 0.9 + wobble(v * 0.12, 4) * 0.05 + wobble(v * 5.5, 8) * jit, -0.55 + tb * 0.45 + wobble(v * 0.1, 6) * 0.05 + wobble(v * 4.7, 9) * jit, tb * 0.3 + wobble(v * 6.1, 10) * jit);
-    const kick = clamp((v - (V_JUMP - 0.45)) / 0.75);
-    const reach = v < V_JUMP + 0.2 ? 1.15 * (1 - smooth(V_JUMP - 0.1, V_JUMP + 0.2, v)) : 0;
-    const flail = smooth(V_JUMP + 0.3, V_JUMP + 1.2, v) * (1 - smooth(V_LAPSE - 1.5, V_LAPSE, v)) * 0.7 * (1 - s.dead);
-    const look = shot.kind === 'visor' ? 0.1 : shot.kind === 'open' ? 0.45 : 0.1;
+    const crouch = 0.8 * smooth(1.7, 2.5, v) * (1 - smooth(2.55, V_JUMP - 0.03, v));
+    const drive = smooth(2.55, V_JUMP - 0.03, v);
+    const yaw = v < V_LAPSE ? 2.45 + 0.05 * Math.max(0, v - V_JUMP) : -0.55 * smooth(V_O2, 17, v);
+    body.position.set(v < V_LAPSE ? -0.35 * drive : 0, 0.4 - 0.46 * crouch, 0);
+    suit.root.rotation.x = v < V_LAPSE ? -(0.45 * crouch + 0.4 * drive * (1 - smooth(V_JUMP, 4.4, v))) : 0;
+    body.rotation.set(tb * 0.9 + wobble(v * 0.12, 4) * 0.05 + wobble(v * 5.5, 8) * jit, yaw + tb * 0.45 + wobble(v * 0.1, 6) * 0.05 + wobble(v * 4.7, 9) * jit, tb * 0.3 + wobble(v * 6.1, 10) * jit);
+    const swing = v < 2.5 ? -0.9 * smooth(1.7, 2.45, v) : (-0.9 + 2.0 * smooth(2.5, V_JUMP - 0.05, v)) * (1 - smooth(V_JUMP + 0.1, 4.2, v));
+    const flail = smooth(3.3, 4.0, v) * (1 - smooth(6.6, V_LAPSE, v)) * 0.75 * (1 - s.dead);
+    const look = shot.kind === 'visor' ? 0.1 : v < V_JUMP - 0.3 ? -0.75 : shot.kind === 'open' ? -0.2 : 0.1;
     const kb = s.breakup;
     tear(OFF.L, kb, 0.12, -1); tear(OFF.RL, kb, 0.36, 1); tear(OFF.pack, kb, 0.52, 0); tear(OFF.R, kb, 0.66, 1); tear(OFF.LL, kb, 0.82, -1);
-    suit.pose(v, { arms: 0.3 + 0.2 * smooth(V_JUMP, V_JUMP + 1, v), look, flail, reach, kick: kick < 1 ? kick : 0, dead: s.dead, off: OFF });
+    suit.pose(v, { arms: 0.25 + 0.4 * smooth(V_JUMP, V_JUMP + 1, v), look, flail, crouch, swing, dead: s.dead, off: OFF });
     body.visible = true;
     SUIT.uHot.value = clamp(s.glow * 0.6, 0, 0.8);
     SUIT.uHotCol.value.setRGB(1.0, 0.22 + 0.35 * clamp(s.glow - 0.5, 0, 1), 0.03 + 0.2 * clamp(s.glow - 0.8, 0, 1));
     SUIT.uCrack.value = smooth(0.18, 0.7, kb);
     SUIT.uTime.value = v;
     SUIT.uFrost.value = 0; SUIT.uWet.value = 0;
-    // the handrail under your right glove while you hold on (then it stays with the station)
-    if (v < V_JUMP + 0.1) {
-      suit.hands.R.glove.getWorldPosition(tmpV);
-      rail.position.copy(tmpV).sub(station.group.position);
-      rail.position.y += 0.04;
-      rail.rotation.set(0, 0, Math.PI / 2);
-    }
-
     // ---------- the camera ----------
     let pos, tgt, fov;
     const up = new THREE.Vector3(0, 1, 0);
     if (shot.kind === 'open') {
-      pos = new THREE.Vector3(2.2 - 0.2 * k0, 0.6 + 0.06 * dr, -2.3 - 0.6 * k0);
-      tgt = new THREE.Vector3(-0.4, 0.05 + 0.1 * k0, 0);
-      fov = 86;
-    } else if (shot.kind === 'lapse') {
-      // first from behind and below you, following the station as it shrinks away (it swings from overhead to
-      // ahead as you fall behind); then round to you and the Earth
-      const a = 0.5 + k0 * 1.5;
-      const kk = smooth(0.22, 0.55, k0);
-      // (you drop to a lower, faster orbit, so the station falls behind you: the camera sits ahead and below,
-      // looking back up past you along the line to the station)
-      pos = new THREE.Vector3(lerp(0.35, Math.sin(a) * 3.0, kk), lerp(-1.0, 0.75 + 0.2 * dr, kk), lerp(-2.7, Math.cos(a) * 3.0, kk));
-      tgt = pos.clone().addScaledVector(dirSt, 6).lerp(new THREE.Vector3(0, 0.3, 0), 0.5).lerp(new THREE.Vector3(0, 0.1, 0), kk);
+      // held still on the station while you crouch and leap, so you can see yourself leave it; then it lets go of the
+      // station and stays with you, and the station slides away
+      const stn = station.group.position;
+      const posA = tmpV.set(0.95, 0.95, 5.3).add(stn).clone(), tgtA = tmpV.set(-0.45, 0.1, -0.5).add(stn).clone();
+      const k = smooth(3.4, 6.4, v);
+      pos = posA.lerp(new THREE.Vector3(-0.7, 0.3, 4.6), k);
+      tgt = tgtA.lerp(new THREE.Vector3(-0.95, -0.1, 0), smooth(2.85, 3.6, v));
       fov = 78;
+    } else if (shot.kind === 'shoulder') {
+      // locked, over your shoulder: you, the station shrinking straight ahead, each sunrise coming up in front of you
+      pos = new THREE.Vector3(-0.75, 2.5, 2.9);
+      tgt = new THREE.Vector3(-0.75, 2.5 - 1.2, -7.1);
+      fov = 70;
+    } else if (shot.kind === 'front') {
+      // locked, from the front, with a very slow push in, as the alarm starts
+      pos = new THREE.Vector3(1.0, 0.3, -5.2 + 0.4 * k0);
+      tgt = new THREE.Vector3(0.75, -0.75, 0);
+      fov = 62;
     } else if (shot.kind === 'visor') {
       const hp = suit.helmetPos(new THREE.Vector3());
       const hq = suit.head.getWorldQuaternion(new THREE.Quaternion());
@@ -264,12 +262,12 @@ function update(v, cover = -1) {
     earth.U.uPx.value = (fov * DEG) / RH;
     sun.position.copy(L.sun).multiplyScalar(300);
     sun.target.position.set(0, 0, 0);
-    sun.intensity = 2.7 * L.sunK * (1 - 0.65 * smooth(0.2, 0.8, s.glow));
+    sun.intensity = (v < V_O2 ? 2.2 : 2.7) * L.sunK * (1 - 0.65 * smooth(0.2, 0.8, s.glow));
     sun.color.setRGB(1.0, 0.96 - 0.4 * L.warm, 0.9 - 0.65 * L.warm);
     hemi.groundColor.setRGB(0.55, 0.68, 0.95).multiplyScalar(0.25 + 1.0 * L.lit);
     hemi.color.setRGB(0.04, 0.045, 0.06);
     hemi.intensity = 1.0;
-    fill.intensity = (0.6 + 0.6 * (1 - L.sunK)) * (1 - 0.8 * smooth(0.2, 0.8, s.glow));
+    fill.intensity = (0.6 + 2.2 * (1 - L.sunK)) * (1 - 0.8 * smooth(0.2, 0.8, s.glow));
     earth.U.uFire.value = s.glow * 0.1 + s.fireball * 1.2;
     earth.U.uHazeK.value = 1;
     plasma.update(v, s.glow, s.fireball);

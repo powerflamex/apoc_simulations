@@ -1019,14 +1019,17 @@ Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs -
 
 ## Next Short. What if you jumped off the space station? — `week 5/iss-jump/out/iss-jump_v4_1080x1920_60fps_tiktok.mp4`
 
-48.5 s (built Nov 4, week 5). Frame 0: you (the spacesuit) hold a handrail beside the station's Cupola, 420 km up, the
-Earth's blue curve filling the bottom of the frame; two of the crew are at the slanted window next to you, banging on
-the glass; the title, HEIGHT 420 km with 17,138 MPH under it, and OXYGEN LEFT 7:59:59 ticking; the owner's scream in
-the first second. 0:03 you kick off toward the Earth, and the twist: "YOU DON'T FALL" (you keep the station's 17,140
-mph, so you only drift; the station, with its gold arrays, slides away above you). 0:08 TIME-LAPSE: 8 hours in 6 s,
-the station shrinks to a dot, a sunrise flashes over the Earth every 93 minutes, the oxygen counter races to 0:00:00
-at 0:14 ("YOUR AIR IS GONE", a close shot of the gold visor with the Earth in it; the heartbeat and the alarm stop).
-0:17 the body goes limp and the second counter becomes SINCE YOU JUMPED (8 hours, 2 days...). 0:20 "THE AIR DRAGS YOU
+48.5 s (built Nov 4, reworked Nov 5 after the owner's note that the opening and the time-lapse were hard to follow). Frame 0: you
+stand on the end of the station's robot arm like a diving board, right under the Cupola, the Earth filling the bottom
+of the frame; two of the crew are at the window above you, banging on the glass; the title, HEIGHT 420 km with 17,138
+MPH under it, and OXYGEN LEFT 7:59:59 ticking; the owner's scream in the first second. 0:02 you crouch and swing your
+arms back, 0:03 you leap off the end, and the camera stays with the station so you see the board left behind. The
+twist: "YOU DON'T FALL". You sail on in a dead straight line with no arc, arms and legs going, the Earth no closer,
+because you're flying 17,140 mph just like the station; the station slides away. 0:08 TIME-LAPSE, one locked shot
+over your shoulder: the whole station shrinks to a dot straight ahead, night falls with the city lights below, and
+the Sun comes up over the horizon in front of you. 0:12 a second locked shot from the front, you alone above the Earth, the
+alarm going, the counter racing to 0:00:00 at 0:14 ("YOUR AIR IS GONE", a close shot of the gold visor; the heartbeat
+and the alarm stop). 0:17 the body goes limp and the second counter becomes SINCE YOU JUMPED (8 hours, 2 days...). 0:20 "THE AIR DRAGS YOU
 DOWN": the long drop, the counter finally falling (400 km after 167 days, 300 km after 1 year 90 days...) with the
 Earth growing under you until 120 km at 1 YEAR, 166 DAYS. 0:28 "THE AIR STARTS TO GLOW": a pink sheath, then a
 streaming plasma trail; 0:35 "THE SUIT COMES APART": close on the suit glowing orange, the visor cracking, the arms,
@@ -1039,7 +1042,9 @@ with 0.8 m² facing the air (Cd 2.2) takes 531 days (1 year 166 days) to come do
 half that, at solar minimum twice); the last 120 km take half an hour; at 100 km you are doing 17,500 mph; the suit
 breaks up around 70-80 km. A real EVA suit carries about 8 hours of oxygen. (Reality check: SuitSat-1, an empty
 Orlan suit thrown off the station in Feb 2006 from a lower orbit, came down after 7 months.) The clocks on screen are
-the true ones; the sunrises and the ground sliding under you are slowed to a readable pace in the time-lapses.
+the true ones. Two drawn liberties in the time-lapses: the picture shows 3 sunrises in the 8 hours (really 5) and the
+ground slides slowly, so each can be seen; and the station's drift is steered to straight ahead of you (its distance
+is the real one, about 20 km after 8 hours).
 
 **YouTube title (96 chars, emoji counted as 2)**
 What if you jumped off the space station? You don’t fall. You burn up 1.5 years later 🚀 #whatif

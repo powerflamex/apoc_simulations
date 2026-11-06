@@ -6,14 +6,14 @@
 // A dome that follows the camera, drawn first. Units inside the shader: km, Earth's centre at the origin, axes =
 // the local frame (x right, y up away from Earth, z backward).
 import * as THREE from 'three';
-import { seenT, sunPhase, BETA, N_ORB, R_E } from './timeline.js';
+import { seenT, sunPhase, betaAt, N_ORB, R_E } from './timeline.js';
 
 const DEG = Math.PI / 180;
 const INC = 51.6 * DEG;                  // the station's orbit
 const W_E = 7.2921e-5;                   // Earth's spin, rad/s
-// where the ground track starts: over the Atlantic off Portugal, heading north-east (Europe, then Asia, pass
+// where the ground track starts: over the coast of Morocco, heading north-east (the Mediterranean, then Asia, pass
 // under you during the long drop)
-const LAT0 = 30 * DEG, LON0 = -35 * DEG;
+const LAT0 = 33 * DEG, LON0 = -8 * DEG;
 const TH0 = Math.asin(Math.sin(LAT0) / Math.sin(INC));
 const OM0 = LON0 - Math.atan2(Math.sin(TH0) * Math.cos(INC), Math.cos(TH0));
 
@@ -88,7 +88,7 @@ export function makeEarth() {
           float sd = max(dot(d, uSun), 0.0);
           float sunVis = smoothstep(-4.0, 14.0, uSunAlt);
           vec3 sunCol = mix(vec3(1.0, 0.5, 0.22), vec3(1.0, 0.97, 0.9), smoothstep(2.0, 45.0, uSunAlt));
-          col += sunCol * (pow(sd, 9000.0) * 90.0 + pow(sd, 120.0) * 1.4 + pow(sd, 9.0) * 0.16 + pow(sd, 2.5) * 0.03) * sunVis;
+          col += sunCol * (pow(sd, 9000.0) * 12.0 + pow(sd, 1800.0) * 0.3 + pow(sd, 40.0) * 0.015) * sunVis;
           float rim = exp(-max(alt, 0.0) / 48.0) * 0.42 + exp(-max(alt, 0.0) / 13.0) * 0.9 + exp(-max(alt, 0.0) / 3.5) * 1.6;
           col += rimCol * rim * lightQ * 0.85 * uHazeK;
           // the night side's faint green airglow, 90 km up
@@ -163,7 +163,7 @@ export function makeEarth() {
     M.set(right.x, up.x, back.x, right.y, up.y, back.y, right.z, up.z, back.z);   // columns: the local axes in Earth's frame
     U.uM.value.copy(M);
     // the Sun in the local frame: round your orbit by sunPhase, tilted by BETA
-    const ps = sunPhase(v) * DEG, cb = Math.cos(BETA * DEG), sb = Math.sin(BETA * DEG);
+    const ps = sunPhase(v) * DEG, bt = betaAt(v) * DEG, cb = Math.cos(bt), sb = Math.sin(bt);
     sunL.set(sb, cb * Math.cos(ps), cb * Math.sin(ps)).normalize();
     U.uSun.value.copy(sunL);
     const Rk = R_E / 1000;

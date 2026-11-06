@@ -7,7 +7,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
 export function makeStation() {
   const g = new THREE.Group();
-  const white = new THREE.MeshStandardMaterial({ color: 0xa9a9a4, roughness: 0.78, metalness: 0.1 });
+  const white = new THREE.MeshStandardMaterial({ color: 0xcfcfca, roughness: 0.75, metalness: 0.12 });
   const foil = new THREE.MeshStandardMaterial({ color: 0xcfcbc0, roughness: 0.45, metalness: 0.45 });
   const grey = new THREE.MeshStandardMaterial({ color: 0x8a8d93, roughness: 0.5, metalness: 0.5 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x3a3c40, roughness: 0.6, metalness: 0.3 });
@@ -55,7 +55,7 @@ export function makeStation() {
   const cup = new THREE.Group();
   g.add(cup);
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x88aacc, roughness: 0.3, metalness: 0.0, transparent: true, opacity: 0.09, side: THREE.DoubleSide, depthWrite: false });
-  const cabinMat = new THREE.MeshStandardMaterial({ color: 0xd8d4cc, roughness: 0.9, side: THREE.DoubleSide });
+  const cabinMat = new THREE.MeshStandardMaterial({ color: 0x35373c, roughness: 0.9, side: THREE.DoubleSide });
   // the ring where the bay meets the module, its lit ceiling, the ring round the bottom window
   add(new THREE.TorusGeometry(1.5, 0.1, 10, 48), white, 0, 3.0, 0, cup).rotation.x = Math.PI / 2;
   const ceil = add(new THREE.CircleGeometry(1.5, 48), cabinMat, 0, 3.04, 0, cup);
@@ -80,7 +80,7 @@ export function makeStation() {
     pane.lookAt(Math.cos(ap) * 10, 2.42 - 5.0, Math.sin(ap) * 10);
     pane.castShadow = false;
     for (const [w, h, x, y] of [[1.22, 0.07, 0, 0.465], [1.22, 0.07, 0, -0.465], [0.07, 0.86, -0.575, 0], [0.07, 0.86, 0.575, 0]]) add(new THREE.BoxGeometry(w, h, 0.05), dark, x, y, 0, pane);
-    if (k === 5) {
+    if (k === 1) {
       // the two faces at the glass (their +z is out through the pane, toward you)
       const mkHead = (x, y, skin, hair, shirt) => {
         const hd = new THREE.Group();
@@ -94,8 +94,8 @@ export function makeStation() {
         const eye = new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.4 });
         add(new THREE.SphereGeometry(0.028, 10, 8), eye, -0.06, 0.03, 0.15, hd);
         add(new THREE.SphereGeometry(0.028, 10, 8), eye, 0.06, 0.03, 0.15, hd);
-        add(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), -0.06, 0.03, 0.135, hd).scale.set(1, 0.8, 0.5);
-        add(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), 0.06, 0.03, 0.135, hd).scale.set(1, 0.8, 0.5);
+        add(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshStandardMaterial({ color: 0xc8c4bc, roughness: 0.85 }), -0.06, 0.03, 0.135, hd).scale.set(1, 0.8, 0.5);
+        add(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshStandardMaterial({ color: 0xc8c4bc, roughness: 0.85 }), 0.06, 0.03, 0.135, hd).scale.set(1, 0.8, 0.5);
         const brow = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.9 });
         add(new THREE.BoxGeometry(0.07, 0.014, 0.02), brow, -0.06, 0.09, 0.155, hd).rotation.z = 0.35;
         add(new THREE.BoxGeometry(0.07, 0.014, 0.02), brow, 0.06, 0.09, 0.155, hd).rotation.z = -0.35;
@@ -116,13 +116,13 @@ export function makeStation() {
       mkHead(-0.27, 0.06, 0xe0ac86, 0x2e2018, 0x2b4a8a);
       mkHead(0.3, -0.02, 0x9a6440, 0x151515, 0x8a2b2b);
       // the light on their faces
-      const lamp2 = new THREE.PointLight(0xffe8c8, 10, 4, 1.6);
-      lamp2.position.set(0.1, 0.45, -0.15);
+      const lamp2 = new THREE.PointLight(0xffe8c8, 1.2, 1.5, 1.6);
+      lamp2.position.set(0.05, 0.3, 0.1);
       pane.add(lamp2);
     }
   }
-  const lamp = new THREE.PointLight(0xffe2b8, 12, 4.5, 1.6);
-  lamp.position.set(-0.3, 2.75, 0.2);
+  const lamp = new THREE.PointLight(0xffe2b8, 2, 1.8, 1.6);
+  lamp.position.set(-0.2, 2.35, 0.2);
   cup.add(lamp);
 
   // handrails round the Cupola and along Tranquility's underside (the one you hold is at the right)
@@ -133,11 +133,25 @@ export function makeStation() {
     for (const p of [a, b]) add(new THREE.BoxGeometry(0.05, 0.08, 0.05), grey, p.x, p.y, p.z);
     return m;
   };
-  rail(1.75, 2.9, -0.3, 1.75, 2.9, 0.6);
-  rail(0.9, 1.95, 0.9, 1.6, 2.5, 0.9);
-  rail(-1.7, 3.0, -0.6, -1.7, 3.0, 0.6);
   rail(2.9, 3.3, -2.0, 2.9, 3.3, 2.0);
   rail(-2.9, 3.3, -2.0, -2.9, 3.3, 2.0);
+
+  // ---- the robot arm: from the hull down and out under the Cupola, ending in the foot plate you stand on ----
+  const YOU = new THREE.Vector3(-0.62, 0.4, -0.5);    // your hips, standing on the plate
+  const tube = (a, b, r, mat) => {
+    const m = add(cyl(r, a.distanceTo(b), 20), mat, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+    return m;
+  };
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const pY = YOU.y - 1.0, pZ = YOU.z;                // the plate's top
+  const shoulder = V3(6.7, 3.2, -0.5), elbow = V3(7.4, pY - 0.3, pZ), wrist = V3(YOU.x + 0.95, pY - 0.26, pZ);
+  tube(shoulder, elbow, 0.2, white); tube(elbow, wrist, 0.18, white);
+  for (const q of [shoulder, elbow, wrist]) add(new THREE.SphereGeometry(0.3, 20, 14), grey, q.x, q.y, q.z);
+  add(new RoundedBoxGeometry(1.7, 0.1, 0.85, 2, 0.03), grey, YOU.x + 0.15, pY - 0.05, pZ);
+  tube(wrist, V3(YOU.x + 0.3, pY - 0.1, pZ), 0.13, grey);
+  const hazard = new THREE.MeshStandardMaterial({ color: 0xe8b81e, roughness: 0.6 });
+  add(new THREE.BoxGeometry(0.12, 0.11, 0.87), hazard, YOU.x - 0.68, pY - 0.05, pZ);
 
   // ---- the truss: a long lattice above the modules, and the big arrays at its ends ----
   const TY = 12.6, X0 = -50, X1 = 60;
@@ -224,5 +238,5 @@ export function makeStation() {
       });
     });
   }
-  return { group: g, cupola: cup, update, lamp, wings };
+  return { group: g, cupola: cup, update, lamp, wings, YOU };
 }

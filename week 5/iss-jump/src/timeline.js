@@ -5,7 +5,7 @@
 // The real numbers (worked out with a full orbit simulation, Vallado's exponential atmosphere at moderate solar
 // activity, a 207 kg person-plus-suit tumbling with 0.8 m² in the way of the air, Cd 2.2):
 //   - 420 km up: 7,661 m/s = 17,138 mph; one orbit every 92.8 min (15.5 sunrises a day);
-//   - a push-off of ~1 m/s: 5 m away after 5 s, tens of km after a few hours (the station is a dot);
+//   - a leap of ~1.2 m/s: 6 m away after 5 s, about 20 km after 8 hours (the station is a dot);
 //   - the drag: 400 km after 167 days, 300 km after 486 days, 200 km after 529, then the last 200 km in 2.4 days;
 //     120 km at 531.4 days (1 year 166 days); the last orbit from 120 km to the fireball takes ~30 min;
 //   - at 100 km you are doing 7,820 m/s (17,500 mph): the air starts to glow; peak heating ~70-80 km; the suit
@@ -16,7 +16,8 @@ import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
 export const V_JUMP = 3.0;               // you push off
-export const V_LAPSE = 8.0;              // the 8-hour time-lapse starts
+export const V_LAPSE = 8.0;              // the 8-hour time-lapse starts (locked shot over your shoulder)
+export const V_FRONT = 12.3;             // the cut to you from the front, at the second sunrise
 export const V_O2 = 14.0;                // the oxygen runs out
 export const V_DROP = 20.0;              // the drag time-lapse: the height starts dropping
 export const V_GLOW = 28.0;              // the first glow round the suit (120 km)
@@ -81,11 +82,13 @@ export function pchip(keys) {
 }
 
 // ---- the clock: story time T (s since the jump) at video time v ----
-// Real time until the lapse; 8 hours in 6 s (five sunrises); 3 s of real time as the air runs out; then the drop,
-// keyed by height so the Earth grows evenly; the last 120 km (half an hour) over the fire.
+// Real time through the leap, so the speed you see is the true one; then 8 hours in 6 s: the first hour eases in
+// (the station shrinks away smoothly instead of vanishing), the rest runs flat out. Then 3 s of real time as the air
+// runs out; then the drop, keyed by height so the Earth grows evenly; the last 120 km (half an hour) over the fire.
 const KM = (k) => tAtH(k * 1000);
 const TK = [
-  [-1.5, -4.5], [0, -3], [V_JUMP, 0], [V_LAPSE, 5], [V_O2, O2_SECONDS], [17.0, O2_SECONDS + 3], [V_DROP, 2 * DAY],
+  [-1.5, -4.5], [0, -3], [V_JUMP, 0], [4, 1], [5, 2], [6, 3], [7, 4], [V_LAPSE, 5],
+  [8.2, 60], [8.6, 150], [9.0, 400], [9.4, 1000], [9.8, 2100], [10.2, 4000], [V_O2, O2_SECONDS], [17.0, O2_SECONDS + 3], [V_DROP, 2 * DAY],
   [21.6, KM(400)], [23.2, KM(350)], [24.6, KM(300)], [25.8, KM(250)], [26.8, KM(200)], [27.4, KM(150)], [V_GLOW, KM(120)],
   [31.0, KM(100)], [V_FIRE, KM(85)], [38.0, KM(78)], [V_GROUND, KM(72)], [V_BACK, KM(69.5)], [V_BURST, KM(61)],
   [T_SWITCH, KM(58)], [T_SWITCH + LOOP + 0.5, KM(55)],
@@ -99,26 +102,41 @@ export const rateAt = (v) => (storyT(v + 0.004) - storyT(v - 0.004)) / 0.008;   
 const SK = [[-1.5, -4.5], [0, -3], [V_JUMP, 0], [V_LAPSE, 5], [V_O2, 5 + 6 * 60], [17.0, 368], [V_DROP, 818],
   [V_GLOW, 818 + 8 * 150], [31.0, 2018 + 3 * 12], [V_FIRE, 2054 + 4 * 5], [V_GROUND, 2074 + 7 * 2.5], [T_SWITCH + LOOP + 0.5, 2091 + 7 * 2.2]];
 export const seenT = pchip(SK);
-// the sun's trip round your orbit (deg): 0 = overhead side, 180 = behind the Earth. Five sunrises in the 8-hour
-// lapse, two more in the two-day one, then a slow afternoon into a sunset that lights the fire from the side.
-const SUNK = [[-1.5, -40], [V_LAPSE, -40], [V_O2, -40 + 5 * 360], [17.0, 1760], [V_DROP, 1760 + 720], [V_GLOW, 2480 + 50],
-  [V_FIRE, 2530 + 32], [V_GROUND, 2612], [V_BURST, 2622], [T_SWITCH + LOOP + 0.5, 2624]];
+// the sun's trip round your orbit (deg): ~110 = setting behind you, ~250 = rising over the horizon straight ahead. It
+// starts high behind the camera (the station front-lit, and it stays lit while it shrinks); in the 8-hour lapse the
+// picture shows a sunrise every 1.7 s, 3 of them, each lingering on the horizon right in front of you (really 5 in 8 hours: the picture is slowed so each one can be seen; the counter keeps the true
+// time). Then a long day through the drop, into a sunset that lights the fire from the side.
+const SUNK = [[-1.5, 55], [V_LAPSE, 55], [9.7, 95], [10.25, 232], [11.05, 268], [11.95, 592], [12.75, 628], [V_O2, 970], [17.0, 975], [V_DROP, 1040], [V_GLOW, 1090],
+  [V_FIRE, 1122], [V_GROUND, 1172], [V_BURST, 1182], [T_SWITCH + LOOP + 0.5, 1184]];
 export const sunPhase = pchip(SUNK);
-export const BETA = 35;                  // deg: the orbit's tilt to the Sun (a mid-range value for the station)
+// deg: the orbit's tilt to the Sun. Low at first so each sunrise comes up in frame; it drifts over the year and a half
+export const betaAt = (v) => 15 + 20 * smooth(V_O2, V_DROP, v);
 // how many sunrises the picture shows per video second right now (to tame the flicker in the soundtrack/lights)
 export const sunRate = (v) => Math.abs(sunPhase(v + 0.01) - sunPhase(v - 0.01)) / 0.02 / 360;
 
-// ---- the push-off: you drift away from the station (Clohessy-Wiltshire: a push down and a little backward) ----
-// returns the station's position relative to you (m) in the local frame: x right, y up (away from Earth), z back
-export const PUSH = { down: 0.8, back: 0.5 };     // m/s
-export function stationAt(T) {
-  if (T <= 0) return { x: 0, y: 0, z: 0, d: 0 };
-  const n = N_ORB, xd = -PUSH.down, yd = -PUSH.back;      // CW: x radial (up), y along-track (forward)
+// ---- the leap: where the station is, seen from you (m): x right, y up, z back ----
+// You leap off the end of the arm at 1.2 m/s, out sideways and a little up, in a dead straight line (no arc: that's
+// the point). The distance later on is the real one (Clohessy-Wiltshire, with a little along-track speed, ~20 km after
+// 8 hours), straight ahead of you and a little above the horizon, so the station stays in the
+// one locked shot of the time-lapse.
+export const LEAP = { side: 1.15, up: 0.35 };     // m/s
+const AHEAD = [0.05, 0.105, -0.993];              // unit vector
+function driftDist(T) {
+  const n = N_ORB, xd = LEAP.up, yd = 0.25;
   const x = (xd / n) * Math.sin(n * T) - (2 * yd / n) * Math.cos(n * T) + 2 * yd / n;
   const y = (2 * xd / n) * (Math.cos(n * T) - 1) + (4 * yd / n) * Math.sin(n * T) - 3 * yd * T;
-  // you moved up by x and forward by y, so the station sits at -x up and y behind you (local z is backward)
-  const sx = 0, sy = -x, sz = y;
-  return { x: sx, y: sy, z: sz, d: Math.hypot(sx, sy, sz) };
+  const z = (LEAP.side / n) * Math.sin(n * T);
+  return Math.hypot(x, y, z);
+}
+export function stationAt(T) {
+  if (T <= 0) return { x: 0, y: 0, z: 0, d: 0 };
+  return { x: LEAP.side * T, y: -LEAP.up * T, z: 0, d: Math.hypot(LEAP.side, LEAP.up) * T };
+}
+// in the time-lapse the whole station is ahead of you from the first frame (the cut hides the move; at under ~110 m its
+// arrays would wrap round the camera), then shrinks at its real distance
+export function stationAhead(T) {
+  const d = Math.max(110, Math.hypot(LEAP.side, LEAP.up) * Math.min(T, 200), driftDist(T));
+  return { x: AHEAD[0] * d, y: AHEAD[1] * d, z: AHEAD[2] * d, d };
 }
 
 // ---- the big moments: popups (one gold phrase, never a number) and the hits in the soundtrack ----
@@ -150,9 +168,9 @@ export function joltAt(v) {
 
 // ---- captions (video time): short, "you", one number; in the gaps between the popups, never over the title ----
 export const CAPTIONS = [
-  [5.7, 8.3, 'You’re still doing 17,140 mph, same as the station. You just float.'],
-  [8.7, 11.4, 'A new sunrise every 93 minutes. The station drifts away.'],
-  [11.8, 13.9, '8 hours of oxygen. Nobody is coming to get you.'],
+  [5.5, 7.9, 'You’re flying 17,140 mph, same as the station. So you just float.'],
+  [8.3, 11.1, 'A new sunrise every 93 minutes. The station drifts away.'],
+  [11.6, 13.9, '8 hours of oxygen. Nobody is coming to get you.'],
   [16.1, 19.7, 'You’re gone. But the suit keeps circling Earth, 16 times a day.'],
   [22.3, 25.5, 'Even up here, a wisp of air drags you lower, orbit after orbit.'],
   [25.9, 27.9, 'After a year and a half, the air gets thick.'],

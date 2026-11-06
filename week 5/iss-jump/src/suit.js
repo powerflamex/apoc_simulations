@@ -273,7 +273,7 @@ export function makeSuit() {
     LL.foot.rotation.x = 0.25; RL.foot.rotation.x = 0.2;
     head.rotation.set(0.5 * look - 0.05 + wobble(v * 0.3, 7) * 0.06, wobble(v * 0.2, 11) * 0.15, 0);
     // dead: a limp body's float: the arms drift up and forward, the knees bend, the head hangs
-    const dead = o.dead ?? 0, kick = o.kick ?? 0;
+    const dead = o.dead ?? 0;
     if (dead > 0) {
       L.sh.rotation.x = lerp(L.sh.rotation.x, 1.0 + wobble(v * 0.15, 21) * 0.08, dead); L.sh.rotation.z = lerp(L.sh.rotation.z, -0.45, dead);
       R.sh.rotation.x = lerp(R.sh.rotation.x, 0.9 + wobble(v * 0.15, 22) * 0.08, dead); R.sh.rotation.z = lerp(R.sh.rotation.z, 0.5, dead);
@@ -282,8 +282,13 @@ export function makeSuit() {
       LL.knee.rotation.x = lerp(LL.knee.rotation.x, -0.95, dead); RL.knee.rotation.x = lerp(RL.knee.rotation.x, -0.8, dead);
       head.rotation.x = lerp(head.rotation.x, 0.55, dead);
     }
-    // kick: the legs tuck, then push straight against the hull (0 .. 1 through the jump)
-    if (kick > 0) { const tuck = Math.sin(Math.min(kick, 1) * Math.PI); LL.hip.rotation.x += tuck * 1.1; RL.hip.rotation.x += tuck * 1.0; LL.knee.rotation.x -= tuck * 1.5; RL.knee.rotation.x -= tuck * 1.4; }
+    // crouch: 0 .. 1 knees bent ready to leap (the caller lowers the hips so the feet stay put);
+    // swing: both arms -1 back behind you .. 1 forward and up
+    const crouch = o.crouch ?? 0, swing = o.swing ?? 0;
+    if (crouch > 0) {
+      for (const q of [LL, RL]) { q.hip.rotation.x += crouch * 1.25; q.knee.rotation.x -= crouch * 2.1; q.foot.rotation.x += crouch * 0.85; }
+    }
+    if (swing !== 0) { L.sh.rotation.x += swing * 1.5; R.sh.rotation.x += swing * 1.5; }
     // off: parts torn away in the fire, each flung back and spinning: { L: { pos: Vector3, rot }, ... }
     for (const k in parts) {
       const p = parts[k], q = o.off && o.off[k];
