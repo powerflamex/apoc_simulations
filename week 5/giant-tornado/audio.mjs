@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, STEPS, BOLTS, windAt, V_SIREN, V_ALERT, V_FLEE, V_RUN, V_CRASH, V_LIFT1, V_CAR1, V_HAIL, V_TOWN, V_ROOFS, V_TRUCK, V_GLASS, V_PEOPLE, V_CARS, V_WALL, V_PEEL, V_YOU, V_FINAL } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, STEPS, BOLTS, windAt, V_SIREN, V_ALERT, V_FLEE, V_RUN, V_CRASH, V_CRASH2, V_SPARK, V_VORTEX, V_LIFT1, V_CAR1, V_HAIL, V_TOWN, V_ROOFS, V_TRUCK, V_GLASS, V_PEOPLE, V_CARS, V_WALL, V_PEEL, V_YOU, V_FINAL } from './src/timeline.js';
 import { rng, smooth, clamp, lerp } from './src/util.js';
 
 const SR = 48000;
@@ -72,7 +72,7 @@ function loadClip(dir) {
     const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
     let pk = 0; for (const x of a) pk = Math.max(pk, Math.abs(x));
     console.log(`audio: scream from sounds/${f}`);
-    return { a, g: 0.62 / Math.max(pk, 1e-6) };
+    return { a, g: 0.2 / Math.max(pk, 1e-6) };
   }
   console.warn('audio: no sounds/scream.mp3 or sounds/nooo.mp3: the scream is left out');
   return null;
@@ -95,9 +95,9 @@ export function makeSoundtrack(outFile) {
   addCries(0.6, 3.0, 8, 0.011); addCries(V_ALERT, V_ALERT + 3, 6, 0.009); addCries(V_RUN, V_RUN + 4.5, 14, 0.012); addCries(V_CRASH, V_CRASH + 1.5, 6, 0.012);
   addCries(V_LIFT1 + 0.5, V_LIFT1 + 4, 8, 0.011); addCries(V_HAIL + 0.5, V_HAIL + 4, 8, 0.01); addCries(V_ROOFS, V_ROOFS + 4, 10, 0.012); addCries(V_PEOPLE, V_PEOPLE + 7, 16, 0.013);
   // ---- horns, in the jam ----
-  const horns = [[10.6, 1.1, 390], [11.4, 0.7, 440], [12.1, 1.6, 360], [13.9, 0.9, 470], [15.2, 1.4, 400], [16.6, 0.8, 430]].map(([t, d, f]) => ({ t, d, f, ph: 0, ph2: 0, fl: new SVF(), pan: R0() * 1.2 - 0.6 }));
+  const horns = [[10.8, 0.9, 390], [11.7, 0.7, 440], [12.6, 1.1, 360], [13.6, 0.5, 470], [14.35, 3.2, 415], [15.4, 1.4, 400], [16.9, 0.8, 430]].map(([t, d, f]) => ({ t, d, f, ph: 0, ph2: 0, fl: new SVF(), pan: R0() * 1.2 - 0.6 }));
   // ---- the crashes: low thuds with a soft crunch of glass ----
-  const thuds = [{ t: V_CRASH, g: 0.5, f: 55 }, { t: V_CRASH + 1.15, g: 0.42, f: 48 }, { t: V_CRASH + 1.4, g: 0.2, f: 70 }].map((o) => ({ ...o, ph: 0, fl: new SVF(), fc: new SVF() }));
+  const thuds = [{ t: V_CRASH, g: 0.85, f: 58 }, { t: V_CRASH2, g: 0.7, f: 50 }, { t: V_CRASH + 0.42, g: 0.22, f: 70 }, { t: V_FINAL + 0.02, g: 1.0, f: 44 }].map((o) => ({ ...o, ph: 0, fl: new SVF(), fc: new SVF() }));
   // ---- hail: a dense rattle of soft tocks on the cars and the road ----
   const tocks = [];
   for (let k = 0; k < 900; k++) { const t = V_HAIL + Math.pow(R0(), 0.7) * 15; tocks.push({ t, f: 900 + R0() * 1800, g: 0.012 + 0.02 * R0(), d: 0.03 + 0.04 * R0(), pan: R0() * 1.6 - 0.8, ph: 0, fl: new SVF() }); }
@@ -106,7 +106,7 @@ export function makeSoundtrack(outFile) {
   // ---- whooshes as things tear loose ----
   const whoosh = [];
   const addWhoosh = (t0, t1, n, g) => { for (let k = 0; k < n; k++) whoosh.push({ t: t0 + R0() * (t1 - t0), d: 0.5 + R0() * 0.9, g: g * (0.6 + 0.8 * R0()), pan: R0() * 1.6 - 0.8, f: new SVF() }); };
-  addWhoosh(V_LIFT1, V_LIFT1 + 6, 10, 0.05); addWhoosh(V_CAR1, V_CAR1 + 0.3, 1, 0.12); addWhoosh(V_TOWN, V_TOWN + 4, 6, 0.06); addWhoosh(V_ROOFS, V_ROOFS + 6, 9, 0.09);
+  addWhoosh(V_LIFT1, V_LIFT1 + 6, 10, 0.05); addWhoosh(V_VORTEX, V_VORTEX + 5, 7, 0.07); addWhoosh(V_CAR1, V_CAR1 + 0.3, 1, 0.12); addWhoosh(V_TOWN, V_TOWN + 4, 6, 0.06); addWhoosh(V_ROOFS, V_ROOFS + 6, 9, 0.09);
   addWhoosh(V_TRUCK, V_TRUCK + 0.2, 1, 0.16); addWhoosh(V_PEOPLE, V_PEOPLE + 8, 14, 0.08); addWhoosh(V_PEEL, V_PEEL + 3.5, 6, 0.11);
   // ---- the roofs and the road tearing: low groans ----
   const groans = [];
@@ -119,7 +119,7 @@ export function makeSoundtrack(outFile) {
   const roarLP = new OnePole(120), roarLP2 = new OnePole(40), rumLP = new OnePole(30);
   const braamLP = new SVF(), subLP = new OnePole(80);
   const sirenF = [new SVF(), new SVF()], alertLP = new OnePole(4000), hailBed = new SVF(), hailBed2 = new SVF();
-  const riserF = new SVF();
+  const riserF = new SVF(), screechF = new SVF(), sparkF = new SVF();
   const revL = new Reverb(11), revR = new Reverb(12);
   const ph = new Float64Array(64);
   let brownL = 0, brownR = 0, brownW = 0;
@@ -202,6 +202,13 @@ export function makeSoundtrack(outFile) {
       }
       const av = alertLP.run(al);
       l += av * 0.9; r += av; wet += av * 0.4;
+    }
+    // --- the tires screaming just before the crash, the transformer's hum and thump ---
+    {
+      const k = smooth(V_CRASH - 0.55, V_CRASH - 0.1, v) * (1 - smooth(V_CRASH - 0.04, V_CRASH + 0.01, v));
+      if (k > 0) { const sc = screechF.run(white(), 1500 + 500 * smooth(V_CRASH - 0.55, V_CRASH, v), 0.12).bp * 0.05 * k; l += sc * 1.1; r += sc * 0.9; wet += sc * 0.5; }
+      const dt = v - V_SPARK;
+      if (dt > 0 && dt < 1.3) { ph[30] += 120 / SR; ph[31] += (34 + 30 * Math.exp(-dt * 6)) / SR; const hv = sparkF.run(saw(ph[30]), 900, 0.5).lp * 0.05 * env(dt, 0.02, 0.28); const th = Math.sin(TAU * ph[31]) * 0.22 * env(dt, 0.02, 0.3); l += hv + th; r += hv * 0.8 + th; wet += hv * 0.7; }
     }
     // --- horns, the crash ---
     for (const h of horns) {

@@ -970,28 +970,38 @@ Cover: `week 5/moon-explodes/out/moon-explodes_v4_cover.png` (`node render.mjs -
 
 ## Next Short. What if a tornado was 10 miles wide? — `week 5/giant-tornado/out/giant-tornado_v4_1080x1920_60fps_tiktok.mp4`
 
-48.1 s. Main Street of a small Midwest town, late afternoon (generic brick storefronts, no real brands); you stand in
-the road among the crowd and never leave it. Frame 0: the title, the counter racing (REACHES YOU IN · TIME-LAPSE,
-10:00, 8.3 MILES AWAY), the whole end of the street a black rotating wall under a dark green-grey storm sky, leaves and
-papers already skittering past, people right by you with their phones up, the owner's scream in the first second. A
-time-lapse jump every 3 s (a hit in the sound, the camera jolts, the wall visibly taller each time). 0:06 the sky turns
-green, the sirens wind up and every phone buzzes the alert; 0:11 the first cars race down the street toward you with
-their lights on and pile up in front of you (one backing out gets hit, the next swerves into it, the rest queue up
-with horns and hazard lights) while everyone on the sidewalks runs past you; 0:18 awnings, signs, trash cans and the
-flags lift off, and a car up the street rises and tumbles away with its headlights on; 0:24 the far end of town (the
-grain elevator, the water tower, the church steeple, the last blocks) is torn into pieces that fly into the wall, and
-baseball hail smashes on the cars round you; 0:29 people grab the lamp posts and stream out flat; 0:30 roofs peel off
-whole and fly, a van tumbles across the frame; 0:33 every window bursts, the power dies, people and then the cars are
-lifted one by one, the far ones first; 0:36 the wall fills the screen: dark, lightning flickering inside it; 0:42 the
-street itself peels up and curls toward the wall; 0:44 you lose your footing; 0:46 one huge flash, white, loop (the
-white clears onto frame 0).
+48.1 s (reworked Nov 5 after the owner checked the first cut: a real tornado shape, a lit street, the crowd running past
+you, the crash close up, a big hit at the end). Main Street of a small Midwest town, late afternoon, the low Sun right
+behind you (generic brick storefronts, no real brands); you stand in the road among the crowd and never leave it.
+Frame 0: the title, the counter racing (REACHES YOU IN · TIME-LAPSE, 10:00, 8.3 MILES AWAY), a huge dark wedge at the end
+of the street pouring out of a low turning storm ceiling, curved bands sliding across it, dust boiling at its foot,
+people right by you with their phones up, the owner's scream in the first second. A time-lapse jump every 3 s (a hit in
+the sound, the camera jolts, the funnel ~17% wider each time). 0:06 the sky turns green, the sirens wind up, every phone
+buzzes the alert; 0:10 the line of cars at the red light races down the street at you; 0:12 EVERYONE RUNS: the people by
+you turn and sprint past you on both sides, and it spreads up the street; 0:13 blue-green power flashes start at the
+tornado's foot; 0:14 15 m in front of you a car backing out swings across the lane and a red car T-bones it at ~50 mph:
+its rear kicks up, the white car is shoved at you, up on two wheels, glass and parts flying; 0:15 a blue SUV slams into
+the back of it; 0:16 a transformer up the street blows in a blue-green flash, sparks rain down, half the shop lights die;
+0:18 awnings, signs, trash cans and the flags lift off and a car on the left rises and tumbles away; 0:20 a smaller rope
+tornado spins up in front of the big one and walks across for 6 s; 0:24 the far end of town (the grain elevator, the
+water tower, the church steeple) is torn into pieces, and hail streaks down; 0:29 people grab the lamp posts and stream
+out flat; 0:30 roofs peel off whole and fly, a van tumbles across the frame; 0:33 every window bursts, the power dies,
+people and then the cars are lifted one by one; 0:36 the funnel fills the screen: dark, lightning flickering inside it;
+0:42 the street tears up at the far end and stands up as a wall of road, its yellow lines facing you, lit by the
+lightning, the tear running down the street at you; 0:44.6 you lose your footing and the wind drags you straight at it;
+0:46.6 you hit it, full white in a quarter of a second, and the white clears onto frame 0 (the loop).
 Numbers (`src/timeline.js`): the widest tornado ever measured was 2.6 miles (El Reno, Oklahoma, 2013); the fastest
-wind ever measured in one is just over 300 mph (Bridge Creek-Moore 1999, El Reno 2013), which is what the wall's edge
-gets here and never more. The wall is a 10-mile cylinder up to 6,000 ft, turning at the edge speed, coming at 50 mph
-(fast for a tornado), so 10 minutes out is 8.3 miles. The wind on you (the captions: 60, 80, 110, 170, 200, 300 mph) is
-an estimate that follows the EF scale, and each caption says what that speed really does: ~75 mph you can't stay on
-your feet, 86-110 roofs stripped, 136-165 heavy cars thrown, 200+ asphalt scoured off roads; baseball-size hail falls
-at ~100 mph; the green sky is sunlight through a deep, hail-filled cloud.
+wind ever measured in one is just over 300 mph (Bridge Creek-Moore 1999, El Reno 2013), which is what it reaches at
+the wall and never more. It comes at 50 mph (fast for a tornado), so 10 minutes out is 8.3 miles. The wind on you (the
+captions: 60, 80, 110, 170, 200, 300 mph) is an estimate that follows the EF scale, and each caption says what that speed
+really does: ~75 mph you can't stand, 86-110 roofs stripped, 136-165 heavy cars thrown, 200+ asphalt scoured off
+roads; baseball-size hail falls at ~100 mph; the green sky is sunlight through a deep, hail-filled cloud; big tornadoes
+do throw off smaller ones (El Reno did); power flashes really are blue-green.
+**Not to scale, on purpose:** the funnel on screen is an illustration, drawn far taller than life and with both edges in
+frame. A true 10-mile wall from 8 miles away would be ~44° wide (the phone shows ~37°) and only ~8° tall: no edges, just
+a dark line on the horizon. The distance on the counter and the wind numbers are the real ones; the size in the picture
+is not, and it does not grow in true proportion. The storm ceiling sits lower than it
+would too. The road standing up as a wall at the end is a picture of "200+ mph takes the asphalt off", not a prediction.
 
 **YouTube title (92 chars, emoji counted as 2)**
 What if a tornado was 10 miles wide? It reaches your town in 10 minutes 🌪️ #whatif #tornado
@@ -1000,20 +1010,22 @@ What if a tornado was 10 miles wide? It reaches your town in 10 minutes 🌪️ 
 A tornado 10 miles wide comes straight down Main Street at 50 mph. The widest ever recorded was 2.6 miles (El Reno, Oklahoma, 2013).
 
 A time-lapse of its last 10 minutes, from the middle of the street:
-8 miles out: the whole horizon is a black rotating wall. The sky turns green. The sirens start.
-2.6 miles: 60 mph on you already. Everyone runs, and the cars pile up trying to leave.
-1 mile: 110 mph. Signs, awnings and a car lift off.
-4,000 feet: the far end of town is gone. Hail hits the cars at 100 mph.
+8 miles out: it fills the end of the street. The sirens start and the sky turns green.
+2.6 miles: 60 mph on you already. Everyone runs, and two cars crash right in front of you.
+1 mile: 110 mph. Signs, awnings and a car lift off. A smaller tornado spins up.
+4,000 feet: the far end of town is gone. Hail hits at 100 mph.
 2,000 feet: 170 mph. Roofs and trucks fly. People hang on to the lamp posts.
-1,000 feet: you're inside the wall. 200 mph, lightning, dark.
+1,000 feet: 200 mph. Lightning, and it goes dark.
 600 feet: the street itself peels up.
 At the wall: 300 mph, the fastest wind ever measured.
+
+(The wind on you is an estimate, and the funnel is drawn bigger so you can see its shape on a phone.)
 
 Where would you hide? 👇
 
 #whatif #tornado #weather #storm #shorts
 
-Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs --cover 25.5`: the black wall filling the sky over the street, signs, awnings and hail flying, the crowd close to you with their phones up, the cars' headlights on; "WHAT IF A / tornado / was 10 miles wide?")
+Cover: `week 5/giant-tornado/out/giant-tornado_v4_cover.png` (`node render.mjs --cover 10.4`: the funnel with both edges showing against the green sky, dust boiling at its foot, the crowd close to you with arms up; "WHAT IF A / tornado / was 10 miles wide?")
 
 ---
 

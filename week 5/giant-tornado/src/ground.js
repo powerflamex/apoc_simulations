@@ -1,7 +1,8 @@
 // The ground: Main Street's asphalt (a double yellow line, angled parking stalls, crosswalks at the cross streets),
 // the concrete sidewalks with curbs, the back lots, the fields beyond the town (rows of young corn), the highway on
 // through them; then the dark under the wall's foot (uWallZ), and the street itself peeling up at the end: a sheet
-// of asphalt (a separate mesh) that stands up from the far end and curls toward the wall, leaving torn dirt behind
+// of asphalt (a separate mesh) torn up from the far end, whose torn part stands up as a wall of road, its lines and
+// its surface facing you and leaning over you, while the tear runs down the street at you, leaving dirt behind
 // (uPeelZ: the front of the peel).
 import * as THREE from 'three';
 import { ROAD_X, FX, CROSS, CROSS_W, TOWN_END, HWY_X, CAM0 } from './layout.js';
@@ -28,7 +29,7 @@ export const STREET_GLSL = /* glsl */ `
     vec3 c;
     if (road > 0.5) {
       float n = gn(P * 3.0) * 0.5 + gn(P * 13.0) * 0.5;
-      c = vec3(0.1, 0.1, 0.105) * (0.75 + 0.5 * n);
+      c = vec3(0.2, 0.2, 0.205) * (0.75 + 0.5 * n);
       if (main && dc > CW + 0.5) {
         // the double yellow line
         float dy = min(abs(abs(P.x) - 0.2), 1.0);
@@ -131,7 +132,7 @@ export function makeGround(scene) {
   scene.add(cg);
 
   // ---- the sheet of asphalt that peels up at the end ----
-  const SZ0 = -30, SZ1 = -150;           // the stretch of road that goes
+  const SZ0 = -8, SZ1 = -150;            // the stretch of road that goes
   const SU = { uFront: { value: 1e4 }, uK: { value: 0 }, uTime: GU.uTime };
   const smat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   smat.onBeforeCompile = (shader) => {
@@ -143,22 +144,21 @@ export function makeGround(scene) {
         float sh21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float sn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(sh21(i), sh21(i + vec2(1, 0)), f.x), mix(sh21(i + vec2(0, 1)), sh21(i + vec2(1, 1)), f.x), f.y); }
-        // where the sheet point that rested at (x, z) is now: beyond the front it stands up and curls toward the wall
+        // where the sheet point that rested at (x, z) is now: past the tear it bends up and stands as a wall, leaning at you
         vec3 peelPos(vec2 rest) {
-          float s = uFront - rest.y;                       // how far beyond the front (m)
-          s += 6.0 * (sn(vec2(rest.x * 0.3, rest.y * 0.05)) - 0.5);
+          float s = uFront - rest.y;                       // how far past the tear (m)
+          s += 7.0 * (sn(vec2(rest.x * 0.32, rest.y * 0.05)) - 0.5);
           if (s <= 0.0) return vec3(rest.x, 0.0, rest.y);
-          const float RC = 10.0;
-          float th = min(s / RC, 1.5708);
+          const float RC = 8.0, TH = 1.8;
+          float th = min(s / RC, TH);
           float y = RC * (1.0 - cos(th));
           float z = uFront - RC * sin(th);
-          float rest2 = max(s - RC * 1.5708, 0.0);
-          y += rest2 * 0.3 + 2.5 * sin(rest2 * 0.14 + uTime * 5.0 + rest.x * 0.3) * smoothstep(0.0, 15.0, rest2);
-          z -= rest2 * 1.7;
-          // tearing: strips at different heights
-          float tear = (sn(vec2(rest.x * 0.45 + 2.0, rest.y * 0.08)) - 0.5) * 14.0 * smoothstep(0.0, 25.0, s);
-          y += tear * uK;
-          return vec3(rest.x + (sn(vec2(rest.y * 0.1, 1.0)) - 0.5) * 3.0 * smoothstep(0.0, 30.0, s), y, z);
+          float rest2 = max(s - RC * TH, 0.0);
+          y += rest2 * sin(TH);
+          z -= rest2 * cos(TH);
+          // it ripples as it stands, and flaps at the top
+          z += (1.2 + 0.09 * rest2) * sin(rest2 * 0.13 - uTime * 7.0 + rest.x * 0.25) * smoothstep(0.0, 18.0, rest2);
+          return vec3(rest.x + (sn(vec2(rest.y * 0.1, 1.0)) - 0.5) * 2.4 * smoothstep(8.0, 50.0, s), y, z);
         }`)
       .replace('#include <beginnormal_vertex>', `
         vec2 rest = vec2(position.x, position.z);
@@ -184,10 +184,15 @@ export function makeGround(scene) {
         // the underside, where it's lifted, is torn gravel and tar
         vec3 under = vec3(0.22, 0.17, 0.12) * (0.6 + 0.8 * gn(P * 5.0));
         c = mix(c, under, gl_FrontFacing ? 0.0 : 1.0);
+        // torn edges, cracks across it
+        float torn = ROAD_X - abs(P.x);
+        if (vLift > 1.0 && torn < 2.4 * gn(vec2(P.y * 0.16, sign(P.x) * 3.0)) * smoothstep(0.0, 18.0, vLift)) discard;
+        float crack = (1.0 - smoothstep(0.006, 0.03, abs(gn(P * vec2(0.7, 0.3)) - 0.5))) * smoothstep(0.45, 0.6, gn(P * 0.11 + 4.0));
+        c = mix(c, vec3(0.03), crack * smoothstep(4.0, 30.0, vLift) * 0.9);
         diffuseColor.rgb = c;`);
   };
   smat.customProgramCacheKey = () => 'tornado-sheet-v1';
-  const sgeo = new THREE.PlaneGeometry(ROAD_X * 2, SZ0 - SZ1, 6, 180).rotateX(-Math.PI / 2);
+  const sgeo = new THREE.PlaneGeometry(ROAD_X * 2, SZ0 - SZ1, 14, 220).rotateX(-Math.PI / 2);
   sgeo.translate(0, 0.03, (SZ0 + SZ1) / 2);
   const sheet = new THREE.Mesh(sgeo, smat);
   sheet.frustumCulled = false;
@@ -199,7 +204,7 @@ export function makeGround(scene) {
     // k: 0..1 how far the peel has run (the front runs from the far end of the sheet toward you)
     peel(k, v) {
       sheet.visible = k > 0;
-      const front = SZ1 + 8 + (-60 - SZ1 - 8) * k;
+      const front = SZ1 + 8 + (-14 - SZ1 - 8) * k;
       SU.uFront.value = k > 0 ? front : 1e4;
       SU.uK.value = k;
       GU.uPeelZ.value = k > 0 ? front : -1e5;

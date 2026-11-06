@@ -1,11 +1,11 @@
 // Where everything stands (metres; x east (right), y up, z south (toward you)). Main Street runs north (-z) from
 // behind you to the edge of town at z = -410, then the highway on through the fields. The wall comes down the street
 // from the north. Road 17 m curb to curb (two lanes, angled parking both sides), sidewalks 3.5 m, the buildings'
-// fronts at |x| = 12. A cross street every ~90 m. You stand in the road's left lane, 3 blocks from the end.
+// fronts at |x| = 12. A cross street every ~90 m. You stand in the road by the centre line, 3 blocks from the end.
 import { rng } from './util.js';
 
 export const ROAD_X = 8.5, WALK = 3.5, FX = 12;
-export const CAM0 = { x: -4.5, z: 0 };     // you: in the left lane, by the left sidewalk's crowd
+export const CAM0 = { x: -0.9, z: 0 };     // you: in the road, just left of the double yellow line
 export const CROSS = [-80, -170, -260, -350];     // cross streets (centre z)
 export const CROSS_W = 6;                          // half their width
 export const TOWN_END = -410;

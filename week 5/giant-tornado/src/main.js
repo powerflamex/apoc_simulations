@@ -8,13 +8,13 @@ import { makeSky } from './sky.js';
 import { makeGround, GU } from './ground.js';
 import { makeTown, CU } from './town.js';
 import { makePeople } from './people.js';
-import { makeTraffic } from './traffic.js';
+import { makeTraffic, IMPACTS } from './traffic.js';
 import { makeDebris } from './debris.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makeOverlay } from './overlay.js';
 import { CAM0, FAR } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, WALL_R, WALL_H, V_TOWN, V_WALL, V_YOU, T_SWITCH, windInt } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, POP, V_TOWN, V_WALL, V_YOU, V_FINAL, V_SPARK, T_SWITCH } from './timeline.js';
 import { lerp, smooth, wobble, clamp, rng } from './util.js';
 
 const W = 1080, H = 1920, DEG = Math.PI / 180;
@@ -55,9 +55,10 @@ const debris = makeDebris(scene, ctx);
 const glows = makeGlows(scene, 6000);
 const smoke = makeSmoke(scene, 900);
 
-// light: the low Sun behind you on the left (gold, long shadows across the street), the storm's grey-green sky,
+// light: the low Sun right behind you, under the edge of the storm (gold on the street, the crowd and the fronts, long
+// shadows running up the street at the tornado), the storm's grey-green sky,
 // and the lightning (a flash from the wall's direction)
-const SUN = new THREE.Vector3(-0.62, 0.42, 0.66).normalize();
+const SUN = new THREE.Vector3(-0.2, 0.3, 0.93).normalize();
 sky.uniforms.uSun.value.copy(SUN);
 const hemi = new THREE.HemisphereLight(0x8a9a8a, 0x5a4a3a, 0.9);
 scene.add(hemi);
@@ -70,6 +71,13 @@ sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.06;
 scene.add(sun, sun.target);
 const bolt = new THREE.DirectionalLight(0xc8d4ff, 0);
 scene.add(bolt, bolt.target);
+// the lightning behind you at the end: it's what lights the face of the road standing up in front of you
+const front = new THREE.DirectionalLight(0xd4dcff, 0);
+scene.add(front, front.target);
+// the transformer blowing up the street
+const arc = new THREE.PointLight(0x7fffe8, 0, 260, 1.4);
+arc.position.set(11.3, 9.2, -68);
+scene.add(arc);
 
 const overlay = makeOverlay();
 const stampEl = document.getElementById('stamp');
@@ -127,14 +135,15 @@ composer.addPass(finish);
 // ---------- the debris cloud at the wall's foot, the far end's dust, the dust rolling down the street ----------
 const PUFF = (() => { const R = rng(31); return Array.from({ length: 26 }, (_, i) => ({ k: (i / 25 - 0.5) * 2, ph: R() * 10, r: 0.7 + R() * 0.6 })); })();
 const FARDUST = (() => { const R = rng(32); return Array.from({ length: 14 }, () => ({ x: (R() - 0.5) * 200, z: -420 - R() * 120, ph: R() * 10, r: 0.8 + R() * 0.8 })); })();
+const SPARKS = (() => { const R = rng(34); return Array.from({ length: 34 }, () => ({ d: R() * 0.9, vx: (R() - 0.7) * 6, vy: R() * 5, vz: (R() - 0.5) * 6 })); })();
 const NEARDUST = (() => { const R = rng(33); return Array.from({ length: 16 }, () => ({ x: (R() - 0.5) * 26, z: -15 - R() * 90, ph: R() * 10, r: 0.6 + R() * 0.8 })); })();
 
 // ---------- the camera ----------
 function camAt(v, s) {
   // looking up the street; tipping up as the wall grows, so it never leaves the frame and the street stays in view
-  let pitch = (-3.0 + 7.5 * smooth(12, 36, v) + 9 * smooth(36, 45, v)) * DEG;
-  let yaw = -1.0 * DEG;                                   // (a touch to the right, toward the middle of the street)
-  let fov = lerp(58, 63, smooth(16, 42, v));
+  let pitch = (11.5 + 2 * smooth(6, 24, v) + 2 * smooth(36, 44, v)) * DEG;
+  let yaw = 0.3 * DEG;
+  let fov = lerp(62, 64, smooth(16, 42, v));
   let roll = wobble(v * 0.3, 7) * 0.5 * DEG;
   const pos = new THREE.Vector3(CAM0.x, 1.75, CAM0.z);
   // handheld: sway, and the wind buffets you more and more
@@ -144,13 +153,13 @@ function camAt(v, s) {
   yaw += wobble(v * 3.1, 9) * 0.9 * DEG * buf; pitch += wobble(v * 2.7, 8) * 0.7 * DEG * buf; roll += wobble(v * 2.2, 6) * 0.8 * DEG * buf;
   // leaning back against the pull
   pos.z += 0.25 * smooth(20, 40, v);
-  // at the end you lose your footing: lifted, rolling, looking up into it
+  // at the end you lose your footing: the wind takes you up the street, straight at the road standing up in front of you
   const up = s.you;
   if (up > 0) {
-    pos.y += 1.2 * up * up;
-    pos.z -= 0.8 * up * up;
-    pitch += 22 * DEG * smooth(0, 1.6, up);
-    roll += 16 * DEG * smooth(0, 1.4, up) * Math.sin(up * 2.2);
+    pos.y += Math.min(4.5, 0.9 * up * up);
+    pos.z -= 4.6 * up * up;
+    pitch = lerp(pitch, 5 * DEG, smooth(0, 1.2, up));
+    roll += 9 * DEG * smooth(0, 1.0, up) * Math.sin(up * 2.6);
   }
   return { pos, yaw, pitch, roll, fov };
 }
@@ -165,13 +174,13 @@ function update(v, cover = -1) {
 
   // ---------- the camera, jolted on every jump ----------
   const cam = camAt(v, s);
-  const sh = (s.kick * 0.9 + 0.06 + 0.5 * s.shake + (v > V_YOU ? 1.5 * smooth(V_YOU, V_YOU + 0.6, v) : 0)) * 0.012 * cam.fov / 60;
-  cam.pitch += wobble(v * 43, 3) * sh - s.kick * 0.9 * DEG;
+  const sh = (s.kick * 0.9 + 0.06 + 0.5 * s.shake + 3 * s.jolt + (v > V_YOU ? 1.5 * smooth(V_YOU, V_YOU + 0.6, v) : 0)) * 0.012 * cam.fov / 60;
+  cam.pitch += wobble(v * 43, 3) * sh - s.kick * 0.9 * DEG - s.jolt * 0.7 * DEG;
   cam.yaw += wobble(v * 47, 4) * sh;
   cam.roll += wobble(v * 29, 5) * sh * 0.8;
   camera.position.copy(cam.pos);
   camera.rotation.set(cam.pitch, cam.yaw, cam.roll);
-  camera.fov = cam.fov * (1 - 0.035 * s.kick);
+  camera.fov = cam.fov * (1 - 0.035 * s.kick - 0.02 * s.jolt);
   camera.near = 0.3; camera.far = 30000;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
@@ -181,12 +190,12 @@ function update(v, cover = -1) {
   sky.mesh.position.copy(camera.position);
   sky.mesh.scale.setScalar(8000);
   u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / H;
-  u.uD.value = s.d; u.uR.value = WALL_R; u.uH.value = WALL_H; u.uRot.value = s.rot;
-  u.uCamY.value = camera.position.y;
-  u.uGreen.value = s.green; u.uDark.value = s.dark; u.uDebris.value = s.debris; u.uSunK.value = s.sun;
+  u.uA.value = s.A; u.uE.value = s.E; u.uDebH.value = s.debH; u.uRot.value = s.rot;
+  u.uGreen.value = s.green; u.uDark.value = s.dark; u.uSunK.value = s.sun;
   u.uFlash.value = Math.min(0.7, 0.2 * s.bolt) + s.flash;
-  u.uShift.value = windInt(v) * 0.35;
   for (let k = 0; k < 4; k++) { const b = s.bolts[k]; if (b) u.uBolt.value[k].set(b[0], b[1], b[2], b[3]); else u.uBolt.value[k].set(0, 0, 0, 0); }
+  u.uRope.value.set(s.rope[0], s.rope[1], s.rope[2], s.rope[3]);
+  for (let k = 0; k < 3; k++) { const P = s.pow[k]; if (P) u.uPow.value[k].set(P[0], P[1], P[2]); else u.uPow.value[k].set(0, 0, 0); }
 
   // ---------- lights and fog ----------
   const dayK = 1 - 0.8 * s.dark;
@@ -199,17 +208,25 @@ function update(v, cover = -1) {
   sun.position.copy(camera.position).addScaledVector(SUN, 420).add(new THREE.Vector3(0, 0, -60));
   sun.target.position.set(camera.position.x, 0, camera.position.z - 60);
   sun.target.updateMatrixWorld();
-  bolt.intensity = 3.2 * Math.min(s.bolt, 1.6);
+  bolt.intensity = lerp(1.8, 3.2, smooth(29, 33, v)) * Math.min(s.bolt, 1.6);
   bolt.position.set(camera.position.x + 20 * Math.sin((s.bolts[0] || [0])[0]), 160, camera.position.z - 300);
   bolt.target.position.set(camera.position.x, 0, camera.position.z - 40);
   bolt.target.updateMatrixWorld();
+  front.intensity = (1.2 + 3.2 * Math.min(s.bolt, 1.5)) * smooth(42.2, 43.8, v);
+  front.position.set(camera.position.x - 10, 30, camera.position.z + 60);
+  front.target.position.set(camera.position.x, 12, camera.position.z - 40);
+  front.target.updateMatrixWorld();
+  const sp = v - V_SPARK;
+  arc.intensity = sp > 0 && sp < 1.1 ? 1500 * Math.exp(-sp / 0.3) * (0.55 + 0.45 * Math.sin(sp * 60)) : 0;
   tmpC.copy(FOG0).lerp(new THREE.Color(0.5, 0.56, 0.28), s.green).lerp(new THREE.Color(0.03, 0.03, 0.03), s.dark);
   scene.fog.color.copy(tmpC);
   scene.fog.density = 0.0006 + 0.0004 * smooth(18, 36, v) + 0.0016 * s.dark;
   renderer.toneMappingExposure = 1.0 + 0.15 * s.green * (1 - s.dark);
   // the shops' lights and the lamps: the power fails as the wall nears (flickering first)
   const flick = v > 29 && v < 35 && Math.sin(v * 23) * Math.sin(v * 7.1) > 0.6 ? 0.3 : 1;
-  CU.uPower.value = (1 - 0.95 * smooth(33, 36.5, v)) * flick;
+  // the transformer takes half the street's lights with it
+  const dip = v > V_SPARK ? 1 - 0.42 * smooth(V_SPARK, V_SPARK + 0.2, v) * (v < V_SPARK + 1 && Math.sin(v * 41) > 0 ? 1.4 : 1) : 1;
+  CU.uPower.value = (1 - 0.95 * smooth(33, 36.5, v)) * flick * dip;
   CU.uSkyK.value = 0.3 + 0.7 * dayK;
   GU.uWallZ.value = -s.d;
   GU.uWet.value = 0.5 * smooth(V_TOWN, V_TOWN + 4, v);
@@ -221,8 +238,23 @@ function update(v, cover = -1) {
   people.frame(v, s, glows);
   traffic.frame(v, s, glows);
   debris.frame(v, s, glows);
+  // the transformer: a blue-green arc, then sparks raining down
+  if (sp > 0 && sp < 2.4) {
+    if (sp < 0.9) glows.add(11.3, 9.2, -68, 6 * (1.2 - sp), 2.4 * (1 - sp), 9 * (1 - sp), 8.5 * (1 - sp));
+    for (const k of SPARKS) { const t = sp - k.d; if (t < 0 || t > 1.6) continue; const f = 1 - t / 1.6; glows.add(11.3 + k.vx * t, Math.max(0.1, 9.2 + k.vy * t - 4.9 * t * t), -68 + k.vz * t, 0.5, 5 * f, 3.6 * f, 1.5 * f); }
+  }
   glows.end();
   smoke.begin();
+  // dust and steam from the crash
+  for (const h of IMPACTS) {
+    const t = v - h.t;
+    if (t < 0 || t > 2.6) continue;
+    for (let i = 0; i < 12; i++) { const a = i * 2.4 + h.t; const g = 1 - Math.exp(-t * 2.2); smoke.puff(h.x + Math.cos(a) * (1 + 3.2 * g), 0.5 + 1.8 * g + i * 0.1, h.z + Math.sin(a) * (0.7 + 2.4 * g) - t * t * 0.8, (0.6 + 1.5 * g) * h.k, 0.3 * (1 - t / 2.6), 0.62, 0, i * 0.7); }
+  }
+  if (v > IMPACTS[0].t && v < 33) for (let i = 0; i < 7; i++) {
+    const t = ((v * 0.8 + i / 7) % 1);
+    smoke.puff(1.8 + t * 1.2, 1.0 + t * 3.0, -15.6 - t * (2 + s.W * 0.2), 0.35 + t * 1.3, 0.26 * (1 - t), 0.8, 0, i * 1.3);
+  }
   {
     // the debris cloud at the wall's foot (once it is near enough for the puffs to read)
     const d = s.d;

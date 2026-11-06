@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { rng, smooth, clamp, lerp } from './util.js';
 import { CAM0, ROAD_X, FX, BLD } from './layout.js';
+import { CARS } from './traffic.js';
 import { V_LIFT1, V_ROOFS, V_GLASS, V_PEEL, V_HAIL, windInt } from './timeline.js';
 import { flight, gone } from './fly.js';
 
@@ -85,7 +86,7 @@ export function makeDebris(scene, ctx) {
   // the streaks of dirt in the air
   const NS = 1800;
   const streakGeo = new THREE.BoxGeometry(0.035, 0.035, 1);
-  const streakMat = new THREE.MeshBasicMaterial({ color: 0x4a3d30, transparent: true, opacity: 0.4, toneMapped: true });
+  const streakMat = new THREE.MeshBasicMaterial({ color: 0x4a3d30, transparent: true, opacity: 0.32, toneMapped: true });
   const streaks = new THREE.InstancedMesh(streakGeo, streakMat, NS);
   streaks.frustumCulled = false;
   scene.add(streaks);
@@ -93,8 +94,8 @@ export function makeDebris(scene, ctx) {
   for (let i = 0; i < NS; i++) SL.push({ x: CAM0.x + (R() - 0.5) * 40, y: 0.2 + Math.pow(R(), 1.8) * 9, z0: R() * 170, ph: R() });
   // the hail
   const NH = 700;
-  const hailGeo = new THREE.IcosahedronGeometry(0.035, 1);
-  const hailMat = new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.3, emissive: 0xffffff, emissiveIntensity: 0.15 });
+  const hailGeo = new THREE.IcosahedronGeometry(0.03, 1);
+  const hailMat = new THREE.MeshBasicMaterial({ color: 0xc4ccd4, transparent: true, opacity: 0.55 });
   const hail = new THREE.InstancedMesh(hailGeo, hailMat, NH);
   hail.frustumCulled = false;
   scene.add(hail);
@@ -102,7 +103,8 @@ export function makeDebris(scene, ctx) {
   for (let i = 0; i < NH; i++) HL.push({ x: CAM0.x + (R() - 0.5) * 30, z0: CAM0.z - 2 - R() * 70, off: R() * 30, s: 0.5 + R() * 0.6, ph: R() });
   // where the stones hit the cars round you: white bursts (positions over the parking lanes near you)
   const HITS = [];
-  for (let i = 0; i < 160; i++) HITS.push({ t: V_HAIL + 0.3 + R() * 14, x: (R() < 0.5 ? -1 : 1) * (ROAD_X - 2.2 + (R() - 0.5) * 2), y: 1.1 + R() * 0.5, z: 30 - R() * 70 });
+  const NEARCARS = CARS.filter((c) => c.parked && c.z > -75);
+  for (let i = 0; i < 160; i++) { const c = NEARCARS[Math.floor(R() * NEARCARS.length)]; HITS.push({ t: V_HAIL + 0.3 + R() * 9, x: c.x + (R() - 0.5) * 1.6, y: 1.1 + R() * 0.5, z: c.z + (R() - 0.5) * 1.6 }); }
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -136,13 +138,18 @@ export function makeDebris(scene, ctx) {
       // the streaks: a field of dirt streaming toward the wall, wrapping round; more of it as the wind rises
       const shift = windInt(v);
       const nOn = Math.round(NS * (0.03 + 0.97 * smooth(10, 38, v)));
-      const len = Math.min(0.05 * W, 5);
+      const len = Math.min(0.03 * W, 2.4);
       for (let i = 0; i < NS; i++) {
         if (i >= nOn) { streaks.setMatrixAt(i, zero); continue; }
         const st = SL[i];
-        const z = CAM0.z + 40 - ((st.z0 + shift * (0.8 + 0.4 * st.ph)) % 170);
+        // the air spirals in: each streak of dirt curves round toward the wall instead of flying dead straight
+        const run = (st.z0 + shift * (0.8 + 0.4 * st.ph)) % 170;
+        const z = CAM0.z + 40 - run;
+        const ang = 0.55 * Math.sin(run * 0.022 + st.ph * 6.28);
+        const x = st.x + 26 * (1 - Math.cos(run * 0.022 + st.ph * 6.28)) * 0.5 - 13;
         const y = st.y + 2 * Math.sin(v * 2 + st.ph * 20) * smooth(20, 40, v);
-        m4.makeScale(1, 1, len * (0.5 + st.ph)).setPosition(st.x, y, z);
+        e.set(0, ang, 0); q.setFromEuler(e);
+        m4.compose(p.set(x, y, z), q, sc.set(1, 1, len * (0.5 + st.ph)));
         streaks.setMatrixAt(i, m4);
       }
       streaks.instanceMatrix.needsUpdate = true;
@@ -157,7 +164,7 @@ export function makeDebris(scene, ctx) {
         const y = 30 - fall;
         const z = h.z0 - fall * Math.tan(tilt) * 0.6;
         e.set(-tilt, 0, 0); q.setFromEuler(e);
-        m4.compose(p.set(h.x, y, z), q, sc.set(h.s, h.s * 3.5, h.s));
+        m4.compose(p.set(h.x, y, z), q, sc.set(h.s * 0.8, h.s * 13, h.s * 0.8));
         hail.setMatrixAt(i, m4);
       }
       hail.instanceMatrix.needsUpdate = true;
@@ -165,7 +172,6 @@ export function makeDebris(scene, ctx) {
       for (const h of HITS) {
         const dt = v - h.t;
         if (dt > 0 && dt < 0.14) { const k = 1 - dt / 0.14; glows.add(h.x, h.y, h.z, 0.35 + 0.5 * (1 - k), 6 * k, 6 * k, 7 * k); }
-        else if (dt >= 0.14 && dt < 12 && v < 34) glows.add(h.x, h.y, h.z, 0.22, 0.5, 0.5, 0.55);     // the crazed glass keeps a glint (until the cars go)
       }
     },
   };
