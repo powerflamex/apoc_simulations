@@ -1181,6 +1181,62 @@ What would you do with 45 seconds? 👇
 
 Cover: `week 6/biggest-nuke/out/biggest-nuke_v4_cover.png` (`node render.mjs --cover 24`: the whole mushroom cloud glowing over the dusk street, its stem on the city, the wall of dust on the skyline, people running; "WHAT IF THE BIGGEST / nuke ever / hit your city?")
 
+## Next Short. What if a grain of sand hit Earth at the speed of light? — `week 6/sand-grain/out/sand-grain_v4_1080x1920_60fps_tiktok.mp4`
+
+48.05 s. A new scene: a wide, crowded beach in a white high-rise resort town, rows of hired umbrellas, a long pier with a
+Ferris wheel and a domed pavilion, seen from the deck of a lifeguard tower (a generic place, no real brands). You never leave the
+deck. Frame 0: your fingertip close to the lens with one amber grain on it, the title, the counter already racing (GRAIN 1 OF 15 · OF LIGHT SPEED,
+0.00298%, with 20,000 MPH under it; % of light speed the whole way, owner's call), a white point of light high in the sky, the owner's scream in the first second.
+Grains land on the same spot of wet sand every 3 s, each faster than the last, and the view keeps changing: the hand drops and you
+zoom in like a phone (2.4-3 s) for the tiny hits, then zoom out step by step as they grow.
+0:03 a tiny spark, like a rifle shot. 0:06 a crater, like a grenade, the nearest people back away. 0:09 the umbrellas fly, the crowd starts to run.
+0:12 it knocks people down. 0:15 the pier goes piece by piece and the wheel topples. 0:16 the line under the counter changes
+from mph to the energy ("Nothing with mass can reach 100%."). 0:18 you look right: the
+sea pulls back, boats left on the mud. 0:21 you look up: a mushroom cloud over the beach, 1 Hiroshima. 0:24 you turn round: the condos
+behind you blaze, the people running for them are thrown down. 0:27 every window blows out. 0:30 back to the blast, day has gone to
+fire-lit dust, the crater's molten lip visibly nearer. 0:33 the horizon lifts: the far sea and sea floor rise in a wall.
+0:36 more than every nuke on Earth. 0:39 the sky turns white, the column black against it. 0:42 the ground rolls and splits, cracks
+running at you. 0:45 grain 15: 10 billion Hiroshimas, the dinosaur asteroid. The white reaches you, loop (the white clears onto frame 0).
+Why it isn't a plain 10x video: the energy steps are uneven (+1 to +4 nines), and past 0:16 the number barely moves while each hit brings
+something new and a new way of looking. The finish lines are 100% (which it can never reach) and GRAIN n OF 15 on the counter.
+Numbers (`src/timeline.js`), a real coarse grain, 1 milligram (about 0.9 mm across), c = 299,792,458 m/s = 670,616,629 mph, energy
+(gamma - 1) m c^2, with m c^2 = 8.99e10 J = 21.5 tons of TNT: 150,000 mph (the speed of the fastest shooting stars) 2.2 kJ, a rifle
+bullet; 3 million mph 0.9 MJ = 215 g of TNT, a hand grenade; 30 million mph (4%) 90 MJ = 21 kg of TNT; 100 million mph (15%) 1.0 GJ =
+243 kg of TNT, a car bomb; 600 million mph (89%) 111 GJ = 27 tons of TNT. "n nines" means 1 - v/c = 10^-n: 3 nines 460 tons; 6 nines
+15.2 kt = 1.01 Hiroshimas (15 kt); 8 nines 10; 10 nines 100; 13 nines 3,200 (48 Mt, the Tsar Bomba was 50 Mt, the biggest bomb ever
+built); 15 nines 32,000; 17 nines 320,000 (4.8 Gt, more than all nuclear weapons on Earth, about 2-3 Gt); 20 nines 10 million; 24 nines
+1 billion (past the 1991 "Oh-My-God" proton, the fastest thing ever measured, about 23 nines); 26 nines 10 billion (6.4e23 J = 150
+million Mt, in the range given for the dinosaur asteroid, 3e23 to 1.3e24 J).
+What is drawn, not measured: the grain on the finger is about 5x life size (a real one would be 20 px). Real air would burn up the slow grains
+(the first one is a shooting star) and burst the fast ones in the sky, so the landings are the what-if, not what air would allow.
+Up close, from about 0:18 on, the real blasts would reach you, so the fireballs, craters and blast reach are drawn far smaller than
+life (a Hiroshima bomb 200 m away kills you; the crater's real size at the end would be about 180 km). The small craters are drawn deeper than life, or they would not show from the tower. Every number on screen is real.
+Sound: the owner's scream clip, surf, gulls and crowd, a sound on every flash, the blast slam 0.75 s later, a dark drone.
+Cover: `week 6/sand-grain/out/sand-grain_v4_cover.png` (`node render.mjs --cover 28.6`: the fireball swelling over the blacked-out condos, the sand burnt brown, wrecked umbrellas in front; "WHAT IF A GRAIN OF SAND / hit Earth / at the speed of light?")
+
+**YouTube title** (71 characters):
+```
+What if a grain of sand hit Earth at the speed of light? #space #shorts
+```
+
+**YouTube description:**
+```
+One grain of sand weighs 1 milligram.
+
+Speed it up and it stops being small:
+150,000 mph hits like a rifle bullet.
+100 million mph hits like a car bomb.
+99.9999% of light speed hits like 1 Hiroshima bomb.
+Nothing with mass can ever reach 100%, so all it can do is add more 9s.
+With 26 nines, one grain hits like the asteroid that killed the dinosaurs.
+
+Every number is real relativity for a 1 mg grain. Real air would stop most of it high up; this is the what-if.
+
+At which grain would you start running? 👇
+
+#space #physics #science #whatif #shorts
+```
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
