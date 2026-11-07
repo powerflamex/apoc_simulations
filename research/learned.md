@@ -401,6 +401,19 @@ More candidates, same night:
 - The tornado is the fastest start of these, but people leave it sooner (0:30 average, like Moon explodes' 0:31). Where they leave shows
   in its curve, due ~Nov 9. None of the three new Shorts has a curve yet, so none has a 0:30 number.
 
+## Three "couldn't stop" channels (owner's pick, read Nov 7; views from each video's own page)
+The Readout (@readoutwhatif, 3.3K subs, 21 videos since Oct 18), Venuedepth (3.6K subs, 15), Polyverse (@wearepolyverse, 1.5K subs, 15).
+All make 7-10 min no-voice "X and couldn't/never stopped" long videos in low-poly 3D with the same counter style as ours
+(spaced label, big number, a line under it, an italic caption). Their thumbnails all look alike, hits and flops.
+- Hits: It got colder and never stopped 486K (Venuedepth, Oct 20) and 429K (Polyverse, Oct 15); hotter 241K; you got brighter 208K;
+  became radioactive 190K; shrank 175K; louder 172K; gravity stronger 144K. Everything else 0.1-86K; about 1 in 4 videos hits.
+- Temperature is the clearest repeat: colder won on two channels and hotter was third. Good sign for world-freezes.
+- The colder video that came 5 days later beat the first one (486K vs 429K). One case, but "first wins" isn't absolute.
+- Venuedepth's six videos from Oct 24-29 are 9-14 days old and all sit at 2.6-13K, after its Oct 20-23 hits: the format looks
+  past its peak. Don't make "couldn't stop" long videos now.
+- Their Shorts (cut-downs of the long videos) all get 1-7K: nothing to learn for ours. Polyverse's switch to game characters and
+  history clips gets 83-6K, but that's one channel, so no conclusion.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
