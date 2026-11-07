@@ -352,6 +352,22 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
 - Fall-through is the best share watched of the recent Shorts, with no crowd and no countdown: a trip with a new layer every 2.6 s
   and a fixed destination. (The 55 s cut was never posted, so the trim has no before/after.) "You falling" works: the ISS Short can go ahead.
 
+## Nov 6 read (~9 PM ET)
+| Short | Length | Views | Stayed | Avg watched | % viewed | Score |
+|---|---|---|---|---|---|---|
+| metal rod, reworked (Nov 6, 1 PM) | 0:49 | 15.6K at 8 h, 3.7K in the last hour, +8 subs | 73.1% | 0:37 | 75.5% | 55 |
+| space station (Nov 6, 7 AM) | 0:49 | 29K at 14 h ("13% above"), +11 subs | 64.3% | 0:38 | 77.6% | 50 |
+| fall-through (Nov 5, 10 AM) | 0:50 | 55.1K at 35 h ("47% above"), +36 subs | 61.9% | 0:38 | 76% | 47 |
+| Moon explodes (Nov 4) | 0:49 | 83.7K at 59 h ("65% above"), +62 subs | | | | |
+| rogue planet (Nov 3) | 0:49 | 112.7K at 83 h ("69% above"), +91 subs | | | | |
+- The rod's 73.1% stayed is the highest of the recent Shorts, with a real object big on frame 0, at 8 hours. Stayed has moved little as
+  these spread (rogue 65.6 -> 65.1, Moon 64.5 -> 64.3, fall-through 63.1 -> 61.9). The owner called an earlier cut boring, as he called
+  rogue planet samey: neither viewers' verdict matched. The posted cut is the second rework (92eca0f), not the first one checked Nov 5.
+- Fall-through's curve is the flattest so far: 81% at 0:15, 76 at 0:20, 71 at 0:30, 68 at 0:36, 66 at 0:46, 63 at the end (rogue 72, 62, 59
+  at 0:20, 0:46, end). Yet it has fewer views at the same age (55K at 35 h vs Moon 70K and rogue 77K): strong holding did not buy reach.
+  Its 62% stayed is the lowest of the five, so the first-seconds choice (and the topic) looks like the bigger lever on reach.
+- First day with two posts (7 AM, 1 PM). Too early to say whether they cost each other anything: read both on Nov 8.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
