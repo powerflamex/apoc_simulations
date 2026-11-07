@@ -1225,7 +1225,7 @@ One grain of sand weighs 1 milligram.
 
 Speed it up and it stops being small:
 150,000 mph hits like a rifle bullet.
-100 million mph hits like a car bomb.
+100 million mph hits like 540 pounds of TNT.
 99.9999% of light speed hits like 1 Hiroshima bomb.
 Nothing with mass can ever reach 100%, so all it can do is add more 9s.
 With 26 nines, one grain hits like the asteroid that killed the dinosaurs.
