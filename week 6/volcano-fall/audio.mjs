@@ -22,7 +22,10 @@ const SR = 48000;
 const TAU = Math.PI * 2;
 // (the gasp starts just before frame 0, inside the white at the loop, so it is already loud on frame 0)
 // (gasp.mp3 is silent for its first 0.23 s; omg.mp3 is cut at 0.88 s, before the rest of what's said)
-const GASP_AT = -0.5, OMG_AT = 0.18, OMG_LEN = 0.88;
+// The gasp is heard in full from frame 0 (the clip is silent for its first 0.23 s). Then a tourist's "oh my god", and as
+// you go over, another tourist's "nooo" (sounds/nooo.mp3, voice from 0.55 s): it stays up on the rim, so it fades and
+// dulls as you fall away from it, echoing in the crater.
+const GASP_AT = -0.2, OMG_AT = 0.32, OMG_LEN = 0.88, NO_AT = 0.75 - 0.55;
 const TARGET_OPENING_DB = -25;
 
 class OnePole {
@@ -89,7 +92,7 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(5150);
   const white = () => R0() * 2 - 1;
   const DIR = path.dirname(fileURLToPath(import.meta.url));
-  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -13);
+  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -14), NO = loadClip(DIR, 'nooo.mp3', -13);
 
   // per-sample story values on a coarse grid
   const STEP = 240, grid = [];
@@ -121,6 +124,7 @@ export function makeSoundtrack(outFile) {
   const windF = [new SVF(), new SVF()], windLP = [new OnePole(500), new OnePole(500)];
   const surfLP = new OnePole(90), surfLP2 = new OnePole(55), surfF = new SVF();
   const crowdF = [new SVF(), new SVF(), new SVF()], crowdE = new OnePole(3);
+  const noLP = new OnePole(8000);
   const hissF = new SVF(), bubF = new SVF(), bubE = new OnePole(8), sizF = new SVF(), gasF = new SVF();
   const rumLP = new OnePole(60), rumLP2 = new OnePole(40), roarF = new SVF(), roarLP = new OnePole(300);
   const riserF = new SVF();
@@ -200,6 +204,17 @@ export function makeSoundtrack(outFile) {
         const fade = Math.min(1, i / (0.01 * SR));
         const x = C.a[i] * C.g * fade * (1 - smooth(len - 0.06, len, v - t0));
         l += x * (1 - pan) * 0.9; r += x * (1 + pan) * 0.9; wet += x * 0.35;
+      }
+    }
+    // ---- the tourist's "nooo", up on the rim: fainter and duller the further you fall ----
+    if (NO) {
+      const i = Math.round((v - NO_AT) * SR);
+      if (i >= 0 && i < NO.a.length) {
+        const dist = Math.max(0, 400 - st.h) + 2;                       // m between you and the rim
+        const g = 4 / (4 + dist * 0.25);
+        noLP.set(Math.max(900, 9000 / (1 + dist / 15)));
+        const x = noLP.run(NO.a[i] * NO.g) * g * Math.min(1, i / (0.01 * SR)) * (1 - smooth(4.2, 4.6, v - NO_AT));
+        l += x * 0.85; r += x * 1.05; wet += x * (0.4 + 0.25 * clamp(dist / 30)) * 2;
       }
     }
     // ---- a low drone of heat, rising toward the end ----

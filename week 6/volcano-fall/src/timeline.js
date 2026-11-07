@@ -196,7 +196,8 @@ export const SHOTS = [
   [5.65, 13.75, 'pov'],
   [13.75, 16.85, 'wide'],      // you, small, sitting on the huge lake, the wall towering behind you
   [16.85, 19.9, 'crack'],      // low, close to the crust: the crack opening beside you
-  [19.9, 25.85, 'pov'],        // your shoes smoking, then the gas rolling in
+  [19.9, 22.95, 'smoke'],      // low beside you: your shoes smoking on the crust
+  [22.95, 25.85, 'pov'],       // the gas rolling in across the lake
   [25.85, 29.45, 'rim'],       // up on the rim, over the tourists' shoulders: phones pointed down at you
   [29.45, 32.45, 'wake'],      // wide and high: the lake starts to churn
   [32.45, 35.5, 'bubble'],     // low, close: a bubble swells and bursts a few metres from you
@@ -214,7 +215,7 @@ export const LOOK = [
   [V_DOWN - 0.1, 0, -72, 72], [V_DOWN + 0.35, 0, -72, 72], [V_WALL - 0.15, 4, -76, 72],
   [V_WALL + 0.4, 150, -50, 70], [10.6, 155, -56, 70], [11.2, 70, -80, 74], [V_IMPACT, 45, -78, 76],
   [13.5, 32, -62, 76], [13.75, 30, -60, 76],
-  [19.9, 2, -62, 74], [22.8, -3, -60, 74], [V_HAZE + 0.35, -42, -7, 74], [25.85, -38, -5, 74],
+  [22.95, -42, -8, 74], [V_HAZE + 0.35, -42, -7, 74], [25.85, -38, -5, 74],
   [41.45, 0, -74, 74], [43.6, 0, -70, 74],
   [V_BURST + 0.5, 0, 8, 82], [T_SWITCH, 0, 20, 86], [50, 0, 20, 86],
 ];

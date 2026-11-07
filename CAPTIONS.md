@@ -1309,23 +1309,25 @@ At which temperature would you stop moving? 👇
 ## Next Short. What if you fell into a volcano? — `week 6/volcano-fall/out/volcano-fall_v4_1080x1920_60fps_tiktok.mp4`
 
 46.2 s. A new scene: a made-up crater with Nyiragongo's numbers (Congo): a lava lake 300 m wide about 400 m below the rim, at
-dusk. Reworked Nov 7 after the owner's review: the fall made readable, the lava part cut between views, the opening louder.
+dusk. Reworked Nov 7 after the owner's review: the fall made readable, the lava part cut between views, the opening louder; then
+your own legs taken out of your view (cut off at the hips they looked like two sticks), the gasp heard in full, a fading "nooo" added.
 0:00 from your eyes: you on a lip of rock over the drop, tourists with phones on the rock spur beside you, the glowing lake far below,
 the title, the counter already moving (ABOVE THE LAVA 399.9 m, HEAT ON YOU 2.1x THE SUN); the rock under you is sliding. The crowd
-gasps on frame 0, then the owner's "oh my god" (cut before the rest of the clip).
-0:01 you go over and look straight down: the lake in its pit, your trainers. 0:02.5 cut to the rim, between the tourists leaning
+gasps on frame 0 (the whole gasp, from 0:00.03), a tourist's "oh my god" (cut before the rest of the clip), and as you go over another
+tourist's "nooo" (sounds/nooo.mp3): it stays up on the rim, so it fades, dulls and echoes as you fall away from it (gone by ~0:03).
+0:01 you go over and look straight down: the lake glowing in its pit. 0:02.5 cut to the rim, between the tourists leaning
 over the edge (one's arm and phone in the corner, their torches on you): you, in a yellow jacket, arms and legs spread, shrinking
 toward the lava, rocks falling round you ("The drop is taller than the Eiffel Tower."). 0:05.6 your eyes again, straight down: the lake
 filling the view, the rocks ahead splashing in ("6 seconds in, you're falling at 100 mph."). 0:09 you look at the wall: rock streaming
 up past you, the lava below ("You hit the lava at 126 mph."). 0:11 slow motion, the crust rushing in. 0:12 the hit: "YOU DON'T SINK".
 0:13.7 wide: you, small, sitting on the huge lake, the wall towering behind ("Lava is nearly 3 times denser than you. You float on
 top."). 0:16.9 low on the crust: a glowing crack opens beside you ("The black crust is a thin skin. Under it: over 1,000°C."). 0:19.9
-your eyes: your shoes smoking ("Your shoes start to smoke on the crust."), 0:23 sulfur gas rolling in across the lake. 0:25.9 up on
+low beside you: smoke rising off your shoes ("Your shoes start to smoke on the crust."). 0:23 your eyes: sulfur gas rolling in across the lake. 0:25.9 up on
 the rim, from out over the drop: the row of tourists leaning over, phones lit, the wall dropping to the lava ("400 m above you, the
 tourists can only film."). 0:29.5 wide and high: "THE LAKE WAKES UP", a bubble bursts. 0:32.5 low and close: a bubble swells out of
 the lava ten metres from you and bursts ("Gas bubbles burst up through the lava."). 0:35.5 you from in front, lava drops landing
 round you ("Molten lava rains down all around you."). 0:38.5 "THE CRUST SPLITS OPEN" beside you. 0:41.5 your eyes: "IT'S RIGHT UNDER
-YOU", the crust domes up under your feet. 0:43.8 it erupts: a lava column climbs in front of you (slow motion), the surge swallows the
+YOU", the crust under you domes up, glowing cracks running out from it. 0:43.8 it erupts: a lava column climbs in front of you (slow motion), the surge swallows the
 view, white, loop (the white clears onto frame 0, the sound turns back into the rim).
 Numbers (`src/timeline.js`): the fall is real time with air drag (terminal speed 60 m/s, a person in the thin air ~3.4 km up):
 400 m in 10.7 s, 101 mph after 6 s, 126 mph at the lava. Only the last 0.5 s of the fall and the eruption are slowed (SLOW MOTION
@@ -1337,10 +1339,10 @@ Nyiragongo's lake has sat ~400-450 m below the rim in recent years (deeper after
 What is made up: the crater is not a real place; real walls are terraced, these are drawn overhanging (the lava undercuts them)
 so a straight drop lands on the lake. The eruption is the what-if: real lakes surge and fountain, but on no set schedule. No one
 could survive the hit or the heat; the video shows only what you would see, never you burning.
-Sound: wind, the lake's roar, the tourists' uproar, the gasp (from frame 0) and "oh my god" (first second at -25 dB, the loop seam
-matched at -25 dB on both sides), the roar of the fall rising with your
+Sound: wind, the lake's roar, the tourists' uproar, the whole gasp from frame 0, "oh my god", the "nooo" fading as you fall (first
+second at -25 dB; the loop now steps up into the gasp, which is how it starts), the roar of the fall rising with your
 speed, a slowed thud at the hit, hiss and bubbling, booming bubbles, the eruption's roar into the white.
-Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.4`: looking straight down past your dangling trainers at the glowing lava lake in its pit; "WHAT IF YOU / fell / into a volcano?"; tried the new rim shot of you falling at 2.75 s, but the small figure reads worse at phone size)
+Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.2`: looking straight down at the glowing lava lake in its pit, rocks falling with you; "WHAT IF YOU / fell / into a volcano?"; tried the new rim shot of you falling at 2.75 s, but the small figure reads worse at phone size)
 
 **YouTube title** (49 characters):
 ```

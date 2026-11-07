@@ -51,7 +51,7 @@ const spatter = makeSpatter(3000);
 scene.add(spatter.mesh);
 const you = makeYou();
 scene.add(you.root);
-const shoeSmoke = makeSmoke(260, new THREE.Color(0.34, 0.3, 0.28));
+const shoeSmoke = makeSmoke(400, new THREE.Color(0.2, 0.18, 0.17));
 scene.add(shoeSmoke.mesh);
 const gas = makeSmoke(140, new THREE.Color(0.42, 0.37, 0.22));
 scene.add(gas.mesh);
@@ -171,12 +171,13 @@ function setupSmoke() {
   you.root.rotation.set(0, 0, 0);
   you.pose(0, 0, 1);
   you.root.updateMatrixWorld(true);
-  const s0 = you.shoeAt(0, new THREE.Vector3()), s1 = you.shoeAt(1, new THREE.Vector3());
+  // (the feet of the sitting figure: crowd.js legs 0.9 m long, straight out in front of the hips)
+  const s0 = new THREE.Vector3(-0.09, 0.1, zL + 0.15 - 0.85), s1 = new THREE.Vector3(0.09, 0.1, zL + 0.15 - 0.85);
   const T0 = T_OF(V_SMOKE - 0.4), T1 = T_OF(T_SWITCH + 1);
-  for (let T = T0; T < T1; T += 0.055) {
+  for (let T = T0; T < T1; T += 0.035) {
     const s = R() < 0.5 ? s0 : s1;
     const g = smooth(T0, T0 + 2.5, T);
-    shoeSmoke.add(T, s.x + (R() - 0.5) * 0.12, s.y + 0.02, s.z + (R() - 0.5) * 0.2, (R() - 0.5) * 0.12 + 0.05, 0.35 + R() * 0.35, (R() - 0.5) * 0.12, 0.06, 0.22 + R() * 0.15, 2.2 + R() * 1.2, 0.5 * g + 0.15);
+    shoeSmoke.add(T, s.x + (R() - 0.5) * 0.12, s.y + 0.02, s.z + (R() - 0.5) * 0.2, (R() - 0.5) * 0.12 + 0.05, 0.35 + R() * 0.35, (R() - 0.5) * 0.12, 0.08, 0.32 + R() * 0.2, 2.2 + R() * 1.2, 0.85 * g + 0.15);
   }
   const G0 = T_OF(V_HAZE - 1.2);
   // from across the lake on your right (where you look at V_HAZE), drifting low over the crust toward you
@@ -272,7 +273,7 @@ function update(v, cover = -1) {
   you.pose(v, fall, sit);
   const shot = shotAt(v);
   const pov = shot[2] === 'pov';
-  you.root.visible = pov;
+  you.root.visible = false;   // (your own legs, cut off at the hips, looked like two sticks: your view shows no body)
   // the figure of you, sitting on the crust (crowd.js: sit lowers the hips 0.42 m)
   {
     const crustY = you.root.position.y - 0.14;
@@ -475,6 +476,7 @@ function shotCam(kind, k) {
   switch (kind) {
     // (aimed at you as you fall, a long lens: you shrink toward the lava, a tourist's arm and phone in the corner)
     case 'drop': { const T = storyT(curV); return [[0.9, 403.2, 121.3], [0, heightAt(T) + 0.6, YOU_R - driftAt(T)], 30 - 4 * k, -0.1]; }   // (tilted so you sit in the top third, clear of the counter)
+    case 'smoke': return [[1.9 - 0.25 * k, 0.85, Z - 2.7 + 0.25 * k], [0, 0.4, Z - 0.45], 50, 0.2];   // (tilted up: you sit low in the frame, under the caption)   // low beside you: smoke off your shoes
     case 'wide': return [[9.5 - 2 * k, 2.2 + 0.3 * k, Z - 16 + 2.5 * k], [0, 5.5, Z + 6], 58];
     case 'crack': return [[-3.0 + 0.3 * k, 0.55, Z - 0.2 - 0.2 * k], [-1.0, 0.0, Z - 1.5], 50];   // (across the crack, you just out of frame)
     case 'rim': return [[3.3, 403.0 - 0.2 * k, 117.0], [3.3, 403.0 - 0.85, 117.0 + 0.53], 92];   // (out over the drop like a drone, looking back at them; the lava straight below)
