@@ -414,6 +414,19 @@ All make 7-10 min no-voice "X and couldn't/never stopped" long videos in low-pol
 - Their Shorts (cut-downs of the long videos) all get 1-7K: nothing to learn for ours. Polyverse's switch to game characters and
   history clips gets 83-6K, but that's one channel, so no conclusion.
 
+## Topic check, Nov 7 afternoon (YouTube search; views and dates from each video's own page)
+Shorts:
+- **The Sun turns into a black hole: picked.** AstroSpacely 14M (Feb 2026), Caesar 6.9M, AstroKobi 5.4M: three channels. Our
+  sun-vanishes (448K, 75% at 0:30) and black hole (3.7M) are the same family.
+- **Dinosaurs come back: picked** (725K, 723K, 131K from three channels, Nov 6 check): a new kind of danger for us.
+- Others: stood on the Sun 4.9M (one video, copies 1-3K), Earth closer to the Sun 304K, megatsunami on your city 123K (our tsunami
+  flopped), solar storm (Kurzgesagt 2.4M, copies 1K), hotter every second 46K, inside a tornado (an 11 s AI clip). Black hole
+  passes or swallows Earth: 4-24M, but we already made both.
+Long videos (this month):
+- Oceans disappear: map videos 42.6K (Nov 6) and 8.5K (Nov 7). Earth stops spinning: a kids' explainer 134K. World froze: 13K.
+  Sun went out: under 1.3K. Asteroid survival: taken (Apophis 5.5M). Black hole appears on Earth: nothing this month.
+- No long topic is clearly hot and open. Decide after nuke-hour's first 3 days show whether "survive the first hour" works.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
