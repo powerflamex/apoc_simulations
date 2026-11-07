@@ -1,8 +1,8 @@
 // Procedural soundtrack for "What if you fell into a volcano?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
 // No music: what you would hear. On the rim: wind, the lava lake's deep surf-like roar far below, the tourists talking,
-// the rock under you cracking and gravel trickling off; a gasp and the owner's "oh my god" (sounds/gasp.mp3,
-// sounds/omg.mp3, local only) as you tip over. The fall: the wind rising with your real speed, the lake's roar
+// the rock under you cracking and gravel trickling off; the owner's "oh my god" (sounds/omg.mp3, local
+// only) as you tip over and a tourist's fading "nooo". The fall: the wind rising with your real speed, the lake's roar
 // growing as you near it, a low drone of heat. The hit: a deep thud and a crunch (slowed, like the picture), then the
 // crust: a close hiss and bubbling, a groan as the crack opens, your shoes sizzling, the gas blowing through, the
 // tourists faint and far above. Then the lake wakes: a rising rumble, booming bubble bursts, lava spattering round you,
@@ -20,12 +20,10 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-// (the gasp starts just before frame 0, inside the white at the loop, so it is already loud on frame 0)
-// (gasp.mp3 is silent for its first 0.23 s; omg.mp3 is cut at 0.88 s, before the rest of what's said)
-// The gasp is heard in full from frame 0 (the clip is silent for its first 0.23 s). Then a tourist's "oh my god", and as
-// you go over, another tourist's "nooo" (sounds/nooo.mp3, voice from 0.55 s): it stays up on the rim, so it fades and
+// No gasp (owner, Nov 7). A tourist's "oh my god" from frame 0 (omg.mp3, cut at 0.88 s, before the rest of what's said), and
+// as you go over, another tourist's "nooo" (sounds/nooo.mp3, voice from 0.55 s): it stays up on the rim, so it fades and
 // dulls as you fall away from it, echoing in the crater.
-const GASP_AT = -0.2, OMG_AT = 0.32, OMG_LEN = 0.88, NO_AT = 0.75 - 0.55;
+const OMG_AT = 0.02, OMG_LEN = 0.88, NO_AT = 0.75 - 0.55;
 const TARGET_OPENING_DB = -25;
 
 class OnePole {
@@ -92,7 +90,7 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(5150);
   const white = () => R0() * 2 - 1;
   const DIR = path.dirname(fileURLToPath(import.meta.url));
-  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -14), NO = loadClip(DIR, 'nooo.mp3', -13);
+  const OMG = loadClip(DIR, 'omg.mp3', -13), NO = loadClip(DIR, 'nooo.mp3', -13);
 
   // per-sample story values on a coarse grid
   const STEP = 240, grid = [];
@@ -196,8 +194,8 @@ export function makeSoundtrack(outFile) {
         l += x * 0.9 * (1 - far); r += x * (1 - far); wet += x * (1 + 4 * far);
       }
     }
-    // ---- the voices: a gasp, then "oh my god" ----
-    for (const [C, t0, pan, len] of [[GASP, GASP_AT, -0.15, 9], [OMG, OMG_AT, 0.2, OMG_LEN]]) {
+    // ---- the voice: a tourist's "oh my god" ----
+    for (const [C, t0, pan, len] of [[OMG, OMG_AT, 0.2, OMG_LEN]]) {
       if (!C) continue;
       const i = Math.round((v - t0) * SR);
       if (i >= 0 && i < C.a.length && v - t0 < len) {
