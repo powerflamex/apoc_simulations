@@ -47,3 +47,9 @@ last 2-3 weeks, each with many copies. The first video on a topic wins 10-100x (
   real time from 13 miles, the 45 seconds before the blast and the first hour, linked to the nuke Short.
 - Earth falls into the Sun: still open but little demand (best this month 4.6K, The Cosmic Witness, Nov 3).
 - Our long videos so far (Nov 7): 7 ways 43.5K, black hole 6.1K, IQ 4.1K, 6 more ways 3.5K, Big Rip 3.5K, heat death 1.4K, Big Crunch 1.2K.
+
+## Re-check 2026-11-07 afternoon (upload date: this month)
+- **The Sun turns into a black hole: OPEN** (best long video this month 826 views), while Shorts on it got 14M, 6.9M and 5.4M. Picked.
+- Dinosaurs come back: open (54 views), but no long-video demand shown yet. Mega tsunami: 2.9K at best.
+- Taken: Yellowstone (Mapocalypse 143K, LifeSplice 345K), a black hole in the solar system (Ridddle 2.2M, 156K, 39K).
+- The Moon disappears: under 200 views. Gravity: What If 314K (stronger every second).
