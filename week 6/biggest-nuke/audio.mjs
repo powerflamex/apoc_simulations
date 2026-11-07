@@ -69,13 +69,14 @@ class Reverb {
 const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt / dec));
 
-// a clip from sounds/, mono, scaled to a given RMS over its loud part (so the voices sit where they should)
-function loadClip(dir, file, rmsDb) {
+// a clip from sounds/, mono, scaled to a given RMS over its loud part (so the voices sit where they should); `end` cuts it
+// (in seconds; the last 50 ms fade out where it is played)
+function loadClip(dir, file, rmsDb, end = Infinity) {
   const f = path.join(dir, 'sounds', file);
   if (!fs.existsSync(f)) { console.warn(`audio: no sounds/${file}: left out`); return null; }
   const r = spawnSync('ffmpeg', ['-v', 'error', '-i', f, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
   if (r.status !== 0) return null;
-  const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
+  const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4).slice(0, Math.min(raw.length / 4, Math.round(end * SR)));
   let s = 0, n = 0;
   for (const x of a) if (Math.abs(x) > 0.02) { s += x * x; n++; }
   const g = Math.pow(10, rmsDb / 20) / Math.sqrt(s / Math.max(n, 1) + 1e-12);
@@ -92,7 +93,9 @@ export function makeSoundtrack(outFile) {
   const white = () => R0() * 2 - 1;
   const DIR = path.dirname(fileURLToPath(import.meta.url));
   // (levels here are relative to the street; the master gain at the end sets the absolute level)
-  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -13);
+  // (the omg clip goes on "...who the hell cares": only "oh my god" is used, cut at 0.88 s in the gap after "god";
+  // checked by transcribing the cut on its own)
+  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -13, 0.88);
 
   // ---- people: cries at the start and when everyone runs, then nothing ----
   const cries = [];

@@ -1155,7 +1155,7 @@ different sizes and timing, ragged tongues licking up, yellow-white at the base 
 off the top, their light flickering on the street, cars and people; embers rise off them and blow toward the city.
 Sound (no music; the bomb is silent until the blast, because its sound travels with it): an ordinary evening street (traffic,
 people talking), a car alarm and a dog barking down the hill, the owner's gasp at 0:00.2 and "oh my god" at 0:01 (sounds/gasp.mp3,
-sounds/omg.mp3, local only); tyres and two crashes; at the blackout six transformers pop and buzz one after another down the
+sounds/omg.mp3 cut to its first 0.88 s so it is only "oh my god"; local only); tyres and two crashes; at the blackout six transformers pop and buzz one after another down the
 street, each nearer, and the city's hum cuts out; the middle is nearly silent: the fire's crackle and roar, car alarms and sirens
 far off, the crowd running for a few seconds, the helicopter faint and its crash muffled; the roar arrives all at once with the
 hit at 0:46.6. Levels (ffmpeg volumedetect, upload copy): first second -24.1 dB, last second -25.2 dB, middle (0:14-0:40)
