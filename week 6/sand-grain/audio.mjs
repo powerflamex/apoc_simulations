@@ -1,22 +1,18 @@
 // Procedural soundtrack for "What if a grain of sand hit Earth at the speed of light?", synced to src/timeline.js (video
 // clock).   node audio.mjs  -> out/soundtrack.wav
-// A crowded beach (surf, gulls, the crowd talking), then: the owner's scream in the first second; a rising whistle as each slow
+// A crowded beach (surf, gulls, the crowd talking), then: a rising whistle as each slow
 // grain comes down; every hit its own sound, on the flash, from a soft tick to the deepest boom, each bigger than the last; from
 // hit 6 the blast's slam on the tower 0.75 s later; cries as the crowd runs; a dark minor drone under it all, a pulse that
 // quickens; the glass going at 0:28; the rumble of the ground from 0:38; the roar into the white, which turns back into the
 // beach at the start (the loop). Every onset is soft (8 ms+): no clicks.
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, LOOP, T_SWITCH, HITS, V_LAST, V_REACH, V_ROLL, SHOCK } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-// the scream right at the start: the owner's clip (sounds/scream.mp3, or his "Noooo"); both stay out of git
-const SCREAM_AT = 0.12;
-const SCREAM_FILES = [['scream.mp3', 0.0], ['nooo.mp3', 0.55]];
 const DT_SLAM = 200 / SHOCK;
 
 class OnePole {
@@ -63,21 +59,6 @@ class Reverb {
 const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt / dec));
 
-function loadClip(dir) {
-  for (const [f, skip] of SCREAM_FILES) {
-    const file = path.join(dir, 'sounds', f);
-    if (!fs.existsSync(file)) continue;
-    const r = spawnSync('ffmpeg', ['-v', 'error', '-ss', String(skip), '-i', file, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
-    if (r.status !== 0) continue;
-    const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
-    let pk = 0; for (const x of a) pk = Math.max(pk, Math.abs(x));
-    console.log(`audio: scream from sounds/${f}`);
-    return { a, g: 0.34 / Math.max(pk, 1e-6) };
-  }
-  console.warn('audio: no sounds/scream.mp3 or sounds/nooo.mp3: the scream is left out');
-  return null;
-}
-
 export function makeSoundtrack(outFile) {
   const N = Math.round(VIDEO_DURATION * SR);
   const N0 = Math.round(LOOP * SR);
@@ -85,7 +66,6 @@ export function makeSoundtrack(outFile) {
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(7171);
   const white = () => R0() * 2 - 1;
-  const SC = loadClip(path.dirname(fileURLToPath(import.meta.url)));
 
   // ---- each hit: how hard it lands (0..1.5), how low. The last ones are mostly sub; the first is a tick of sand ----
   const HS = HITS.map((h) => ({ ...h, g: Math.pow(h.k / 15, 1.15) * 1.45 + 0.02, root: 62 - h.k * 2.3, fl: new SVF(), fl2: new SVF() }));
@@ -141,15 +121,6 @@ export function makeSoundtrack(outFile) {
           const gv = Math.sin(TAU * g.ph + 2 * Math.sin(TAU * g.ph * 2.01)) * e * e * 0.012;
           l += gv * (1 - g.pan) * 0.5; r += gv * (1 + g.pan) * 0.5; wet += gv * 1.5;
         }
-      }
-    }
-    // --- the scream (the owner's clip) ---
-    if (SC) {
-      const i = Math.round((v - SCREAM_AT) * SR);
-      if (i >= 0 && i < SC.a.length) {
-        const fade = Math.min(1, i / (0.01 * SR), (SC.a.length - i) / (0.05 * SR));
-        const s = SC.a[i] * SC.g * fade;
-        l += s * 0.9; r += s * 1.0; wet += s * 0.25;
       }
     }
     // --- a slow grain coming down: a thin rising tear of air, cut off by the hit ---
