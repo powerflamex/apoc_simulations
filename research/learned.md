@@ -390,6 +390,17 @@ More candidates, same night:
 - Skipped, all under 20K: everyone jumps at once, touch the Sun, plane door, megalodon, Moon closer every day, ground turns to lava, internet
   ends, human-size ants, falling elevator.
 
+## Nov 7 read (~10:50 AM ET)
+| Short | Posted (ET) | Views | Stayed | Avg watched | % viewed |
+|---|---|---|---|---|---|
+| tornado, reworked | Nov 7, 7 AM | 13K at ~4 h, 2.4K in the last hour ("59% above") | 65.6% | 0:30 of 0:48 | 63% |
+| metal rod | Nov 6, 1 PM | 32.6K at ~22 h | 72.3% | 0:36 of 0:49 | 73% |
+| space station | Nov 6, 7 AM | 46.9K at 24 h, 50.4K at ~28 h ("48% above") | 62.7% | 0:37 of 0:49 | 76% |
+| fall-through | Nov 5 | 59.7K | 61.9% | 0:38 | 76%; 71% at 0:30 |
+- The rod has the best stayed of any recent Short and the fewest views at the same age: one more sign that stayed doesn't drive reach.
+- The tornado is the fastest start of these, but people leave it sooner (0:30 average, like Moon explodes' 0:31). Where they leave shows
+  in its curve, due ~Nov 9. None of the three new Shorts has a curve yet, so none has a 0:30 number.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
