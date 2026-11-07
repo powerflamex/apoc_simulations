@@ -1306,6 +1306,56 @@ At which temperature would you stop moving? 👇
 #science #physics #whatif #shorts
 ```
 
+## Next Short. What if you fell into a volcano? — `week 6/volcano-fall/out/volcano-fall_v4_1080x1920_60fps_tiktok.mp4`
+
+46.2 s. A new scene, all from your eyes: a made-up crater with Nyiragongo's numbers (Congo): a lava lake 300 m wide about
+400 m below the rim, at dusk. Frame 0: you on a lip of rock over the drop, tourists with phones on the rock spur beside you, the
+glowing lake far below, the title, and the counter already moving (ABOVE THE LAVA 399.9 m, HEAT ON YOU 2.1x THE SUN); the rock under
+you is already sliding. A gasp and the owner's "oh my god" as you tip over (sounds/gasp.mp3, omg.mp3).
+0:01 you go over and look straight down: the lake in its pit, your trainers, rocks falling ahead of you. 0:04 you look up: the
+spur's underside, the tourists' phone lights, rocks falling above you against the sky ("The drop is taller than the Eiffel Tower.").
+0:06 down again, the lake bigger, the rocks ahead splashing into it ("6 seconds in, you're falling at 100 mph."). 0:09 the wall
+streams past ("You hit the lava at 126 mph."). 0:11 slow motion, the crust rushing in. 0:12 the hit: "YOU DON'T SINK".
+0:14 the lake from on top of it, the counter now ON THE LAVA in seconds ("Lava is nearly 3 times denser than you. You float on top.").
+0:17 a crack opens beside you ("The black crust is a thin skin. Under it: over 1,000°C."). 0:20 your shoes smoke. 0:23 sulfur gas
+rolls in. 0:26 you look up: the sky a small circle 400 m above, the phone lights on the rim ("400 m above you, the tourists can only
+film."). 0:29.5 "THE LAKE WAKES UP": the crust speeds up, gas bubbles burst, nearer each time. 0:36 lava rains round you. 0:38.6
+"THE CRUST SPLITS OPEN". 0:41.6 "IT'S RIGHT UNDER YOU": the crust domes up under you. 0:43.8 it erupts: a lava column climbs in
+front of you (slow motion), the surge swallows the view, white, loop (the white clears onto frame 0, the sound turns back into the rim).
+Numbers (`src/timeline.js`): the fall is real time with air drag (terminal speed 60 m/s, a person in the thin air ~3.4 km up):
+400 m in 10.7 s, 101 mph after 6 s, 126 mph at the lava. Only the last 0.5 s of the fall and the eruption are slowed (SLOW MOTION
+on the counter; REAL TIME before that). Lava ~2,700 kg/m3 vs ~1,000 for a person (nearly 3x), so you land on top. Heat on you =
+radiant heat in units of noon sunlight (1,000 W/m2): the crust gives ~20 kW/m2 (Nyiragongo: ~1 GW from a ~50,000 m2 lake; crust
+460-570°C), molten lava at its 907°C surface ~110 kW/m2; during the fall it is 20 kW/m2 times the exact view factor of the lake disc
+from where you are (2.1x on the rim, 20x on the lava), then it rises as more molten lava opens round you (110x at the eruption).
+Nyiragongo's lake has sat ~400-450 m below the rim in recent years (deeper after 2002); 300 m wide is on the big side for it.
+What is made up: the crater is not a real place; real walls are terraced, these are drawn overhanging (the lava undercuts them)
+so a straight drop lands on the lake. The eruption is the what-if: real lakes surge and fountain, but on no set schedule. No one
+could survive the hit or the heat; the video shows only what you would see, never you burning.
+Sound: wind, the lake's roar, the tourists, the gasp and "oh my god" (opening second at -26 dB), the roar of the fall rising with your
+speed, a slowed thud at the hit, hiss and bubbling, booming bubbles, the eruption's roar into the white.
+Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.6`: looking straight down past your dangling trainers at the glowing lava lake in its pit, a rock falling beside you; "WHAT IF YOU / fell / into a volcano?")
+
+**YouTube title** (49 characters):
+```
+What if you fell into a volcano? #science #shorts
+```
+
+**YouTube description:**
+```
+The lava lake is 400 m below you. That's taller than the Eiffel Tower.
+
+You fall for 10.7 seconds and hit the lava at 126 mph.
+And you don't sink: lava is nearly 3 times denser than you, so you land on top of it.
+The black crust is a thin skin over lava hotter than 1,000°C, and the heat on you is 20 times the Sun's.
+
+Every number is real (a volcano like Nyiragongo in Congo). The eruption at the end is the what-if.
+
+How long do you think you'd last down there? 👇
+
+#volcano #lava #science #whatif #shorts
+```
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

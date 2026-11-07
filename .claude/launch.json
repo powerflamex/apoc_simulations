@@ -164,6 +164,17 @@
       }
     },
     {
+      "name": "volcano-fall",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 6/volcano-fall/server.mjs"
+      ],
+      "port": 5211,
+      "env": {
+        "PORT": "5211"
+      }
+    },
+    {
       "name": "world-freezes",
       "runtimeExecutable": "node",
       "runtimeArgs": [
