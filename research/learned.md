@@ -368,6 +368,9 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
   Its 62% stayed is the lowest of the five, so the first-seconds choice (and the topic) looks like the bigger lever on reach.
 - First day with two posts (7 AM, 1 PM). Too early to say whether they cost each other anything: read both on Nov 8.
 
+## Every Short ranked (Nov 6)
+Full table and method: `research/shorts_ranking_2026-11-06.md`. Stayed has no link with views (0.00); % still watching at 0:30 does (0.63).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
