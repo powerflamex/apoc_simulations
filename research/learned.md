@@ -371,6 +371,15 @@ Shorts feed, not subscribers); bell notifications reach 1.9% of subs. Two-a-day 
 ## Every Short ranked (Nov 6)
 Full table and method: `research/shorts_ranking_2026-11-06.md`. Stayed has no link with views (0.00); % still watching at 0:30 does (0.63).
 
+## Short topic check, Nov 6 (YouTube search; views and dates read from each video's own page)
+- **Biggest dam breaks: picked.** Wascemal (Three Gorges) 10.5M (May 2026); every other Short under 11K.
+- **Grain of sand at light speed: picked.** Space Sims 9.27M (Jun 2025); recent copies 1-2K. A real object you can hold.
+- **Biggest nuke on your city: backup, owner's call.** Zack D. Films 16.4M (Feb 2025); recent copies under 16K.
+- Asteroid headed for your house: Molli Kroni 51K in about 2 days (Nov 5). Worth a look later, but too close to the rod now.
+- Skipped: oceans disappear (317K, but a flood of new 1K copies Nov 5-6), magnetic field gone (301K, abstract), fall from space (212K, close to
+  iss-jump), Mariana Trench (7K, ends underwater), fall into the Sun (1K), volcano in your city (2K), giant hail (2K), bowling ball from
+  space (1K), lightning (7K), coin-size black hole (7K), giant magnet (12K).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
