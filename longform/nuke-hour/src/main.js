@@ -417,13 +417,14 @@ function updateWorld(v, s) {
   for (const m of events.meshes) m.visible = showShort;
   city.leaves.visible = city.canopies.visible = showShort;
   city.trunks.visible = showShort;
+  // (the cars first: the street's fires sit on where they are this frame)
+  traffic.frame(sv, ws, glows);
   if (showShort) {
     people.frame(sv, ws, glows);
     city.glows(glows, sv, ws);
     events.frame(sv, ws, glows);
     after.hide();
   }
-  traffic.frame(sv, ws, glows);
   blast.frame(sv, afterK ? NO_FRONT : ws, glows);
   if (afterK) after.frame(t, v, s, camera.position, glows, flames, smoke);
   lobby.frame(t, { ...ws, front, roomFire: s.roomFire }, v, glows, smoke, s.you);

@@ -195,7 +195,7 @@ export function makeLobby(scene, ctx) {
 
   // ---- people in the doorway with you (they ran in at the flash), and you, for the shots that show you ----
   const NB = [
-    { x: -23.2, z: 4.6, yaw: -2.4, crouch: 1, s: 1 }, { x: -24.8, z: 4.9, yaw: -2.0, crouch: 1, s: 0.95 },
+    { x: -23.2, z: 4.7, yaw: 0.4, crouch: 1, s: 1 }, { x: -24.8, z: 4.8, yaw: -0.2, crouch: 1, s: 0.95 },
     { x: -25.9, z: 11.0, yaw: 2.6, crouch: 0.9, s: 1.02 }, { x: -23.7, z: 11.3, yaw: 3.0, crouch: 1, s: 0.97 },
     { x: -24.6, z: 11.6, yaw: 2.8, crouch: 0.8, s: 0.62 },
     { x: -22.3, z: 5.0, yaw: 2.5, crouch: 0, s: 1, you: true },
@@ -203,6 +203,15 @@ export function makeLobby(scene, ctx) {
   const nbCrowd = makeCrowd(g, NB.length, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }));
   const NBC = [[0x2a3a5a, 0x1a1a1a], [0xd8d0c0, 0x2c3340], [0x7a2a2a, 0x23252b], [0x3a4a3a, 0x4a4238], [0xf0c060, 0x2c3340], [0x24384a, 0x15161a]];
   NB.forEach((o, i) => nbCrowd.color(i, NBC[i][0], NBC[i][1], SKIN[(i * 3) % SKIN.length], HAIR[(i * 5) % HAIR.length]));
+
+  // ---- people sprinting past your doorway along the curb (between the sidewalk's crowd and the stopped cars), two
+  //      lanes, one pace per lane, spaced so nobody runs through anybody ----
+  const RUNNERS = [];
+  for (let k = 0; k < 6; k++) RUNNERS.push({ x: -14.85, z0: -16 - k * 3.2, sp: 6.0, ph: k * 1.3, s: 0.93 + ((k * 0.37) % 1) * 0.14 });
+  for (let k = 0; k < 5; k++) RUNNERS.push({ x: -15.55, z0: -18 - k * 3.4, sp: 5.3, ph: k * 0.9 + 0.5, s: 0.93 + ((k * 0.61) % 1) * 0.14 });
+  const runCrowd = makeCrowd(g, RUNNERS.length, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }));
+  const RC = [[0xe8e2d6, 0x23252b], [0x7a2a2a, 0x15161a], [0x24384a, 0x4a4238], [0xf0c060, 0x1a1a1a], [0x3a4a6a, 0x2c3340], [0xd05030, 0x23252b], [0x2f3d2c, 0x8a7a66], [0xc8d4e8, 0x15161a], [0x8a5a8a, 0x3a3a40], [0x1d2230, 0x4a4238], [0xb8b0a0, 0x23252b]];
+  RUNNERS.forEach((r, i) => runCrowd.color(i, RC[i][0], RC[i][1], SKIN[(i * 2) % SKIN.length], HAIR[(i * 3) % HAIR.length]));
 
   // ---- the stairwell door, the EXIT signs, the emergency light ----
   const door = new THREE.Group();
@@ -241,11 +250,20 @@ export function makeLobby(scene, ctx) {
         NB.forEach((o, i) => {
           const vis = here && (!o.you || showYou);
           const c = o.crouch, br = wobble(v * 0.6, i) * 0.04;
-          nbCrowd.pose(i, { x: o.x, y: -0.4 * c, z: o.z, yaw: o.yaw, s: o.s, sit: c * 0.85, pitch: 0.35 * c + br, armL: o.you ? 0.2 : 0.75 * c + 0.2, armR: o.you ? 1.35 : 0.75 * c + 0.2, look: o.you ? 0.25 : -0.5 * c, visible: vis });
+          // (sitting on the ground against the wall, legs flat out in front, arms round their knees, heads down)
+          nbCrowd.pose(i, { x: o.x, y: -(0.9 * o.s - 0.455 - 0.07) * c, z: o.z, yaw: o.yaw, s: o.s, sit: 1.083 * c, pitch: br * c, armL: o.you ? 0.2 : 0.78 * c, armR: o.you ? 1.35 : 0.78 * c, look: o.you ? 0.25 : -0.7 * c, visible: vis });
         });
         nbCrowd.commit();
       }
       nameMat.color.setScalar(0.15 + 1.45 * (1 - s.dark));
+      // the runners: off from 13.9 s (when the crowd breaks), past your doorway, gone south
+      RUNNERS.forEach((r, i) => {
+        const a = t - 13.9 - 0.15 * i;
+        const on = t > 12 && t < 32;
+        const d = a > 0 ? r.sp * (a - 0.3 * (1 - Math.exp(-a / 0.3))) : 0;
+        runCrowd.pose(i, { x: r.x + Math.sin(a * 2 + r.ph) * 0.08, y: 0, z: r.z0 + d, yaw: 0, s: r.s, walk: d * 2.4 + r.ph, stride: a > 0 ? 1.5 : 0, armL: 0.3, armR: a > 0 && i % 3 === 0 ? 1.4 : 0.3, look: 0.1, visible: on });
+      });
+      runCrowd.commit();
       const after = t > T_HIT + 0.35;
       const tAfter = t > 200;
       // the ceiling lights: on, then out with the blackout

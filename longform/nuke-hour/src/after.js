@@ -388,7 +388,7 @@ export function makeAfter(scene, ctx) {
           // (the gas main: everyone near it throws themselves down)
           const dg = Math.hypot(x - GAS.x, z - GAS.z);
           const down = v > GAS.t + 0.1 && dg < 40 ? smooth(GAS.t + 0.1, GAS.t + 0.7, v) : 0;
-          if (down > 0) { z -= f.sp * Math.max(0, v - GAS.t - 0.1); walk = (f.sp * (GAS.t - 140)) * 2.6 + f.ph; stride = 1 - down; sit = down; armL = armR = lerp(armL, 0.75, down); look = -0.5 * down; pitch = 0.35 * down; y = -0.42 * down; }
+          if (down > 0) { z -= f.sp * Math.max(0, v - GAS.t - 0.1); walk = (f.sp * (GAS.t - 140)) * 2.6 + f.ph; stride = 1 - down; sit = 1.083 * down; armL = armR = lerp(armL, 0.78, down); look = -0.7 * down; pitch = 0; y = -(0.9 * f.s - 0.455 - 0.07) * down; }
         }
         yaw += wobble(v * 0.3, f.ph) * 0.12;
         // (crowd.js people face +z at yaw 0)

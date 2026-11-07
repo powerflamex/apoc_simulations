@@ -269,8 +269,9 @@ export function makePeople(scene) {
         let crouch = 0;
         if (!moving && v > p.tCrouch) crouch = smooth(p.tCrouch, p.tCrouch + 0.7, v);
         if (crouch > 0) {
-          sit = crouch; y = -0.42 * crouch; pitch += 0.4 * crouch;
-          armL = lerp(armL, 0.7, crouch); armR = lerp(armR, 0.7, crouch); look = lerp(look, -0.5, crouch);
+          // (down on the ground: sitting, legs flat out in front, arms round the knees, head down; no lean, which would push the legs underground)
+          sit = 1.083 * crouch; y = -(0.9 * p.s - 0.455 - 0.07) * crouch; pitch *= 1 - crouch;
+          armL = lerp(armL, 0.78, crouch); armR = lerp(armR, 0.78, crouch); look = lerp(look, -0.7, crouch);
         }
         y += groundY(z);
         crowd.pose(p.i, { x, y, z, yaw, s: p.s, walk, stride, sit, pitch, roll, armL, armR, look });

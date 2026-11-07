@@ -102,6 +102,9 @@ export function makeEvents(scene, ctx, smoke, flames) {
   // cars, one after another
   const burning = CARS.filter((c) => c.z < -8 && c.z > -150).sort(() => R() - 0.5).slice(0, 12);
   burning.forEach((c, i) => { c.fire = V_FIRE + 0.6 + i * 0.5 + R() * 0.4; });
+  // (the car by the curb outside your doorway goes up in front of you, with a flash, as the heat builds)
+  // (picked where the cars have stopped, which is the same at every moment after the first few seconds)
+  let curb = null;
 
   // ---- embers on the wind ----
   // (rising off the fires on both sides and blowing away from you, toward the city)
@@ -187,9 +190,14 @@ export function makeEvents(scene, ctx, smoke, flames) {
         const k = smooth(0, 1.1, a);
         flames.add(f.x, f.y, f.z, f.size * (0.55 + 0.45 * k), k, f.seed, f.wide, f.tall);
       }
+      if (!curb && v > 8) {
+        curb = CARS.reduce((b, c) => (c.px !== undefined && (!b || Math.hypot(c.px + 14, c.pz - 4) < Math.hypot(b.px + 14, b.pz - 4)) ? c : b), null);
+        if (curb) { curb.fire = V_HEAT + 1.2; curb.flashIgn = true; }
+      }
       for (const c of CARS) {
         if (!c.fire || v < c.fire || c.px === undefined) continue;
         const k = smooth(c.fire, c.fire + 1, v);
+        if (c.flashIgn && v - c.fire < 0.4) { const f = 1 - (v - c.fire) / 0.4; glows.add(c.px, c.py + 1.1, c.pz, 7, 5 * f, 3 * f, 1 * f); }
         flames.add(c.px, c.py + 0.6, c.pz, 3.4 + (c.ph % 1.5), k, c.ph, 1.3, 0.9 + 0.3 * (c.ph % 1));
       }
       // embers blown past you

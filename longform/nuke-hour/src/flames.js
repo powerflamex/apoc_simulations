@@ -47,8 +47,9 @@ export function makeFlames(scene, max = 700) {
         float lick3 = n3(vec3(x * 19.0, y * 16.0 - t * 9.0, seed * 4.0));
         float edge = top - y + (lick - 0.5) * 0.55 * (0.25 + y) + (lick2 - 0.5) * 0.16 + (lick3 - 0.5) * 0.07;
         // (a ragged foot too: no straight line along the bottom)
-        // (a crisp edge: flames read as flames, not a glow)
-        float f = smoothstep(0.0, 0.06, edge) * smoothstep(0.0, 0.12, y - 0.16 * fbm(vec3(x * 4.0, t * 0.7, seed * 9.0)) + 0.04);
+        // (a crisp edge: flames read as flames, not a glow; and a ragged, moving foot, never a straight line)
+        float foot = y - 0.32 * fbm(vec3(x * 3.2 + seed, t * 0.8, seed * 9.0)) + 0.1 - 0.12 * x * x;
+        float f = smoothstep(0.0, 0.06, edge) * smoothstep(0.0, 0.22, foot);
         // (blobs that break off the tips and fade on the way up)
         float blob = smoothstep(0.62, 0.8, lick) * smoothstep(top + 0.35, top, y) * step(top, y) * side;
         f = max(f, blob * 0.7);
@@ -67,8 +68,8 @@ export function makeFlames(scene, max = 700) {
         float sn = fbm(vec3(x * 1.4 / spread + seed * 4.0, y * 1.3 - t * 0.5, seed * 2.0));
         float sm = smoothstep(0.0, 0.35, sy) * (1.0 - smoothstep(0.7, 1.15, y * 0.5 + sy * 0.25))
                  * clamp(1.0 - (x * x) / (spread * spread), 0.0, 1.0) * smoothstep(0.3, 0.6, sn) * 1.1;
-        // nothing reaches the card's edges
-        float win = smoothstep(1.5, 1.05, abs(x0)) * smoothstep(2.0, 1.6, y);
+        // nothing reaches the card's edges: the fire thins out well inside them (a round window, no straight sides or top)
+        float win = 1.0 - smoothstep(0.55, 1.25, length(vec2(x0 / 1.35, (y - 0.7) / 1.25)));
         float k = min(vK.x, 1.0);
         float a = f * k * win;
         float sa = sm * k * win * (1.0 - a);
