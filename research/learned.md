@@ -380,6 +380,16 @@ Full table and method: `research/shorts_ranking_2026-11-06.md`. Stayed has no li
   iss-jump), Mariana Trench (7K, ends underwater), fall into the Sun (1K), volcano in your city (2K), giant hail (2K), bowling ball from
   space (1K), lightning (7K), coin-size black hole (7K), giant magnet (12K).
 
+Owner's call Nov 6: the dam feels like a random object, so it is off the list. Order: grain of sand, nuke (owner is OK with it).
+More candidates, same night:
+- **Fall into a volcano: best of the batch.** Zack D. Films 33.6M (Nov 2024), 3deez 16.8M (Apr 2026), recent copies 23K. Two creators, not one outlier.
+- **World suddenly freezes: strong.** Zack D. Films 12.4M (Jul 2026); copies 1K. Ends on solid ice, which suits the loop.
+- **Dinosaurs come back: strong.** 725K, 723K, 131K from three channels. A new kind of danger for us.
+- Earth has rings: 8.6M, 982K, 105K, but sightseeing, and Moon explodes already had rings. Antarctica melts: 834K, 376K (water again).
+  You never slept: Kurzgesagt 3M, copies 1K. Baseball at 90% light speed: xkcd 2.7M, too close to the sand grain.
+- Skipped, all under 20K: everyone jumps at once, touch the Sun, plane door, megalodon, Moon closer every day, ground turns to lava, internet
+  ends, human-size ants, falling elevator.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
