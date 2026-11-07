@@ -1131,6 +1131,56 @@ Cover: `week 5/metal-rod/out/metal-rod_v4_cover.png` (`node render.mjs --cover 3
 
 ---
 
+## Next Short. What if the biggest nuke ever hit your city? — `week 6/biggest-nuke/out/biggest-nuke_v4_1080x1920_60fps_tiktok.mp4`
+
+46.6 s, all in real time (no time-lapse: the blast really does take this long). A made-up city at dusk (no real places, no
+country, no brands); you stand on a low ledge on a busy hilltop promenade with strings of bulbs, stalls, lit shops and
+cars, the whole city spread out below you. Frame 0: the title, the counter racing (BLAST REACHES YOU IN, 45.00 s, 12.42
+MILES AWAY), a white-hot dome already on the horizon, the crowd right in front of you, the owner's scream in the first
+second. 0:01-0:05 the people nearest you turn their backs on the light one after another, arms over their eyes, cars
+brake and two collide. 0:06 the whole city goes dark, far side first, sweeping toward you. 0:08 your phone comes up:
+NO SERVICE. 0:12 EVERYONE RUNS, sprinting past you on both sides, long shadows pointing at you, the fireball a cauliflower
+of orange. 0:14 awnings and trees start to smoke, the wet street mirrors the fire. 0:18 the first tower falls, and one
+more falls on every 3 s beat as the wall of dust crosses the city. 0:24 the city catches fire, and the fireball has
+lifted off on a stem. 0:30 NOT A SOUND YET: the street drops away and only the heartbeat is left. 0:36 the cap fills the
+sky, you look up at it; a second wave of people gave up running. 0:39 everyone left drops to the ground. 0:42 the last
+towers go, 0:43 the wall comes up the hill, debris in its face, 0:45.0 it reaches you as the counter hits 0: white, loop
+(the white clears onto frame 0, like the flash itself). Sound: the bomb is silent until the blast, because its sound
+travels with it; the first boom you hear is at 0:45.
+Numbers (`src/timeline.js`): 50 megatons, burst 4 km up, fireball reaching the ground, cloud top 64 km (40 miles), third-degree
+burns possible to 100 km (60 miles), complete destruction to 25 km (15.5 miles): nuclearweaponarchive.org/Russia/TsarBomba.html.
+Fireball: sources run from 6.5 km wide at 1 s to 9 km or more, so "over 5 miles". The blast: the published 1 Mt air burst (11 s,
+3.2 miles, 6 psi, 180 mph wind; 37 s, 9.5 miles, 1 psi; abomb1.org/nukeffct/airburst.html, from Glasstone & Dolan) scaled by the
+cube root of the yield (x3.68, distance and time) gives 40.5 s at 11.8 miles for 50 Mt; you are 13.35 miles out ("13 miles"), reached
+47 s after the burst, about 5 psi, 160 mph wind, the front slowing from about 1,600 mph on frame 0 to 865 mph (880 at the caption). Frame 0 is
+2 s after the burst, so the counter's 45.00 is true. This is an estimate from scaling, good to a few seconds; the real burst was
+lower than that table's, which would bring the blast slightly sooner.
+Picture vs numbers: the fireball, cloud, distances and times are drawn to scale (the cloud's rise is an estimate, about
+23 km up at 0:45). NOT to scale: the dust wall is taller than real (420 m at the front, 2.7 km behind it) so it can be seen
+from miles away, and the nine tallest towers are 380-820 m, placed where the front is on each beat. At 13 miles the heat
+would be far worse for anyone in the open than this shows; on the owner's "no gore" call nobody is shown hurt, and the dust
+and the white cover the street. Phones and cars: the plan said they die, but at 13 miles from a burst this low most would
+keep working. What is true is the grid and network going down and drivers blinded, so the video says "loses signal", half the
+cars keep their hazards on, and the crash comes from the blinded drivers.
+
+**YouTube title (72 chars)**
+What if the biggest nuke ever hit your city? You have 45 seconds #whatif
+
+**YouTube description**
+The biggest nuke ever set off was the Tsar Bomba: 50 million tons of TNT. Here it is over a made-up city, in real time, from a street 13 miles away.
+
+The light reaches you instantly. The blast takes 45 seconds.
+The fireball is over 5 miles wide, and its heat reaches 60 miles out.
+The power dies, every phone loses signal and the city catches fire, all before you hear a thing.
+Then the blast crosses the city at about 880 mph, with a 160 mph wind behind it, and the towers fall one by one.
+The cloud will climb 40 miles high.
+
+What would you do with 45 seconds? 👇
+
+#whatif #nuke #tsarbomba #simulation #shorts
+
+Cover: `week 6/biggest-nuke/out/biggest-nuke_v4_cover.png` (`node render.mjs --cover 24`: the whole mushroom cloud glowing over the dusk street, its stem on the city, the wall of dust on the skyline, people running; "WHAT IF THE BIGGEST / nuke ever / hit your city?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

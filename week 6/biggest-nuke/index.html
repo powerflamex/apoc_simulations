@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<script>{ const q = new URLSearchParams(location.search); if (q.has('wide')) document.documentElement.classList.add('wide'); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
+<title>Biggest nuke</title>
+<style>
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: italic; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-italic.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 600;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000;
+    transform-origin: 0 0; }
+  #stage canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+
+  /* wide (16:9) layout for the long video: title high, counter lower-left, captions low and centred */
+  .wide #stage, .wide #stage canvas { width: 1920px; height: 1080px; }
+  .wide #title { left: 260px; right: 260px; top: 250px; }
+  .wide #counter { left: 80px; top: 600px; }
+  .wide #caption { left: 330px; right: 330px; top: 905px; font-size: 54px; }
+  .wide #stampw { top: 372px; }
+  .wide #stamp { top: 410px; }
+  /* ?clean=1: no title, counter or captions (montage shots for the long video's intro) */
+  .clean #counter, .clean #caption, .clean #title, .clean #cover, .clean #you, .clean #stamp, .clean #stampw { display: none !important; }
+
+  .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
+
+  #counter { position: absolute; left: 74px; top: 820px; width: 700px;
+    text-shadow: 0 2px 14px rgba(0,0,0,.95), 0 0 5px rgba(0,0,0,.9), 0 1px 3px rgba(0,0,0,.9); }
+  #counter .row { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  #counter .label { font: 700 32px 'Cormorant', serif; letter-spacing: .2em; opacity: 1; }
+  #counter .value { font: 500 92px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 6px;
+    font-variant-numeric: lining-nums tabular-nums; }
+  #counter .unit { font: 700 44px 'Cormorant', serif; letter-spacing: .08em; opacity: 1; margin-top: 12px; white-space: nowrap; line-height: 1.1; }
+  #counter .badge { font: 700 24px 'Cormorant', serif; letter-spacing: .2em; margin-top: 14px; padding: 6px 14px 4px;
+    background: rgba(200, 40, 40, .75); color: #fff6ee; display: none; }
+
+  #caption { position: absolute; left: 60px; right: 60px; top: 1560px; text-align: center;
+    font: italic 500 58px/1.15 'Cormorant', serif;
+    text-shadow: 0 2px 22px rgba(0,0,0,.7), 0 1px 3px rgba(0,0,0,.8); }
+
+  #stamp { position: absolute; left: 50px; right: 50px; top: 1440px; text-align: center; opacity: 0; line-height: 1.05;
+    font: italic 500 138px/1 'Cormorant', serif; color: #ffd98a;
+    text-shadow: 0 0 3px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.85); }
+  #stampw { position: absolute; left: 0; right: 0; top: 1402px; text-align: center; opacity: 0;
+    font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; color: #f4efe6;
+    text-shadow: 0 2px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
+
+  #title { position: absolute; left: 60px; right: 60px; top: 1120px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 30px rgba(0,0,0,.85), 0 1px 4px rgba(0,0,0,.9); }
+  #title .t { font: 600 94px/1.05 'Cormorant', serif; }
+  #title .rule { width: 120px; height: 1px; background: rgba(244,239,230,.6); margin: 40px auto 26px; }
+  #title .s { font: 600 24px 'Cormorant', serif; letter-spacing: .34em; opacity: .8; }
+
+  #cover { position: absolute; left: 40px; right: 40px; top: 1060px; text-align: center; opacity: 0;
+    text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
+  #cover .k { font: 600 42px 'Cormorant', serif; letter-spacing: .3em; }
+  #cover .w { font: italic 500 170px/1 'Cormorant', serif; color: #f1c978; margin: 14px 0 4px; }
+  #cover .q { font: 600 88px/1.05 'Cormorant', serif; }
+
+  #you { position: absolute; left: 0; top: 0; width: 240px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
+  #you .t { font: 700 38px 'Cormorant', serif; letter-spacing: .32em; padding-left: .32em; }
+  #you .ln { width: 3px; height: 62px; margin: 4px auto 0; background: rgba(255, 246, 236, .92); }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #endcard { position: absolute; inset: 0; background: #000; opacity: 0; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #endcard .t { font: 500 76px/1.12 'Cormorant', serif; padding: 0 110px; }
+  #endcard .rule { width: 120px; height: 1px; background: rgba(244,239,230,.5); margin: 44px 0 30px; }
+  #endcard .s { font: 600 23px 'Cormorant', serif; letter-spacing: .34em; opacity: .7; }
+
+  /* the compositor paints the overlay into the frame; the DOM copy only provides layout */
+  #stage.compositing > div { visibility: hidden; }
+
+  #hud { position: fixed; right: 8px; bottom: 8px; font: 12px monospace; color: #9f9;
+    background: rgba(0,0,0,.6); padding: 4px 6px; z-index: 9; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="counter" class="serif"></div>
+  <div id="caption" class="serif"></div>
+  <div id="stampw" class="serif"></div>
+  <div id="stamp" class="serif"></div>
+  <div id="title" class="serif">
+    <div class="t">What if the biggest nuke ever hit your city?</div>
+  </div>
+  <div id="cover" class="serif">
+    <div class="k">WHAT IF THE BIGGEST</div>
+    <div class="w">nuke ever</div>
+    <div class="q">hit your city?</div>
+  </div>
+  <div id="flash"></div>
+  <div id="endcard" class="serif">
+    <div class="t">What if the biggest nuke ever hit your city?</div>
+    <div class="rule"></div>
+    <div class="s">A SIMULATION</div>
+  </div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
