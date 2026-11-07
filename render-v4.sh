@@ -2,6 +2,8 @@
 # Re-render the given projects from scratch (v4: action from the first frame, camera moves),
 # then make the upload copies (with the channel watermark).   usage: bash render-v4.sh asteroid sun-vanishes
 # bash render-v4.sh --copy-only asteroid   remakes just the upload copy from the existing video
+# bash render-v4.sh --audio-only asteroid  only the sound changed: rebuilds the soundtrack and puts it into both existing
+#                                          videos without redrawing the picture (~15 s; swap-audio.mjs)
 # The upload copy is compressed on the CPU (lowest priority, 4 of the 8 cores, so the PC stays usable) piece by
 # piece while the GPU renders; then older videos in that
 # project's out/ are deleted (only the new video and its upload copy are kept).
@@ -30,6 +32,7 @@ upload_copy() {
 }
 # --copy-only: skip the render and just remake the upload copies from the videos already in out/
 COPY_ONLY=; [ "$1" = --copy-only ] && { COPY_ONLY=1; shift; }
+AUDIO_ONLY=; [ "$1" = --audio-only ] && { AUDIO_ONLY=1; shift; }
 # projects live in week folders ("week 2/earth-stops"); a bare name is looked up there
 find_dir() { local w; [ -d "$1" ] && { echo "$1"; return; }; for w in week*/"$1"; do [ -d "$w" ] && { echo "$w"; return; }; done; echo "$1"; }
 for p in "$@"; do
@@ -40,6 +43,7 @@ for p in "$@"; do
     black-hole) name=black-hole_v4 ;;
     *) name=$(basename "$d")_v4 ;;
   esac
+  [ -n "$AUDIO_ONLY" ] && { t=$SECONDS; node swap-audio.mjs "$d" "out/${name}_1080x1920_60fps.mp4" && echo "$d sound swapped in $((SECONDS - t)) s" || echo "$d sound swap FAILED"; continue; }
   [ -n "$COPY_ONLY" ] && { gate_enter "$(basename "$d")"; upload_copy "$d" "$d/out/${name}_1080x1920_60fps.mp4"; gate_leave; continue; }
   # a new project folder needs its packages once (three.js, the renderer's Chrome driver, the font)
   [ -d "$d/node_modules" ] || (cd "$d" && npm install --no-audit --no-fund --loglevel=error) || { echo "$d: npm install FAILED"; continue; }

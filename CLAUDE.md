@@ -7,7 +7,7 @@ the week they were posted (the owner's layout, Oct 18):
 `week 3/`: `jupiter/`, `jump-doubles/`, `oxygen-5s/`, `rain-1000-years/`, `quake-grows/`, `false-vacuum/`, `friction/`, `tsunami-nyc/`;
 `week 4/`: `punch-10x/`, `black-hole-appears/`, `antimatter-rain/`, `time-stop/`.
 `week 5/`: `fall-through-earth/`, `star-picker/`, `rogue-planet/`, `moon-explodes/`, `metal-rod/`.
-`week 6/`: `biggest-nuke/`, `sand-grain/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
+`week 6/`: `biggest-nuke/`, `sand-grain/`, `volcano-fall/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
 folder itself. See README.md for how each project is built.
 
 ## The owner wants to be hands-off
@@ -19,6 +19,8 @@ After changing any project, without being asked and without stopping to ask:
    (about 5 min per video; it clears `out/.segments` itself and writes `out/<name>_v4_1080x1920_60fps.mp4`
    plus the `_tiktok.mp4` upload copy). Overwrite the old videos; no backups are wanted (the script deletes any
    other .mp4 in that project's `out/` once the new upload copy is made).
+   If only the sound changed (`audio.mjs`, `sounds/`), use `bash render-v4.sh --audio-only <project>` instead: it
+   rebuilds the soundtrack and puts it into both existing videos without redrawing the picture (~30 s, no render gate).
    Run it in the background and don't ask the owner whether the PC is free: every video goes through the render
    gate (`render-gate.sh`), which waits by itself while another session renders, while he has paused renders (the
    "Pause renders" / "Resume renders" shortcuts on his desktop), while he's playing a game, while the laptop is on
