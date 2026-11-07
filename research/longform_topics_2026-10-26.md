@@ -39,3 +39,11 @@ last 2-3 weeks, each with many copies. The first video on a topic wins 10-100x (
   hits (Apophis 5.3M, Moon crash 1.83M, Sun gone a week 766K). Recommended as the next long video instead.
 - The niche is hit-driven, not dead: a few videos per month get 500K-5M, while most clone channels sit at 1-3K.
 - Fell into a black hole: open (537), but space-only and abstract.
+
+## Re-check 2026-11-07 (YouTube search, upload date: this month, long videos)
+- **Surviving a nuke: hot, several hits, no single winner yet.** Stick Through Collapse "Day 1 to Day 30" 405K (Oct 21), What If
+  Tomorrow 252K (Oct 17, 36 min), LastStick 38K, Blackout Fox 35K (Nov 6, 72 hours). Copies titled "What if a nuke hit your city"
+  get 12-61 views. Older giants: Kurzgesagt 29M, Debunked "first hour" 12.8M. Picked for the next long video, with its own angle:
+  real time from 13 miles, the 45 seconds before the blast and the first hour, linked to the nuke Short.
+- Earth falls into the Sun: still open but little demand (best this month 4.6K, The Cosmic Witness, Nov 3).
+- Our long videos so far (Nov 7): 7 ways 43.5K, black hole 6.1K, IQ 4.1K, 6 more ways 3.5K, Big Rip 3.5K, heat death 1.4K, Big Crunch 1.2K.
