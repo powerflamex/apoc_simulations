@@ -151,11 +151,14 @@ const DOOR = P(-22.2, 1.55, 4.95);
 //   you; shoulder: over your shoulder at the street catching fire; heli: zoomed on the helicopter; across: the burning
 //   shop fronts across the street; sky: up at the cloud; tower: zoomed on the tallest tower; run: inside, to the stairwell
 const CUTS = [[-99, 'doorway'], [9.0, 'phone'], [14.0, 'beside'], [20.0, 'shoulder'], [25.5, 'heli'], [30.5, 'across'], [35.6, 'sky'], [39.2, 'tower'], [42.6, 'run']];
+// the park (shot time u, 0..45 s)
+const PARK_CUTS = [[0, 'wide'], [6, 'faces'], [12, 'phone'], [18, 'stem'], [23, 'embers'], [27, 'sleeve'], [32, 'ashwide'], [38.5, 'go']];
+const parkCut = (u) => { let c = PARK_CUTS[0]; for (const x of PARK_CUTS) if (u >= x[0]) c = x; return { view: c[1], dt: u - c[0] }; };
 export const streetCut = (t) => { let c = CUTS[0]; for (const x of CUTS) if (t >= x[0]) c = x; return { view: c[1], dt: t - c[0] }; };
 function camAt(v, s) {
   const t = s.t;
   let pos, yaw = 0, pitch = 0, roll = 0, fov = 48, shake = 0.04;
-  s.you = false; s.phoneClose = false;
+  s.you = false; s.phoneClose = false; s.view = ''; s.sleeve = -1; s.ashNear = 0; s.nearEmbers = 0;
   switch (s.shot) {
     case 'ff': {
       // the Short's spot: on the ledge on the promenade, the city ahead, the wall coming up the hill
@@ -255,11 +258,24 @@ function camAt(v, s) {
       break;
     }
     case 'park': {
+      // the park, cut every 4-6 s: the city burning under the cloud; the people beside you, lit by it; your phone; the
+      // cloud's stem from below; embers and ash blowing past; the first ash on your sleeve; the city again, ash falling;
+      // then off to the garage
       const u = s.dt;
-      pos = path([[0, P(-182, EYE + 1.2, -100)], [37, P(-181.6, EYE + 1.2, -100.4)], [39, P(-181, EYE, -98)], [45, P(-177, EYE, -80)]], u);
-      yaw = keys([[0, -4], [8, -12], [16, 8], [22, -6], [26, -6], [30, -2], [36.5, -4], [38.5, 120], [40.5, 178], [45, 176]], u) * DEG;
-      pitch = keys([[0, -1], [6, 3], [12, 12], [20, 1], [25, 4], [26.5, 30], [31, 26], [35, 2], [40, -4], [45, -6]], u) * DEG;
-      fov = keys([[0, 52], [20, 52], [26.5, 64], [32, 58], [40, 54]], u); shake = 0.07;
+      const c = parkCut(u), w = c.dt;
+      s.view = c.view; shake = 0.07;
+      const CREST = P(-182, EYE + 1.2, -100);
+      if (c.view === 'wide') { pos = CREST.clone(); yaw = (-4 - 0.8 * w) * DEG; pitch = (-1 + 0.5 * w) * DEG; fov = 52; }
+      else if (c.view === 'faces') { pos = P(-170.3 + 0.06 * w, 1.5, -133.6); yaw = (170 + 2.0 * w) * DEG; pitch = -1 * DEG; fov = 42; }
+      else if (c.view === 'phone') { pos = CREST.clone(); yaw = (-6 + 0.4 * w) * DEG; pitch = -8 * DEG; fov = 50; s.phoneClose = true; }
+      else if (c.view === 'stem') { pos = CREST.clone(); yaw = (-5.5 + 0.3 * w) * DEG; pitch = (30 + 1.6 * w) * DEG; fov = 70; }
+      else if (c.view === 'embers') { pos = P(-180 - 0.1 * w, 1.3, -103); yaw = (-15 + w) * DEG; pitch = 3 * DEG; fov = 46; s.nearEmbers = 1; }
+      else if (c.view === 'sleeve') { pos = CREST.clone(); yaw = -10 * DEG; pitch = (-24 - 0.6 * w) * DEG; fov = 55; s.sleeve = w; s.ashNear = 1; }
+      else if (c.view === 'ashwide') { pos = P(-195 + 0.15 * w, 1.8, -108); yaw = (6 - 0.6 * w) * DEG; pitch = 3 * DEG; fov = 56; s.ashNear = 1; }
+      else {
+        pos = path([[0, P(-181, EYE, -99)], [6.5, P(-177, EYE, -80)]], w);
+        yaw = keys([[0, 170], [6.5, 176]], w) * DEG; pitch = keys([[0, -4], [6.5, -6]], w) * DEG; fov = 54;
+      }
       break;
     }
     default: {
@@ -453,7 +469,7 @@ function update(v) {
     bloom.strength = (t < 0 ? 0.3 : !s.after ? 0.22 + 0.12 * I + 0.5 * smooth(0, 0.06, t) * (1 - smooth(1.5, 6, t)) : 0.4) + 0.3 * smooth(T_HIT - 1, T_HIT, t) * (s.after ? 0 : 1);
   }
   renderer.toneMappingExposure = exposure;
-  phone.frame(v, 1, s.phoneClose);
+  phone.frame(v, 1, s.phoneClose, s.sleeve);
   finish.uniforms.uAb.value = s.shot === 'ff' || (s.t > 45 && s.t < 48 && !s.after) ? 0.6 : s.slow ? 0.4 : 0;
   finish.uniforms.uTitle.value = window.__cover ? 0.2 : v < FF_LEN ? 1 - smooth(4.3, 4.6, v) : 0;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9 * (1 - Math.max(s.white, s.black));

@@ -24,7 +24,7 @@ get under 100 views. Our angle: real time, from one person 13 miles away, with w
 | 1:08 | lobby, the street | 5 MINUTES IN. Out through the wrecked lobby; the whole city on fire; then straight up at the cloud over you (1:19, IT'S RIGHT ABOVE YOU). |
 | 1:44 | promenade | 10 MINUTES IN. The cloud is 40 miles high and 60 wide. YOUR BUILDING IS ON FIRE; a burning piece of its front peels off and lands near you (2:00). THE WIND TURNS TOWARD THE FIRE. |
 | 2:20 | walking down the avenue | 20 MINUTES IN. Into the firestorm wind: paper, sheet metal and burning bits fly at you. A GAS MAIN EXPLODES 17 m ahead (2:38). |
-| 2:50 | the park on the crest | 30 MINUTES IN. The city below is one fire (THE FIRES BECOME ONE). Ash starts falling (3:17). "Get under concrete." |
+| 2:50 | the park on the crest, cut every 4-6 s | 30 MINUTES IN. The city below is one fire (THE FIRES BECOME ONE). The people beside you, lit orange, filming and pointing (2:56); your phone, still no signal (3:02); the cloud's stem from below (3:08); embers blowing past (3:13); SOMETHING IS FALLING: the first ash on your sleeve (3:17); the city in the falling ash (3:22). "Get under concrete." |
 | 3:35 | underground garage (30 s) | 45 MINUTES IN. Down the ramp; the radio's emergency broadcast; people along the wall; your phone: one bar, Delivered, Mom and Dad reply one by one (A TEXT GETS THROUGH); sirens at the top of the ramp. |
 | 4:05 | | 1:00:00.00: YOU MADE IT THROUGH THE FIRST HOUR. White, "Would you have made it?" |
 

@@ -1639,7 +1639,9 @@ taller than real; the end shows sirens arriving, not a rescue. Nov 7 rework (own
 the dust wall coming up the hill), real-looking street fires, a 7 s stairwell, a big close moment every 30-45 s (the cloud
 straight overhead, a burning piece of your building landing near you, the firestorm wind throwing debris at you, the gas
 main), more people, detailed and brighter lobby/stairwell/garage, the garage cut to 30 s with the radio and the texts
-arriving one by one; 5:31 -> 4:18. **Upload this file.**
+arriving one by one; 5:31 -> 4:18. Second pass (owner): the park (2:50-3:35) cut every 4-6 s (the city under the
+cloud, the people beside you lit orange, one filming, one pointing, your phone, the stem from below, embers past the lens,
+the first ash on your sleeve, the city in the falling ash); timing and chapters unchanged. **Upload this file.**
 Thumbnail: `longform/out/nuke-hour_thumb.png` (the orange mushroom cloud over the burning avenue, one line "SURVIVE 1 HOUR"
 in big gold letters; `node render.mjs --cover 40` in `longform/nuke-hour/`).
 

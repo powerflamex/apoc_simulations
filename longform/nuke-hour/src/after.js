@@ -176,7 +176,9 @@ export function makeAfter(scene, ctx) {
   // twenty minutes in: walking south with you, ahead and beside, hands up over mouths
   scatter(80, -14, 14, 30, 160, 'walk', () => ({ act: 'walk', sp: 1.25 + R() * 0.25, mouth: R() < 0.6 }), [[0, 20, 6]]);
   // the park: sitting and standing in the clearing, most facing the city
-  scatter(240, -235, -125, -235, -106, 'park', () => ({ act: R() < 0.55 ? 'sit' : R() < 0.7 ? 'hug' : 'look', yaw: (R() - 0.5) * 0.9 }), [[-182, -100, 5]]);
+  scatter(240, -235, -125, -235, -106, 'park', () => ({ act: R() < 0.55 ? 'sit' : R() < 0.7 ? 'hug' : 'look', yaw: (R() - 0.5) * 0.9 }), [[-182, -100, 5], [-170, -130, 7.5]]);
+  // the people right beside you on the crest (the close shot of faces): two filming it, two pointing, the rest watching
+  for (const [x, z, act, yw] of [[-171.5, -131.5, 'film', 0.1], [-168.6, -130.8, 'point', -0.2], [-173.6, -129.4, 'look', 0.25], [-169.6, -127.8, 'film', -0.05], [-166.8, -128.6, 'look', -0.3], [-172.4, -126.2, 'sit', 0.1], [-170.6, -124.5, 'point', 0.05], [-167.9, -125.9, 'look', -0.1]]) mkP(x, z, { scene: 'park', act, yaw: yw });
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
   const crowd = makeCrowd(g, FOLK.length, mat, { castShadow: true });
   FOLK.forEach((f, i) => { f.i = i; crowd.color(i, f.shirt, f.pants, f.skin, f.hair); });
@@ -226,6 +228,14 @@ export function makeAfter(scene, ctx) {
           const f = (0.5 + 0.5 * Math.sin(v * 9 + m.ph * 5)) * (scn === 'park' ? 0.5 : 1);
           glows.add(x, groundY(z) + y, z, m.s, 4.5 * f, 1.6 * f, 0.22 * f);
         }
+      }
+      // (the park's close shot: embers and ash blowing past right in front of the lens)
+      if (s.nearEmbers) for (let k = 0; k < 90; k++) {
+        const r1 = (k * 0.618) % 1, r2 = (k * 0.381) % 1, r3 = (k * 0.7549) % 1;
+        const tt = v * (0.5 + 0.6 * r3) + r1 * 7;
+        const x = cam.x - 4 + 8 * r2 + Math.sin(tt * 2 + k) * 0.4, y = cam.y - 1.5 + ((tt * 1.1 + r3 * 4) % 4), z = cam.z - 1.0 - ((tt * 3.5 + r1 * 9) % 9);
+        const f = 0.6 + 0.4 * Math.sin(v * 10 + k);
+        glows.add(x, y, z, 0.035 + 0.05 * r2, 5 * f, 1.8 * f, 0.25 * f);
       }
       // the gas main (walking out): a roaring column of fire out of the road ahead, then a burning jet
       if (scn === 'walk') {
@@ -334,7 +344,7 @@ export function makeAfter(scene, ctx) {
           x = cam.x + ((((x - cam.x) % W) + W * 1.5) % W) - W / 2;
           z = cam.z + ((((z - cam.z) % W) + W * 1.5) % W) - W / 2;
           y = cam.y - 2 + (((y % 9) + 9) % 9);
-          if (Math.abs(x - cam.x) < 1.6 && Math.abs(z - cam.z) < 1.6) continue;
+          if (!s.ashNear && Math.abs(x - cam.x) < 1.6 && Math.abs(z - cam.z) < 1.6) continue;
           e.set(tt * 1.3 + a0.ph, tt * 0.9, tt * 0.7, 'XYZ');
           ash.setMatrixAt(n++, m4.compose(p.set(x, y, z), q.setFromEuler(e), sc.setScalar(a0.s)));
         }
@@ -349,6 +359,8 @@ export function makeAfter(scene, ctx) {
       // (indoors the lobby has its own firelight and the stairwell only its emergency lamp)
       const indoors = scn === 'stairs' || scn === 'lobby';
       fireL[0].intensity = (scn === 'park' || indoors ? 0 : 260) * fl(11, 6.3);
+      // (the faces on the crest, lit by the burning city behind the camera)
+      if (s.view === 'faces') { fireL[0].position.set(cam.x + 0.5, 2.6, cam.z - 3); fireL[0].intensity = 120 * fl(5, 3.1); }
       fireL[1].intensity = (scn === 'park' ? 90 : indoors ? 0 : 160) * fl(9, 4.1);
 
       // people
@@ -358,6 +370,8 @@ export function makeAfter(scene, ctx) {
         let x = f.x, z = f.z, yaw = (f.yaw || 0), walk = v * 1.4 + f.ph, stride = 0, armL = 0, armR = 0, look = 0.25, sit = 0, pitch = 0, y = 0;
         const dt = s.dt;
         if (f.act === 'sit') { sit = 1; look = 0.35; armL = armR = 0.4; }
+        else if (f.act === 'film') { armR = 1.0; armL = 0.3; look = 0.35; }
+        else if (f.act === 'point') { armL = 1.35 + 0.05 * Math.sin(v * 1.3 + f.ph); armR = 0.15; look = 0.55; }
         else if (f.act === 'look') { look = 0.65; armR = 0.3 * (1 + Math.sin(v * 0.3 + f.ph)); }
         else if (f.act === 'hug') { sit = 0.9; armL = armR = 1.0; look = 0.1; }
         else if (f.act === 'leave') {
@@ -380,6 +394,8 @@ export function makeAfter(scene, ctx) {
         // (crowd.js people face +z at yaw 0)
         y += groundY(z) + (f.scene === 'park' ? 0.06 : 0);
         crowd.pose(f.i, { x, y, z, yaw: f.act === 'leave' || f.act === 'walk' ? yaw - Math.PI : yaw + Math.PI, s: f.s, walk, stride, sit, pitch, armL, armR, look });
+        // (their phones' screens, held up at the fire)
+        if (f.act === 'film') glows.add(x - Math.sin(yaw) * 0.55 + 0.2, y + 1.45 * f.s, z - Math.cos(yaw) * 0.55, 0.1, 1.2, 1.3, 1.5);
       }
       crowd.commit();
     },
