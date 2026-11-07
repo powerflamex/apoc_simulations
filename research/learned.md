@@ -81,7 +81,7 @@
 - A better single score than either number alone: **day-1 stayed to watch x day-1 average viewed** (roughly: how much of
   the video an average person shown it watches). Black hole 62, trillion 56, speed 55, women-vanish 52 (445K): the four
   biggest. Everything else 38-49 (false vacuum 49, moon/electrons/gravity 48-49, gojo 43, black-hole-fall 41, oxygen 41,
-  jupiter/yellowstone 40, jump 39, big crunch 38). Aim for 52+ on day 1.
+  jupiter/yellowstone 40, jump 39, big crunch 38). Aim for 52+ on day 1. (Dropped Nov 6: this score only compares videos of about the same length; see CLAUDE.md.)
 - Black-hole-fall: 46% swiped away at once (frame 0 is a muddy brown haze with a flat grey astronaut: low contrast),
   but people who stayed watched 75%. Gojo is the opposite: the name gets people to stay (71%), but they leave before the end (61%).
 

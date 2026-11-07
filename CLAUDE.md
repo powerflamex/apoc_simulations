@@ -69,9 +69,12 @@ Use this for every new video and every rework:
 - Topics that are proven hits: Earth stops spinning, the Moon crashes into Earth, "X disappears for 5 seconds".
   Silly novelty topics flop.
 - **The question matters most** (Oct 25-31 Studio reads, details in `research/learned.md`): a 10-year-old must get it
-  with zero science knowledge, and it should be about "you". Hit score = day-1 stayed-to-watch x day-1 avg % viewed;
-  target 52+ (black hole 62, trillion 56). Repeating one formula wears off (the doubling videos fell 55 -> 48 -> 39;
-  "10x every few seconds" is in grow-trillion, punch, black-hole-appears and antimatter-rain: vary it).
+  with zero science knowledge, and it should be about "you". Repeating one formula wears off (the doubling videos fell
+  55 -> 48 -> 39; "10x every few seconds" is in grow-trillion, punch, black-hole-appears and antimatter-rain: vary it).
+- **Judge a Short on three numbers together** (owner's call, Nov 6): stayed-to-watch (65%+), % still watching at 0:30 (65%+; the
+  curve takes up to 2 days) and views at 24 h (50K+, hits 100K+). No single score: the old one (stayed x % viewed, target 52+) can't
+  compare different lengths, since cutting a video raises its % viewed without making it better; and stayed alone doesn't
+  pick hits (61-75% for hits and flops alike). Scores in older notes only compare videos of about the same length.
 - **Shorts are won or lost in the first ~15 s:** a visibly bigger step every ~3 s. On frame 0, people close to the camera
   in a busy place and the danger big and close (far, small or abstract subjects hold worse). Frame brightness does
   NOT predict stay. A loud human reaction (a scream) in the first second helped (rain, grow-trillion).
