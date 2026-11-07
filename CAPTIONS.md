@@ -1251,6 +1251,61 @@ At which grain would you start running? 👇
 #space #physics #science #whatif #shorts
 ```
 
+## Next Short. What if the world froze to absolute zero? — `week 6/world-freezes/out/world-freezes_v4_1080x1920_60fps_tiktok.mp4`
+
+48.0 s. A new scene, blue and white, bright: a busy made-up harbour town on a sunny day. You stand up on a bench in the paved
+plaza of an avenue that runs downhill to the sea, a fountain just ahead on the right, people all round you, traffic both ways.
+Frame 0: the title, the counter already racing (TEMPERATURE 68.00°F, ABSOLUTE ZERO: −459.67°F as the finish line under it), and a
+white wall of frost rising out of the harbour and rolling up the street at you (90 mph), pigeons bursting up; the owner's gasp
+(sounds/gasp.mp3, at -25 dB, no scream). One visible step every 3 s:
+0:02 the rime races up the street to your feet; 0:03 the wall passes you in a white-out of crystals: "THE FROST REACHES YOU", 32°F,
+everyone's breath fogs, they hug themselves and slow to a shuffle. 0:06 −40°F "FROZEN MID-SPLASH": the fountain stops in the air and
+turns to ice. 0:09 −80°F "BIRDS DROP OUT OF THE SKY". 0:12 −129°F "EVERY CAR STALLS": lights and exhaust die, the screens go dark.
+0:15 −170°F "PEOPLE FREEZE MID-STEP" and turn to ice; the street goes silent. 0:18 −226°F "DRY ICE SNOWS DOWN". 0:21 −313°F "THE AIR
+TURNS TO RAIN". 0:24 −320°F "PUDDLES OF LIQUID AIR", boiling. 0:27 −346°F "THE AIR FREEZES SOLID": it snows frozen air.
+0:30 −362°F "THE SKY TURNS BLACK": stars at noon over the white city. 0:33 −388°F "THE SEA FREEZES SOLID" (zoom to the bay: the ice
+splits and heaves into ridges, "As cold as Pluto."). 0:36 −420°F "THE TOWERS CRACK". 0:39 −445°F "STEEL SHATTERS LIKE GLASS": the
+tower on the pier breaks and its top goes into the bay. 0:42 −455°F "YOUR CAMERA FREEZES OVER": frost grows over the lens; at 0:46.5
+it reads −459.67°F and the lens is solid ice. Loop: the cut sits inside the solid lens ice, which clears onto frame 0.
+Numbers (`src/timeline.js`): water freezes at 32°F; −40° is the same in °F and °C (a North Pole winter); a South Pole winter averages
+about −76°F; the coldest ever measured on Earth's surface is −128.6°F (Vostok, 1983). The air's CO2 (0.04%, 0.4 mbar) freezes out near
+−226°F (Clausius-Clapeyron from dry ice's −109°F at full pressure). Air starts to turn liquid at its dew point, 81.6 K = −312.8°F, and is
+all liquid at 78.8 K = −317.8°F (the temperature barely falls while it condenses, so the counter crawls from −313 to −320). Nitrogen
+freezes at −346.0°F, oxygen at −361.8°F; by then about 1% of the air is left as gas (a sky that thin is black). Pluto's surface is about
+40 K = −388°F. Absolute zero is 0 K = −459.67°F.
+What is drawn, not measured: the fall to absolute zero is a what-if, squeezed into 46 s; the frost front is drawn as a wall of mist.
+Liquid air would really pile up about 40 ft deep (the air weighs 10.3 t per m²) and run downhill into the sea, so the puddles are drawn
+shallow. The sea's surface freezes at 28°F, but the deep sea would take far longer. Steel really does turn brittle in deep cold; a
+tower shattering by itself is drawn, not computed. People are never shown hurt, they just stop.
+Sound: the street and the frost wall's icy roar, the gasp, a rush of crystals as it passes, a deep hit on every step over a cold
+drone, the fountain ringing as it freezes, wings and soft thuds, the engines dying, crackles, then silence; dry-ice fizz, liquid-air
+rain and boiling, the hush of snow, a thin high tone once the air is gone, the sea ice's boom and singing zings, groans and glass,
+a riser to the last hit at zero.
+Cover: `week 6/world-freezes/out/world-freezes_v4_cover.png` (`node render.mjs --cover 39.6`: the cracked tower with its glass gone under a black, starry sky at noon, the frozen fountain and the ice people in front; "WHAT IF THE WORLD / froze / to absolute zero?")
+
+**YouTube title** (58 characters):
+```
+What if the world froze to absolute zero? #science #shorts
+```
+
+**YouTube description:**
+```
+Absolute zero is −459.67°F. Nothing can ever be colder.
+
+32°F: water freezes.
+−129°F: colder than anywhere on Earth has ever been.
+−226°F: the carbon dioxide in the air freezes into dry ice.
+−313°F: the air itself turns to liquid and rains down.
+−346°F: the nitrogen freezes, and the air snows down as solid air.
+With almost no air left, the sky turns black, even at noon.
+
+The freezing points are real; the 46-second plunge is the what-if.
+
+At which temperature would you stop moving? 👇
+
+#science #physics #whatif #shorts
+```
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

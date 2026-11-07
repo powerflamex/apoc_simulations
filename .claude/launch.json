@@ -162,6 +162,17 @@
       "env": {
         "PORT": "5203"
       }
+    },
+    {
+      "name": "world-freezes",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 6/world-freezes/server.mjs"
+      ],
+      "port": 5214,
+      "env": {
+        "PORT": "5214"
+      }
     }
   ]
 }
