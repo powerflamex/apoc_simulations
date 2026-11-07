@@ -6,7 +6,8 @@
 // Story time t (seconds since the flash); s.front: the blast front's distance from ground zero (m).
 import * as THREE from 'three';
 import { YOURS, FX, HIT } from './layout.js';
-import { rng, smooth, clamp, lerp } from './util.js';
+import { rng, smooth, clamp, lerp, wobble } from './util.js';
+import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { T_HIT } from './timeline.js';
 
 const X0 = -48, XF = -FX - 0.3, Z0 = -5.5, Z1 = 23.5, CEIL = 4.6, SLAB = YOURS.lobbyH;
@@ -23,9 +24,39 @@ export function makeLobby(scene, ctx) {
     g.add(m);
     return m;
   };
-  const stone = ctx.plainMat(0xc9c0b0, 0.55);
-  const stoneDark = ctx.plainMat(0x6e665c, 0.6);
+  // stone cladding: big panels with dark joints and a faint vein in each; the stairwell's concrete painted two-tone
+  const panelled = (m, k = 1) => {
+    m.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSW;')
+        .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+        varying vec3 vSW; float sh1(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+        float sn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(sh1(i), sh1(i + vec2(1, 0)), f.x), mix(sh1(i + vec2(0, 1)), sh1(i + vec2(1, 1)), f.x), f.y); }`)
+        .replace('#include <color_fragment>', `#include <color_fragment>
+        { vec2 u = vec2(vSW.x + vSW.z, vSW.y);
+          vec2 c = u / vec2(1.6, 1.2); vec2 id = floor(c), f = fract(c);
+          float joint = (1.0 - smoothstep(0.0, 0.025, f.x)) + (1.0 - smoothstep(0.0, 0.03, f.y));
+          float vein = smoothstep(0.93, 1.0, 1.0 - abs(sn(u * 1.7 + id * 3.0) - 0.5) * 2.0);
+          diffuseColor.rgb *= (0.88 + 0.22 * sh1(id)) * (1.0 - 0.45 * clamp(joint, 0.0, 1.0)) * (1.0 - 0.25 * vein * ${k.toFixed(2)}); }`);
+    };
+    m.customProgramCacheKey = () => 'lobby-panel-' + k;
+    return m;
+  };
+  const stone = panelled(ctx.plainMat(0xc9c0b0, 0.45));
+  const stoneDark = panelled(ctx.plainMat(0x6e665c, 0.5), 0.5);
   const concrete = ctx.plainMat(0x8f8b84, 0.92);
+  concrete.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvCW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+      { float y = vCW.y;
+        vec3 c = mix(vec3(0.3, 0.36, 0.33), vec3(0.62, 0.6, 0.56), step(1.25, y));
+        c = mix(c, vec3(0.75, 0.6, 0.12), step(1.25, y) * step(y, 1.4));
+        float blk = step(0.5, fract(vCW.y / 0.4)) * 0.04;
+        diffuseColor.rgb = c * (0.95 + blk); }`);
+  };
+  concrete.customProgramCacheKey = () => 'stair-paint';
   const metal = ctx.plainMat(0x6a6e74, 0.35, { metalness: 0.6 });
   const wood = ctx.plainMat(0x4a3324, 0.6);
 
@@ -147,6 +178,32 @@ export function makeLobby(scene, ctx) {
   shards.frustumCulled = false;
   g.add(shards);
 
+  // ---- the lobby's name over the desk (lit until the blackout), the stairwell's level number, an extinguisher, pipes ----
+  const signCv = document.createElement('canvas'); signCv.width = 1024; signCv.height = 160;
+  { const c2 = signCv.getContext('2d'); c2.fillStyle = '#16120e'; c2.fillRect(0, 0, 1024, 160); c2.fillStyle = '#e8c88a'; c2.font = '600 92px Georgia, serif'; c2.textAlign = 'center'; c2.textBaseline = 'middle'; c2.fillText('HILLCREST  TOWER', 512, 84); }
+  const signTex = new THREE.CanvasTexture(signCv); signTex.colorSpace = THREE.SRGBColorSpace;
+  const nameMat = new THREE.MeshBasicMaterial({ map: signTex, color: new THREE.Color(1.6, 1.6, 1.6) });
+  const nameSign = new THREE.Mesh(new THREE.PlaneGeometry(7, 1.1), nameMat);
+  nameSign.position.set(-36, 3.3, Z1 - 0.02); nameSign.rotation.y = Math.PI; g.add(nameSign);
+  const numCv = document.createElement('canvas'); numCv.width = 256; numCv.height = 256;
+  { const c2 = numCv.getContext('2d'); c2.fillStyle = '#f0e8d8'; c2.font = '900 210px Arial'; c2.textAlign = 'center'; c2.textBaseline = 'middle'; c2.fillText('1', 128, 140); }
+  const numTex = new THREE.CanvasTexture(numCv); numTex.colorSpace = THREE.SRGBColorSpace;
+  const num = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.0), new THREE.MeshStandardMaterial({ map: numTex, transparent: true, roughness: 0.9 }));
+  num.position.set(STAIR.x0 + 0.02, 2.0, 8.0); num.rotation.y = Math.PI / 2; g.add(num);
+  box(0.25, 0.6, 0.25, STAIR.x0 + 0.14, 1.1, 6.2, ctx.plainMat(0xb81a14, 0.4));
+  for (const [z, r] of [[5.6, 0.09], [5.9, 0.06], [14.4, 0.07]]) { const pipe = new THREE.Mesh(new THREE.CylinderGeometry(r, r, STAIR.x1 - STAIR.x0, 8).rotateZ(Math.PI / 2), ctx.plainMat(0x5a5e62, 0.5, { metalness: 0.5 })); pipe.position.set((STAIR.x0 + STAIR.x1) / 2, SLAB - 0.3, z); g.add(pipe); }
+
+  // ---- people in the doorway with you (they ran in at the flash), and you, for the shots that show you ----
+  const NB = [
+    { x: -23.2, z: 4.6, yaw: -2.4, crouch: 1, s: 1 }, { x: -24.8, z: 4.9, yaw: -2.0, crouch: 1, s: 0.95 },
+    { x: -25.9, z: 11.0, yaw: 2.6, crouch: 0.9, s: 1.02 }, { x: -23.7, z: 11.3, yaw: 3.0, crouch: 1, s: 0.97 },
+    { x: -24.6, z: 11.6, yaw: 2.8, crouch: 0.8, s: 0.62 },
+    { x: -22.3, z: 5.0, yaw: 2.5, crouch: 0, s: 1, you: true },
+  ];
+  const nbCrowd = makeCrowd(g, NB.length, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }));
+  const NBC = [[0x2a3a5a, 0x1a1a1a], [0xd8d0c0, 0x2c3340], [0x7a2a2a, 0x23252b], [0x3a4a3a, 0x4a4238], [0xf0c060, 0x2c3340], [0x24384a, 0x15161a]];
+  NB.forEach((o, i) => nbCrowd.color(i, NBC[i][0], NBC[i][1], SKIN[(i * 3) % SKIN.length], HAIR[(i * 5) % HAIR.length]));
+
   // ---- the stairwell door, the EXIT signs, the emergency light ----
   const door = new THREE.Group();
   const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.06, D.h - 0.05, D.z1 - D.z0 - 0.04).translate(0, (D.h - 0.05) / 2, -(D.z1 - D.z0 - 0.04) / 2), ctx.plainMat(0x5a5f66, 0.45, { metalness: 0.5 }));
@@ -177,7 +234,18 @@ export function makeLobby(scene, ctx) {
   return {
     group: g, lights: [...ceilL, emL, fireIn], STAIR,
     // t: story time; s: { front, dark, after, wind } ; v: video time (for flicker)
-    frame(t, s, v, glows, smoke) {
+    frame(t, s, v, glows, smoke, showYou = false) {
+      // the people beside you in the doorway: crouched in the shade, heads down, from a few seconds after the flash
+      {
+        const here = t > 2.5 && t < T_HIT + 0.2;
+        NB.forEach((o, i) => {
+          const vis = here && (!o.you || showYou);
+          const c = o.crouch, br = wobble(v * 0.6, i) * 0.04;
+          nbCrowd.pose(i, { x: o.x, y: -0.4 * c, z: o.z, yaw: o.yaw, s: o.s, sit: c * 0.85, pitch: 0.35 * c + br, armL: o.you ? 0.2 : 0.75 * c + 0.2, armR: o.you ? 1.35 : 0.75 * c + 0.2, look: o.you ? 0.25 : -0.5 * c, visible: vis });
+        });
+        nbCrowd.commit();
+      }
+      nameMat.color.setScalar(0.15 + 1.45 * (1 - s.dark));
       const after = t > T_HIT + 0.35;
       const tAfter = t > 200;
       // the ceiling lights: on, then out with the blackout

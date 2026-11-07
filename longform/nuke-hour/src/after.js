@@ -81,7 +81,8 @@ export function makeAfter(scene, ctx) {
   g.add(rubble);
 
   // ---- the burning slab that falls off your building ----
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(0.8, 3.4, 5.5), ctx.plainMat(0x3a3632, 0.9));
+  // (a whole piece of the front, three floors high: windows and all)
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(0.9, 9, 8), ctx.plainMat(0x4a443e, 0.9));
   slab.castShadow = true; slab.visible = false;
   g.add(slab);
 
@@ -122,7 +123,7 @@ export function makeAfter(scene, ctx) {
   ptr.frustumCulled = false; branches.frustumCulled = false; ptr.castShadow = true;
   g.add(ptr, branches);
   // the garage's way in: a concrete portal over a ramp at the south edge of the park, its sign lit by a battery lamp
-  const GATE = { x: -176, z: -50 };
+  const GATE = { x: -176, z: -70 };
   const portalMat = ctx.plainMat(0x7a766e, 0.9);
   const portal = new THREE.Group();
   const pb = (w, h, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), portalMat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; portal.add(m); };
@@ -136,6 +137,21 @@ export function makeAfter(scene, ctx) {
   sign.position.set(0, 3.4, -5.15); sign.rotation.y = Math.PI; portal.add(sign);
   portal.position.set(GATE.x, 0, GATE.z);
   g.add(portal);
+
+  // ---- what the firestorm's wind drags along the street: paper, sheet metal, burning bits, flying at you ----
+  const N_DEB = 320;
+  const DEB = Array.from({ length: N_DEB }, () => ({ x: (R() - 0.5) * 34, y: 0.2 + Math.pow(R(), 1.6) * 9, z: R() * 140, sp: 12 + R() * 16, s: [0.15 + R() * 0.9, 0.02 + R() * 0.05, 0.12 + R() * 0.7], spin: [(R() - 0.5) * 14, (R() - 0.5) * 14, (R() - 0.5) * 14], ph: R() * 10, burn: R() < 0.3 }));
+  const debMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, side: THREE.DoubleSide });
+  const deb = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), debMat, N_DEB);
+  deb.frustumCulled = false;
+  DEB.forEach((d, i) => deb.setColorAt(i, new THREE.Color().setHSL(0.08, 0.12, d.burn ? 0.08 : 0.25 + R() * 0.45)));
+  g.add(deb);
+  // ---- chunks of road the gas main throws ----
+  const N_CH = 60;
+  const CHK = Array.from({ length: N_CH }, (_, k) => ({ an: k * 2.399, sp: 6 + R() * 14, up: 10 + R() * 18, s: 0.3 + R() * 0.9, spin: [(R() - 0.5) * 9, (R() - 0.5) * 9, (R() - 0.5) * 9] }));
+  const chunks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.5, 0.8), ctx.plainMat(0x2a2624, 0.9), N_CH);
+  chunks.frustumCulled = false; chunks.castShadow = true;
+  g.add(chunks);
 
   // ---- the people ----
   const FOLK = [];
@@ -154,11 +170,11 @@ export function makeAfter(scene, ctx) {
     }
   };
   // after the blast, on the street: people come out and stand looking at the cloud, some sit on the curb
-  scatter(46, -21, 21, -60, 30, 'after', () => ({ act: R() < 0.25 ? 'sit' : R() < 0.5 ? 'look' : 'stand', yaw: (R() - 0.5) * 0.8 }), [[-18, 14, 3.5], [-15, 8, 3], [0, 0, 0]]);
+  scatter(90, -21, 21, -60, 30, 'after', () => ({ act: R() < 0.25 ? 'sit' : R() < 0.5 ? 'look' : 'stand', yaw: (R() - 0.5) * 0.8 }), [[-18, 14, 3.5], [-15, 8, 3], [0, 0, 0]]);
   // ten minutes in: walking away south on the promenade and sidewalks, some looking back
-  scatter(40, -20, 20, -40, 60, 'burning', () => ({ act: 'leave', sp: 1.1 + R() * 0.4, back: R() < 0.3 }), [[3, 20, 4]]);
+  scatter(80, -20, 20, -40, 60, 'burning', () => ({ act: 'leave', sp: 1.1 + R() * 0.4, back: R() < 0.3 }), [[3, 20, 4]]);
   // twenty minutes in: walking south with you, ahead and beside, hands up over mouths
-  scatter(36, -8, 8, 20, 150, 'walk', () => ({ act: 'walk', sp: 1.25 + R() * 0.25, mouth: R() < 0.6 }), [[0, 20, 6]]);
+  scatter(80, -14, 14, 30, 160, 'walk', () => ({ act: 'walk', sp: 1.25 + R() * 0.25, mouth: R() < 0.6 }), [[0, 20, 6]]);
   // the park: sitting and standing in the clearing, most facing the city
   scatter(240, -235, -125, -235, -106, 'park', () => ({ act: R() < 0.55 ? 'sit' : R() < 0.7 ? 'hug' : 'look', yaw: (R() - 0.5) * 0.9 }), [[-182, -100, 5]]);
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
@@ -215,10 +231,24 @@ export function makeAfter(scene, ctx) {
       if (scn === 'walk') {
         const a = v - GAS.t;
         if (a > 0) {
-          const big = Math.exp(-a / 0.9), jet = smooth(0.3, 1.5, a);
+          const big = Math.exp(-a / 1.1), jet = smooth(0.3, 1.5, a);
           const gy = groundY(GAS.z);
-          for (let k = 0; k < 7; k++) flames.add(GAS.x + Math.sin(k * 2.1) * 2.2 * (1 - big), gy, GAS.z + Math.cos(k * 1.7) * 2.2, 6 + 16 * big + 3 * jet, 1, k * 3.7 + 1, 1.0 + 0.6 * big, 1.6 + 1.2 * big);
-          glows.add(GAS.x, gy + 6 + 10 * big, GAS.z, 30 + 50 * big, 6 * big + 1.6, 2.6 * big + 0.55, 0.5 * big + 0.08);
+          // a fireball out of the road taller than the buildings, then a roaring jet that keeps burning
+          for (let k = 0; k < 12; k++) flames.add(GAS.x + Math.sin(k * 2.1) * (1.5 + 4 * big), gy, GAS.z + Math.cos(k * 1.7) * (1.5 + 4 * big), 7 + 26 * big + 4 * jet, 1, k * 3.7 + 1, 0.9 + 0.5 * big, 1.6 + 1.0 * big);
+          glows.add(GAS.x, gy + 8 + 14 * big, GAS.z, 25 + 40 * big, 4.5 * big + 1.4, 1.8 * big + 0.5, 0.35 * big + 0.08);
+          if (a < 0.25) glows.add(GAS.x, gy + 4, GAS.z, 60, 12 * (1 - a / 0.25), 10 * (1 - a / 0.25), 8 * (1 - a / 0.25));
+          // (the road's chunks)
+          chunks.visible = a < 6;
+          CHK.forEach((c, i) => {
+            const tt = Math.min(a, 6);
+            let y = gy + 0.5 + c.up * tt - 4.9 * tt * tt;
+            const land = (c.up + Math.sqrt(c.up * c.up + 2 * 9.8 * 0.5)) / 9.8;
+            const tl = Math.min(tt, land);
+            y = tt < land ? y : gy + 0.25;
+            e.set(c.spin[0] * tl, c.spin[1] * tl, c.spin[2] * tl, 'XYZ');
+            chunks.setMatrixAt(i, m4.compose(p.set(GAS.x + Math.cos(c.an) * c.sp * tl, y, GAS.z + Math.sin(c.an) * c.sp * tl), q.setFromEuler(e), sc.setScalar(c.s)));
+          });
+          chunks.instanceMatrix.needsUpdate = true;
           for (let k = 0; k < 18; k++) { const u = ((a * 0.25 + k / 18) % 1); smoke.puff(GAS.x + Math.sin(k) * 3, gy + 8 + u * 50, GAS.z - u * 14 * wind, 4 + 10 * u, 0.5 * (1 - u), 0.1, 0.25 * (1 - u), k); }
           // the blast throws chunks of the road
           if (a < 3) for (let k = 0; k < 40; k++) {
@@ -228,27 +258,56 @@ export function makeAfter(scene, ctx) {
           }
         }
       }
+      // the firestorm's wind: debris flying up the street at you (walking out), and once the wind turns (ten minutes in)
+      {
+        const k = scn === 'walk' ? 1 : scn === 'burning' ? smooth(130, 134, v) * 0.6 : 0;
+        deb.visible = k > 0;
+        if (k > 0) {
+          const D = 140;
+          DEB.forEach((d, i) => {
+            if (i > N_DEB * k) { deb.setMatrixAt(i, m4.makeScale(0, 0, 0)); return; }
+            const tt = v + d.ph * 4;
+            let z = d.z - tt * d.sp;
+            z = cam.z + ((((z - cam.z + 20) % D) + D) % D) - 20 - (scn === 'walk' ? 0 : 60);
+            const x = cam.x + d.x + Math.sin(tt * 1.3 + d.ph) * 1.2;
+            const y = groundY(z) + d.y + Math.sin(tt * 2.1 + d.ph) * 0.6;
+            e.set(d.spin[0] * tt, d.spin[1] * tt, d.spin[2] * tt, 'XYZ');
+            deb.setMatrixAt(i, m4.compose(p.set(x, y, z), q.setFromEuler(e), sc.set(d.s[0], d.s[1], d.s[2])));
+            if (d.burn) glows.add(x, y, z, 0.35 + d.s[0] * 0.5, 3.2, 1.2, 0.2);
+          });
+          deb.instanceMatrix.needsUpdate = true;
+          if (deb.instanceColor) deb.instanceColor.needsUpdate = false;
+          // smoke streaming low along the street with it
+          for (let k2 = 0; k2 < 24; k2++) {
+            const u = ((v * 0.35 + k2 / 24) % 1);
+            smoke.puff(cam.x + ((k2 * 7.3) % 30) - 15, groundY(cam.z) + 1 + (k2 % 4) * 1.6, cam.z + 60 - u * 110, 3 + 3 * u, 0.22 * Math.sin(Math.PI * u) * k, 0.2, 0.08, k2 * 1.9);
+          }
+        }
+      }
       // the slab off your building
       if (scn === 'burning') {
         const a = v - SLAB_FALL.v;
         if (a > -2) {
-          const y = a < 0 ? SLAB_FALL.y : Math.max(0.6, SLAB_FALL.y - 4.9 * a * a);
+          const y = a < 0 ? SLAB_FALL.y : Math.max(4.6, SLAB_FALL.y - 4.9 * a * a);
           const x = SLAB_FALL.x + (a > 0 ? Math.min(a, 2.3) * 2.6 : 0);
-          const landed = a > Math.sqrt((SLAB_FALL.y - 0.6) / 4.9);
-          flames.add(x, y - 1.5, SLAB_FALL.z, 6, 1, 7.7, 1.4, 1.1);
-          glows.add(x, y, SLAB_FALL.z, 10, 2.2, 0.8, 0.15);
+          const landed = a > Math.sqrt((SLAB_FALL.y - 4.6) / 4.9);
+          for (let k = 0; k < 3; k++) flames.add(x + 0.6, y - 3.5 + k * 2.4, SLAB_FALL.z - 2.5 + k * 2.5, 5.5, 1, 7.7 + k, 1.3, 1.1);
+          glows.add(x, y, SLAB_FALL.z, 14, 2.2, 0.8, 0.15);
           if (landed) {
-            const b = a - Math.sqrt((SLAB_FALL.y - 0.6) / 4.9);
-            for (let k = 0; k < 50 && b < 2.5; k++) { const an = k * 2.399, sp = 3 + (k % 6) * 2; glows.add(x + Math.cos(an) * sp * b, 0.5 + (6 + (k % 4) * 3) * b - 4.9 * b * b, SLAB_FALL.z + Math.sin(an) * sp * b, 0.25, 4 * Math.exp(-b), 2 * Math.exp(-b), 0.4 * Math.exp(-b)); }
-            for (let k = 0; k < 12; k++) smoke.puff(x + Math.sin(k * 2) * 3 * smooth(0, 2, b), 1 + k * 0.5 * smooth(0, 3, b), SLAB_FALL.z + Math.cos(k * 2) * 3 * smooth(0, 2, b), 1.5 + 3 * smooth(0, 3, b), 0.5 * (1 - smooth(1, 8, b)), 0.35, 0.1, k);
+            const b = a - Math.sqrt((SLAB_FALL.y - 4.6) / 4.9);
+            for (let k = 0; k < 120 && b < 2.5; k++) { const an = k * 2.399, sp = 4 + (k % 6) * 3; const yy = 0.5 + (6 + (k % 4) * 4) * b - 4.9 * b * b; if (yy > 0) glows.add(x + Math.cos(an) * sp * b, yy, SLAB_FALL.z + Math.sin(an) * sp * b, 0.3, 5 * Math.exp(-b), 2.4 * Math.exp(-b), 0.4 * Math.exp(-b)); }
+            for (let k = 0; k < 22; k++) smoke.puff(x + Math.sin(k * 2) * 7 * smooth(0, 2, b), 1 + (k % 5) * 1.2 * smooth(0, 3, b), SLAB_FALL.z + Math.cos(k * 2) * 7 * smooth(0, 2, b), 2 + 4 * smooth(0, 3, b), 0.6 * (1 - smooth(1.5, 9, b)), 0.35, 0.12, k);
           }
           s.slab = { x, y, z: SLAB_FALL.z, a };
           slab.visible = true;
           slab.position.set(x, y + 0.2, SLAB_FALL.z);
-          slab.rotation.set(0.3 * Math.min(Math.max(a, 0), 2.3), 0, landed ? 1.35 : -1.2 * Math.min(Math.max(a, 0), 2.3) * 0.5);
+          // (it peels off the front, top first, and lands flat on the sidewalk)
+          slab.rotation.set(0, 0, -Math.min(Math.PI / 2, 0.68 * Math.max(a, 0) * Math.max(a, 0)));
+          if (landed) { slab.rotation.set(0, 0, -Math.PI / 2); slab.position.y = 0.45; }
         }
       }
       if (scn !== 'burning') slab.visible = false;
+      if (!(scn === 'walk' && v > GAS.t)) chunks.visible = false;
       // the park's trees: bare, bending toward the city in the wind; a third of them still burning
       branches.visible = ptr.visible = lawn.visible = portal.visible = scn === 'park';
       if (scn === 'park') {
@@ -312,10 +371,14 @@ export function makeAfter(scene, ctx) {
           const d = f.sp * dt;
           z += d; walk = d * 2.6 + f.ph; stride = 1; yaw = Math.PI;
           if (f.mouth) { armR = 1.05; armL = 0.15; look = -0.1; }
+          // (the gas main: everyone near it throws themselves down)
+          const dg = Math.hypot(x - GAS.x, z - GAS.z);
+          const down = v > GAS.t + 0.1 && dg < 40 ? smooth(GAS.t + 0.1, GAS.t + 0.7, v) : 0;
+          if (down > 0) { z -= f.sp * Math.max(0, v - GAS.t - 0.1); walk = (f.sp * (GAS.t - 140)) * 2.6 + f.ph; stride = 1 - down; sit = down; armL = armR = lerp(armL, 0.75, down); look = -0.5 * down; pitch = 0.35 * down; y = -0.42 * down; }
         }
         yaw += wobble(v * 0.3, f.ph) * 0.12;
         // (crowd.js people face +z at yaw 0)
-        y = groundY(z) + (f.scene === 'park' ? 0.06 : 0);
+        y += groundY(z) + (f.scene === 'park' ? 0.06 : 0);
         crowd.pose(f.i, { x, y, z, yaw: f.act === 'leave' || f.act === 'walk' ? yaw - Math.PI : yaw + Math.PI, s: f.s, walk, stride, sit, pitch, armL, armR, look });
       }
       crowd.commit();

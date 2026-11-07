@@ -24,9 +24,9 @@ import { makeAfter } from './after.js';
 import { makeGarage, RAMP } from './garage.js';
 import { makeMyPhone } from './myphone.js';
 import { makeOverlay } from './overlay.js';
-import { CAM0, HIT, PLAIN } from './layout.js';
+import { CAM0, HIT, PLAIN, HEROES } from './layout.js';
 import * as SH from './short.js';
-import { state, VIDEO_DURATION, FF_LEN, T_HIT, V_FLASH } from './timeline.js';
+import { state, VIDEO_DURATION, FF_LEN, T_HIT, V_FLASH, GAS, SLAB_FALL, V_SIREN } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 import { makeCompositor } from './compose.js';
 
@@ -144,9 +144,18 @@ const P = (x, y, z) => new THREE.Vector3(x, y, z);
 const path = (list, t) => { const a = keys(list.map(([k, q]) => [k, q.x]), t), b = keys(list.map(([k, q]) => [k, q.y]), t), c = keys(list.map(([k, q]) => [k, q.z]), t); return P(a, b, c); };
 // where the thrown car aims when you are inside (it tumbles past the lobby's glass)
 const STREET_AIM = P(-13, 2.2, 30);
+const aim = (from, to) => { const d = to.clone().sub(from); return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.atan2(d.y, Math.hypot(d.x, d.z)) }; };
+const DOOR = P(-22.2, 1.55, 4.95);
+// the 47 seconds, cut between views every few seconds (story time t): [from, view]
+//   doorway: you, at the corner, looking out; phone: your phone, close; beside: the people crouched in the doorway with
+//   you; shoulder: over your shoulder at the street catching fire; heli: zoomed on the helicopter; across: the burning
+//   shop fronts across the street; sky: up at the cloud; tower: zoomed on the tallest tower; run: inside, to the stairwell
+const CUTS = [[-99, 'doorway'], [9.0, 'phone'], [14.0, 'beside'], [20.0, 'shoulder'], [25.5, 'heli'], [30.5, 'across'], [35.6, 'sky'], [39.2, 'tower'], [42.6, 'run']];
+export const streetCut = (t) => { let c = CUTS[0]; for (const x of CUTS) if (t >= x[0]) c = x; return { view: c[1], dt: t - c[0] }; };
 function camAt(v, s) {
   const t = s.t;
   let pos, yaw = 0, pitch = 0, roll = 0, fov = 48, shake = 0.04;
+  s.you = false; s.phoneClose = false;
   switch (s.shot) {
     case 'ff': {
       // the Short's spot: on the ledge on the promenade, the city ahead, the wall coming up the hill
@@ -158,77 +167,118 @@ function camAt(v, s) {
       break;
     }
     case 'street': {
-      // the evening on the sidewalk; at the flash you dash back into the doorway and stay in its shade
-      pos = path([[-7, P(-18.6, EYE, 9.8)], [0, P(-18.9, EYE, 9.4)], [0.2, P(-19.4, EYE, 9.0)], [1.0, P(-22.9, EYE - 0.1, 6.6)], [2.4, P(-22.22, 1.55, 4.95)], [13, P(-22.2, 1.55, 4.95)], [36, P(-22.18, 1.55, 4.92)],
-        [41, P(-22.3, 1.55, 5.0)], [41.9, P(-25.0, 1.6, 7.2)], [42.7, P(-28.0, 1.6, 8.3)], [43.6, P(-37.0, 1.6, 9.7)], [44.2, P(-43.4, 1.5, 9.7)], [44.6, P(-44.9, 1.2, 9.7)], [45.3, P(-45.15, 0.95, 9.72)], [47, P(-45.2, 0.92, 9.72)]], t);
-      yaw = keys([[-7, -9], [0, -13], [0.15, -13], [0.9, -72], [1.6, -80], [2.6, -11], [13, -12], [14.6, -42], [18.6, -40], [20.4, -15], [28, -17], [36, -12], [40.8, -10], [41.5, 70], [42.6, 88], [44.0, 92], [44.9, -70], [45.6, -88], [47, -86]], t) * DEG;
-      pitch = keys([[-7, -2.5], [0, -1.5], [0.4, -6], [1.5, -8], [2.6, 3], [13, 4.5], [14.6, 0], [18.6, 0], [20.4, 6], [27, 7], [31, 15], [35, 16], [38, 9], [41, 6], [41.5, -4], [44.2, -3], [45.3, 2], [47, 3]], t) * DEG;
-      fov = keys([[-7, 48], [13, 48], [14.6, 52], [18.6, 52], [20.4, 48], [41, 48], [41.5, 56], [44.9, 60], [47, 60]], t);
-      shake = t < 0 ? 0.04 : t < 2.4 ? 0.7 : t < 41 ? 0.12 : t < 45 ? 0.6 : 0.2 + 1.6 * smooth(46.2, 47, t);
-      // the hit: you're thrown back against the stairs
-      const th = smooth(T_HIT + 0.15, T_HIT + 0.3, t);
-      pos.x -= 0.7 * th; pitch += 18 * DEG * th; roll += 10 * DEG * th;
+      const c = streetCut(t), u = c.dt;
+      s.view = c.view;
+      shake = 0.12;
+      if (c.view === 'doorway') {
+        // the evening on the sidewalk; at the flash you dash back into the doorway and stay in its shade
+        pos = path([[-7, P(-18.6, EYE, 9.8)], [0, P(-18.9, EYE, 9.4)], [0.2, P(-19.4, EYE, 9.0)], [1.0, P(-22.9, EYE - 0.1, 6.6)], [2.4, DOOR], [9, DOOR]], t);
+        yaw = keys([[-7, -9], [0, -13], [0.15, -13], [0.9, -72], [1.6, -80], [2.6, -11], [9, -12]], t) * DEG;
+        pitch = keys([[-7, -2.5], [0, -1.5], [0.4, -6], [1.5, -8], [2.6, 3], [9, 4.5]], t) * DEG;
+        shake = t < 0 ? 0.04 : t < 2.4 ? 0.7 : 0.12;
+      } else if (c.view === 'phone') {
+        pos = P(-22.45, 1.5, 5.35); yaw = (-28 + 3 * u / 5) * DEG; pitch = -14 * DEG; fov = 50; s.phoneClose = true;
+      } else if (c.view === 'beside') {
+        pos = P(-26.5 + 0.05 * u, 1.25, 9.6 - 0.06 * u); yaw = (-36 + 0.6 * u) * DEG; pitch = 1.5 * DEG; fov = 60; s.you = true;
+      } else if (c.view === 'shoulder') {
+        pos = P(-24.0 + 0.06 * u, 1.75, 6.7 - 0.04 * u); yaw = (-40 + 1.2 * u) * DEG; pitch = 4 * DEG; fov = 54; s.you = true;
+      } else if (c.view === 'heli') {
+        // (following it down: aimed a little behind where it is, so it drops through the frame)
+        pos = DOOR.clone(); fov = 32;
+        const h = events.heliAt(t - 2 - 0.25);
+        const a = aim(pos, P(h.x, h.y + 4, h.z)); yaw = a.yaw; pitch = a.pitch;
+        shake = 0.1 + 0.8 * Math.exp(-Math.abs(u - 3.5) / 0.4) * (u > 3.2 ? 1 : 0);
+      } else if (c.view === 'across') {
+        pos = P(-22.05, 1.5, 5.5); yaw = (-68 - 2.4 * u) * DEG; pitch = 3 * DEG; fov = 44;
+      } else if (c.view === 'sky') {
+        pos = DOOR.clone(); yaw = (-16 - u) * DEG; pitch = (24 + 1.2 * u) * DEG; fov = 64;
+      } else if (c.view === 'tower') {
+        // (down the hill past the corner: the dust wall coming across the city at you)
+        pos = P(-21.7, 1.55, 4.9); yaw = (-9 - 0.6 * u) * DEG; pitch = (9 - 0.6 * u) * DEG; fov = 42; shake = 0.15 + 0.1 * u;
+      } else {
+        // run inside, through the lobby into the stairwell; down behind the wall, looking back out through the door
+        pos = path([[42.6, P(-22.3, 1.55, 5.0)], [43.3, P(-25.0, 1.6, 7.2)], [43.9, P(-28.0, 1.6, 8.3)], [44.5, P(-37.0, 1.6, 9.7)], [44.9, P(-43.4, 1.5, 9.7)], [45.1, P(-44.9, 1.2, 9.7)], [45.6, P(-45.15, 0.95, 9.72)], [47.5, P(-45.2, 0.92, 9.72)]], t);
+        yaw = keys([[42.6, -12], [43.1, 70], [43.8, 88], [44.7, 92], [45.2, -70], [45.7, -88], [47.5, -86]], t) * DEG;
+        pitch = keys([[42.6, 4], [43.1, -4], [44.9, -3], [45.6, 2], [47.5, 3]], t) * DEG;
+        fov = keys([[42.6, 48], [43.1, 56], [45.2, 60], [47.5, 60]], t);
+        shake = t < 45.2 ? 0.6 : 0.2 + 1.6 * smooth(46.2, 47, t);
+        // the hit: you're thrown back against the stairs
+        const th = smooth(T_HIT + 0.15, T_HIT + 0.3, t);
+        pos.x -= 0.7 * th; pitch += 18 * DEG * th; roll += 10 * DEG * th;
+      }
       break;
     }
     case 'stairs': {
-      // down on the stairwell floor, looking at the door; you sit up, look at your phone, get up
-      pos = P(-47.4, keys([[47, 0.75], [57, 0.85], [76, 0.9], [78, 1.45]].map(([a, b]) => [a, b]), t), 12.5);
-      yaw = keys([[47, -42], [54, -48], [56, -52], [62, -45], [66, -60], [70, -40]], t) * DEG;
-      pitch = keys([[47, 14], [48, 6], [54, 4], [55, 8], [58, 3], [58.5, 2], [69.5, 0], [70.6, -16], [77, -14], [78, 0]], t) * DEG;
-      roll = keys([[47, 10], [48.5, 3], [52, 0]], t) * DEG;
-      fov = 58;
-      shake = t < 54.2 ? 0.25 + 0.9 * Math.exp(-(t - 47) / 3) : t < 58 ? 0.8 * Math.exp(-(t - 54.4) / 1.5) + 0.12 : 0.08;
+      // a few seconds down on the stairwell floor; then the wind comes back, yanks the door open, and you get up and go
+      pos = path([[47, P(-47.4, 0.75, 12.5)], [50.3, P(-47.3, 0.8, 12.4)], [53.6, P(-47.2, 0.85, 12.3)], [55.6, P(-47.0, 0.95, 12.0)], [57.6, P(-45.6, 1.55, 10.5)]], t);
+      yaw = keys([[47, -42], [50.3, -48], [53.6, -46], [54.6, -52], [56, -45], [57.6, -70]], t) * DEG;
+      pitch = keys([[47, 14], [48, 6], [50.3, 4], [53.6, 4], [54.6, 8], [56, 3], [57.6, 0]], t) * DEG;
+      roll = keys([[47, 10], [48.5, 3], [50, 0]], t) * DEG;
+      fov = 60;
+      shake = t < 51 ? 0.25 + 0.9 * Math.exp(-(t - 47) / 3) : t < 57.6 ? 0.9 * Math.exp(-Math.abs(t - 54.5) / 1.2) + 0.15 : 0.1;
       break;
     }
     case 'lobby': {
       const u = s.dt;
-      pos = path([[0, P(-45.6, EYE, 10.6)], [1.4, P(-44.0, EYE, 9.8)], [5, P(-37, EYE, 10.4)], [9, P(-30, EYE, 13.6)], [12, P(-24.5, EYE, 16.6)], [14, P(-21.4, EYE, 17.4)]], u);
-      yaw = keys([[0, -62], [1.4, -88], [3.5, -82], [5.5, -52], [7.5, -60], [9.0, -118], [10.5, -110], [12, -78], [14, -40]], u) * DEG;
-      pitch = keys([[0, -4], [3, -10], [5, -2], [8, 4], [9, -14], [11, -6], [14, 2]], u) * DEG;
-      fov = 58; shake = 0.1;
+      pos = path([[0, P(-44.4, EYE, 9.8)], [2, P(-36, EYE, 10.8)], [4.2, P(-27, EYE, 15.5)], [6.3, P(-21.0, EYE, 17.6)]], u);
+      yaw = keys([[0, -80], [1.6, -62], [3.0, -112], [4.6, -80], [6.3, -38]], u) * DEG;
+      pitch = keys([[0, -4], [2, -9], [4, -4], [6.3, 2]], u) * DEG;
+      fov = 60; shake = 0.12;
       break;
     }
     case 'after': {
+      // out on the sidewalk: the burning city down the hill; then straight up at the cloud over you; then the people round you
       const u = s.dt;
-      pos = path([[0, P(-20.6, EYE, 17.4)], [10, P(-18.8, EYE, 13.6)], [36, P(-17.4, EYE, 7.0)]], u);
-      yaw = keys([[0, -30], [6, -14], [14, -10], [20, -22], [26, -12], [36, -6]], u) * DEG;
-      pitch = keys([[0, 2], [6, 5], [16, 6], [18, 24], [26, 30], [31, 10], [36, 8]], u) * DEG;
-      fov = keys([[0, 50], [16, 50], [24, 62], [32, 56], [36, 52]], u); shake = 0.07;
+      pos = path([[0, P(-20.4, EYE, 17.4)], [7, P(-15.5, EYE, 12.5)], [10, P(-9.5, EYE, 9.5)], [20, P(-8.5, EYE, 8.8)], [30, P(-6.5, EYE, 4.4)]], u);
+      yaw = keys([[0, -30], [4, -14], [8, -12], [11, -4], [19, 10], [21, -10], [25, -48], [30, -30]], u) * DEG;
+      pitch = keys([[0, 2], [4, 3], [8, 4], [11.5, 52], [19, 58], [21.5, 8], [25, 0], [30, 2]], u) * DEG;
+      fov = keys([[0, 54], [8, 54], [11.5, 82], [19, 82], [21.5, 56], [30, 54]], u); shake = 0.07;
       break;
     }
     case 'burning': {
+      // the cloud overhead; your building burning, a slab coming off it and landing close; the wind turning toward the fire
       const u = s.dt;
-      pos = path([[0, P(2.6, EYE, 26)], [36, P(2.6, EYE, 27)], [42, P(2.0, EYE, 30)], [50, P(1.2, EYE, 35.5)]], u);
-      // (looking up at your building as the slab comes off it at 156.8, down with it as it lands at ~159.3)
-      yaw = keys([[0, -10], [7, -6], [12, 20], [16, 56], [26, 60], [31.3, 62], [34, 58], [37, 12], [41, -6], [44, 120], [48, 178], [50, 180]], u) * DEG;
-      pitch = keys([[0, 22], [6, 28], [12, 14], [16, 16], [24, 16], [28.6, 30], [30.6, 10], [31.6, 3], [33, 4], [37, 8], [41, 14], [44, 2], [50, 0]], u) * DEG;
-      fov = keys([[0, 60], [10, 60], [16, 52], [34, 52], [37, 56], [50, 52]], u);
-      shake = 0.08 + 0.6 * Math.exp(-Math.abs(v - 157.2 - 1.0) / 0.5) * (v > 157.6 ? 1 : 0);
+      pos = path([[0, P(2.6, EYE, 26)], [7.5, P(3.0, EYE, 26.8)], [9, P(4.6, EYE, 29.0)], [24, P(4.4, EYE, 28.6)], [33, P(2.6, EYE, 31)], [36, P(1.4, EYE, 34.5)]], u);
+      yaw = keys([[0, -8], [7, -4], [9, 58], [14, 60], [17.6, 61], [20, 40], [24, 8], [28, -4], [32, -10], [34.5, 120], [36, 178]], u) * DEG;
+      pitch = keys([[0, 26], [7, 30], [9, 22], [14.6, 24], [16.6, 12], [18, 6], [24, 8], [28, 10], [33, 4], [36, 0]], u) * DEG;
+      fov = keys([[0, 64], [7, 64], [9, 64], [18, 60], [24, 54], [36, 54]], u);
+      shake = 0.08 + 0.9 * Math.exp(-Math.abs(v - (SLAB_FALL.v + 2.45)) / 0.4) * (v > SLAB_FALL.v + 2.3 ? 1 : 0);
       break;
     }
     case 'walk': {
+      // into the wind (south), debris coming at you, then the gas main
       const u = s.dt;
       pos = P(0.5 + wobble(u * 0.4, 3) * 0.3, EYE + Math.abs(Math.sin(u * 5.2)) * 0.03, 36 + 1.6 * u);
-      yaw = (180 + keys([[0, 0], [8, 6], [14, -10], [20, 0], [30, -10], [37, 0]], u)) * DEG;
-      pitch = keys([[0, 0], [10, 2], [22, 6], [26, 3], [37, 0]], u) * DEG;
-      fov = 54; shake = 0.1 + 1.4 * Math.exp(-Math.max(0, v - 200.4) / 0.6) * (v > 200.4 ? 1 : 0);
+      yaw = (180 + keys([[0, 0], [6, 8], [11, -6], [16, 4], [18, 14], [22, 16], [26, 4], [30, 0]], u)) * DEG;
+      pitch = keys([[0, 2], [8, 4], [16, 3], [18, 10], [22, 6], [30, 2]], u) * DEG;
+      fov = 58; shake = 0.25 + 1.8 * Math.exp(-Math.max(0, v - GAS.t) / 0.7) * (v > GAS.t ? 1 : 0);
       break;
     }
     case 'park': {
       const u = s.dt;
-      pos = path([[0, P(-182, EYE + 1.2, -100)], [38, P(-181.6, EYE + 1.2, -100.4)], [40.5, P(-181, EYE, -98)], [50, P(-177, EYE, -61)]], u);
-      yaw = keys([[0, -4], [10, -12], [20, 8], [27, -6], [29, -6], [33, -2], [37, -4], [39, 120], [42, 178], [50, 176]], u) * DEG;
-      pitch = keys([[0, -1], [8, 3], [14, 12], [22, 1], [27, 4], [28, 30], [33, 26], [36, 2], [42, -4], [50, -6]], u) * DEG;
-      fov = keys([[0, 52], [22, 52], [28, 64], [34, 58], [42, 54]], u); shake = 0.07;
+      pos = path([[0, P(-182, EYE + 1.2, -100)], [37, P(-181.6, EYE + 1.2, -100.4)], [39, P(-181, EYE, -98)], [45, P(-177, EYE, -80)]], u);
+      yaw = keys([[0, -4], [8, -12], [16, 8], [22, -6], [26, -6], [30, -2], [36.5, -4], [38.5, 120], [40.5, 178], [45, 176]], u) * DEG;
+      pitch = keys([[0, -1], [6, 3], [12, 12], [20, 1], [25, 4], [26.5, 30], [31, 26], [35, 2], [40, -4], [45, -6]], u) * DEG;
+      fov = keys([[0, 52], [20, 52], [26.5, 64], [32, 58], [40, 54]], u); shake = 0.07;
       break;
     }
     default: {
-      // the garage: down the ramp, to the car with the radio, the phone, then the sirens at the top of the ramp
+      // the garage, cut in five: down the ramp; the car with the radio; the people along the wall; your phone; the ramp
       const u = s.dt;
-      pos = path([[0, P(0, RAMP.top + EYE, RAMP.z1 - 1)], [10, P(0, EYE, RAMP.z0 - 1)], [14, P(1.2, EYE, -2)], [20, P(3.0, EYE, -5.5)], [56, P(3.1, EYE, -5.6)]], u);
-      yaw = keys([[0, 0], [10, 4], [14, -20], [20, -38], [26, -34], [30, -20], [46, -14], [47.5, 160], [50, 178], [56, 180]], u) * DEG;
-      pitch = keys([[0, -10], [10, -6], [14, -4], [20, -6], [26, -18], [44, -16], [46, -2], [50, 6], [56, 6]], u) * DEG;
-      fov = 58; shake = 0.06;
+      fov = 58; shake = 0.05;
+      if (u < 6) {
+        pos = path([[0, P(0, RAMP.top + EYE, RAMP.z1 - 1)], [6, P(0, EYE + 0.2, RAMP.z0 - 2)]], u); yaw = 0; pitch = keys([[0, -10], [6, -6]], u) * DEG;
+      } else if (u < 13) {
+        const r = garage.radio;
+        pos = P(r.x - 4.4 + 0.08 * (u - 6), 1.35, r.z + 3.2 - 0.05 * (u - 6));
+        const a = aim(pos, P(r.x - 1.6, 0.9, r.z)); yaw = a.yaw; pitch = a.pitch; fov = 54;
+      } else if (u < 18) {
+        pos = P(-25.4 - 0.1 * (u - 13), 1.25, -16); yaw = (72 + 1.2 * (u - 13)) * DEG; pitch = -6 * DEG; fov = 58;
+      } else if (u < 28) {
+        pos = P(3.0, 1.55, -5.5); yaw = -30 * DEG; pitch = -24 * DEG; fov = 50; s.phoneClose = true;
+      } else {
+        pos = P(1.0, EYE, -2 + 0.1 * (u - 28)); yaw = keys([[28, 178], [43, 180]], u) * DEG; pitch = keys([[28, 4], [43, 7]], u) * DEG; fov = 56;
+      }
     }
   }
   // a hand-held sway
@@ -314,7 +364,7 @@ function updateWorld(v, s) {
     hemi.intensity = 0.5 + 0.35 * fireK;
   }
   // (indoors: little of the sky's light gets in)
-  if (s.shot === 'stairs' || s.shot === 'lobby' || (s.shot === 'street' && t > 41.5)) hemi.intensity *= s.shot === 'stairs' ? 0.15 : 0.4;
+  if (s.shot === 'stairs' || s.shot === 'lobby' || (s.shot === 'street' && t > 42.9)) hemi.intensity *= s.shot === 'stairs' ? 0.15 : 0.4;
   fireL.target.updateMatrixWorld();
   // (before the flash the street's own warm light is the main light; it goes with the blackout)
   shopL.intensity = 110 * (1 - ws.dark) * (afterK ? 0 : 1);
@@ -360,7 +410,7 @@ function updateWorld(v, s) {
   traffic.frame(sv, ws, glows);
   blast.frame(sv, afterK ? NO_FRONT : ws, glows);
   if (afterK) after.frame(t, v, s, camera.position, glows, flames, smoke);
-  lobby.frame(t, { ...ws, front, roomFire: s.roomFire }, v, glows, smoke);
+  lobby.frame(t, { ...ws, front, roomFire: s.roomFire }, v, glows, smoke, s.you);
   flames.end();
   smoke.end();
   glows.end();
@@ -385,12 +435,13 @@ function update(v) {
   const into = s.shot === 'garage' ? garage.scene : scene;
   if (camera.parent !== into) into.add(camera);
   if (s.shot === 'garage') {
-    s.sirens = smooth(311.6, 313.2, v); s.sirT = v - 312.4;
+    s.sirens = smooth(V_SIREN - 0.4, V_SIREN + 1.0, v); s.sirT = v - V_SIREN;
     gGlows.begin(camera);
     garage.frame(v, s, gGlows);
     gGlows.end();
     renderPass.scene = garage.scene;
-    exposure = 1.25;
+    // (the last shot looks up the ramp at the sirens: less exposure, so their red and blue show)
+    exposure = s.dt > 28 ? 1.1 : 1.4;
     bloom.strength = 0.45; bloom.threshold = 1.0;
   } else {
     I = updateWorld(v, s);
@@ -402,7 +453,7 @@ function update(v) {
     bloom.strength = (t < 0 ? 0.3 : !s.after ? 0.22 + 0.12 * I + 0.5 * smooth(0, 0.06, t) * (1 - smooth(1.5, 6, t)) : 0.4) + 0.3 * smooth(T_HIT - 1, T_HIT, t) * (s.after ? 0 : 1);
   }
   renderer.toneMappingExposure = exposure;
-  phone.frame(v, s.shot === 'garage' ? 1 : 1);
+  phone.frame(v, 1, s.phoneClose);
   finish.uniforms.uAb.value = s.shot === 'ff' || (s.t > 45 && s.t < 48 && !s.after) ? 0.6 : s.slow ? 0.4 : 0;
   finish.uniforms.uTitle.value = window.__cover ? 0.2 : v < FF_LEN ? 1 - smooth(4.3, 4.6, v) : 0;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 0.9 * (1 - Math.max(s.white, s.black));
@@ -426,7 +477,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [2, 8, 30, 58, 65, 85, 100, 150, 190, 230, 280, 300]) renderFrame(t);   // compile everything once
+  for (const t of [2, 8, 22, 30, 40, 58, 62, 70, 80, 110, 150, 190, 222, 240]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, sky, state, CU, GU, update, garage, lobby, after, comp: () => comp };

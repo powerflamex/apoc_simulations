@@ -44,9 +44,11 @@ export function makeFlames(scene, max = 700) {
         float top = pow(side, 0.75) * (0.3 + 0.95 * tongues);
         float lick = fbm(vec3(x * 3.4, y * 2.6 - t * 2.4, seed * 5.0));
         float lick2 = n3(vec3(x * 8.0, y * 7.0 - t * 4.6, seed * 2.0));
-        float edge = top - y + (lick - 0.5) * 0.55 * (0.25 + y) + (lick2 - 0.5) * 0.12;
+        float lick3 = n3(vec3(x * 19.0, y * 16.0 - t * 9.0, seed * 4.0));
+        float edge = top - y + (lick - 0.5) * 0.55 * (0.25 + y) + (lick2 - 0.5) * 0.16 + (lick3 - 0.5) * 0.07;
         // (a ragged foot too: no straight line along the bottom)
-        float f = smoothstep(0.0, 0.22, edge) * smoothstep(0.0, 0.2, y - 0.16 * fbm(vec3(x * 4.0, t * 0.7, seed * 9.0)) + 0.04);
+        // (a crisp edge: flames read as flames, not a glow)
+        float f = smoothstep(0.0, 0.06, edge) * smoothstep(0.0, 0.12, y - 0.16 * fbm(vec3(x * 4.0, t * 0.7, seed * 9.0)) + 0.04);
         // (blobs that break off the tips and fade on the way up)
         float blob = smoothstep(0.62, 0.8, lick) * smoothstep(top + 0.35, top, y) * step(top, y) * side;
         f = max(f, blob * 0.7);
@@ -56,6 +58,8 @@ export function makeFlames(scene, max = 700) {
         vec3 c = mix(vec3(0.45, 0.04, 0.008), vec3(1.35, 0.3, 0.025), smoothstep(0.0, 0.3, depth));
         c = mix(c, vec3(2.0, 0.85, 0.16), smoothstep(0.3, 0.75, depth));
         c = mix(c, vec3(2.5, 1.5, 0.5), smoothstep(0.55, 1.0, depth) * base);
+        // darker streaks inside the body: the flame's own folds
+        c *= 0.72 + 0.4 * smoothstep(0.25, 0.7, lick3 * 0.6 + lick * 0.6);
         float flick = 0.82 + 0.18 * sin(t * 9.0 + seed * 20.0) * sin(t * 5.7 + 1.0);
         // the smoke: dark, rolling, widening as it rises off the top of the fire
         float sy = y - top * 0.85;

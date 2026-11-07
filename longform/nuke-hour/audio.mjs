@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, NOTES, POPS, CHAPTERS, GAS, SLAB_FALL, storyOf, shotAt } from './src/timeline.js';
+import { VIDEO_DURATION, NOTES, POPS, CHAPTERS, GAS, SLAB_FALL, V_RADIO, V_TEXT, V_SIREN, V_WHITE, storyOf, shotAt } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -122,7 +122,7 @@ export function makeSoundtrack(outFile) {
   // the hour: the slab, the gas main, far collapses
   thump(V_SLAB, 0.5, 52, 0.4, 0.5); debris(V_SLAB, 1.4, 40, 0.03);
   thump(GAS.t, 1.0, 38, 0.9, 0.3); debris(GAS.t + 0.2, 2.4, 40, 0.03);
-  for (let k = 0; k < 9; k++) thump(92 + R0() * 120, 0.06 + R0() * 0.06, 40 + R0() * 20, 0.8, R0() * 1.6 - 0.8, 1.2);
+  for (let k = 0; k < 8; k++) thump(74 + R0() * 90, 0.06 + R0() * 0.06, 40 + R0() * 20, 0.8, R0() * 1.6 - 0.8, 1.2);
   // popups and chapter stamps: a soft low hit
   for (const [t] of POPS) thump(t, 0.11, 44, 0.5, 0, 1.0);
   for (const c of CHAPTERS) thump(c.v, 0.14, 40, 0.7, 0, 1.0);
@@ -197,7 +197,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- far sirens before the blast; near sirens at the very end ---
     {
-      const g = smooth(V_FLASH + 9, V_FLASH + 16, v) * (v < V_HIT ? 1 : 0) * 0.0028 + smooth(310.5, 316, v) * (1 - smooth(321.4, 322.0, v)) * 0.02;
+      const g = smooth(V_FLASH + 9, V_FLASH + 16, v) * (v < V_HIT ? 1 : 0) * 0.0028 + smooth(V_SIREN - 1.5, V_SIREN + 3, v) * (1 - smooth(V_WHITE + 1.4, V_WHITE + 1.9, v)) * 0.02;
       if (g > 0) {
         for (let q = 0; q < 2; q++) {
           const f = 640 + 90 * q + 260 * Math.sin(v * (1.3 + 0.4 * q) + q * 2) + 100 * Math.sin(v * 0.7 + 1);
@@ -217,7 +217,7 @@ export function makeSoundtrack(outFile) {
       else if (shot === 'lobby') g = 0.4 + 0.5 * smooth(84, 92, v);
       else if (shot === 'after' || shot === 'burning' || shot === 'walk') g = 1.0 + 0.4 * smooth(128, 200, v);
       else if (shot === 'park') g = 0.6;
-      else if (shot === 'garage') g = 0.18 * (1 - smooth(266, 276, v)) + 0.08;
+      else if (shot === 'garage') g = 0.18 * (1 - smooth(216, 222, v)) + 0.08;
       if (g > 0) {
         const w = white();
         const roar = fireLP.run(w) * 0.5 + fireF.run(w, 260 + 90 * Math.sin(v * 2.3), 0.7).bp * 0.12;
@@ -237,10 +237,10 @@ export function makeSoundtrack(outFile) {
       const storm = smooth(700, 1900, t);
       let g = 0;
       if (shot === 'after') g = 0.25;
-      else if (shot === 'burning') g = 0.3 + 0.7 * smooth(156, 166, v);
+      else if (shot === 'burning') g = 0.3 + 0.7 * smooth(129, 134, v);
       else if (shot === 'walk') g = 1.1;
       else if (shot === 'park') g = 0.9;
-      else if (shot === 'garage') g = 0.15 * (1 - smooth(265, 274, v));
+      else if (shot === 'garage') g = 0.15 * (1 - smooth(215, 221, v));
       g *= 0.4 + 0.6 * storm;
       if (g > 0) {
         const gust = 0.7 + 0.3 * Math.sin(v * 0.5) * Math.sin(v * 0.31 + 1);
@@ -278,7 +278,7 @@ export function makeSoundtrack(outFile) {
     { const dt = v - V_SLAM; if (dt > 0 && dt < 9) { ph[20] += 3900 / SR; const x = Math.sin(TAU * ph[20]) * 0.01 * smooth(0, 0.4, dt) * Math.exp(-dt / 3.5); l += x; r += x; } }
     // --- footsteps (crunching on glass and rubble) when you walk ---
     {
-      const walking = (shot === 'lobby' && v < 92) || (shot === 'walk') || (shot === 'street' && t > 41 && t < 44.8) || (shot === 'park' && v > 253) || (shot === 'garage' && v < 285);
+      const walking = shot === 'lobby' || shot === 'walk' || (shot === 'street' && t > 42.6 && t < 45.2) || (shot === 'park' && v > 208.5) || (shot === 'garage' && v < 221);
       if (walking) {
         const rate = shot === 'street' ? 3.2 : 1.8;
         ph[22] += rate / SR;
@@ -289,7 +289,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- people: murmur after the blast, on the street, in the park, in the garage ---
     {
-      const g = shot === 'after' ? 0.6 : shot === 'park' ? 1 : shot === 'garage' ? 0.8 * (1 - smooth(310, 316, v)) + 0.5 * smooth(313, 316, v) : shot === 'burning' ? 0.35 : 0;
+      const g = shot === 'after' ? 0.7 : shot === 'park' ? 1 : shot === 'garage' ? 0.9 * (1 - smooth(V_SIREN - 1, V_SIREN + 2, v)) + 0.6 * smooth(V_SIREN + 0.5, V_SIREN + 2.5, v) : shot === 'burning' ? 0.45 : shot === 'walk' ? 0.35 : 0;
       if (g > 0) {
         let cv = 0;
         for (let q = 0; q < 3; q++) {
@@ -302,7 +302,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- the radio in the garage: the alert tone, then a voice too far to make out ---
     {
-      const t0 = 276.5;
+      const t0 = V_RADIO;
       const dt = v - t0;
       if (dt > -0.2 && dt < 26 && shot === 'garage') {
         if (dt > 0 && dt < 2.4) {
@@ -321,9 +321,9 @@ export function makeSoundtrack(outFile) {
     }
     // --- a quiet low pad under the hour (minor, darkening; it opens up when the text gets through) ---
     {
-      const g = smooth(76, 84, v) * (1 - smooth(321.4, 322.2, v)) * 0.6 + smooth(324, 325.5, v) * (1 - smooth(329.5, 331, v)) * 0.8;
+      const g = smooth(64, 70, v) * (1 - smooth(V_WHITE + 1.4, V_WHITE + 2.0, v)) * 0.6 + smooth(V_WHITE + 2.2, V_WHITE + 3.6, v) * (1 - smooth(VIDEO_DURATION - 1.5, VIDEO_DURATION, v)) * 0.8;
       if (g > 0) {
-        const lift = smooth(296, 300, v);
+        const lift = smooth(V_TEXT + 1, V_TEXT + 3.5, v);
         const roots = [55, 65.41, 82.41, 98.0 + 5.83 * lift];                // A, C (->), E, G -> A
         let x = 0;
         for (let q = 0; q < 4; q++) { ph[40 + q] += roots[q] * (q === 1 ? 1 + 0.26 * lift : 1) / SR; ph[44 + q] += roots[q] * 1.003 / SR; x += (saw(ph[40 + q]) + saw(ph[44 + q])) * (q === 0 ? 1 : 0.6); }
@@ -333,7 +333,7 @@ export function makeSoundtrack(outFile) {
       }
     }
     // --- the riser into the white at the end ---
-    { const dt = v - 319.0; if (dt > 0 && v < 323.7) { const g = smooth(0, 4.4, dt); ph[60] += (200 + 900 * g * g) / SR; const x = (saw(ph[60]) * 0.4 + white() * 0.5) * 0.04 * g * g * (1 - smooth(323.5, 323.7, v)); l += x; r += x; wet += x * 0.3; } }
+    { const dt = v - (V_WHITE - 2.8); if (dt > 0 && v < V_WHITE + 1.7) { const g = smooth(0, 4.3, dt); ph[60] += (200 + 900 * g * g) / SR; const x = (saw(ph[60]) * 0.4 + white() * 0.5) * 0.04 * g * g * (1 - smooth(V_WHITE + 1.5, V_WHITE + 1.7, v)); l += x; r += x; wet += x * 0.3; } }
 
     // --- one-shot events ---
     const bk = B[Math.floor(v * 2)];

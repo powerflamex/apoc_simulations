@@ -30,15 +30,17 @@ export const V_FLASH = 12.0;                  // the flash, on the video clock
 export const SEGS = [
   [5, 58.6, -7, 1],                           // the evening and the 47 seconds, in real time
   [58.6, 60.7, 46.6, 1 / 3],                  // the hit, slowed down 3x (labelled on the counter)
-  [60.7, 78, 47.3, 1],                        // the stairwell
-  [78, 128, 300, 4],                          // 5 MINUTES IN: out to the street
-  [128, 178, 600, 5],                         // 10 MINUTES IN: the cloud stops rising, your building burns
-  [178, 215, 1200, 6],                        // 20 MINUTES IN: walking out between the fires
-  [215, 265, 1800, 6],                        // 30 MINUTES IN: the park; something starts falling
-  [265, 318, 2700, 900 / 53],                // 45 MINUTES IN: the garage; a text gets through
-  [318, 340, 3600, 1],                        // THE FIRST HOUR
+  [60.7, 63.7, 47.3, 1],                      // the stairwell, a few seconds
+  [63.7, 67.7, 53.6, 1],                      // ...and the moment the wind comes back
+  [67.7, 74, 300, 4],                         // 5 MINUTES IN: out through the lobby
+  [74, 104, 324, 4],                          // the street, the cloud overhead
+  [104, 140, 600, 5],                         // 10 MINUTES IN: the cloud stops rising, your building burns
+  [140, 170, 1200, 6],                        // 20 MINUTES IN: the wind pulls toward the fire, the gas main
+  [170, 215, 1800, 6],                        // 30 MINUTES IN: the park; something starts falling
+  [215, 245.5, 2700, 900 / 30.5],             // 45 MINUTES IN: the garage; texts get through
+  [245.5, 270, 3600, 1],                      // THE FIRST HOUR
 ];
-export const VIDEO_DURATION = 331;
+export const VIDEO_DURATION = 258;
 export const FF_LEN = 5.0;
 // the flash-forward: the last seconds before the wall, from the Short's spot on the promenade (story time 43.6 .. 47.1),
 // the last 0.6 s before the hit slowed 3x
@@ -49,21 +51,23 @@ export function storyOf(v) {
   return t0 + (v - a) * r;
 }
 // the gas main that blows up ahead of you, the burning slab off your building (video times)
-export const GAS = { x: -10.8, z: 112, t: 200.4 };
-export const SLAB_FALL = { x: -22.5, y: 30, z: 15, v: 156.8 };
+export const GAS = { x: -6.5, z: 82, t: 158.0 };
+export const SLAB_FALL = { x: -22.5, y: 30, z: 15, v: 119.0 };
+// the garage's moments and the end (video times)
+export const V_RADIO = 221.6, V_TEXT = 233.3, V_SIREN = 243.0, V_HOUR = 245.5, V_WHITE = 248.8;
 export const isSlow = (v) => (v >= 58.6 && v < 60.7) || (v >= 2.8 && v < 4.6);
 
 // where you are (main.js has the camera for each)
 export const SHOTS = [
   [0, 5, 'ff'],
-  [5, 60.7, 'street'],       // the sidewalk, the alcove, the lobby, the stairwell door
-  [60.7, 78, 'stairs'],
-  [78, 92, 'lobby'],
-  [92, 128, 'after'],
-  [128, 178, 'burning'],
-  [178, 215, 'walk'],
-  [215, 265, 'park'],
-  [265, 331, 'garage'],
+  [5, 60.7, 'street'],       // the sidewalk, the doorway (cut between views every few seconds), the lobby, the stairwell door
+  [60.7, 67.7, 'stairs'],
+  [67.7, 74, 'lobby'],
+  [74, 104, 'after'],
+  [104, 140, 'burning'],
+  [140, 170, 'walk'],
+  [170, 215, 'park'],
+  [215, 258, 'garage'],
 ];
 export function shotAt(v) {
   for (const s of SHOTS) if (v >= s[0] && v < s[1]) return { from: s[0], to: s[1], scene: s[2], u: (v - s[0]) / (s[1] - s[0]), dt: v - s[0] };
@@ -73,12 +77,12 @@ export function shotAt(v) {
 
 // chapter stamps (big, for 2.6 s)
 export const CHAPTERS = [
-  { v: 78, stamp: '5 MINUTES IN' },
-  { v: 128, stamp: '10 MINUTES IN' },
-  { v: 178, stamp: '20 MINUTES IN' },
-  { v: 215, stamp: '30 MINUTES IN' },
-  { v: 265, stamp: '45 MINUTES IN' },
-  { v: 318.2, stamp: 'YOU MADE IT THROUGH THE FIRST HOUR', small: true },
+  { v: 67.7, stamp: '5 MINUTES IN' },
+  { v: 104, stamp: '10 MINUTES IN' },
+  { v: 140, stamp: '20 MINUTES IN' },
+  { v: 170, stamp: '30 MINUTES IN' },
+  { v: 215, stamp: '45 MINUTES IN' },
+  { v: 245.7, stamp: 'YOU MADE IT THROUGH THE FIRST HOUR', small: true },
 ];
 export function stampAt(v) {
   for (const c of CHAPTERS) if (v >= c.v && v < c.v + (c.small ? 3.4 : 2.6)) return { say: c.stamp, dt: v - c.v, small: c.small, dur: c.small ? 3.4 : 2.6 };
@@ -101,7 +105,7 @@ export const COUNTERS = [
     value: (v) => T_HIT - storyOf(v), fmt: (x) => `${Math.max(0, x).toFixed(2)} s`,
     unit: (v) => `${Math.max(0, D_MI - miAt(storyOf(v))).toFixed(2)} MILES AWAY`,
   },
-  { from: 60.7, to: 323.4, label: 'SURVIVE THE FIRST HOUR', value: (v) => Math.min(storyOf(v), 3600), fmt: hourFmt, unit: (v) => (storyOf(v) >= 3600 ? 'DONE' : `DANGER NOW: ${dangerAt(storyOf(v))}`) },
+  { from: 60.7, to: 249.2, label: 'SURVIVE THE FIRST HOUR', value: (v) => Math.min(storyOf(v), 3600), fmt: hourFmt, unit: (v) => (storyOf(v) >= 3600 ? 'DONE' : `DANGER NOW: ${dangerAt(storyOf(v))}`) },
 ];
 // (in the flash-forward the countdown shows the Short's last seconds: the same numbers as at 0:56-1:00)
 export const FF_COUNTER = {
@@ -114,15 +118,15 @@ export const FF_COUNTER = {
 export const NOTES = [
   [5.6, 3.6, 'msg', 'Jay', 'where are you? it starts at 9'],
   [9.0, 2.9, 'msg', 'Mom', 'text me when you get there'],
-  [22.4, 4.2, 'me', 'You', 'mom did you see that', 'Not Delivered'],
-  [72.6, 4.0, 'me', 'You', 'im ok. are you ok??', 'Not Delivered'],
-  [113.0, 4.0, 'sys', 'No Service', 'Emergency calls only. Calls are not connecting.'],
-  [172.0, 4.0, 'me', 'You', 'leaving the building. its on fire', 'Not Delivered'],
-  [276.5, 5.4, 'radio', 'Car radio · Emergency broadcast', 'Stay inside a solid building for at least 24 hours. Do not go outside.'],
-  [295.5, 3.6, 'me', 'You', 'mom im alive. in a garage', 'Delivered', true],
-  [299.4, 4.0, 'msg', 'Mom', 'OH THANK GOD. we\'re ok. stay there'],
-  [303.6, 4.2, 'msg', 'Dad', 'don\'t go outside. we\'ll come for you when it\'s safe'],
-  [308.0, 3.8, 'msg', 'Jay', 'made it to a basement. you??'],
+  [22.4, 4.0, 'me', 'You', 'mom did you see that', 'Not Delivered'],
+  [79.0, 3.8, 'me', 'You', 'im ok. are you ok??', 'Not Delivered'],
+  [97.0, 3.4, 'sys', 'No Service', 'Emergency calls only. Calls are not connecting.'],
+  [136.2, 3.4, 'me', 'You', 'leaving the building. its on fire', 'Not Delivered'],
+  [221.6, 5.4, 'radio', 'Car radio · Emergency broadcast', 'Stay inside a solid building for at least 24 hours. Do not go outside.'],
+  [233.3, 3.0, 'me', 'You', 'mom im alive. in a garage', 'Delivered', true],
+  [236.3, 2.5, 'msg', 'Mom', 'OH THANK GOD. we\'re ok. stay there'],
+  [238.8, 2.4, 'msg', 'Dad', 'don\'t go outside. we\'ll come for you'],
+  [241.2, 2.0, 'msg', 'Jay', 'made it to a basement. you??'],
 ];
 export function noteAt(v) {
   for (const n of NOTES) if (v >= n[0] - 0.05 && v < n[0] + n[1]) return { v0: n[0], dur: n[1], kind: n[2], from: n[3], text: n[4], fail: n[5], ok: n[6], dt: v - n[0] };
@@ -136,17 +140,19 @@ export const POPS = [
   [V_FLASH + 8.2, 'THE WHOLE CITY GOES DARK'],
   [V_FLASH + 20.2, 'ANYTHING IN THE LIGHT CATCHES FIRE'],
   [V_FLASH + 28.9, 'THE HELICOPTER GOES DOWN'],
-  [V_FLASH + 37.9, 'IT FILLS THE SKY'],
-  [V_FLASH + 40.5, 'THE TALLEST TOWER FALLS'],
-  [67.6, 'THE WIND COMES BACK'],
-  [95.0, 'THE WHOLE CITY IS ON FIRE'],
-  [146.0, 'YOUR BUILDING IS ON FIRE'],
-  [161.2, 'THE WIND TURNS TOWARD THE FIRE'],
-  [200.4, 'A GAS MAIN EXPLODES'],
-  [218.4, 'THE FIRES BECOME ONE'],
-  [242.0, 'SOMETHING IS FALLING'],
-  [298.0, 'A TEXT GETS THROUGH'],
-  [313.2, 'HELP IS ON THE WAY'],
+  [V_FLASH + 36.4, 'IT FILLS THE SKY'],
+  [V_FLASH + 40.0, 'THE BLAST IS COMING UP THE HILL'],
+  [64.6, 'THE WIND COMES BACK'],
+  [76.0, 'THE WHOLE CITY IS ON FIRE'],
+  [89.0, 'IT\'S RIGHT ABOVE YOU'],
+  [113.5, 'YOUR BUILDING IS ON FIRE'],
+  [131.0, 'THE WIND TURNS TOWARD THE FIRE'],
+  [149.0, 'THE WIND PULLS EVERYTHING IN'],
+  [158.2, 'A GAS MAIN EXPLODES'],
+  [173.4, 'THE FIRES BECOME ONE'],
+  [197.0, 'SOMETHING IS FALLING'],
+  [234.2, 'A TEXT GETS THROUGH'],
+  [243.6, 'HELP IS ON THE WAY'],
 ];
 export function popupAt(v) {
   if (stampAt(v)) return null;
@@ -159,30 +165,27 @@ export const CAPS = [
   [V_FLASH + 3.4, V_FLASH + 6.8, 'You\'re 13 miles from the bomb.'],
   [V_FLASH + 11.0, V_FLASH + 14.8, 'Stay out of its light. The heat lasts almost a minute.'],
   [V_FLASH + 22.4, V_FLASH + 26.2, 'A wall of air is coming at 860 mph.'],
-  [V_FLASH + 30.9, V_FLASH + 34.8, 'When it hits, every window turns into flying glass.'],
-  [V_FLASH + 41.6, V_FLASH + 44.6, 'Get inside. Away from the windows.'],
-  [V_FLASH + 44.8, V_FLASH + 46.4, 'Get down.'],
-  [62.6, 66.4, 'Stay down. It isn\'t over.'],
-  [70.0, 72.4, 'The air rushes back the other way.'],
-  [84.0, 88.6, 'Most buildings out here are still standing.'],
-  [100.0, 104.6, 'This bomb broke windows 560 miles away.'],
-  [107.0, 111.6, 'There is no signal anywhere.'],
-  [119.6, 124.6, 'The blast is over. Now it\'s the fire.'],
-  [133.0, 137.6, 'The cloud is now 40 miles high, and 60 miles wide.'],
-  [139.4, 143.8, 'You\'re standing under it.'],
-  [150.0, 154.6, 'Every fire in the city is pulling in air.'],
-  [163.8, 168.6, 'Fire is the biggest danger now. Move away from it.'],
-  [181.6, 186.2, 'Walk into the wind: it blows toward the fire.'],
-  [189.4, 194.4, 'Cover your mouth. Smoke kills more people than flames.'],
-  [204.6, 209.6, 'Broken gas lines feed the fires all over the city.'],
-  [222.4, 227.0, 'A firestorm. It pulls in air from miles around.'],
-  [229.4, 234.4, 'Open ground is the safest place from fire.'],
-  [246.4, 251.0, 'It\'s ash from the fires. Fallout would look the same.'],
-  [252.6, 257.8, 'This bomb went off 2.5 miles up. Most of its fallout rose with the cloud.'],
-  [258.6, 262.8, 'But you can\'t know that. Get under concrete.'],
-  [268.4, 273.0, 'Concrete and earth block most of the radiation.'],
-  [283.0, 288.4, 'Take off your outer layer. It holds most of the fallout.'],
-  [289.6, 293.6, 'And wait. It gets weaker every hour.'],
+  [V_FLASH + 31.6, V_FLASH + 35.4, 'When it hits, every window turns into flying glass.'],
+  [V_FLASH + 42.7, V_FLASH + 44.8, 'Get inside. Away from the windows.'],
+  [V_FLASH + 44.9, V_FLASH + 46.4, 'Get down.'],
+  [61.0, 63.6, 'Stay down. It isn\'t over.'],
+  [70.6, 73.8, 'Most buildings out here are still standing.'],
+  [83.5, 87.6, 'This bomb broke windows 560 miles away.'],
+  [92.0, 96.0, 'You\'re standing under the cloud.'],
+  [99.6, 103.6, 'The blast is over. Now it\'s the fire.'],
+  [107.0, 111.6, 'The cloud is now 40 miles high, and 60 miles wide.'],
+  [124.6, 129.0, 'Every fire in the city is pulling in air.'],
+  [133.6, 138.6, 'Fire is the biggest danger now. Move away from it.'],
+  [143.0, 147.4, 'Walk into the wind: it blows toward the fire.'],
+  [151.4, 155.8, 'Cover your mouth. Smoke kills more people than flames.'],
+  [162.0, 166.6, 'Broken gas lines feed the fires all over the city.'],
+  [177.4, 182.0, 'A firestorm. It pulls in air from miles around.'],
+  [184.0, 188.6, 'Open ground is the safest place from fire.'],
+  [200.0, 204.6, 'It\'s ash from the fires. Fallout would look the same.'],
+  [205.4, 210.4, 'This bomb went off 2.5 miles up. Most of its fallout rose with the cloud.'],
+  [210.8, 214.6, 'But you can\'t know that. Get under concrete.'],
+  [217.8, 221.2, 'Concrete and earth block most of the radiation.'],
+  [228.4, 232.8, 'Take off your outer layer. It holds most of the fallout.'],
 ];
 export function captionAt(v) {
   if (popupAt(v) || stampAt(v)) return null;
@@ -191,7 +194,7 @@ export function captionAt(v) {
 }
 
 // the closing (after the white-out)
-export const CLOSING = [[324.2, VIDEO_DURATION - 0.5, 'Would you have made it?']];
+export const CLOSING = [[251.0, VIDEO_DURATION - 0.5, 'Would you have made it?']];
 
 // ---------- the state of the world at video time v ----------
 export function state(v) {
@@ -207,8 +210,8 @@ export function state(v) {
   s.storm = smooth(700, 1900, t);
   s.ash = smooth(1950, 2030, t);
   // the white at the end
-  s.white = smooth(321.6, 323.6, v) * (1 - smooth(323.8, 324.4, v));
-  s.black = smooth(323.8, 324.2, v);
+  s.white = smooth(V_WHITE, V_WHITE + 1.4, v) * (1 - smooth(V_WHITE + 1.6, V_WHITE + 2.2, v));
+  s.black = smooth(V_WHITE + 1.6, V_WHITE + 2.0, v);
   // the white at the flash (it blinds the frame for a moment) and the white cut out of the flash-forward
   s.flashW = v >= V_FLASH - 0.02 && v < V_FLASH + 3 ? Math.exp(-Math.max(v - V_FLASH, 0) / 0.32) * smooth(V_FLASH - 0.02, V_FLASH + 0.02, v) : 0;
   s.ffWhite = v < FF_LEN + 0.4 ? smooth(FF_LEN - 0.32, FF_LEN - 0.12, v) * (1 - smooth(FF_LEN + 0.05, FF_LEN + 0.4, v)) : 0;

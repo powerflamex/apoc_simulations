@@ -87,12 +87,17 @@ export function makeEvents(scene, ctx, smoke, flames) {
   const near = [...STALLS].sort((a, b) => Math.hypot(a.x - CAM0.x, a.z - CAM0.z) - Math.hypot(b.x - CAM0.x, b.z - CAM0.z));
   near.forEach((st, i) => add(st.x, groundY(st.z) + 2.4, st.z, 3.6 + R() * 1.8, V_HEAT + i * 0.45 + R() * 0.4, R(), 1.1 + R() * 0.6, 0.9 + R() * 0.7));
   // the shop awnings, running away down both sides of the street
-  for (const side of [-1, 1]) for (let z = 36 - R() * 6; z > -120; z -= 12 + R() * 8) add(side * (FX - 1.2), groundY(z) + 3.0, z, 5 + R() * 3.5, V_HEAT + 1.5 + R() * 3 + Math.abs(z) * 0.012, R(), 1.0 + R() * 0.9, 0.7 + R() * 0.8);
+  // (none on your building's front: its ground floor is the lobby's glass, no awnings)
+  for (const side of [-1, 1]) for (let z = 36 - R() * 6; z > -120; z -= 9 + R() * 6) {
+    if (side < 0 && z > -30 && z < 26) continue;
+    add(side * (FX - 1.2), groundY(z) + 3.0, z, 3.6 + R() * 2.2, V_HEAT + 1.5 + R() * 3 + Math.abs(z) * 0.012, R(), 1.0 + R() * 0.7, 0.8 + R() * 0.7);
+  }
   // the blocks on both sides, floor by floor from the street up
   // (a few big blazes low on each block, one per shop front, each sending its smoke up the face: no stacked layers)
-  for (const side of [-1, 1]) for (let i = 0; i < 6; i++) {
-    const z = -48 - i * 8.5 - R() * 4, y = 2 + R() * 5;
-    add(side * (FX - 1.5), groundY(z) + y, z, 10 + R() * 5, V_FIRE - 0.2 + i * 0.35 + R() * 1.2, R(), 0.75 + R() * 0.45, 1.0 + R() * 0.7);
+  // (several separate fires per front, each with its own tongues, rather than one huge card that blurs)
+  for (const side of [-1, 1]) for (let i = 0; i < 14; i++) {
+    const z = -40 - i * 4.2 - R() * 3, y = 1.5 + R() * 6;
+    add(side * (FX - 1.5), groundY(z) + y, z, 4.5 + R() * 3, V_FIRE - 0.2 + i * 0.16 + R() * 1.2, R(), 0.8 + R() * 0.5, 1.0 + R() * 0.8);
   }
   // cars, one after another
   const burning = CARS.filter((c) => c.z < -8 && c.z > -150).sort(() => R() - 0.5).slice(0, 12);
@@ -104,7 +109,7 @@ export function makeEvents(scene, ctx, smoke, flames) {
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), p = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1), sc = new THREE.Vector3();
   return {
-    meshes: [heli, birds, board, chunks],
+    meshes: [heli, birds, board, chunks], heliAt: (v) => heliAt(Math.min(v, V_HELI)),
     frame(v, s, glows) {
       // the helicopter
       {

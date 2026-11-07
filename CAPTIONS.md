@@ -1626,14 +1626,19 @@ Would you have made it? Where would you have gone? 👇
 
 ## Long video 7. A nuke hits your city: survive the first hour — `longform/out/nuke-hour_1920x1080.mp4`
 
-16:9, 5:31, **no voice**: your phone (texts from Mom, Dad and Jay, a car radio's emergency broadcast), short captions with
+16:9, 4:18, **no voice**: your phone (texts from Mom, Dad and Jay, a car radio's emergency broadcast), short captions with
 real survival advice, a counter racing all the way (BLAST REACHES YOU IN, then SURVIVE THE FIRST HOUR with the danger of the
 moment under it) and chapter stamps. The city, fireball, cloud and blast are the Short's (week 6/biggest-nuke, owner OK); new
 places: your building's doorway, lobby and stairwell, the wrecked street, the walk out between the fires, the park on the
 crest above the burning city, an underground garage. Plan and numbers: `longform/NUKE-HOUR.md`. Topic from the Nov 7 check
 (survival videos hot this month; our angle: real time, one person 13 miles away). Honest notes: the fireball's picture runs a
 few seconds ahead early on (as in the Short); from the doorway you see the fireball's edge past the corner; the dust wall is
-taller than real; the end shows sirens arriving, not a rescue. **Upload this file.**
+taller than real; the end shows sirens arriving, not a rescue. Nov 7 rework (owner): the 47 seconds cut between views every
+5-8 s (you in the doorway, the people crouched beside you, your phone, the helicopter, the burning shops across, the cloud,
+the dust wall coming up the hill), real-looking street fires, a 7 s stairwell, a big close moment every 30-45 s (the cloud
+straight overhead, a burning piece of your building landing near you, the firestorm wind throwing debris at you, the gas
+main), more people, detailed and brighter lobby/stairwell/garage, the garage cut to 30 s with the radio and the texts
+arriving one by one; 5:31 -> 4:18. **Upload this file.**
 Thumbnail: `longform/out/nuke-hour_thumb.png` (the orange mushroom cloud over the burning avenue, one line "SURVIVE 1 HOUR"
 in big gold letters; `node render.mjs --cover 40` in `longform/nuke-hour/`).
 
@@ -1651,13 +1656,13 @@ Would you have made it? What would you have done differently? 👇
 
 0:00 A normal evening
 0:12 The flash: 47 seconds
-0:59 The blast hits
-1:18 5 minutes in
-2:08 10 minutes in: the cloud is over you
-2:58 20 minutes in: walking out through the fires
-3:35 30 minutes in: the firestorm
-4:25 45 minutes in: underground
-5:18 The first hour
+1:00 The blast hits
+1:08 5 minutes in: the cloud is over you
+1:44 10 minutes in: your building burns
+2:20 20 minutes in: the firestorm wind
+2:50 30 minutes in: the city below
+3:35 45 minutes in: underground
+4:05 The first hour
 
 #whatif #nuclear #survival #simulation #science
 

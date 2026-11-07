@@ -19,7 +19,21 @@ export function makeGarage(ctx) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
-  const concrete = ctx.plainMat(0x77736c, 0.95);
+  const concrete = ctx.plainMat(0x8a867e, 0.95);
+  // walls and pillars: a painted band (blue, with the level's name), yellow-and-black stripes round the pillars' feet
+  const painted = ctx.plainMat(0xb8b4ac, 0.9);
+  painted.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vPW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvPW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vPW;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+      { float y = vPW.y; vec3 c = vec3(0.74, 0.72, 0.68);
+        c = mix(c, vec3(0.12, 0.3, 0.62), step(1.05, y) * step(y, 1.45));
+        float st = step(0.5, fract((vPW.x + vPW.z + y) * 2.2));
+        c = mix(c, mix(vec3(0.85, 0.66, 0.05), vec3(0.06), st), step(y, 0.55));
+        diffuseColor.rgb = c; }`);
+  };
+  painted.customProgramCacheKey = () => 'garage-paint';
   // floor with bays painted on it
   const floorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
   floorMat.onBeforeCompile = (sh) => {
@@ -46,20 +60,22 @@ export function makeGarage(ctx) {
   ceil.position.set(0, HT, (Z0 + Z1) / 2);
   scene.add(ceil);
   const box = (w, h, d, x, y, z, mat = concrete) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; scene.add(m); return m; };
-  box(0.5, HT, Z1 - Z0, -W / 2, HT / 2, (Z0 + Z1) / 2); box(0.5, HT, Z1 - Z0, W / 2, HT / 2, (Z0 + Z1) / 2);
-  box(W, HT, 0.5, 0, HT / 2, Z0);
+  box(0.5, HT, Z1 - Z0, -W / 2, HT / 2, (Z0 + Z1) / 2, painted); box(0.5, HT, Z1 - Z0, W / 2, HT / 2, (Z0 + Z1) / 2, painted);
+  box(W, HT, 0.5, 0, HT / 2, Z0, painted);
   // the front wall with the ramp's opening, beams across the ceiling, pillars
   box((W - RAMP.w) / 2, HT, 0.5, -(W + RAMP.w) / 4, HT / 2, Z1); box((W - RAMP.w) / 2, HT, 0.5, (W + RAMP.w) / 4, HT / 2, Z1);
   for (let z = Z0 + 6; z < Z1; z += 8) box(W, 0.45, 0.5, 0, HT - 0.22, z);
   const PILLARS = [];
-  for (let x = -24; x <= 24; x += 12) for (let z = Z0 + 6; z < Z1 - 2; z += 8) if (Math.abs(x) > 1) { PILLARS.push([x, z]); box(0.7, HT, 0.7, x, HT / 2, z); }
+  for (let x = -24; x <= 24; x += 12) for (let z = Z0 + 6; z < Z1 - 2; z += 8) if (Math.abs(x) > 1) { PILLARS.push([x, z]); box(0.7, HT, 0.7, x, HT / 2, z, painted); }
+  // pipes and cable trays under the ceiling
+  for (const x of [-14, -3.5, 9, 21]) { const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, Z1 - Z0, 8).rotateX(Math.PI / 2), ctx.plainMat(0x6a6e72, 0.5, { metalness: 0.5 })); pipe.position.set(x, HT - 0.25, (Z0 + Z1) / 2); scene.add(pipe); }
   // the ramp up to the street and the street's orange glow at the top
   const rampLen = Math.hypot(RAMP.z1 - RAMP.z0, RAMP.top);
   const ramp = new THREE.Mesh(new THREE.PlaneGeometry(RAMP.w, rampLen).rotateX(-Math.PI / 2 - Math.atan2(RAMP.top, RAMP.z1 - RAMP.z0)), concrete);
   ramp.position.set(0, RAMP.top / 2, (RAMP.z0 + RAMP.z1) / 2); ramp.receiveShadow = true;
   scene.add(ramp);
-  box(0.5, HT + RAMP.top, RAMP.z1 - RAMP.z0, -RAMP.w / 2 - 0.25, (HT + RAMP.top) / 2, (RAMP.z0 + RAMP.z1) / 2);
-  box(0.5, HT + RAMP.top, RAMP.z1 - RAMP.z0, RAMP.w / 2 + 0.25, (HT + RAMP.top) / 2, (RAMP.z0 + RAMP.z1) / 2);
+  box(0.5, HT + RAMP.top, RAMP.z1 - RAMP.z0, -RAMP.w / 2 - 0.25, (HT + RAMP.top) / 2, (RAMP.z0 + RAMP.z1) / 2, painted);
+  box(0.5, HT + RAMP.top, RAMP.z1 - RAMP.z0, RAMP.w / 2 + 0.25, (HT + RAMP.top) / 2, (RAMP.z0 + RAMP.z1) / 2, painted);
   const rc = new THREE.Mesh(new THREE.PlaneGeometry(RAMP.w + 1, RAMP.z1 - RAMP.z0 - 4).rotateX(Math.PI / 2), concrete);
   rc.position.set(0, HT + RAMP.top * 0.5, (RAMP.z0 + RAMP.z1) / 2 - 2); scene.add(rc);
   const outMat = new THREE.ShaderMaterial({
@@ -73,8 +89,8 @@ export function makeGarage(ctx) {
   const outside = new THREE.Mesh(new THREE.PlaneGeometry(RAMP.w + 2, 8), outMat);
   outside.position.set(0, RAMP.top + 3, RAMP.z1 + 0.5); outside.rotation.y = Math.PI;
   scene.add(outside);
-  // (the plane faces back down the ramp: rotation y PI faces -z)
-  outside.rotation.y = 0;
+  // (the plane faces back down the ramp, toward you)
+  outside.rotation.y = Math.PI; outMat.side = THREE.DoubleSide;
   outside.position.z = RAMP.z1 + 2;
 
   // parked cars along the bays
@@ -97,14 +113,17 @@ export function makeGarage(ctx) {
   const lamps = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.1, 0.12), lampMat, LAMPS.length);
   LAMPS.forEach((l, i) => lamps.setMatrixAt(i, m4.makeTranslation(l.x, 2.2, l.z)));
   scene.add(lamps);
-  const lights = [new THREE.PointLight(0xdfe6ff, 14, 0, 1.6), new THREE.PointLight(0xdfe6ff, 14, 0, 1.6), new THREE.PointLight(0xdfe6ff, 12, 0, 1.6),
+  const lights = [new THREE.PointLight(0xdfe6ff, 34, 0, 1.6), new THREE.PointLight(0xdfe6ff, 34, 0, 1.6), new THREE.PointLight(0xdfe6ff, 30, 0, 1.6),
     new THREE.PointLight(0xffc890, 6, 0, 1.6), new THREE.PointLight(0xff7a2a, 0, 0, 1.3), new THREE.PointLight(0xff2020, 0, 0, 1.3), new THREE.PointLight(0x2050ff, 0, 0, 1.3)];
-  lights[0].position.set(-11.6, 2.2, -10); lights[1].position.set(12.4, 2.2, -26); lights[2].position.set(0.4, 2.2, 2);
+  lights[0].position.set(-11.6, 2.2, -10); lights[1].position.set(12.4, 2.2, -26); lights[2].position.set(0.4, 2.2, -9);
   lights[3].position.set(radio.x - 1.6, 1.2, radio.z);        // the open car's dome light
   lights[4].position.set(0, 4, RAMP.z1 - 2);                    // the street glow at the top of the ramp
   lights[5].position.set(-1.5, 3, RAMP.z0 + 2); lights[6].position.set(1.5, 3, RAMP.z0 + 2);
   scene.add(...lights);
-  scene.add(new THREE.HemisphereLight(0x1a1c22, 0x0c0b0a, 0.5));
+  // (more battery lamps, and two cars with their headlights on to light the place)
+  for (const [x, z] of [[-24, -30], [-12, -36], [13, -14], [-26, -14], [6, -32]]) { const l = new THREE.PointLight(0xdfe6ff, 26, 0, 1.6); l.position.set(x, 2.3, z); scene.add(l); }
+  for (const [x, z, tz] of [[-6.6, -20, -20], [6.6, -34, -34]]) { const l = new THREE.SpotLight(0xfff4e0, 70, 30, 0.5, 0.6, 1.4); l.position.set(x * 0.7, 0.8, z); l.target.position.set(0, 0, tz); scene.add(l, l.target); }
+  scene.add(new THREE.HemisphereLight(0x3a3c44, 0x1c1a18, 1.0));
   // the open car's door (a slab swung out) and its lit dash
   const doorM = box(0.08, 1.0, 1.1, radio.x - 1.6, 0.9, radio.z + 1.0, ctx.plainMat(0x2a2c30, 0.4, { metalness: 0.4 }));
   doorM.rotation.y = 1.0;
@@ -114,7 +133,7 @@ export function makeGarage(ctx) {
   const add = (x, z, o) => P.push({ x, z, s: 0.92 + R() * 0.14, ph: R() * 10, ...o });
   const free = (x, z) => P.every((o) => (o.x - x) ** 2 + (o.z - z) ** 2 > 0.85) && SPOTS.every((s0) => Math.abs(s0.x - x) > 1.3 || Math.abs(s0.z - z) > 2.6) && PILLARS.every(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 > 0.7);
   // along the walls, sitting; groups standing in the lane; a few round the radio car
-  for (let k = 0; k < 900 && P.length < 70; k++) {
+  for (let k = 0; k < 1400 && P.length < 115; k++) {
     const wall = R() < 0.45;
     const x = wall ? (R() < 0.5 ? -1 : 1) * (W / 2 - 0.7) : (R() - 0.5) * 30, z = Z0 + 2 + R() * (Z1 - Z0 - 6);
     if (Math.abs(x) < 2.2 && z > -24) continue;                 // (your way in, down the middle lane)
@@ -136,8 +155,8 @@ export function makeGarage(ctx) {
       const ph = v * 5.2;
       const red = sir * (Math.sin(ph) > 0.35 ? 1 : 0.05), blue = sir * (Math.sin(ph) < -0.35 ? 1 : 0.05);
       outMat.uniforms.uSiren.value.setRGB(2.6 * red, 0.08 * red + 0.25 * blue, 2.8 * blue);
-      lights[4].intensity = 90 * (0.8 + 0.2 * Math.sin(v * 3));
-      lights[5].intensity = 160 * red; lights[6].intensity = 160 * blue;
+      lights[4].intensity = 40 * (0.8 + 0.2 * Math.sin(v * 3));
+      lights[5].intensity = 320 * red; lights[6].intensity = 320 * blue;
       LAMPS.forEach((l) => glows.add(l.x, 2.2, l.z, 0.55, 2.2, 2.3, 2.6));
       glows.add(radio.x - 1.6, 1.1, radio.z, 0.8, 1.8, 1.2, 0.6);
       for (const o of P) {

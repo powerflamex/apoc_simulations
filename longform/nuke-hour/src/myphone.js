@@ -48,11 +48,14 @@ function paint(g, st) {
 // what the screen shows at video time v (null: the phone is down)
 export function phoneAt(v) {
   if (v >= 5.2 && v < 12.0) return { key: 'eve', time: '8:41', signal: 'full', who: 'Jay', typing: v > 9.2 ? 'almost th'.slice(0, Math.floor((v - 9.2) * 5) + 1) : '', msgs: [{ text: 'u coming tonight?' }, { me: true, text: 'yeah! leaving now' }, { text: 'where are you? it starts at 9' }] };
-  if (v >= 70.5 && v < 77.5) return { key: 'stair' + (v > 72.6 ? 2 : 1), time: '8:42', signal: 'none', who: 'Mom', msgs: [{ text: 'text me when you get there' }, { me: true, text: 'mom did you see that', status: 'Not Delivered' }, ...(v > 72.6 ? [{ me: true, text: 'im ok. are you ok??', status: 'Not Delivered' }] : [])] };
-  if (v >= 291.0 && v < 312.0) {
-    const msgs = [{ me: true, text: 'im ok. are you ok??', status: 'Not Delivered' }, { me: true, text: 'mom im alive. in a garage', status: v > 296.6 ? 'Delivered' : 'Sending...' }];
-    if (v > 299.4) msgs.push({ text: 'OH THANK GOD. we\'re ok. stay there' });
-    return { key: 'gar' + (v > 296.6 ? 1 : 0) + (v > 299.4 ? 1 : 0), time: '9:27', signal: v > 294.6 ? 'one' : 'sos', who: 'Mom', msgs };
+  // (the doorway, 0:21-0:26: no signal, your text to Mom fails)
+  if (v >= 20.6 && v < 26.4) return { key: 'door' + (v > 23.6 ? 2 : v > 22.4 ? 1 : 0) + Math.floor((v - 20.6) * 11), time: '8:41', signal: 'none', who: 'Mom', typing: v < 22.4 ? 'mom did you see that'.slice(0, Math.floor((v - 20.6) * 11) + 1) : '', msgs: [{ text: 'text me when you get there' }, ...(v > 22.4 ? [{ me: true, text: 'mom did you see that', status: v > 23.6 ? 'Not Delivered' : 'Sending...' }] : [])] };
+  // (the garage, 3:52-4:03: one bar, your text goes, the family's replies arrive one by one)
+  if (v >= 232.6 && v < 243.4) {
+    const msgs = [{ me: true, text: 'im ok. are you ok??', status: 'Not Delivered' }, { me: true, text: 'mom im alive. in a garage', status: v > 234.4 ? 'Delivered' : 'Sending...' }];
+    if (v > 236.3) msgs.push({ text: 'Mom: OH THANK GOD. we\'re ok. stay there' });
+    if (v > 238.8) msgs.push({ text: 'Dad: don\'t go outside. we\'ll come for you' });
+    return { key: 'gar' + (v > 234.4 ? 1 : 0) + (v > 236.3 ? 1 : 0) + (v > 238.8 ? 1 : 0), time: '9:42', signal: v > 233.3 ? 'one' : 'sos', who: 'Family', msgs };
   }
   return null;
 }
@@ -86,16 +89,17 @@ export function makeMyPhone(camera, ctx) {
   rig.traverse((o) => { o.frustumCulled = false; o.renderOrder = 20; });
   let key = '';
   return {
-    frame(v, light = 1) {
+    frame(v, light = 1, close = false) {
       const st = phoneAt(v);
       // (it comes up into the frame and goes down again)
       let up = 0;
-      for (const [a, b] of [[5.2, 12.0], [70.5, 77.5], [291.0, 312.0]]) up = Math.max(up, smooth(a, a + 0.6, v) * (1 - smooth(b - 0.5, b, v)));
+      for (const [a, b] of [[5.2, 12.0], [20.6, 26.4], [232.6, 243.4]]) up = Math.max(up, smooth(a, a + 0.4, v) * (1 - smooth(b - 0.4, b, v)));
       rig.visible = up > 0.002 && !!st;
       if (!rig.visible) return;
       if (st.key !== key) { key = st.key; paint(g, st); tex.needsUpdate = true; }
-      rig.position.set(0.15, -0.36 + 0.2 * up, -0.5);
-      rig.rotation.set(0.12, -0.18, -0.05);
+      // (close: held up in front of you, filling the middle of the frame)
+      if (close) { rig.position.set(0.01, -0.13 + 0.11 * up, -0.27); rig.rotation.set(0.05, -0.06, -0.03); }
+      else { rig.position.set(0.15, -0.36 + 0.2 * up, -0.5); rig.rotation.set(0.12, -0.18, -0.05); }
       scrMat.color.setScalar(1.15 * light);
     },
   };
