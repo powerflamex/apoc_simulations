@@ -1432,6 +1432,68 @@ What would you do in the first hour of darkness? 👇
 #space #science #whatif #shorts
 ```
 
+## Next Short. What if dinosaurs came back? — `week 7/dinosaurs-return/out/dinosaurs-return_v4_1080x1920_60fps_tiktok.mp4`
+
+46.6 s. A new scene: a made-up harbour city's waterfront avenue on a sunny day, shops on the left, a promenade and the harbour on
+the right, both ways jammed with abandoned cars blinking their hazards. You stand on the paved median filming with your phone.
+Frame 0: the title, the counter already racing (T. REX 130.4 FT, AWAY FROM YOU under it), a full-size T. rex down the street
+(zoomed in, against a red building) striding at you mid-roar, people running at you and past you on both sides. One visible step
+every 3 s:
+0:03 "THE GROUND SHAKES" (every footstep shakes your camera and cracks the asphalt; the owner's scream, sounds/scream.mp3 at -27 dB,
+near the footsteps' level, not above; "It weighs 9 tons."). 0:06 "IT CRUSHES A CAR": the zoom drops to its foot coming down on a
+taxi's roof, glass bursting ("It's 40 feet long."). 0:09 "IT ROARS AT YOU" ("Its head alone is 5 feet long."). 0:12 it bites a car,
+lifts it and flings it across the street: "IT THROWS A CAR" ("Its bite: 8,000 pounds."). 0:15 a Quetzalcoatlus sweeps in low over
+your head from behind ("Quetzalcoatlus: wings 36 feet wide."). 0:17.6 "A HERD STAMPEDES": six Triceratops burst out of the side
+street, four charge straight down the median and pass on your left, two run down between the jammed cars on your right
+("Triceratops: 6 tons each."). 0:22.9 "SOMETHING IN THE HARBOR": a Mosasaurus arcs out of the water and comes down on a moored boat
+("Mosasaurus: 50 feet long."). 0:26 a Brachiosaurus crosses the far end of the street, its head over the roofs, the T. rex in front
+("Brachiosaurus: 40 feet tall."). 0:27.8 back on the T. rex, much closer: "IT'S COMING FOR YOU" ("It runs 12 mph. Can you?"); 0:30 it
+bowls a car aside; "Everyone else is gone." 0:33 you turn to run: "THERE'S ANOTHER ONE" (a second T. rex steps out of the side street
+behind you and roars; the owner's gasp, sounds/gasp.mp3 at -26 dB); "You're trapped." 0:36 back round: "IT SEES YOU" (its head comes
+down to yours, amber eyes; "Its eyes: 13x sharper than yours."). 0:39 "IT SMELLS YOU" (sniffs; "Its teeth: up to 12 inches long.").
+0:42 the jaws open. 0:44 it rears back and roars into your lens, its open jaws fill the frame, white at 0:45. Loop: the cut sits
+inside the full white, which clears onto frame 0 (the title fades in with it; the sound runs on into the far roar).
+Numbers (`src/timeline.js`): the counter is the T. rex's real distance in the scene (your lens to the tip of its snout in its walking
+pose), in feet; it walks at up to 1.5 m/s (slower while it crushes, bites and sniffs), around the 1.3 m/s its legs and tail suggest (van Bijlert et al. 2021). T. rex: Sue, the
+biggest skeleton, is 12.3 m = 40 ft long with a 1.4 m (4.6 ft) skull; mass estimates for Sue run 8.4 t and up (about 9 tons); bite
+about 35,000-57,000 N = 7,900-12,800 lb of force at the back teeth (Bates & Falkingham 2012); top speed about 20 km/h = 12 mph
+(Sellers et al. 2017); eyes up to 13x as sharp as ours (Stevens 2006); teeth up to 12 in long with the root (Sue's biggest).
+Quetzalcoatlus northropi: wings 10-11 m (36 ft at the top of the range). Triceratops: 6-12 t (6 is the low end). Mosasaurus
+hoffmannii: up to about 15-17 m (50 ft). Brachiosaurus: head about 12 m (40 ft) up. Every animal is drawn at that size.
+What is drawn, not measured: how a T. rex sounded is unknown, so the roar is made up (a deep growling bellow). Quetzalcoatlus is a
+pterosaur and Mosasaurus a sea reptile, not dinosaurs (the captions only name them). A T. rex lifting and throwing a car is the
+what-if (its bite could hold one; a car weighs about 1.5 t). The animals are low-poly shapes, teeth hidden by lips when the mouth is
+shut (the latest work on T. rex lips). Nobody is ever shown hurt: the crushed and thrown cars are empty, people run.
+Sound: the panicking street (idling traffic, a crowd's roar), the far roar on frame 0, a deep thud for every footstep, louder as it
+comes, steel crumpling and glass for the crushed car, car alarms, the thrown car's whoosh and crash, wingbeats overhead, hooves
+and low bellows, the harbour's rush and crash, a far low call, steel scraping, a whoosh as you turn, the second roar, close growls,
+sniffs, your heartbeat, a deep hit on each beat over a dark drone, a riser into the last roar; in the white the far roar starts
+again for the loop. Opening at -25 dB (ffmpeg volumedetect over the first second).
+Cover: `week 7/dinosaurs-return/out/dinosaurs-return_v4_cover.png` (`node render.mjs --cover 41.2`: the T. rex's face right in front of you, amber eyes and fangs, the thrown red car behind it; "WHAT IF / dinosaurs / came back?" set low, under its head)
+
+**YouTube title** (50 characters):
+```
+What if dinosaurs came back? 🦖 #dinosaurs #shorts
+```
+
+**YouTube description:**
+```
+A T. rex is 40 feet long and weighs about 9 tons.
+Its bite: about 8,000 pounds of force. It can run about 12 mph.
+Its eyes may see up to 13 times sharper than yours.
+
+Quetzalcoatlus: a flying reptile with wings 36 feet wide.
+Triceratops: 6 tons each.
+Mosasaurus: a 50-foot sea reptile.
+Brachiosaurus: up to 40 feet tall.
+
+Every animal is shown at its real size. Nobody knows what a T. rex sounded like, so the roar is made up.
+
+Could you outrun it? 👇
+
+#dinosaurs #trex #whatif #shorts
+```
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
