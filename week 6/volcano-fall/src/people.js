@@ -53,7 +53,7 @@ export function makeOnlookers(parent, specs, { seed = 1 } = {}) {
   group.add(faces);
   const phones = specs.filter((p) => p.phone);
   const phoneGeo = new THREE.BoxGeometry(0.075, 0.15, 0.012);
-  const phoneMesh = new THREE.InstancedMesh(phoneGeo, new THREE.MeshStandardMaterial({ color: 0x15161a, roughness: 0.4, metalness: 0.3 }), Math.max(1, phones.length));
+  const phoneMesh = new THREE.InstancedMesh(phoneGeo, new THREE.MeshStandardMaterial({ color: 0x15161a, roughness: 0.4, metalness: 0.3, emissive: 0x9fc0ff, emissiveIntensity: 0.9 }), Math.max(1, phones.length));   // (screens on)
   phoneMesh.frustumCulled = false;
   group.add(phoneMesh);
   const flashGeo = new THREE.CircleGeometry(0.012, 10);

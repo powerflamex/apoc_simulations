@@ -107,9 +107,9 @@ export function heatAt(v) {
 export const HEAT_RIM = heatAt(0) / SUN;   // ~2.2x
 
 // ---- the beats: popups (one gold phrase, never a number) and the hits in the soundtrack ----
-export const V_SLIP = 0.9, V_LOOKUP = 3.6, V_DOWN = 6.2, V_WALL = 9.0;
-export const V_CRACK = 17.0, V_SMOKE = 20.0, V_HAZE = 23.0, V_UP = 26.0, V_WAKE = 29.5;
-export const V_BUB1 = 30.4, V_BUB2 = 33.1, V_RAIN = 35.8, V_RIFT = 38.6, V_DOME = 41.6;
+export const V_SLIP = 0.9, V_LOOKUP = 2.6, V_DOWN = 5.7, V_WALL = 8.7;
+export const V_CRACK = 17.2, V_SMOKE = 20.0, V_HAZE = 23.0, V_UP = 25.9, V_WAKE = 29.5;
+export const V_BUB1 = 30.6, V_BUB2 = 33.5, V_RAIN = 35.8, V_RIFT = 38.6, V_DOME = 41.6;
 export const BEATS = [
   { v: V_SLIP, hit: 0.35 },
   { v: V_IMPACT, hit: 1.0, say: 'YOU DON’T SINK', kind: 'impact' },
@@ -132,16 +132,17 @@ export function popupAt(v) {
 
 // ---- captions (video time): in the gaps between the popups, never on screen with one ----
 export const CAPTIONS = [
-  [3.9, 6.0, 'The drop is taller than the Eiffel Tower.'],
-  [6.4, 8.75, `6 seconds in, you’re falling at ${Math.round(SPEED_6S / 5) * 5} mph.`],
-  [9.1, 10.95, `You hit the lava at ${Math.round(SPEED_HIT)} mph.`],
-  [13.9, 16.7, 'Lava is nearly 3 times denser than you. You float on top.'],
-  [17.2, 19.8, 'The black crust is a thin skin. Under it: over 1,000°C.'],
-  [20.2, 22.8, 'Your shoes start to smoke on the crust.'],
-  [23.3, 25.9, 'The air down here is thick with sulfur gas.'],
-  [26.6, 29.2, '400 m above you, the tourists can only film.'],
-  [31.4, 35.4, 'Gas bubbles burst up through the lava.'],
-  [35.8, 38.4, 'Molten lava rains down all around you.'],
+  // (each one sits inside the shot that shows it: see SHOTS)
+  [3.3, 5.5, 'The drop is taller than the Eiffel Tower.'],
+  [6.1, 8.5, `6 seconds in, you’re falling at ${Math.round(SPEED_6S / 5) * 5} mph.`],
+  [9.0, 10.95, `You hit the lava at ${Math.round(SPEED_HIT)} mph.`],
+  [13.9, 16.6, 'Lava is nearly 3 times denser than you. You float on top.'],
+  [17.0, 19.7, 'The black crust is a thin skin. Under it: over 1,000°C.'],
+  [20.1, 22.7, 'Your shoes start to smoke on the crust.'],
+  [23.1, 25.7, 'The air down here is thick with sulfur gas.'],
+  [26.2, 29.2, '400 m above you, the tourists can only film.'],
+  [32.6, 35.2, 'Gas bubbles burst up through the lava.'],
+  [35.7, 38.3, 'Molten lava rains down all around you.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;
@@ -188,16 +189,33 @@ export function joltAt(v) {
   return j;
 }
 
+// ---- the shots: your eyes ('pov', aimed by LOOK), or a camera on the lake ('wide', 'crack', 'rim', ...: main.js) ----
+export const SHOTS = [
+  [-3, 2.55, 'pov'],
+  [2.55, 5.65, 'drop'],        // from the rim between the tourists leaning over: you falling away toward the lava
+  [5.65, 13.75, 'pov'],
+  [13.75, 16.85, 'wide'],      // you, small, sitting on the huge lake, the wall towering behind you
+  [16.85, 19.9, 'crack'],      // low, close to the crust: the crack opening beside you
+  [19.9, 25.85, 'pov'],        // your shoes smoking, then the gas rolling in
+  [25.85, 29.45, 'rim'],       // up on the rim, over the tourists' shoulders: phones pointed down at you
+  [29.45, 32.45, 'wake'],      // wide and high: the lake starts to churn
+  [32.45, 35.5, 'bubble'],     // low, close: a bubble swells and bursts a few metres from you
+  [35.5, 38.45, 'rain'],       // you from in front: lava drops landing all round you
+  [38.45, 41.45, 'rift'],      // the crust splitting open beside you
+  [41.45, 99, 'pov'],          // the dome under your feet, the eruption
+];
+export const shotAt = (v) => { for (const s of SHOTS) if (v >= s[0] && v < s[1]) return s; return SHOTS[SHOTS.length - 1]; };
+
 // ---- where you look (your head): [v, yaw (deg, + = left of the lake's center), pitch (deg), vertical fov] ----
+// the fall: down at the lake in its pit, up at the rim and the tourists shrinking, down at the lake growing, out at
+// the wall rushing past, down at the crust coming at you
 export const LOOK = [
-  [-3, 12, -38, 82], [0, 12, -38, 82], [V_SLIP, 6, -56, 80], [2.0, 0, -80, 78], [V_LOOKUP - 0.15, 4, -84, 78],
-  [V_LOOKUP + 0.45, 24, 64, 80], [V_DOWN - 0.15, 30, 68, 80], [V_DOWN + 0.4, 6, -84, 78], [V_WALL - 0.15, 10, -86, 76],
-  [V_WALL + 0.5, 125, -38, 72], [10.75, 135, -44, 72], [11.3, 60, -84, 76], [V_IMPACT, 45, -78, 76],
-  [13.5, 32, -62, 76], [14.1, 0, -14, 74], [16.7, 5, -12, 74], [V_CRACK + 0.2, 40, -46, 74], [19.8, 43, -49, 74],
-  [V_SMOKE + 0.3, 2, -62, 74], [22.8, -3, -60, 74], [V_HAZE + 0.35, -42, -7, 74], [25.8, -38, -5, 74],
-  [V_UP + 0.65, 0, 76, 80], [29.0, 3, 74, 80], [V_WAKE + 0.15, 0, -13, 74], [V_BUB2 - 0.3, 6, -11, 74],
-  [V_BUB2 + 0.15, 24, -13, 74], [35.4, 22, -15, 74], [V_RAIN + 0.3, 6, -44, 74], [38.3, 2, -42, 74],
-  [V_RIFT + 0.35, -48, -40, 74], [41.3, -44, -43, 74], [V_DOME + 0.35, 0, -74, 74], [43.6, 0, -70, 74],
+  [-3, 12, -38, 82], [0, 12, -38, 82], [V_SLIP, 6, -56, 80], [1.9, 0, -78, 76], [V_LOOKUP - 0.15, 0, -80, 76],
+  [V_DOWN - 0.1, 0, -72, 72], [V_DOWN + 0.35, 0, -72, 72], [V_WALL - 0.15, 4, -76, 72],
+  [V_WALL + 0.4, 150, -50, 70], [10.6, 155, -56, 70], [11.2, 70, -80, 74], [V_IMPACT, 45, -78, 76],
+  [13.5, 32, -62, 76], [13.75, 30, -60, 76],
+  [19.9, 2, -62, 74], [22.8, -3, -60, 74], [V_HAZE + 0.35, -42, -7, 74], [25.85, -38, -5, 74],
+  [41.45, 0, -74, 74], [43.6, 0, -70, 74],
   [V_BURST + 0.5, 0, 8, 82], [T_SWITCH, 0, 20, 86], [50, 0, 20, 86],
 ];
 
@@ -205,7 +223,7 @@ export const LOOK = [
 // bubbles: [v, x, z, size]; the rocks that fell ahead of you splash in on their own (world.js)
 export const BUBBLES = [
   [2.5, -40, -60, 0.6], [7.8, 55, 10, 0.7], [14.6, -60, -20, 0.7], [18.4, 45, -30, 0.8], [21.6, -20, -90, 0.9], [24.6, -75, 40, 0.8],
-  [V_BUB1, -10, -40, 1.6], [V_BUB2, -32, 62, 2.4], [34.6, 40, 50, 1.5], [36.4, 12, 95, 1.6], [37.4, -14, 104, 1.4],
+  [V_BUB1, -14, 82, 1.8], [V_BUB2, -5.5, 108.5, 1.3], [34.6, 40, 50, 1.5], [36.4, 12, 95, 1.6], [37.4, -14, 104, 1.4],
   [39.6, 20, 80, 1.8], [40.5, -24, 92, 1.6],
 ];
 

@@ -113,8 +113,8 @@ export function makeLake() {
           float m = 1.0 - smoothstep(ww * 0.5, ww + 0.5 * px, d);
           float glowRim = exp(-max(d - ww, 0.0) / (0.4 + ww)) * 0.35;
           float conv = fbmA(vec3(p * 1.3, uT * 0.5), px * 1.3, 0.0);
-          col += lavaCol(0.55 + 0.2 * conv) * 0.45 * glowRim * w.y;
-          col = mix(col, lavaCol(0.75 + 0.35 * conv - 0.3 * d / max(ww, 0.01)) * 1.5, m * w.y);
+          col += lavaCol(0.7 + 0.2 * conv) * 0.9 * glowRim * w.y;
+          col = mix(col, lavaCol(1.0 + 0.3 * conv - 0.35 * d / max(ww, 0.01)) * 2.3, m * w.y);
         }
         // the dome under you: radial cracks glowing ever brighter
         {
@@ -156,7 +156,7 @@ export function makeSpatter(maxN = 2600) {
   const hot = (age, out, k = 1) => {
     // white-yellow -> orange -> dull red -> dark
     const a = Math.max(0, age) / k;
-    const r = 2.6 * Math.exp(-a / 4.0) + 0.05, g = 0.9 * Math.exp(-a / 2.2) + 0.004, b = 0.2 * Math.exp(-a / 0.8) + 0.002;
+    const r = 2.0 * Math.exp(-a / 4.0) + 0.05, g = 0.45 * Math.exp(-a / 2.2) + 0.004, b = 0.06 * Math.exp(-a / 0.8) + 0.001;
     return out.setRGB(r, g, b);
   };
   function add(T0, x, y, z, vx, vy, vz, s, crust = 0) { if (blobs.length < maxN) blobs.push([T0, x, y, z, vx, vy, vz, s, crust]); }

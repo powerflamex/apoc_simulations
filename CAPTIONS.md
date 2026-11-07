@@ -1308,20 +1308,25 @@ At which temperature would you stop moving? 👇
 
 ## Next Short. What if you fell into a volcano? — `week 6/volcano-fall/out/volcano-fall_v4_1080x1920_60fps_tiktok.mp4`
 
-46.2 s. A new scene, all from your eyes: a made-up crater with Nyiragongo's numbers (Congo): a lava lake 300 m wide about
-400 m below the rim, at dusk. Frame 0: you on a lip of rock over the drop, tourists with phones on the rock spur beside you, the
-glowing lake far below, the title, and the counter already moving (ABOVE THE LAVA 399.9 m, HEAT ON YOU 2.1x THE SUN); the rock under
-you is already sliding. A gasp and the owner's "oh my god" as you tip over (sounds/gasp.mp3, omg.mp3).
-0:01 you go over and look straight down: the lake in its pit, your trainers, rocks falling ahead of you. 0:04 you look up: the
-spur's underside, the tourists' phone lights, rocks falling above you against the sky ("The drop is taller than the Eiffel Tower.").
-0:06 down again, the lake bigger, the rocks ahead splashing into it ("6 seconds in, you're falling at 100 mph."). 0:09 the wall
-streams past ("You hit the lava at 126 mph."). 0:11 slow motion, the crust rushing in. 0:12 the hit: "YOU DON'T SINK".
-0:14 the lake from on top of it, the counter now ON THE LAVA in seconds ("Lava is nearly 3 times denser than you. You float on top.").
-0:17 a crack opens beside you ("The black crust is a thin skin. Under it: over 1,000°C."). 0:20 your shoes smoke. 0:23 sulfur gas
-rolls in. 0:26 you look up: the sky a small circle 400 m above, the phone lights on the rim ("400 m above you, the tourists can only
-film."). 0:29.5 "THE LAKE WAKES UP": the crust speeds up, gas bubbles burst, nearer each time. 0:36 lava rains round you. 0:38.6
-"THE CRUST SPLITS OPEN". 0:41.6 "IT'S RIGHT UNDER YOU": the crust domes up under you. 0:43.8 it erupts: a lava column climbs in
-front of you (slow motion), the surge swallows the view, white, loop (the white clears onto frame 0, the sound turns back into the rim).
+46.2 s. A new scene: a made-up crater with Nyiragongo's numbers (Congo): a lava lake 300 m wide about 400 m below the rim, at
+dusk. Reworked Nov 7 after the owner's review: the fall made readable, the lava part cut between views, the opening louder.
+0:00 from your eyes: you on a lip of rock over the drop, tourists with phones on the rock spur beside you, the glowing lake far below,
+the title, the counter already moving (ABOVE THE LAVA 399.9 m, HEAT ON YOU 2.1x THE SUN); the rock under you is sliding. The crowd
+gasps on frame 0, then the owner's "oh my god" (cut before the rest of the clip).
+0:01 you go over and look straight down: the lake in its pit, your trainers. 0:02.5 cut to the rim, between the tourists leaning
+over the edge (one's arm and phone in the corner, their torches on you): you, in a yellow jacket, arms and legs spread, shrinking
+toward the lava, rocks falling round you ("The drop is taller than the Eiffel Tower."). 0:05.6 your eyes again, straight down: the lake
+filling the view, the rocks ahead splashing in ("6 seconds in, you're falling at 100 mph."). 0:09 you look at the wall: rock streaming
+up past you, the lava below ("You hit the lava at 126 mph."). 0:11 slow motion, the crust rushing in. 0:12 the hit: "YOU DON'T SINK".
+0:13.7 wide: you, small, sitting on the huge lake, the wall towering behind ("Lava is nearly 3 times denser than you. You float on
+top."). 0:16.9 low on the crust: a glowing crack opens beside you ("The black crust is a thin skin. Under it: over 1,000°C."). 0:19.9
+your eyes: your shoes smoking ("Your shoes start to smoke on the crust."), 0:23 sulfur gas rolling in across the lake. 0:25.9 up on
+the rim, from out over the drop: the row of tourists leaning over, phones lit, the wall dropping to the lava ("400 m above you, the
+tourists can only film."). 0:29.5 wide and high: "THE LAKE WAKES UP", a bubble bursts. 0:32.5 low and close: a bubble swells out of
+the lava ten metres from you and bursts ("Gas bubbles burst up through the lava."). 0:35.5 you from in front, lava drops landing
+round you ("Molten lava rains down all around you."). 0:38.5 "THE CRUST SPLITS OPEN" beside you. 0:41.5 your eyes: "IT'S RIGHT UNDER
+YOU", the crust domes up under your feet. 0:43.8 it erupts: a lava column climbs in front of you (slow motion), the surge swallows the
+view, white, loop (the white clears onto frame 0, the sound turns back into the rim).
 Numbers (`src/timeline.js`): the fall is real time with air drag (terminal speed 60 m/s, a person in the thin air ~3.4 km up):
 400 m in 10.7 s, 101 mph after 6 s, 126 mph at the lava. Only the last 0.5 s of the fall and the eruption are slowed (SLOW MOTION
 on the counter; REAL TIME before that). Lava ~2,700 kg/m3 vs ~1,000 for a person (nearly 3x), so you land on top. Heat on you =
@@ -1332,9 +1337,10 @@ Nyiragongo's lake has sat ~400-450 m below the rim in recent years (deeper after
 What is made up: the crater is not a real place; real walls are terraced, these are drawn overhanging (the lava undercuts them)
 so a straight drop lands on the lake. The eruption is the what-if: real lakes surge and fountain, but on no set schedule. No one
 could survive the hit or the heat; the video shows only what you would see, never you burning.
-Sound: wind, the lake's roar, the tourists, the gasp and "oh my god" (opening second at -26 dB), the roar of the fall rising with your
+Sound: wind, the lake's roar, the tourists' uproar, the gasp (from frame 0) and "oh my god" (first second at -25 dB, the loop seam
+matched at -25 dB on both sides), the roar of the fall rising with your
 speed, a slowed thud at the hit, hiss and bubbling, booming bubbles, the eruption's roar into the white.
-Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.6`: looking straight down past your dangling trainers at the glowing lava lake in its pit, a rock falling beside you; "WHAT IF YOU / fell / into a volcano?")
+Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.4`: looking straight down past your dangling trainers at the glowing lava lake in its pit; "WHAT IF YOU / fell / into a volcano?"; tried the new rim shot of you falling at 2.75 s, but the small figure reads worse at phone size)
 
 **YouTube title** (49 characters):
 ```

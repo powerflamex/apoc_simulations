@@ -66,7 +66,11 @@ function rockShader(U, isGround) {
         float bnd = vnoise(vec3(lay, 0.5, 0.5) * 1.0);
         alb = mix(vec3(0.045, 0.042, 0.04), vec3(0.16, 0.08, 0.05), smoothstep(0.45, 0.75, bnd));
         alb = mix(alb, vec3(0.2, 0.19, 0.18), smoothstep(0.78, 0.92, vnoise(vec3(lay * 1.7, 2.0, 1.0))) * 0.7);
-        alb *= 0.5 + 0.9 * n2 * (0.55 + 0.7 * n3);
+        alb *= 0.25 + 1.6 * n2 * (0.45 + 0.9 * n3);
+        // the edges of old lava flows: dark bands with a lit ledge on top, so the wall reads as rock as it streams past
+        float fl = fract(lay * 0.5);
+        alb *= 1.0 - 0.75 * smoothstep(0.06, 0.0, abs(fl - 0.5) - 0.02);
+        alb *= 1.0 + 0.9 * smoothstep(0.05, 0.0, abs(fl - 0.56)) ;
         alb = mix(alb, vec3(0.5, 0.44, 0.12), smoothstep(0.66, 0.8, n2) * smoothstep(260.0, 380.0, P.y) * 0.55);
         `}
         // light from the lake below (a disc's view factor from this height), strongest on faces turned to it
@@ -205,7 +209,7 @@ export function makeCrater() {
   };
   const tables = {};
   for (let i = 0; i < 48; i++) {
-    const big = i < 14, peb = i >= 30;
+    const big = i < 8, peb = i >= 40;
     const size = big ? 0.2 + R() * 0.32 : peb ? 0.03 + R() * 0.06 : 0.08 + R() * 0.14;
     const vt = big ? 85 + R() * 40 : peb ? 18 + R() * 12 : 45 + R() * 20;
     const key = Math.round(vt);
@@ -213,6 +217,7 @@ export function makeCrater() {
     const T0 = big ? T_FALL - 0.3 + R() * 0.8 : peb ? -0.7 + R() * 3.2 : T_FALL + R() * 1.5;
     const a = YOUA + (R() - 0.5) * (peb ? 0.03 : 0.025);
     const r0 = YOU_R - 0.4 - R() * 0.8;
+    if (!big && !peb && i % 2) { rocks.push({ size: 0, tab: [0, 1e9], T0: 1e9, a, r0, out: 0, y0: 0, spin: [0, 0, 0], ph: 0 }); continue; }   // (fewer mid-sized rocks)
     rocks.push({ size, tab: tables[key], T0, a: a + (big ? (R() - 0.5) * 0.08 : 0), r0, out: big ? 5 + R() * 12 : peb ? 0.5 + R() * 2 : 2 + R() * 6, y0: RIM - 0.5 - size - R() * 0.4, spin: [R() * 4 - 2, R() * 4 - 2, R() * 4 - 2], ph: R() * 6 });
   }
   for (const k of rocks) {
@@ -231,12 +236,12 @@ export function makeCrater() {
 
   // ---- the ring of lights round the rim (phones, head torches) ----
   const lightGeo = new THREE.SphereGeometry(1, 8, 6);
-  const NL = 117;
+  const NL = 123;
   const lights = new THREE.InstancedMesh(lightGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), NL);
   lights.frustumCulled = false;
   const LR = rng(5);
   const lightSpecs = [];
-  for (let i = 0; i < NL - 7; i++) {
+  for (let i = 0; i < NL - 13; i++) {
     // clustered: groups of tourists at viewpoints round the rim, most on your side and across
     const grp = Math.floor(LR() * 9);
     const a = [YOUA, YOUA + 0.12, YOUA - 0.1, YOUA + 0.3, YOUA - 0.35, -YOUA, -YOUA + 0.2, -YOUA - 0.25, 0.4][grp] + (LR() - 0.5) * 0.06;
@@ -246,10 +251,12 @@ export function makeCrater() {
   }
   // phones held out over the spur's edge, pointing down at you (seen from below)
   for (let i = 0; i < 7; i++) lightSpecs.push({ x: -1.35 - LR() * 0.3, y: 400.6 + LR() * 0.6, z: 110.5 + i * 1.15 + LR() * 0.4, ph: LR() * 10, warm: false, late: 2.5 + LR() });
+  // and over the rim's edge on your side, where the tourists beside you lean out
+  for (let i = 0; i < 6; i++) lightSpecs.push({ x: 1.0 + i * 0.9 + LR() * 0.3, y: 400.9 + LR() * 0.4, z: 121.6 + LR() * 0.3, ph: LR() * 10, warm: false, late: 1.6 + LR() });
   lightSpecs.forEach((l, i) => lights.setColorAt(i, new THREE.Color(l.warm ? 0xffd9a8 : 0xffffff).multiplyScalar(14)));
   group.add(lights);
 
-  function update(T, v, you) {
+  function update(T, v, near = 1) {
     U.uT.value = T;
     // the slab: it tilts forward and slides from T = -0.6, then falls ahead of you
     const k = clamp((T + 0.6) / (T_FALL + 0.6));
@@ -278,7 +285,7 @@ export function makeCrater() {
     lightSpecs.forEach((l, i) => {
       // a few turn on and wave about once you fall
       const tw = 0.9 + 0.1 * Math.sin(v * 3 + l.ph);
-      m4.compose(pv.set(l.x, l.y, l.z), q.identity(), sv.setScalar(0.11 * tw * (l.late ? smooth(l.late, l.late + 0.5, T) : 1)));
+      m4.compose(pv.set(l.x, l.y, l.z), q.identity(), sv.setScalar(0.11 * tw * (l.late ? smooth(l.late, l.late + 0.5, T) * near : 1)));
       lights.setMatrixAt(i, m4);
     });
     lights.instanceMatrix.needsUpdate = true;

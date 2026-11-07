@@ -20,8 +20,10 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const GASP_AT = 0.25, OMG_AT = 0.95;
-const TARGET_OPENING_DB = -26;
+// (the gasp starts just before frame 0, inside the white at the loop, so it is already loud on frame 0)
+// (gasp.mp3 is silent for its first 0.23 s; omg.mp3 is cut at 0.88 s, before the rest of what's said)
+const GASP_AT = -0.5, OMG_AT = 0.18, OMG_LEN = 0.88;
+const TARGET_OPENING_DB = -25;
 
 class OnePole {
   constructor(fc) { this.y = 0; this.set(fc); }
@@ -87,7 +89,7 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(5150);
   const white = () => R0() * 2 - 1;
   const DIR = path.dirname(fileURLToPath(import.meta.url));
-  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -14);
+  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -13);
 
   // per-sample story values on a coarse grid
   const STEP = 240, grid = [];
@@ -135,7 +137,7 @@ export function makeSoundtrack(outFile) {
     {
       const k = clamp(st.sp / 57);
       const fall = onLake ? 0 : k;
-      const g = 0.08 * (1 - smooth(1.5, 3, v) * 0.3) + 0.95 * Math.pow(fall, 1.1);
+      const g = 0.08 * (1 - smooth(1.5, 3, v) * 0.3) + 1.25 * Math.pow(fall, 0.75);
       const fc = 350 + 2400 * fall * fall + 120 * Math.sin(v * 0.6);
       windLP[0].set(fc * 1.3); windLP[1].set(fc * 1.4);
       const a = windF[0].run(white(), fc, 0.9).bp, b = windF[1].run(white(), fc * 1.07, 0.9).bp;
@@ -156,9 +158,9 @@ export function makeSoundtrack(outFile) {
     // ---- close to the crust: hiss and bubbling ----
     if (onLake) {
       const k = smooth(V_IMPACT + 0.3, V_IMPACT + 2, v);
-      const hs = hissF.run(white(), 5200, 0.7).bp * 0.025 * k;
+      const hs = hissF.run(white(), 5200, 0.7).bp * 0.045 * k;
       const burst = bubE.run(Math.max(0, Math.sin(v * 11.3) * Math.sin(v * 6.9 + 1) * Math.sin(v * 2.9 + 2)));
-      const bb = bubF.run(white(), 140 + 260 * burst, 0.4).bp * 0.12 * k * (0.2 + 2.2 * burst) * (1 + smooth(V_WAKE, V_BURST, v));
+      const bb = bubF.run(white(), 140 + 260 * burst, 0.4).bp * 0.22 * k * (0.2 + 2.2 * burst) * (1 + smooth(V_WAKE, V_BURST, v));
       l += hs + bb; r += hs * 0.9 + bb * 1.05; wet += bb * 0.3;
     }
     // ---- your shoes sizzling ----
@@ -177,7 +179,8 @@ export function makeSoundtrack(outFile) {
     }
     // ---- the crowd: on the rim round you, then far above (an echo off the walls) ----
     {
-      const top = 1 - smooth(-0.3, 3.5, v);
+      // the tourists: talking, then an uproar as the rock gives way, fading above you as you drop
+      const top = (1 + 1.6 * smooth(-0.7, 0.1, v)) * (1 - smooth(0.8, 4.0, v));
       const far = smooth(V_UP - 0.5, V_UP + 0.8, v) * (1 - smooth(V_WAKE - 0.5, V_WAKE + 0.5, v)) * 0.25;
       const g = top * 0.9 + far;
       if (g > 1e-4) {
@@ -190,12 +193,12 @@ export function makeSoundtrack(outFile) {
       }
     }
     // ---- the voices: a gasp, then "oh my god" ----
-    for (const [C, t0, pan] of [[GASP, GASP_AT, -0.15], [OMG, OMG_AT, 0.2]]) {
+    for (const [C, t0, pan, len] of [[GASP, GASP_AT, -0.15, 9], [OMG, OMG_AT, 0.2, OMG_LEN]]) {
       if (!C) continue;
       const i = Math.round((v - t0) * SR);
-      if (i >= 0 && i < C.a.length) {
+      if (i >= 0 && i < C.a.length && v - t0 < len) {
         const fade = Math.min(1, i / (0.01 * SR));
-        const x = C.a[i] * C.g * fade * (1 - smooth(2.6, 3.4, v - t0));
+        const x = C.a[i] * C.g * fade * (1 - smooth(len - 0.06, len, v - t0));
         l += x * (1 - pan) * 0.9; r += x * (1 + pan) * 0.9; wet += x * 0.35;
       }
     }
