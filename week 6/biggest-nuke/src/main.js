@@ -17,7 +17,7 @@ import { makeFlames } from './flames.js';
 import { makeEvents } from './events.js';
 import { makeOverlay } from './overlay.js';
 import { CAM0, HIT, PLAIN } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, REAL_HIT as V_WALL, V_DROP, V_HELI, V_STREET } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, POP, REAL_HIT as V_WALL, V_DROP, V_HELI, V_STREET, V_HEAT as V_HEAT_L } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 
 const W = 1080, H = 1920, DEG = Math.PI / 180;
@@ -76,8 +76,8 @@ const shopL = new THREE.PointLight(0xffb878, 0, 0, 1.6);
 shopL.position.set(CAM0.x + 1, 7, CAM0.z - 14);
 scene.add(shopL);
 // the fire on your own street: two lights low on either side, flickering
-const burnL = [new THREE.PointLight(0xff7a24, 0, 0, 1.5), new THREE.PointLight(0xff8a30, 0, 0, 1.5)];
-burnL[0].position.set(-12, 6, -28); burnL[1].position.set(10, 6, -40);
+const burnL = [new THREE.PointLight(0xff7a24, 0, 0, 1.5), new THREE.PointLight(0xff8a30, 0, 0, 1.5), new THREE.PointLight(0xff9a3a, 0, 0, 1.5)];
+burnL[0].position.set(-12, 6, -28); burnL[1].position.set(10, 6, -40); burnL[2].position.set(4.5, 3.5, -8);
 scene.add(...burnL);
 
 const overlay = makeOverlay();
@@ -216,12 +216,13 @@ function update(video, cover = -1) {
   shopL.intensity = 70 * (1 - s.dark);
   {
     const crash = v > V_HELI ? 5 * Math.exp(-(v - V_HELI) / 0.5) : 0;
-    burnL[0].intensity = (360 * s.street + 100 * crash) * (0.78 + 0.22 * Math.sin(v * 11) * Math.sin(v * 7.3));
+    burnL[0].intensity = (360 * s.street + 100 * crash) * (0.7 + 0.3 * Math.sin(v * 11) * Math.sin(v * 7.3 + Math.sin(v * 1.3)));
     // (the car that's coming at you is lit by the fires behind you)
     const carL = smooth(V_WALL - 0.42, V_WALL - 0.1, v);
     burnL[0].position.set(-12 + carL * (camera.position.x + 12), 6 - 2 * carL, -28 + carL * (camera.position.z + 0.5 + 28));
     burnL[0].intensity *= 1 - 0.75 * carL;
-    burnL[1].intensity = (420 * s.street + 900 * crash) * (0.78 + 0.22 * Math.sin(v * 13 + 1) * Math.sin(v * 5.7));
+    burnL[1].intensity = (420 * s.street + 900 * crash) * (0.7 + 0.3 * Math.sin(v * 13 + 1) * Math.sin(v * 5.7 + Math.sin(v * 2.1)));
+    burnL[2].intensity = 70 * smooth(V_HEAT_L, V_HEAT_L + 1.5, v) * (0.65 + 0.35 * Math.sin(v * 17 + 2) * Math.sin(v * 7.9));
   }
 
   // the blackout, the blast front, the fires, for the buildings and the ground

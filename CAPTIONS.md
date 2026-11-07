@@ -1134,11 +1134,12 @@ Cover: `week 5/metal-rod/out/metal-rod_v4_cover.png` (`node render.mjs --cover 3
 ## Next Short. What if the biggest nuke ever hit your city? — `week 6/biggest-nuke/out/biggest-nuke_v4_1080x1920_60fps_tiktok.mp4`
 
 48.1 s (reworked Nov 7 after the owner checked the first cut: a clear fireball on frame 0, something new close to you every
-few seconds, big fire and tower moments, a real hit at the end, the sound level matched at the loop). A made-up city at dusk
+few seconds, big fire and tower moments, a real hit at the end, the sound level matched at the loop; then a new soundtrack and
+real-looking street fires, Nov 7). A made-up city at dusk
 (no real places, no country, no brands); you stand on a low ledge on a busy hilltop promenade with strings of bulbs, stalls,
 lit shops, a lit billboard and cars, a news helicopter overhead, the city spread out below you. Frame 0: the title, the
 counter racing (BLAST REACHES YOU IN, 45.00 s, 12.42 MILES AWAY), a huge orange fireball already on its stem behind the
-tallest tower, the crowd right in front of you, the owner's scream already going. 0:01-0:05 the people nearest you turn their
+tallest tower, the crowd right in front of you; a gasp, then the owner's "oh my god". 0:01-0:05 the people nearest you turn their
 backs on the light, arms over their eyes, cars brake and two collide. 0:06 the whole city goes dark, sweeping toward you. 0:08
 your phone comes up: NO SERVICE. 0:12 EVERYONE RUNS, and people keep coming past you from down the hill to the end. 0:14 a family
 and a couple right in front of you stop and hold on to each other; they stay. 0:15.6 a flock of birds bursts past you, black
@@ -1149,9 +1150,16 @@ only the heartbeat is left, while the dust wall takes the far towers. 0:33 the b
 0:36 the cap fills the sky. 0:38.4 THE TALLEST TOWER FALLS: 1,000 m tall at 1.6 miles, it snaps and goes over sideways, the
 big moment of the middle. 0:39 everyone left drops to the ground. 0:44.2 SLOW MOTION (on the counter): the last 0.8 s take 2.4 s. The
 wall comes up the hill and fills the frame, a car comes out of it end over end, straight at you, and hits the lens at 0:46.6 as
-the counter reaches 0: white, loop (the white clears onto frame 0). Sound: the bomb is silent until the blast, because its
-sound travels with it; the first boom from it is at 0:46.6. The scream and a low rumble start under the white, so the
-level across the loop is matched (-9.7 dB into it, -10.0 dB out of it; it was 9 dB apart).
+the counter reaches 0: white, loop (the white clears onto frame 0). Street fires (`src/flames.js`): a few big fires of
+different sizes and timing, ragged tongues licking up, yellow-white at the base to orange and red at the tips, dark smoke rolling
+off the top, their light flickering on the street, cars and people; embers rise off them and blow toward the city.
+Sound (no music; the bomb is silent until the blast, because its sound travels with it): an ordinary evening street (traffic,
+people talking), a car alarm and a dog barking down the hill, the owner's gasp at 0:00.2 and "oh my god" at 0:01 (sounds/gasp.mp3,
+sounds/omg.mp3, local only); tyres and two crashes; at the blackout six transformers pop and buzz one after another down the
+street, each nearer, and the city's hum cuts out; the middle is nearly silent: the fire's crackle and roar, car alarms and sirens
+far off, the crowd running for a few seconds, the helicopter faint and its crash muffled; the roar arrives all at once with the
+hit at 0:46.6. Levels (ffmpeg volumedetect, upload copy): first second -24.1 dB, last second -25.2 dB, middle (0:14-0:40)
+-34.6 dB, the hit -10 dB. At the loop: last 0.1 s -26.0, first 0.1 s -25.9 (last/first 0.4 s: -26.3 / -25.3).
 Numbers (`src/timeline.js`): 50 megatons, burst 4 km up, fireball reaching the ground, cloud top 64 km (40 miles), third-degree
 burns possible to 100 km (60 miles), complete destruction to 25 km (15.5 miles): nuclearweaponarchive.org/Russia/TsarBomba.html.
 Fireball: sources run from 6.5 km wide at 1 s to 9 km or more, so "over 5 miles". The blast: the published 1 Mt air burst (11 s,

@@ -106,9 +106,9 @@ const LOOK = /* glsl */ `
       float wv = mix(win, 0.8, far) * rows * (1.0 - broken);
       totalEmissiveRadiance += room * mix(lit, 0.46, far) * wv * power * (kind > 2.5 ? 1.1 : 0.85);
       float nearF = uBurnNear * smoothstep(240.0, 90.0, length(vWP - cameraPosition));
-      float cg = step(1.0 - 0.04 * uBurn - 0.6 * nearF, h21(id * 3.3 + vec2(seed, face)));
+      float cg = step(1.0 - 0.04 * uBurn - 0.22 * nearF, h21(id * 3.3 + vec2(seed, face)));
       float fliC = 0.7 + 0.3 * sin(uTime * 11.0 + r * 40.0);
-      totalEmissiveRadiance += vec3(2.4, 0.6, 0.08) * mix(cg, 0.07 * uBurn, far) * wv * fliC * (1.0 - 0.2 * nearF);
+      totalEmissiveRadiance += vec3(2.4, 0.6, 0.08) * mix(cg, 0.07 * uBurn, far) * wv * fliC * (1.0 - 0.55 * nearF);
       // the panes flash as they burst (shards catching every light at once)
       totalEmissiveRadiance += vec3(0.9, 0.95, 1.0) * 0.8 * burst * max(win, 0.3 * far * ok);
       // street level: shop fronts (dark glass, an awning band, a fascia), lobbies on the towers

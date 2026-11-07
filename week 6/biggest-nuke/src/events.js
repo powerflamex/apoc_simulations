@@ -81,23 +81,26 @@ export function makeEvents(scene, ctx, smoke, flames) {
 
   // ---- what burns on the street ----
   const F = [];
-  const add = (x, y, z, size, t0, seed) => F.push({ x, y, z, size, t0, seed });
+  // (each fire its own size, shape and timing: wide = across, tall = up, as multiples of size)
+  const add = (x, y, z, size, t0, seed, wide = 1, tall = 1) => F.push({ x, y, z, size, t0, seed, wide, tall });
   // a stall right beside you goes first, then the others along the promenade
   const near = [...STALLS].sort((a, b) => Math.hypot(a.x - CAM0.x, a.z - CAM0.z) - Math.hypot(b.x - CAM0.x, b.z - CAM0.z));
-  near.forEach((st, i) => { for (let k = 0; k < 3; k++) add(st.x + (R() - 0.5) * st.w, groundY(st.z) + 2.7, st.z + (R() - 0.5) * st.d, 3.2 + R() * 2.4, V_HEAT + 0.05 * i + i * 0.42 + R() * 0.4, R()); });
+  near.forEach((st, i) => add(st.x, groundY(st.z) + 2.4, st.z, 3.6 + R() * 1.8, V_HEAT + i * 0.45 + R() * 0.4, R(), 1.1 + R() * 0.6, 0.9 + R() * 0.7));
   // the shop awnings, running away down both sides of the street
-  for (const side of [-1, 1]) for (let z = 40; z > -120; z -= 9) add(side * (FX - 0.9), groundY(z) + 3.4, z, 5.5 + R() * 3, V_HEAT + 1.5 + R() * 3 + Math.abs(z) * 0.012, R());
+  for (const side of [-1, 1]) for (let z = 36 - R() * 6; z > -120; z -= 12 + R() * 8) add(side * (FX - 1.2), groundY(z) + 3.0, z, 5 + R() * 3.5, V_HEAT + 1.5 + R() * 3 + Math.abs(z) * 0.012, R(), 1.0 + R() * 0.9, 0.7 + R() * 0.8);
   // the blocks on both sides, floor by floor from the street up
-  for (const side of [-1, 1]) for (let i = 0; i < 44; i++) {
-    const z = -44 - R() * 46, y = 6.5 + R() * 21;
-    add(side * (FX - 0.3), groundY(z) + y, z, 5 + R() * 4, V_FIRE - 0.2 + y * 0.06 + R() * 2.2, R());
+  // (a few big blazes low on each block, one per shop front, each sending its smoke up the face: no stacked layers)
+  for (const side of [-1, 1]) for (let i = 0; i < 6; i++) {
+    const z = -48 - i * 8.5 - R() * 4, y = 2 + R() * 5;
+    add(side * (FX - 1.5), groundY(z) + y, z, 10 + R() * 5, V_FIRE - 0.2 + i * 0.35 + R() * 1.2, R(), 0.75 + R() * 0.45, 1.0 + R() * 0.7);
   }
   // cars, one after another
   const burning = CARS.filter((c) => c.z < -8 && c.z > -150).sort(() => R() - 0.5).slice(0, 12);
   burning.forEach((c, i) => { c.fire = V_FIRE + 0.6 + i * 0.5 + R() * 0.4; });
 
   // ---- embers on the wind ----
-  const EMB = Array.from({ length: 300 }, () => ({ x: (R() - 0.5) * 44, y: R() * 26, z: -R() * 46, r: R(), ph: R() * 6, s: 0.05 + R() * 0.13 }));
+  // (rising off the fires on both sides and blowing away from you, toward the city)
+  const EMB = Array.from({ length: 420 }, () => ({ x: (R() < 0.5 ? -1 : 1) * (FX - 3 - R() * 9), y: 2 + R() * 14, z: 10 - R() * 120, r: R(), ph: R() * 6, s: 0.07 + R() * 0.16 }));
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), p = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1), sc = new THREE.Vector3();
   return {
@@ -116,7 +119,7 @@ export function makeEvents(scene, ctx, smoke, flames) {
           glows.add(h.x, h.y - 1.5, h.z, 0.9, 3, 3, 3);
         }
         if (lost > 0 && !crashed) {
-          flames.add(h.x, h.y - 1, h.z, 6 + 3 * lost, 1.2, 0.3);
+          flames.add(h.x, h.y - 1.5, h.z, 4 + 2 * lost, 1, 0.3, 1, 1.2);
           for (let k = 0; k < 7; k++) { const u = ((lost * 0.8 + k / 7) % 1); smoke.puff(h.x, h.y + u * 16, h.z, 2.4 + 5 * u, 0.42 * (1 - u), 0.08, 0.1, k + 0.3); }
         }
         const age = v - V_HELI;
@@ -124,9 +127,9 @@ export function makeEvents(scene, ctx, smoke, flames) {
           // the impact: a ball of fire off the road, then the wreck burning
           const big = Math.exp(-age / 0.9);
           glows.add(CRASH.x, CRASH.y + 8, CRASH.z, 60 * (0.4 + big), 6 * big, 2.6 * big, 0.5 * big);
-          for (let k = 0; k < 9; k++) {
+          for (let k = 0; k < 5; k++) {
             const a = k * 2.4;
-            flames.add(CRASH.x + Math.cos(a) * (2 + k * 0.6), CRASH.y, CRASH.z + Math.sin(a) * (2 + k * 0.6), (8 + (k % 5) * 2) * (0.32 + 1.9 * big), 1.0, k * 0.13);
+            flames.add(CRASH.x + Math.cos(a) * (2 + k * 0.6), CRASH.y, CRASH.z + Math.sin(a) * (2 + k * 0.6), (7 + (k % 3) * 3) * (0.4 + 1.6 * big), 1.0, k * 0.13, 1.2 + 0.2 * k, 0.8 + 0.15 * (k % 3));
           }
           for (let k = 0; k < 9; k++) { const u = ((age * 0.13 + k / 9) % 1); smoke.puff(CRASH.x + u * 8, CRASH.y + 6 + u * 70, CRASH.z, 6 + 15 * u, 0.5 * (1 - u) * smooth(0, 1, age), 0.07, 0.12 * (1 - u), k + 0.7); }
         }
@@ -156,11 +159,11 @@ export function makeEvents(scene, ctx, smoke, flames) {
         board.rotation.x = 1.5 * fall; board.rotation.z = 0.32 * fall;
         board.position.y = -0.4 * fall;
         const burn = smooth(V_HEAT + 4, V_HEAT + 8, v);
-        for (let k = 0; k < 13; k++) {
-          const u = k / 12 - 0.5;
+        for (let k = 0; k < 5; k++) {
+          const u = k / 4 - 0.5;
           const hgt = BOARD.top - BOARD.h * (0.25 + 0.6 * ((k * 3) % 5) / 5);
           const y = hgt * Math.cos(1.5 * fall), z = BOARD.z + 0.4 + hgt * Math.sin(1.5 * fall);
-          flames.add(BOARD.x + u * BOARD.w, y, z, 5 + (k % 4) * 1.5, 1.1 * burn, k * 0.21);
+          flames.add(BOARD.x + u * BOARD.w * 0.85, y, z, 5 + (k % 3) * 1.8, burn, k * 0.21, 1.1 + 0.3 * (k % 2), 0.9 + 0.2 * (k % 3));
         }
         const hit = v - (V_SIGN + 1.45);
         if (hit > 0 && hit < 1.2) {
@@ -176,21 +179,20 @@ export function makeEvents(scene, ctx, smoke, flames) {
         if (a < 0) continue;
         if (Math.abs(f.x) > 30 && s.front > 0 && s.left < 40) continue;
         const k = smooth(0, 1.1, a);
-        flames.add(f.x, f.y, f.z, f.size * (0.5 + 0.5 * k), 1.05 * k, f.seed);
-        if (f.seed < 0.14) for (let i = 0; i < 2; i++) { const u = ((a * 0.2 + i / 2 + f.seed * 9) % 1); smoke.puff(f.x, f.y + f.size * 1.2 + u * 12, f.z, 2 + 5 * u, 0.3 * k * (1 - u), 0.08, 0.05, f.seed * 40 + i); }
+        flames.add(f.x, f.y, f.z, f.size * (0.55 + 0.45 * k), k, f.seed, f.wide, f.tall);
       }
       for (const c of CARS) {
         if (!c.fire || v < c.fire || c.px === undefined) continue;
         const k = smooth(c.fire, c.fire + 1, v);
-        for (let i = 0; i < 4; i++) flames.add(c.px + (i - 1.5) * 0.5, c.py + 0.9, c.pz + (i - 1.5) * 1.2, 3.4, 1.15 * k, c.ph + i);
+        flames.add(c.px, c.py + 0.6, c.pz, 3.4 + (c.ph % 1.5), k, c.ph, 1.3, 0.9 + 0.3 * (c.ph % 1));
       }
       // embers blown past you
       {
         const g = smooth(V_HEAT, V_FIRE + 2, v);
         if (g > 0) for (const m of EMB) {
-          const u = ((v * (0.09 + 0.12 * m.r) + m.ph) % 1);
-          const f = (0.5 + 0.5 * Math.sin(v * 9 + m.ph * 3)) * g * Math.sin(Math.PI * u);
-          glows.add(CAM0.x + m.x - 26 * u + Math.sin(v + m.ph) * 1.5, 0.4 + m.y * 0.4 + 16 * u * u, CAM0.z + m.z, m.s, 5 * f, 1.9 * f, 0.3 * f);
+          const u = ((v * (0.11 + 0.14 * m.r) + m.ph) % 1);
+          const f = (0.55 + 0.45 * Math.sin(v * 11 + m.ph * 3)) * g * Math.sin(Math.PI * u);
+          glows.add(m.x * (1 - 0.3 * u) + Math.sin(v * 1.7 + m.ph) * 1.2, groundY(m.z) + m.y + 26 * u, m.z - 34 * u, m.s, 5 * f, 1.8 * f, 0.25 * f);
         }
       }
       // the tower's pieces

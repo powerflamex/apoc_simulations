@@ -1,24 +1,29 @@
 // Procedural soundtrack for "What if the biggest nuke ever hit your city?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
-// The bomb itself is silent for 45 seconds: its sound travels with the blast. So what you hear is the street: the
-// evening's traffic and talk, the owner's scream in the first second, tyres and two crashes, the city's hum sagging as the
-// power goes, your phone's three falling tones, car alarms, sirens, the crowd running. Under it a deep hit on every 3 s
-// beat (music, bigger each time) over a dark minor drone, a high shimmer with the heat, a pulse that quickens. At 0:30
-// everything drops away but the pulse ("not a sound yet"). Then a riser, the ground's rumble, and the blast at last: the
-// boom and roar into the white. The loop: the scream and a low rumble start under the white, so the sound runs on across
-// the seam at the same level instead of dropping to a quiet street and jumping up. Every onset is soft (8 ms+).
+// No music: only what you would hear. The bomb itself is silent for 45 seconds, because its sound travels with the blast.
+//   - the opening: an ordinary evening street (traffic, people talking), a car alarm the flash set off and a dog barking
+//     down the hill; a gasp and the owner's "oh my god" (sounds/gasp.mp3, sounds/omg.mp3, local only), tyres and two crashes;
+//   - the blackout: transformers pop and buzz one after another down the street, coming closer, and the city's hum cuts out;
+//   - the middle, nearly silent: the fire's crackle and roar close by, car alarms and sirens far off, the crowd running for a
+//     few seconds, the helicopter (faint, and a muffled crash 100 m off), the billboard coming down;
+//   - the end: nothing builds. The blast roar arrives all at once with the hit, glass bursting in it, into the white.
+// The loop: the white falls back into the opening street at the same level (start and end are measured, not guessed), and
+// the whole track is set by a fixed gain so the opening sits at about -24 dB like the owner's other Shorts. Every onset is
+// soft (8 ms+): no clicks or clacks.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, STEPS, V_CRASH, V_POWER, V_PHONE, V_RUN, V_SMOKE, V_BIRDS, V_HEAT, V_BURN, V_FIRE, V_HELI, V_QUIET, V_SIGN, V_CLOUD, V_TALL, V_DROP, V_SLOW, V_WALL } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, V_CRASH, V_POWER, V_PHONE, V_RUN, V_HEAT, V_FIRE, V_HELI, V_QUIET, V_SIGN, V_WALL } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-// the scream right at the start: the owner's clip (sounds/scream.mp3, or his "Noooo"); both stay out of git
-const SCREAM_AT = -0.72;      // (under the white, so it is already going when the loop comes round)
-const SCREAM_FILES = [['scream.mp3', 0.0], ['nooo.mp3', 0.55]];
+// the voices at the start (the owner's clips): the gasp, then "oh my god"
+const GASP_AT = 0.22, OMG_AT = 0.95;
+const TARGET_OPENING_DB = -26;           // RMS of the first second, (L+R)/2 (about -24 dB on ffmpeg's stereo meter)
+// the transformers along the street: [seconds after the blackout starts, how near (0 far .. 1 next to you), pan]
+const POPS = [[0.15, 0.1, 0.6], [0.45, 0.25, -0.5], [0.72, 0.4, 0.3], [0.98, 0.6, -0.2], [1.2, 0.8, 0.45], [1.42, 1.0, -0.35]];
 
 class OnePole {
   constructor(fc) { this.y = 0; this.set(fc); }
@@ -64,19 +69,18 @@ class Reverb {
 const saw = (ph) => 2 * (ph - Math.floor(ph + 0.5));
 const env = (dt, att, dec) => (dt < 0 ? 0 : Math.min(dt / att, 1) * Math.exp(-dt / dec));
 
-function loadClip(dir) {
-  for (const [f, skip] of SCREAM_FILES) {
-    const file = path.join(dir, 'sounds', f);
-    if (!fs.existsSync(file)) continue;
-    const r = spawnSync('ffmpeg', ['-v', 'error', '-ss', String(skip), '-i', file, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
-    if (r.status !== 0) continue;
-    const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
-    let pk = 0; for (const x of a) pk = Math.max(pk, Math.abs(x));
-    console.log(`audio: scream from sounds/${f}`);
-    return { a, g: 0.36 / Math.max(pk, 1e-6) };
-  }
-  console.warn('audio: no sounds/scream.mp3 or sounds/nooo.mp3: the scream is left out');
-  return null;
+// a clip from sounds/, mono, scaled to a given RMS over its loud part (so the voices sit where they should)
+function loadClip(dir, file, rmsDb) {
+  const f = path.join(dir, 'sounds', file);
+  if (!fs.existsSync(f)) { console.warn(`audio: no sounds/${file}: left out`); return null; }
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', f, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
+  if (r.status !== 0) return null;
+  const raw = r.stdout, a = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);
+  let s = 0, n = 0;
+  for (const x of a) if (Math.abs(x) > 0.02) { s += x * x; n++; }
+  const g = Math.pow(10, rmsDb / 20) / Math.sqrt(s / Math.max(n, 1) + 1e-12);
+  console.log(`audio: sounds/${file}`);
+  return { a, g };
 }
 
 export function makeSoundtrack(outFile) {
@@ -86,178 +90,141 @@ export function makeSoundtrack(outFile) {
   const PL = new Float32Array(N0), PR = new Float32Array(N0);
   const R0 = rng(6161);
   const white = () => R0() * 2 - 1;
-  const SC = loadClip(path.dirname(fileURLToPath(import.meta.url)));
+  const DIR = path.dirname(fileURLToPath(import.meta.url));
+  // (levels here are relative to the street; the master gain at the end sets the absolute level)
+  const GASP = loadClip(DIR, 'gasp.mp3', -12), OMG = loadClip(DIR, 'omg.mp3', -13);
 
-  // ---- a hit on each 3 s beat, bigger each time (the music: the bomb itself is silent until the blast); the blast ----
-  const HITS = STEPS.filter((t) => t < V_WALL - 0.5).map((t, n) => ({ t, k: clamp(0.28 + 0.05 * n, 0, 0.95), root: 55 * Math.pow(2, -Math.min(n, 12) / 24) }));
-  HITS.unshift({ t: -0.7, k: 0.5, root: 41, deep: true });
-  HITS.push({ t: V_WALL - 0.1, k: 1.5, root: 30, deep: true, boom: true });
-  // ---- cries (each voice its own pitch and filters) ----
+  // ---- people: cries at the start and when everyone runs, then nothing ----
   const cries = [];
   const addCries = (t0, t1, n, g) => { for (let k = 0; k < n; k++) cries.push({ t: t0 + R0() * (t1 - t0), f: 240 + R0() * 300, d: 0.45 + R0() * 0.8, g: g * (0.6 + 0.6 * R0()), pan: R0() * 1.6 - 0.8, vow: R0(), ph: 0, fA: new SVF(), fB: new SVF() }); };
-  addCries(0.5, 3.0, 8, 0.011); addCries(V_POWER, V_POWER + 3, 6, 0.01); addCries(V_RUN, V_RUN + 5, 18, 0.013); addCries(17, 21, 6, 0.01);
-  addCries(25, 29, 8, 0.011); addCries(V_CLOUD, V_CLOUD + 3.5, 10, 0.013); addCries(V_DROP, V_WALL - 0.2, 16, 0.015);
-  // ---- the tyres (a soft band of noise, each with its own pitch) and the two crashes ----
-  const TYRES = Array.from({ length: 7 }, () => ({ t: 0.2 + R0() * 1.3, d: 0.8 + R0() * 1.1, f: 900 + R0() * 700, g: 0.012 + R0() * 0.012, pan: R0() * 1.6 - 0.8, fl: new SVF() }));
-  const CRASHES = [{ t: V_CRASH, g: 0.9, pan: -0.35 }, { t: V_CRASH + 0.75, g: 0.65, pan: 0.45 }].map((c) => ({ ...c, a: new SVF(), b: new SVF(), lp: new OnePole(90), parts: Array.from({ length: 26 }, () => ({ t: R0() * 0.55, d: 0.05 + R0() * 0.12, f: 1500 + R0() * 3000, g: 0.015 + 0.02 * R0(), fl: new SVF() })) }));
-  // ---- car alarms set off round the street once the power goes (two tones, slow, far apart in pitch and place) ----
-  const ALARMS = Array.from({ length: 4 }, (_, i) => ({ t: V_POWER + 0.6 + i * 0.9, f: 820 + 230 * i, rate: 2.6 + 0.7 * i, pan: [-0.7, 0.5, -0.2, 0.8][i], ph: 0, fl: new SVF() }));
-  // ---- horns and sirens ----
-  const HORNS = Array.from({ length: 9 }, () => ({ t: 1.0 + R0() * 8, d: 0.5 + R0() * 1.4, f: 300 + R0() * 200, pan: R0() * 1.6 - 0.8, ph: 0, ph2: 0, fl: new SVF() }));
-  // ---- the glass along the street as the wall comes (a wash of soft bursts, no clacks) ----
-  const GLASS = Array.from({ length: 90 }, () => ({ t: V_WALL - 0.7 + R0() * 0.8, d: 0.06 + R0() * 0.12, f: 2600 + R0() * 3500, g: 0.012 + 0.012 * R0(), pan: R0() * 1.6 - 0.8, fl: new SVF() }));
-  // ---- the drone's chords (Hz), darkening ----
-  const CHORDS = [[-9, [110, 130.8, 164.8]], [V_RUN, [98, 116.5, 146.8]], [24, [87.3, 110, 130.8]], [V_CLOUD, [73.4, 87.3, 110]]];
-  const chordAt = (t) => { let c = CHORDS[0][1]; for (const [ts, ch] of CHORDS) if (t >= ts) c = ch; return c; };
+  addCries(1.2, 4.0, 5, 0.006); addCries(V_RUN, V_RUN + 4, 10, 0.007);
+  // ---- the tyres and the two crashes ----
+  const TYRES = Array.from({ length: 6 }, () => ({ t: 0.2 + R0() * 1.3, d: 0.8 + R0() * 1.1, f: 900 + R0() * 700, g: 0.008 + R0() * 0.008, pan: R0() * 1.6 - 0.8, fl: new SVF() }));
+  const CRASHES = [{ t: V_CRASH, g: 0.6, pan: -0.35 }, { t: V_CRASH + 0.75, g: 0.45, pan: 0.45 }].map((c) => ({ ...c, a: new SVF(), parts: Array.from({ length: 22 }, () => ({ t: R0() * 0.5, d: 0.05 + R0() * 0.12, f: 1500 + R0() * 2500, g: 0.012 + 0.016 * R0(), fl: new SVF() })) }));
+  // ---- car alarms: one set off by the flash, close; more far off once the power goes ----
+  const ALARMS = [
+    { t: -3, f: 760, rate: 3.1, pan: -0.55, g: 0.0075, lp: 1900 },
+    { t: V_POWER + 0.8, f: 980, rate: 2.4, pan: 0.7, g: 0.0035, lp: 1300 },
+    { t: V_POWER + 2.6, f: 1180, rate: 3.6, pan: -0.8, g: 0.0028, lp: 1100 },
+    { t: 15, f: 860, rate: 2.0, pan: 0.2, g: 0.0025, lp: 1000 },
+  ].map((a) => ({ ...a, ph: 0, fl: new SVF() }));
+  // ---- the dog down the hill: pairs of barks ----
+  const BARKS = [];
+  for (const t of [0.5, 1.9, 2.25, 3.7, 5.2, 5.5, 7.4, 9.6, 9.9, 12.8]) BARKS.push({ t, f: 520 + R0() * 80, d: 0.13 + R0() * 0.04, f1: new SVF(), f2: new SVF(), ph: 0 });
+  // ---- the horns, the sirens far off ----
+  const HORNS = Array.from({ length: 6 }, () => ({ t: 0.8 + R0() * 6, d: 0.4 + R0() * 1.0, f: 300 + R0() * 200, pan: R0() * 1.6 - 0.8, ph: 0, ph2: 0, fl: new SVF() }));
+  // ---- the transformers ----
+  const TRANS = POPS.map(([dt, near, pan]) => ({ t: V_POWER + dt, near, pan, ph: 0, cr: new SVF(), bz: new SVF() }));
+  const HUM_OFF = V_POWER + POPS[POPS.length - 1][0] + 0.05;
+  // ---- the glass going as the blast hits ----
+  const GLASS = Array.from({ length: 70 }, () => ({ t: V_WALL + R0() * 0.4, d: 0.06 + R0() * 0.12, f: 2600 + R0() * 3500, g: 0.02 + 0.02 * R0(), pan: R0() * 1.6 - 0.8, fl: new SVF() }));
 
-  // ---- things close to you ----
-  const THUDS = [
-    { t: V_HELI, g: 1.1, f: 52, pan: 0.35 }, { t: V_SIGN + 1.45, g: 0.7, f: 70, pan: -0.5 }, { t: V_TALL + 0.5, g: 0.5, f: 38, pan: -0.4 },
-    ...Array.from({ length: 12 }, (_, i) => ({ t: V_FIRE + 1 + i * 0.75 + R0() * 0.3, g: 0.12 + 0.1 * R0(), f: 90 + 40 * R0(), pan: R0() * 1.6 - 0.8 })),
-  ].map((c) => ({ ...c, n: new SVF(), ph: 0 }));
-  const WINGS = Array.from({ length: 34 }, () => ({ t: V_BIRDS + R0() * 2.4, f: 11 + R0() * 6, d: 0.5 + R0() * 0.7, pan: R0() * 1.8 - 0.9, g: 0.01 + 0.012 * R0(), fl: new SVF() }));
-  const fireF = [new SVF(), new SVF()], rotorLP = new OnePole(260), openLP = new OnePole(60), openLP2 = new OnePole(140), whooshF = new SVF();
   const cityLP = new OnePole(220), cityLP2 = new OnePole(260), idleLP = new OnePole(120);
   const talkF = Array.from({ length: 5 }, () => new SVF()), talkE = Array.from({ length: 5 }, () => new OnePole(3));
-  const shimF = [new SVF(), new SVF()];
-  const braamLP = new SVF(), subLP = new OnePole(80);
-  const droneLP = [new OnePole(400), new OnePole(400)];
-  const riserF = new SVF(), sirenF = [new SVF(), new SVF()], humLP = new OnePole(500), feetF = new SVF();
-  const roarF = [new SVF(), new SVF(), new SVF()], roarSub = new OnePole(55), rumLP = new OnePole(40), rumLP2 = new OnePole(70);
+  const humF = new OnePole(700), sirenF = [new SVF(), new SVF()], feetF = new SVF(), rotorLP = new OnePole(260), phoneLP = new OnePole(5000);
+  const fireF = [new SVF(), new SVF(), new SVF()], fireLP = new OnePole(150), crk = Array.from({ length: 3 }, () => ({ t: -1, f: 1500, g: 0, fl: new SVF() }));
+  const thudF = new SVF();
+  const roarF = [new SVF(), new SVF(), new SVF()], roarSub = new OnePole(55), boomLP = new OnePole(90);
   const revL = new Reverb(11), revR = new Reverb(12);
   const ph = new Float64Array(64);
   let brownL = 0, brownR = 0;
 
   for (let n = -N0; n < N; n++) {
     const v = n / SR;
-    let l = 0, r = 0, wet = 0, dl = 0, dr = 0;
-    const gone = 1 - smooth(V_WALL - 0.05, V_WALL + 0.25, v);     // the street, until the wall takes it
-    // "not a sound yet": for a moment everything drops away but your heart
-    const hush = 1 - 0.88 * smooth(V_QUIET - 0.3, V_QUIET + 0.15, v) * (1 - smooth(V_QUIET + 2.1, V_QUIET + 2.5, v));
+    let l = 0, r = 0, wet = 0;
+    const gone = 1 - smooth(V_WALL - 0.02, V_WALL + 0.06, v);           // the street, until the blast takes it
+    const hush = 1 - 0.55 * smooth(V_QUIET - 0.3, V_QUIET + 0.15, v) * (1 - smooth(V_QUIET + 2.1, V_QUIET + 2.6, v));
 
-    // --- the evening street: traffic, the crowd talking ---
+    // --- the evening street: traffic, people talking; both thin out once the light comes ---
     brownL = clamp(brownL + white() * 0.02, -1, 1) * 0.998;
     brownR = clamp(brownR + white() * 0.02, -1, 1) * 0.998;
-    const flow = 1 - smooth(0.2, 2.2, v);
-    const traffic = (0.1 + 0.2 * flow) * gone * hush;
-    l += cityLP.run(brownL) * traffic + idleLP.run(white()) * 0.08 * (1 - flow) * gone * hush;
-    r += cityLP2.run(brownR) * traffic + idleLP.y * 0.08 * (1 - flow) * gone * hush;
+    const flow = 1 - smooth(1.0, 4.5, v);
+    const traffic = (0.025 + 0.14 * flow) * gone;
+    l += cityLP.run(brownL) * traffic + idleLP.run(white()) * 0.04 * (1 - flow) * gone * (1 - smooth(12, 18, v));
+    r += cityLP2.run(brownR) * traffic + idleLP.y * 0.04 * (1 - flow) * gone * (1 - smooth(12, 18, v));
     {
       let cv = 0;
       for (let q = 0; q < 5; q++) {
         const amp = talkE[q].run(Math.max(0, Math.sin(v * (2.3 + q * 0.7) + q * 1.3) + white() * 0.2));
         cv += talkF[q].run(white(), 360 + q * 230 + 90 * Math.sin(v * (1.1 + q * 0.3)), 0.25).bp * amp;
       }
-      const talk = (1 - smooth(0.3, 2, v) * 0.6) * gone * hush;
-      l += cv * 0.03 * talk; r += cv * 0.028 * talk;
+      const talk = (1 - smooth(1.5, 6, v)) * gone;
+      l += cv * 0.025 * talk; r += cv * 0.023 * talk;
     }
-    // --- the helicopter overhead: a rotor chop that comes closer, then races as it goes down ---
-    if (v < V_HELI) {
-      const lost = Math.max(0, v - (V_HELI - 3.1));
-      ph[50] += (11 + 7 * lost) / SR;
-      const cyc = ph[50] % 1;
-      const near = 0.22 + 0.5 * smooth(8, 22, v) + 0.5 * smooth(0, 3, lost);
-      const rv = rotorLP.run(white()) * (0.25 + 0.75 * Math.exp(-cyc * 6)) * 0.55 * near * hush;
-      l += rv * 0.9; r += rv * 0.6;
-    }
-    // --- the fire on your street: crackle and roar ---
+    // --- the city's hum (the transformers and the lights), cut dead when the last one blows ---
     {
-      const g = smooth(V_HEAT - 0.2, V_FIRE + 3, v) * gone * hush;
+      const g = (1 - smooth(HUM_OFF - 0.01, HUM_OFF + 0.012, v)) * gone;
       if (g > 0) {
-        const w = white();
-        const fv = (fireF[0].run(w, 340 + 120 * Math.sin(v * 3), 0.7).bp * 0.22 + (R0() < 0.0009 ? 0.5 : 0) * fireF[1].run(w, 2400, 0.5).bp) * g;
-        l += fv; r += fv * 0.9; wet += fv * 0.4;
+        ph[2] += 120 / SR;
+        const hv = humF.run(saw(ph[2]) + 0.4 * saw(ph[2] * 2.003)) * 0.012 * g;
+        l += hv; r += hv * 0.95;
       }
     }
-    // --- the birds' wings ---
-    for (const b of WINGS) {
+    // --- the transformers: a thump and a crack, then an electric buzz sliding down; each one nearer than the last ---
+    for (const tr of TRANS) {
+      const dt = v - tr.t;
+      if (dt < 0 || dt > 1.4) continue;
+      const g = 0.25 + 0.75 * tr.near;
+      ph[60] += (70 - 25 * Math.min(dt * 4, 1)) / SR;
+      const thump = Math.sin(TAU * ph[60]) * env(dt, 0.008, 0.12) * 0.28;
+      const crack = tr.cr.run(white(), 900 + 1300 * tr.near, 0.6).bp * env(dt, 0.008, 0.07) * 0.5;
+      tr.ph += (130 * (1 - 0.6 * Math.min(dt / 0.9, 1))) / SR;
+      const buzz = tr.bz.run(saw(tr.ph) + 0.6 * saw(tr.ph * 3.01), 500 + 600 * tr.near, 0.5).bp * smooth(0.01, 0.05, dt) * Math.exp(-dt / 0.35) * 0.3;
+      const x = (thump + crack + buzz) * g;
+      l += x * (1 - tr.pan) * 0.5; r += x * (1 + tr.pan) * 0.5; wet += x * (1.2 - tr.near);
+    }
+    // --- the dog ---
+    for (const b of BARKS) {
       const dt = v - b.t;
-      if (dt > 0 && dt < b.d) {
-        const fl = Math.pow(0.5 + 0.5 * Math.sin(dt * b.f * TAU), 2);
-        const wv = b.fl.run(white(), 1500, 0.8).bp * fl * Math.sin(Math.PI * dt / b.d) * b.g * 2.2;
-        l += wv * (1 - b.pan) * 0.5; r += wv * (1 + b.pan) * 0.5;
-      }
-    }
-    // --- big things hitting the ground near you: the helicopter, the billboard, the tower's fall, cars going up ---
-    for (const c of THUDS) {
-      const dt = v - c.t;
-      if (dt < 0 || dt > 2.4) continue;
-      c.ph += (c.f * (1 - 0.45 * Math.min(dt * 2, 1))) / SR;
-      const tv = (Math.sin(TAU * c.ph) * 0.5 * Math.exp(-dt / 0.4) + c.n.run(white(), 500, 0.4).bp * 0.2 * Math.exp(-dt / 0.55)) * smooth(0, 0.012, dt) * c.g;
-      l += tv * (1 - c.pan * 0.5); r += tv * (1 + c.pan * 0.5); wet += tv * 0.8;
-    }
-    // --- the car coming at you: a rising rush in the slow motion ---
-    {
-      const k = smooth(V_WALL - 1.25, V_WALL - 0.02, v) * (1 - smooth(V_WALL - 0.02, V_WALL + 0.03, v));
-      if (k > 0) { const wv = whooshF.run(white(), 300 + 1900 * k * k, 0.5).bp * 0.2 * k * k; l += wv; r += wv; }
-    }
-    // --- across the loop: a low rumble that starts under the white and dies away over the first two seconds ---
-    {
-      const g = (v < 0.2 ? 1 : 1 - smooth(0.2, 2.0, v)) * (v < 2.3 ? 1 : 0);
-      if (g > 0) { const ov = (openLP.run(white()) * 5 + openLP2.run(white()) * 2.4) * 0.5 * g; dl += ov; dr += ov; }
-    }
-    // --- the crowd running: a wash of feet ---
-    {
-      const g = smooth(V_RUN, V_RUN + 1.5, v) * (1 - smooth(V_RUN + 6, V_RUN + 11, v)) * gone * hush;
-      if (g > 0) {
-        const tick = Math.pow(0.5 + 0.5 * Math.sin(v * 17) * Math.sin(v * 11.3 + 1), 2);
-        const fv = feetF.run(white(), 500, 0.5).bp * 0.05 * g * (0.5 + tick);
-        l += fv; r += fv * 0.92;
-      }
+      if (dt < 0 || dt > b.d) continue;
+      b.ph += b.f * (1 - 0.3 * dt / b.d) / SR;
+      const src = saw(b.ph) * (1 + 0.35 * white());
+      const e = smooth(0, 0.01, dt) * (1 - smooth(b.d * 0.45, b.d, dt));
+      const bv = (b.f1.run(src, 950, 0.45).bp + 0.6 * b.f2.run(src, 1900, 0.5).bp) * e * 0.014;
+      l += bv * 0.35; r += bv * 0.75; wet += bv * 1.4;
     }
     // --- the tyres ---
     for (const q of TYRES) {
       const dt = v - q.t;
       if (dt > 0 && dt < q.d) {
         const e = smooth(0, 0.05, dt) * (1 - smooth(q.d - 0.25, q.d, dt));
-        const tv = q.fl.run(white(), q.f * (1 + 0.06 * Math.sin(dt * 34)), 0.09).bp * e * q.g * 1.4;
+        const tv = q.fl.run(white(), q.f * (1 + 0.06 * Math.sin(dt * 34)), 0.09).bp * e * q.g;
         l += tv * (1 - q.pan) * 0.5; r += tv * (1 + q.pan) * 0.5; wet += tv * 0.5;
       }
     }
-    // --- the crashes: a soft thump, metal and glass (every onset 8 ms+) ---
+    // --- the crashes: a soft thump, metal and glass ---
     for (const c of CRASHES) {
       const dt = v - c.t;
       if (dt < 0 || dt > 2) continue;
       ph[6] += (64 - 26 * Math.min(dt * 3, 1)) / SR;
-      const th = Math.sin(TAU * ph[6]) * smooth(0, 0.012, dt) * Math.exp(-dt / 0.14) * 0.34 * c.g;
-      const mt = c.a.run(white(), 1100, 0.3).bp * smooth(0, 0.01, dt) * Math.exp(-dt / 0.2) * 0.13 * c.g;
-      let cv = th + mt;
+      let cv = Math.sin(TAU * ph[6]) * smooth(0, 0.012, dt) * Math.exp(-dt / 0.14) * 0.22 * c.g;
+      cv += c.a.run(white(), 1100, 0.3).bp * smooth(0, 0.01, dt) * Math.exp(-dt / 0.2) * 0.09 * c.g;
       for (const q of c.parts) {
         const d2 = dt - q.t;
         if (d2 > 0 && d2 < q.d) cv += q.fl.run(white(), q.f, 0.5).bp * smooth(0, 0.01, d2) * (1 - smooth(q.d - 0.03, q.d, d2)) * q.g * c.g;
       }
       l += cv * (1 - c.pan) * 0.5; r += cv * (1 + c.pan) * 0.5; wet += cv * 0.7;
     }
-    // --- the power goes: the city's hum sags and dies, a far-off thud of substations ---
-    {
-      const u = (v - V_POWER) / 1.5;
-      const g = (1 - smooth(0.2, 1.0, u)) * smooth(-1, 0, u) * gone;
-      if (g > 0) {
-        ph[2] += (120 * (1 - 0.72 * smooth(0, 1, u))) / SR;
-        const hv = humLP.run(saw(ph[2])) * 0.05 * g;
-        dl += hv; dr += hv; wet += hv * 0.8;
-      }
-    }
-    // --- your phone: three falling tones (no service) ---
+    // --- your phone: three falling tones ---
     {
       const dt = v - (V_PHONE + 0.12);
       if (dt > 0 && dt < 0.75) {
         const k = Math.floor(dt / 0.24), u = dt - k * 0.24;
         const e = smooth(0, 0.012, u) * (1 - smooth(0.15, 0.2, u));
         ph[3] += [950, 760, 570][Math.min(k, 2)] / SR;
-        const pv = Math.sin(TAU * ph[3]) * e * 0.05;
-        l += pv * 0.8; r += pv; wet += pv * 0.3;
+        const pv = phoneLP.run(Math.sin(TAU * ph[3])) * e * 0.022;
+        l += pv * 0.8; r += pv;
       }
     }
     // --- car alarms ---
     for (const a of ALARMS) {
       const dt = v - a.t;
-      if (dt > 0) {
-        const f = a.f * (Math.floor(dt * a.rate) % 2 ? 1.28 : 1);
-        a.ph += f / SR;
-        const av = a.fl.run(saw(a.ph), 1600, 0.6).lp * 0.0075 * smooth(0, 0.05, dt) * gone * hush * (1 - 0.5 * smooth(20, 40, v));
-        l += av * (1 - a.pan) * 0.5; r += av * (1 + a.pan) * 0.5; wet += av * 0.9;
-      }
+      if (dt < 0) continue;
+      // (a whooping sweep, up and down)
+      const f = a.f * (1 + 0.35 * (0.5 + 0.5 * Math.sin(dt * a.rate * TAU)));
+      a.ph += f / SR;
+      const av = a.fl.run(saw(a.ph), a.lp, 0.6).lp * a.g * smooth(0, 0.03, dt) * gone * (a.t < 0 ? 1 - 0.55 * smooth(8, 16, v) : 1);
+      l += av * (1 - a.pan) * 0.5; r += av * (1 + a.pan) * 0.5; wet += av * 1.6;
     }
     // --- horns, then sirens far off ---
     for (const h of HORNS) {
@@ -265,91 +232,82 @@ export function makeSoundtrack(outFile) {
       if (dt > 0 && dt < h.d) {
         h.ph += h.f / SR; h.ph2 += h.f * 1.26 / SR;
         const e = smooth(0, 0.03, dt) * (1 - smooth(h.d - 0.08, h.d, dt));
-        const hv = h.fl.run(saw(h.ph) + saw(h.ph2) * 0.7, 1500, 0.5).lp * 0.02 * e;
+        const hv = h.fl.run(saw(h.ph) + saw(h.ph2) * 0.7, 1500, 0.5).lp * 0.012 * e;
         l += hv * (1 - h.pan) * 0.5; r += hv * (1 + h.pan) * 0.5; wet += hv * 0.6;
       }
     }
     {
-      const sa = smooth(9, 14, v) * gone * hush;
+      const sa = smooth(10, 16, v) * gone * hush;
       if (sa > 0) {
         for (let q = 0; q < 2; q++) {
           const f = 650 + 80 * q + 250 * Math.sin(v * (1.3 + 0.4 * q) + q * 2) + 100 * Math.sin(v * 0.7 + 1);
           ph[4 + q] += f / SR;
-          const sv = sirenF[q].run(saw(ph[4 + q]), 1400, 0.6).lp * 0.011 * sa;
-          l += sv * (q ? 1 : 0.6); r += sv * (q ? 0.6 : 1); wet += sv * 1.2;
+          const sv = sirenF[q].run(saw(ph[4 + q]), 900, 0.6).lp * 0.003 * sa;
+          l += sv * (q ? 1 : 0.6); r += sv * (q ? 0.6 : 1); wet += sv * 3;
         }
       }
     }
-    // --- the scream (the owner's clip) ---
-    if (SC) {
-      const i = Math.round((v - SCREAM_AT) * SR);
-      if (i >= 0 && i < SC.a.length) {
-        const fade = Math.min(1, i / (0.01 * SR), (SC.a.length - i) / (0.05 * SR));
-        const s = SC.a[i] * SC.g * fade;
-        l += s * 0.9; r += s * 1.0; wet += s * 0.25;
+    // --- the voices: the gasp, then "oh my god" ---
+    for (const [C, at, pan] of [[GASP, GASP_AT, 0.05], [OMG, OMG_AT, -0.05]]) {
+      if (!C) continue;
+      const i = Math.round((v - at) * SR);
+      if (i >= 0 && i < C.a.length) {
+        const fade = Math.min(1, i / (0.01 * SR), (C.a.length - i) / (0.05 * SR));
+        const s = C.a[i] * C.g * fade * 0.12;
+        l += s * (1 - pan); r += s * (1 + pan); wet += s * 0.15;
       }
     }
-    // --- the beats: a deep hit with a sub drop ---
+    // --- the crowd running: a wash of feet, a few seconds ---
     {
-      let braam = 0, sub = 0;
-      for (const h of HITS) {
-        const dt = v - h.t;
-        if (dt < -0.02 || dt > 5) continue;
-        const e = env(dt + 0.02, 0.025, (0.9 + 0.8 * h.k) * (h.deep ? 1.8 : 1)) * h.k * (1 - smooth(3.5, 5, dt));
-        const hf = h.root * (1 - 0.04 * Math.min(dt, 1));
-        ph[10] += hf / SR; ph[11] += hf * 1.005 / SR; ph[12] += hf * 2 / SR; ph[13] += hf * 3.01 / SR;
-        braam += (saw(ph[10]) + saw(ph[11]) + 0.5 * saw(ph[12]) + 0.25 * saw(ph[13])) * e * (h.boom ? 0.6 : 1);
-        ph[14] += (28 + 40 * Math.exp(-Math.max(dt, 0) * 5)) / SR;
-        sub += Math.sin(TAU * ph[14]) * env(dt + 0.02, 0.012, (0.7 + 0.4 * h.k) * (h.deep ? 2.2 : 1)) * h.k * (h.deep ? 1.4 : 1);
+      const g = smooth(V_RUN, V_RUN + 1.5, v) * (1 - smooth(V_RUN + 4, V_RUN + 9, v)) * gone;
+      if (g > 0) {
+        const tick = Math.pow(0.5 + 0.5 * Math.sin(v * 17) * Math.sin(v * 11.3 + 1), 2);
+        const fv = feetF.run(white(), 500, 0.5).bp * 0.025 * g * (0.5 + tick);
+        l += fv; r += fv * 0.92;
       }
-      const bf = braamLP.run(braam, 1400, 0.6).lp * 0.1 * hush;
-      const sv = (subLP.run(sub) * 0.5 + sub * 0.25) * hush;
-      dl += bf + sv; dr += bf * 0.97 + sv; wet += bf * 0.6;
     }
-    // --- a high shimmer: the heat (music, not the fire) ---
+    // --- the helicopter: faint until it falls, then a muffled crash down the street ---
+    if (v < V_HELI) {
+      const lost = Math.max(0, v - (V_HELI - 3.1));
+      ph[50] += (11 + 7 * lost) / SR;
+      const cyc = ph[50] % 1;
+      const rv = rotorLP.run(white()) * (0.25 + 0.75 * Math.exp(-cyc * 6)) * 0.12 * (0.3 + 0.7 * smooth(14, 24, v)) * hush;
+      l += rv * 0.9; r += rv * 0.6;
+    }
+    for (const [t0, g0, f0] of [[V_HELI + 0.3, 0.35, 48], [V_SIGN + 1.45, 0.22, 66]]) {
+      const dt = v - t0;
+      if (dt < 0 || dt > 2) continue;
+      ph[52] += (f0 * (1 - 0.4 * Math.min(dt * 2, 1))) / SR;
+      const tv = (Math.sin(TAU * ph[52]) * Math.exp(-dt / 0.45) + thudF.run(white(), 300, 0.5).bp * 0.4 * Math.exp(-dt / 0.6)) * smooth(0, 0.015, dt) * g0 * 0.25;
+      l += tv * 1.1; r += tv * 0.9; wet += tv * 1.2;
+    }
+    // --- the fire: a low roar and the crackle, from the first flames beside you to the end ---
     {
-      const g = smooth(V_SMOKE, V_SMOKE + 4, v) * (1 - smooth(V_WALL - 0.1, V_WALL, v)) * hush;
+      const g = smooth(V_HEAT - 0.2, V_FIRE + 3, v) * gone * (0.55 + 0.45 * hush);
       if (g > 0) {
         const w = white();
-        const trem = 0.7 + 0.3 * Math.sin(v * 7);
-        const sv = (shimF[0].run(w, 5200 + 1500 * Math.sin(v * 0.9), 0.9).bp + shimF[1].run(w, 7800, 0.95).bp * 0.6) * 0.016 * g * trem;
-        l += sv * 0.8; r += sv; wet += sv * 1.5;
+        const roar = fireLP.run(w) * 0.5 + fireF[0].run(w, 260 + 90 * Math.sin(v * 2.3), 0.7).bp * 0.12;
+        let cr = 0;
+        for (const c of crk) {
+          if (v - c.t > 0.06 && R0() < 0.0011) { c.t = v; c.f = 1200 + R0() * 2400; c.g = 0.3 + 0.7 * R0(); }
+          const dt = v - c.t;
+          if (dt >= 0 && dt < 0.06) cr += c.fl.run(white(), c.f, 0.6).bp * smooth(0, 0.004, dt) * Math.exp(-dt / 0.014) * c.g;
+        }
+        const fv = (roar * 0.11 + cr * 0.05) * g;
+        l += fv; r += fv * 0.92; wet += fv * 0.3;
       }
     }
-    // --- the pulse: quickening to the end. It's the only thing left in the hush ---
+    // --- the blast: all at once with the hit. A boom, a roar, the glass ---
     {
-      const g = smooth(V_BURN, V_BURN + 2, v) * (1 - smooth(V_WALL - 0.3, V_WALL, v));
-      if (g > 0) {
-        const rate = 1.1 + 2.5 * smooth(V_BURN, V_WALL, v);
-        ph[30] += rate / SR;
-        const cyc = ph[30] % 1;
-        const e = env(cyc / rate, 0.012, 0.09);
-        ph[31] += (50 + 25 * Math.exp(-cyc / rate * 20)) / SR;
-        const pv = Math.sin(TAU * ph[31]) * e * 0.3 * g;
-        dl += pv; dr += pv;
-      }
-    }
-    // --- the last 9 seconds: a riser, and a rumble under it as the ground starts to move ---
-    {
-      const k = smooth(V_CLOUD, V_WALL - 0.05, v) * (1 - smooth(V_WALL - 0.05, V_WALL + 0.05, v));
-      if (k > 0) {
-        const rv = riserF.run(white(), 200 + 3200 * k * k, 0.35).bp * k * k * 0.14;
-        dl += rv; dr += rv; wet += rv * 0.5;
-      }
-      const g = smooth(V_DROP, V_WALL, v) * (1 - smooth(T_SWITCH - 0.3, T_SWITCH, v));
-      if (g > 0) {
-        const rum = (rumLP.run(white()) * 3 + rumLP2.run(white()) * 2) * 0.3 * g * g;
-        dl += rum; dr += rum;
-      }
-    }
-    // --- the wall: the sound of the bomb, 45 seconds late: a roar into the white ---
-    {
-      const g = smooth(V_WALL - 0.15, V_WALL + 0.1, v) * (1 - smooth(T_SWITCH - 0.25, T_SWITCH + 0.05, v));
+      const g = smooth(V_WALL - 0.02, V_WALL + 0.03, v) * (1 - smooth(T_SWITCH - 0.25, T_SWITCH + 0.05, v));
       if (g > 0) {
         const w = white();
-        const fc = 1800 - 1200 * smooth(V_WALL, T_SWITCH, v);
+        const dt = v - V_WALL;
+        const fc = 1800 - 1100 * smooth(V_WALL, T_SWITCH, v);
+        ph[54] += (34 - 12 * Math.min(Math.max(dt, 0) * 2, 1)) / SR;
+        const boom = (Math.sin(TAU * ph[54]) * 1.4 + boomLP.run(white()) * 3) * Math.exp(-Math.max(dt, 0) / 0.6);
         const rv = (roarF[0].run(w, fc, 0.6).bp + roarF[1].run(w, fc * 0.45, 0.7).bp * 0.8 + roarSub.run(white()) * 3) * 0.32 * g;
-        l += rv; r += roarF[2].run(w, fc * 1.1, 0.6).bp * 0.32 * g + roarSub.y * 3 * 0.32 * g; wet += rv * 0.3;
+        l += rv + boom * 0.3 * g; r += roarF[2].run(w, fc * 1.1, 0.6).bp * 0.32 * g + roarSub.y * 3 * 0.32 * g + boom * 0.3 * g; wet += rv * 0.3;
       }
     }
     for (const q of GLASS) {
@@ -366,31 +324,17 @@ export function makeSoundtrack(outFile) {
       if (dt > 0 && dt < c.d) {
         c.ph += c.f * (1.25 - 0.35 * dt / c.d + 0.02 * Math.sin(dt * 30)) / SR;
         const src = saw(c.ph);
-        const vv = (c.fA.run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * c.fB.run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g * hush;
+        const vv = (c.fA.run(src, 700 + 200 * c.vow, 0.3).bp + 0.6 * c.fB.run(src, 1150 + 450 * c.vow, 0.3).bp) * Math.sin(Math.PI * dt / c.d) * c.g;
         l += vv * (1 - c.pan) * 0.5; r += vv * (1 + c.pan) * 0.5; wet += vv * 0.5;
       }
     }
-    // --- the drone: a dark minor pad, from the start, swelling ---
-    {
-      const ch = chordAt(v);
-      const dg = (0.03 + 0.03 * smooth(8, 14, v) + 0.05 * smooth(24, 40, v)) * (1 - smooth(T_SWITCH - 0.3, T_SWITCH + 0.1, v)) * hush;
-      let a = 0, b = 0;
-      ch.forEach((f, q) => {
-        ph[40 + q] += f / SR; ph[44 + q] += f * 1.004 / SR;
-        a += saw(ph[40 + q]); b += saw(ph[44 + q]);
-      });
-      const cutf = 300 + 600 * smooth(20, 42, v);
-      droneLP[0].set(cutf); droneLP[1].set(cutf * 1.07);
-      const xl = droneLP[0].run(a) * dg, xr = droneLP[1].run(b) * dg;
-      dl += xl; dr += xr; wet += (xl + xr) * 0.6;
-    }
 
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
-    const outL = l + dl + rl * 0.8, outR = r + dr + rr * 0.8;
+    const outL = l + rl * 0.8, outR = r + rr * 0.8;
     if (n < 0) { PL[n + N0] = outL; PR[n + N0] = outR; } else { L[n] = outL; R[n] = outR; }
   }
 
-  {   // in the white, the soundtrack turns into the lead-in to the first frame
+  {   // in the white, the soundtrack turns into the street just before the first frame (the loop)
     const a = N - N0, xf = Math.round(0.34 * SR);
     for (let i = 0; i < N0; i++) {
       const kk = Math.min(1, i / xf), wi = Math.sin(kk * Math.PI / 2), wo = Math.cos(kk * Math.PI / 2);
@@ -399,21 +343,22 @@ export function makeSoundtrack(outFile) {
     }
   }
 
-  let peak = 0;
-  for (let n = 0; n < N; n++) {
-    L[n] = Math.tanh(L[n] * 1.4); R[n] = Math.tanh(R[n] * 1.4);
-    if (!Number.isFinite(L[n]) || !Number.isFinite(R[n])) throw new Error(`soundtrack went NaN at ${(n / SR).toFixed(3)} s`);
-    peak = Math.max(peak, Math.abs(L[n]), Math.abs(R[n]));
-  }
-  const gn = 0.89 / peak;
+  // the master gain: the opening second at TARGET_OPENING_DB; a soft limit keeps the blast's peaks under full scale
+  const out = (x, g) => 0.95 * Math.tanh((x * g) / 0.95);
+  const openingDb = (g) => { let s = 0; for (let n = 0; n < SR; n++) { const m = (out(L[n], g) + out(R[n], g)) / 2; s += m * m; } return 10 * Math.log10(s / SR + 1e-12); };
+  let lo = 0.01, hi = 100;
+  for (let i = 0; i < 50; i++) { const m = Math.sqrt(lo * hi); if (openingDb(m) < TARGET_OPENING_DB) lo = m; else hi = m; }
+  const gn = Math.sqrt(lo * hi);
   const buf = Buffer.alloc(44 + N * 4);
   buf.write('RIFF', 0); buf.writeUInt32LE(36 + N * 4, 4); buf.write('WAVE', 8);
   buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(2, 22);
   buf.writeUInt32LE(SR, 24); buf.writeUInt32LE(SR * 4, 28); buf.writeUInt16LE(4, 32); buf.writeUInt16LE(16, 34);
   buf.write('data', 36); buf.writeUInt32LE(N * 4, 40);
   for (let n = 0; n < N; n++) {
-    buf.writeInt16LE(Math.round(clamp(L[n] * gn, -1, 1) * 32767), 44 + n * 4);
-    buf.writeInt16LE(Math.round(clamp(R[n] * gn, -1, 1) * 32767), 46 + n * 4);
+    const a = out(L[n], gn), b = out(R[n], gn);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) throw new Error(`soundtrack went NaN at ${(n / SR).toFixed(3)} s`);
+    buf.writeInt16LE(Math.round(clamp(a, -1, 1) * 32767), 44 + n * 4);
+    buf.writeInt16LE(Math.round(clamp(b, -1, 1) * 32767), 46 + n * 4);
   }
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, buf);
