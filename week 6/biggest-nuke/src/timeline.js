@@ -13,9 +13,13 @@
 //     (Rankine-Hugoniot at 5 psi: 865 mph), so it reaches 13.35 miles 47 s after the burst, 45 s after frame 0. miAt(t) below passes through
 //     those points; the Brode overpressure fit for the same yield gives 40 s at 13 miles as a surface burst, the same order.
 //   - the sound of it arrives WITH the blast: until then you hear only the street.
-// What is drawn vs what is real: the fireball, the cloud, the distances and the times are drawn to scale. The dust wall is
-// taller than real, so that it can be seen from miles off; the hero towers are real heights but placed to be reached on
-// the 3 s beat. Electronics: at 13 miles from a burst this low the grid and the phone network go down (long wires pick up
+// What is drawn vs what is real: the counter, the miles and every number are true, and the front is drawn where miAt puts
+// it. The PICTURE of the fireball runs ahead at first: frame 0 shows the look it would have about 12 s in (orange, its shape
+// clear), not the white glare of the real 2 s; picT() closes that gap to nothing by the end. Its sizes are to scale. The
+// last 0.8 s are shown in slow motion (labelled on the counter). The dust wall is taller than real, so that it can be seen
+// from miles off; the towers are placed to be reached on the 3 s beat; the tallest is 1,000 m (a little past the tallest
+// real one, 830 m) so it can be seen from 1.6 miles.
+// The near events (helicopter, flames on the street, birds, billboard) are what the flash and heat would do, not computed. Electronics: at 13 miles from a burst this low the grid and the phone network go down (long wires pick up
 // the pulse, substations trip); most cars and phones would keep working, so the video says "loses signal", never "fried",
 // and the traffic stops because the drivers are blinded. People are never shown hurt: the dust takes the street.
 import { smooth, clamp, lerp, keys } from './util.js';
@@ -31,26 +35,39 @@ export const mphAt = (t) => (0.24 + 0.26 * Math.exp(-t / 8)) * 3600;
 export const T_ARRIVE = (() => { let a = 10, b = 90; for (let i = 0; i < 60; i++) { const m = (a + b) / 2; if (miAt(m) < D_MI) a = m; else b = m; } return (a + b) / 2; })();   // 45.5 s
 
 // ---- the events (video time) ----
-export const V_WALL = 45.0;                               // the blast reaches you: the counter hits 0.00
-export const T0 = T_ARRIVE - V_WALL;                      // frame 0 is 2 s after the burst: the fireball is already huge
-export const tOf = (v) => v + T0;
-export const milesLeft = (v) => Math.max(0, D_MI - miAt(tOf(v)));
+// (real seconds: the world runs on realV(v); only the last 0.8 s are stretched, into 2.4 s of video)
+export const REAL_HIT = 45.0;                             // the blast reaches you: the counter hits 0.00
+export const V_SLOW = 44.2, SLOW = 3;
+export const V_WALL = V_SLOW + (REAL_HIT - V_SLOW) * SLOW;   // 46.6: the same moment in video time
+export const realV = (v) => (v <= V_SLOW ? v : v >= V_WALL ? REAL_HIT + (v - V_WALL) : V_SLOW + (v - V_SLOW) / SLOW);
+export const T0 = T_ARRIVE - REAL_HIT;                    // frame 0 is 2 s after the burst
+export const tOf = (rv) => rv + T0;
+export const milesLeft = (v) => Math.max(0, D_MI - miAt(tOf(realV(v))));
+// the fireball's picture clock: 12 s on frame 0, catching up with the true clock by the hit
+export const picT = (rv) => 12 + rv * (T_ARRIVE - 12) / REAL_HIT;
 export const STEP = 3;
 export const STEPS = Array.from({ length: 14 }, (_, i) => (i + 1) * STEP);
 export const V_CRASH = 3.1;           // the first crash on the road
 export const V_POWER = 5.7;           // the city's lights go out, far side first, toward you
 export const V_PHONE = 8.4;           // your phone: no service
 export const V_RUN = 11.9;            // the crowd runs
-export const V_SMOKE = 13.5;          // the heat: awnings, trees and roofs start to smoke
+export const V_SMOKE = 13.5;          // the heat: awnings and roofs start to smoke
+export const V_BIRDS = 15.6;          // a flock bursts past you
+export const V_HEAT = 18.0;           // the first flames beside you
 export const V_BURN = 20.5;           // fires all over the city
+export const V_FIRE = 24.0;           // both sides of your street go up
+export const V_HELI = 26.7;           // the helicopter hits the road
 export const V_LIFT = 22.0;           // the fireball has left the ground and pulls up a stem
 export const V_QUIET = 29.8;          // no sound yet
+export const V_SIGN = 33.0;           // the burning billboard comes down
 export const V_CLOUD = 35.8;          // the cap spreads over the street
+export const V_TALL = 38.4;           // the front reaches the tallest tower
 export const V_DROP = 38.6;           // everyone left drops to the ground
 export const V_STREET = 43.2;         // the wall is on your hill
+export const V_THROW = 44.6;          // the car comes at you (real clock)
 // the tallest towers go one by one, on the beat (each is placed where the front is at that moment)
-export const TOWER_V = [18, 21, 24, 27, 30, 33, 36, 39, 41.6];
-export const T_SWITCH = 45.7;         // full white; the loop point sits in it
+export const TOWER_V = [18, 21, 24, 27, 30, 33, 36, V_TALL, 41.6];
+export const T_SWITCH = V_WALL + 0.6;  // full white; the loop point sits in it
 export const LOOP = 0.9;
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 
@@ -74,10 +91,11 @@ export const POP = 1.7;
 export const POPS = [
   [V_POWER + 0.5, 'THE WHOLE CITY GOES DARK'],
   [V_RUN + 0.3, 'EVERYONE RUNS'],
-  [18.2, 'THE FIRST TOWER FALLS'],
-  [24.2, 'THE CITY CATCHES FIRE'],
+  [V_HEAT + 0.2, 'THE HEAT GETS HERE FIRST'],
+  [V_FIRE + 0.5, 'THE CITY CATCHES FIRE'],
   [V_QUIET + 0.4, 'NOT A SOUND YET'],
   [V_CLOUD + 0.3, 'IT FILLS THE SKY'],
+  [V_TALL + 0.1, 'THE TALLEST TOWER FALLS'],
 ];
 export function popupAt(v) {
   let b = null;
@@ -91,11 +109,10 @@ export const CAPTIONS = [
   [3.4, 5.9, `You’re ${Math.floor(D_MI)} miles from the bomb.`],
   [V_PHONE, 11.8, 'Every phone loses signal.'],
   [14.3, 17.9, 'The fireball is over 5 miles wide.'],
-  [20.3, 23.9, 'Its heat reaches 60 miles out.'],
-  [26.3, 29.7, 'It’s 50 million tons of TNT.'],
-  [32.3, 35.7, `The blast is moving ${MPH} mph.`],
-  [38.3, 41.2, 'The cloud will climb 40 miles high.'],
-  [41.6, 44.7, 'The wind behind it: 160 mph.'],
+  [20.3, 24.3, 'Its heat reaches 60 miles out.'],
+  [26.6, 29.9, 'It’s 50 million tons of TNT.'],
+  [32.3, 35.9, `The blast is moving ${MPH} mph.`],
+  [40.4, 45.9, 'The wind behind it: 160 mph.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;
@@ -113,21 +130,25 @@ export function captionAt(v) {
 export const COUNTERS = [
   {
     from: -3, to: V_WALL + 0.45, label: 'BLAST REACHES YOU IN',
+    labelFn: (v) => (v > V_SLOW + 0.05 && v < V_WALL ? 'BLAST REACHES YOU IN  ·  SLOW MOTION' : 'BLAST REACHES YOU IN'),
     fmt: (T) => `${Math.max(0, T).toFixed(2)} s`,
-    value: (v) => V_WALL - v,
+    value: (v) => REAL_HIT - realV(v),
     unit: (v) => `${milesLeft(v).toFixed(2)} MILES AWAY`,
   },
 ];
 
 // ---- the state at video time v ----
 export function state(v) {
-  const s = { v };
+  const video = v;
+  v = realV(v);
+  const s = { v: video, rv: v };
   s.t = tOf(v);
-  s.T = V_WALL - v;
-  s.title = 1 - smooth(2.9, 3.35, v);
-  s.cloud = cloudAt(s.t);
-  s.I = lightAt(s.t);
-  s.heat = heatAt(s.t);
+  s.pt = picT(v);
+  s.T = REAL_HIT - v;
+  s.title = 1 - smooth(2.9, 3.35, video);
+  s.cloud = cloudAt(s.pt);
+  s.I = lightAt(s.pt);
+  s.heat = heatAt(s.pt);
   // the front's distance from ground zero (metres): buildings, cars and the street react to this one number
   s.front = s.t > 0 ? miAt(s.t) * MILE : -1;
   s.left = D_M - s.front;
@@ -141,8 +162,9 @@ export function state(v) {
   s.smoke = smooth(V_SMOKE, V_SMOKE + 6, v);
   s.burn = smooth(V_SMOKE + 2, V_BURN + 4, v);
   s.fill = smooth(V_CLOUD, V_CLOUD + 5, v);
-  s.close = smooth(V_DROP, V_WALL, v);
-  s.flash = smooth(V_WALL - 0.13, V_WALL + 0.07, v);            // the white the wall brings
+  s.close = smooth(V_DROP, REAL_HIT, v);
+  s.street = smooth(V_HEAT - 0.5, V_FIRE + 3, v);              // the fire on your street, lighting it
+  s.flash = smooth(V_WALL - 0.03, V_WALL + 0.06, video);        // the white, the instant the car hits the lens
   s.flashColor = '#fff6ea';
   s.endcard = 0; s.endText = 0; s.fadeOut = 0;
   return s;

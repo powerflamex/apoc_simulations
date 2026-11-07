@@ -5,18 +5,19 @@
 // power goes, your phone's three falling tones, car alarms, sirens, the crowd running. Under it a deep hit on every 3 s
 // beat (music, bigger each time) over a dark minor drone, a high shimmer with the heat, a pulse that quickens. At 0:30
 // everything drops away but the pulse ("not a sound yet"). Then a riser, the ground's rumble, and the blast at last: the
-// boom and roar into the white, which turns back into the street at the start (the loop). Every onset is soft (8 ms+).
+// boom and roar into the white. The loop: the scream and a low rumble start under the white, so the sound runs on across
+// the seam at the same level instead of dropping to a quiet street and jumping up. Every onset is soft (8 ms+).
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, STEPS, V_CRASH, V_POWER, V_PHONE, V_RUN, V_SMOKE, V_BURN, V_QUIET, V_CLOUD, V_DROP, V_WALL } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, STEPS, V_CRASH, V_POWER, V_PHONE, V_RUN, V_SMOKE, V_BIRDS, V_HEAT, V_BURN, V_FIRE, V_HELI, V_QUIET, V_SIGN, V_CLOUD, V_TALL, V_DROP, V_SLOW, V_WALL } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
 // the scream right at the start: the owner's clip (sounds/scream.mp3, or his "Noooo"); both stay out of git
-const SCREAM_AT = 0.15;
+const SCREAM_AT = -0.72;      // (under the white, so it is already going when the loop comes round)
 const SCREAM_FILES = [['scream.mp3', 0.0], ['nooo.mp3', 0.55]];
 
 class OnePole {
@@ -89,7 +90,7 @@ export function makeSoundtrack(outFile) {
 
   // ---- a hit on each 3 s beat, bigger each time (the music: the bomb itself is silent until the blast); the blast ----
   const HITS = STEPS.filter((t) => t < V_WALL - 0.5).map((t, n) => ({ t, k: clamp(0.28 + 0.05 * n, 0, 0.95), root: 55 * Math.pow(2, -Math.min(n, 12) / 24) }));
-  HITS.unshift({ t: 0.0, k: 0.5, root: 41, deep: true });
+  HITS.unshift({ t: -0.7, k: 0.5, root: 41, deep: true });
   HITS.push({ t: V_WALL - 0.1, k: 1.5, root: 30, deep: true, boom: true });
   // ---- cries (each voice its own pitch and filters) ----
   const cries = [];
@@ -109,6 +110,13 @@ export function makeSoundtrack(outFile) {
   const CHORDS = [[-9, [110, 130.8, 164.8]], [V_RUN, [98, 116.5, 146.8]], [24, [87.3, 110, 130.8]], [V_CLOUD, [73.4, 87.3, 110]]];
   const chordAt = (t) => { let c = CHORDS[0][1]; for (const [ts, ch] of CHORDS) if (t >= ts) c = ch; return c; };
 
+  // ---- things close to you ----
+  const THUDS = [
+    { t: V_HELI, g: 1.1, f: 52, pan: 0.35 }, { t: V_SIGN + 1.45, g: 0.7, f: 70, pan: -0.5 }, { t: V_TALL + 0.5, g: 0.5, f: 38, pan: -0.4 },
+    ...Array.from({ length: 12 }, (_, i) => ({ t: V_FIRE + 1 + i * 0.75 + R0() * 0.3, g: 0.12 + 0.1 * R0(), f: 90 + 40 * R0(), pan: R0() * 1.6 - 0.8 })),
+  ].map((c) => ({ ...c, n: new SVF(), ph: 0 }));
+  const WINGS = Array.from({ length: 34 }, () => ({ t: V_BIRDS + R0() * 2.4, f: 11 + R0() * 6, d: 0.5 + R0() * 0.7, pan: R0() * 1.8 - 0.9, g: 0.01 + 0.012 * R0(), fl: new SVF() }));
+  const fireF = [new SVF(), new SVF()], rotorLP = new OnePole(260), openLP = new OnePole(60), openLP2 = new OnePole(140), whooshF = new SVF();
   const cityLP = new OnePole(220), cityLP2 = new OnePole(260), idleLP = new OnePole(120);
   const talkF = Array.from({ length: 5 }, () => new SVF()), talkE = Array.from({ length: 5 }, () => new OnePole(3));
   const shimF = [new SVF(), new SVF()];
@@ -142,6 +150,51 @@ export function makeSoundtrack(outFile) {
       }
       const talk = (1 - smooth(0.3, 2, v) * 0.6) * gone * hush;
       l += cv * 0.03 * talk; r += cv * 0.028 * talk;
+    }
+    // --- the helicopter overhead: a rotor chop that comes closer, then races as it goes down ---
+    if (v < V_HELI) {
+      const lost = Math.max(0, v - (V_HELI - 3.1));
+      ph[50] += (11 + 7 * lost) / SR;
+      const cyc = ph[50] % 1;
+      const near = 0.22 + 0.5 * smooth(8, 22, v) + 0.5 * smooth(0, 3, lost);
+      const rv = rotorLP.run(white()) * (0.25 + 0.75 * Math.exp(-cyc * 6)) * 0.55 * near * hush;
+      l += rv * 0.9; r += rv * 0.6;
+    }
+    // --- the fire on your street: crackle and roar ---
+    {
+      const g = smooth(V_HEAT - 0.2, V_FIRE + 3, v) * gone * hush;
+      if (g > 0) {
+        const w = white();
+        const fv = (fireF[0].run(w, 340 + 120 * Math.sin(v * 3), 0.7).bp * 0.22 + (R0() < 0.0009 ? 0.5 : 0) * fireF[1].run(w, 2400, 0.5).bp) * g;
+        l += fv; r += fv * 0.9; wet += fv * 0.4;
+      }
+    }
+    // --- the birds' wings ---
+    for (const b of WINGS) {
+      const dt = v - b.t;
+      if (dt > 0 && dt < b.d) {
+        const fl = Math.pow(0.5 + 0.5 * Math.sin(dt * b.f * TAU), 2);
+        const wv = b.fl.run(white(), 1500, 0.8).bp * fl * Math.sin(Math.PI * dt / b.d) * b.g * 2.2;
+        l += wv * (1 - b.pan) * 0.5; r += wv * (1 + b.pan) * 0.5;
+      }
+    }
+    // --- big things hitting the ground near you: the helicopter, the billboard, the tower's fall, cars going up ---
+    for (const c of THUDS) {
+      const dt = v - c.t;
+      if (dt < 0 || dt > 2.4) continue;
+      c.ph += (c.f * (1 - 0.45 * Math.min(dt * 2, 1))) / SR;
+      const tv = (Math.sin(TAU * c.ph) * 0.5 * Math.exp(-dt / 0.4) + c.n.run(white(), 500, 0.4).bp * 0.2 * Math.exp(-dt / 0.55)) * smooth(0, 0.012, dt) * c.g;
+      l += tv * (1 - c.pan * 0.5); r += tv * (1 + c.pan * 0.5); wet += tv * 0.8;
+    }
+    // --- the car coming at you: a rising rush in the slow motion ---
+    {
+      const k = smooth(V_WALL - 1.25, V_WALL - 0.02, v) * (1 - smooth(V_WALL - 0.02, V_WALL + 0.03, v));
+      if (k > 0) { const wv = whooshF.run(white(), 300 + 1900 * k * k, 0.5).bp * 0.2 * k * k; l += wv; r += wv; }
+    }
+    // --- across the loop: a low rumble that starts under the white and dies away over the first two seconds ---
+    {
+      const g = (v < 0.2 ? 1 : 1 - smooth(0.2, 2.0, v)) * (v < 2.3 ? 1 : 0);
+      if (g > 0) { const ov = (openLP.run(white()) * 5 + openLP2.run(white()) * 2.4) * 0.5 * g; dl += ov; dr += ov; }
     }
     // --- the crowd running: a wash of feet ---
     {
@@ -338,7 +391,7 @@ export function makeSoundtrack(outFile) {
   }
 
   {   // in the white, the soundtrack turns into the lead-in to the first frame
-    const a = N - N0, xf = Math.round(0.5 * SR);
+    const a = N - N0, xf = Math.round(0.34 * SR);
     for (let i = 0; i < N0; i++) {
       const kk = Math.min(1, i / xf), wi = Math.sin(kk * Math.PI / 2), wo = Math.cos(kk * Math.PI / 2);
       L[a + i] = L[a + i] * wo + PL[i] * wi;

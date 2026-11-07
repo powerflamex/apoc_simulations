@@ -35,7 +35,8 @@ export const HEROES = [];
     while (z > AVE_END) {
       const d = 12 + R() * 18, w = 18 + R() * 16, zc = z - d / 2;
       const near = zc > -60;
-      let h = near ? 26 + R() * 24 : 11 + R() * 13;
+      // (the blocks that burn beside you are tall enough to fill the sides of the frame; past them the view opens)
+      let h = near ? 26 + R() * 24 : zc > -140 ? 26 + R() * 8 : 11 + R() * 13;
       if (zc > -60 && zc < -20) h = 40 + R() * 12;
       add(side * (FX + w / 2), zc, w, d - 0.8, h, R() < 0.2 ? 1 : R() < 0.5 ? 2 : 0);
       z -= d;
@@ -67,9 +68,9 @@ export const HEROES = [];
     const w = 50 + R() * 70, d = 50 + R() * 70;
     add(x, z, w, d, 18 + R() * 40 + (R() < 0.2 ? 50 + R() * 110 : 0), 3);
   }
-  const BEARS = [-1.2, 3.6, -3.8, 6.0, 1.4, -6.0, 8.0, -7.5, 10.5];
+  const BEARS = [-1.2, 3.6, -3.8, 6.0, 1.4, -6.0, 8.0, -2.4, 10.5];
   // the heroes. Bearings (degrees) keep them out from behind each other; each sits on the circle the front has reached
-  const HGT = [820, 760, 700, 640, 600, 540, 500, 440, 380];
+  const HGT = [820, 760, 700, 640, 600, 540, 500, 1000, 380];
   TOWER_V.forEach((v, k) => {
     const rf = miAt(v + T0) * MILE, b = BEARS[k] * Math.PI / 180;
     // along this bearing from you, the point rf from ground zero
@@ -79,11 +80,14 @@ export const HEROES = [];
       if (Math.hypot(px - HIT.x, pz - HIT.z) > rf) lo = m; else hi = m;
     }
     const x = CAM0.x + lo * Math.sin(b), z = CAM0.z - lo * Math.cos(b), w = 48 + R() * 24;
-    HEROES.push({ x, z, h: HGT[k], w });
-    BLD.push({ x, y: PLAIN, z, w, d: w, h: HGT[k], kind: 4, col: pick(TOWER) });
-    // a stepped upper part and a mast, so that each has its own outline
-    BLD.push({ x, y: PLAIN, z, w: w * 0.62, d: w * 0.62, h: HGT[k] * 1.13, kind: 4, col: pick(TOWER) });
-    if (k % 2) BLD.push({ x, y: PLAIN, z, w: 5, d: 5, h: HGT[k] * 1.3, kind: 3, col: 0x6a6e72 });
+    const H0 = HGT[k], tall = H0 >= 1000, c1 = tall ? 0x5a6474 : pick(TOWER);
+    HEROES.push({ x, z, h: H0, w, tall });
+    // (hero: the height it breaks by, the same for all its parts, so they stay together as it goes)
+    BLD.push({ x, y: PLAIN, z, w: tall ? 110 : w, d: tall ? 110 : w, h: H0 * 0.7, kind: 4, col: c1, hero: H0 });
+    // stepped upper parts and a mast, so that each has its own outline
+    BLD.push({ x, y: PLAIN, z, w: (tall ? 110 : w) * 0.66, d: (tall ? 110 : w) * 0.66, h: H0, kind: 4, col: c1, hero: H0 });
+    if (tall) BLD.push({ x, y: PLAIN, z, w: 38, d: 38, h: H0 * 1.1, kind: 4, col: c1, hero: H0 });
+    if (k % 2 || tall) BLD.push({ x, y: PLAIN, z, w: 5, d: 5, h: H0 * (tall ? 1.24 : 1.2), kind: 3, col: 0x6a6e72, hero: H0 });
   });
   // downtown: a cluster of tall towers from 2 to 7 miles out
   for (let i = 0; i < 90; i++) {

@@ -10,12 +10,12 @@ import { BLD, SCREENS, SIGNS, LAMPS, TREES, STALLS, BULBS, HEROES, HIT, PLAIN, g
 export const CU = {
   uTime: { value: 0 }, uAlert: { value: 0 }, uBlastR: { value: -1 }, uHit: { value: new THREE.Vector2(HIT.x, HIT.z) },
   uSun: { value: new THREE.Vector3(0.5, 0.75, 0.4) }, uFireL: { value: 0 }, uSkyK: { value: 1 },
-  uPowerR: { value: 0 }, uBurn: { value: 0 }, uFbC: { value: new THREE.Color(1, 1, 1) }, uHaze: { value: new THREE.Color(0.1, 0.1, 0.15) },
+  uPowerR: { value: 0 }, uBurn: { value: 0 }, uBurnNear: { value: 0 }, uFbC: { value: new THREE.Color(1, 1, 1) }, uHaze: { value: new THREE.Color(0.1, 0.1, 0.15) },
 };
 
 const PARS = /* glsl */ `
 uniform float uTime; uniform float uAlert; uniform float uBlastR; uniform vec2 uHit; uniform vec3 uSun; uniform float uFireL; uniform float uSkyK;
-uniform float uPowerR; uniform float uBurn; uniform vec3 uFbC; uniform vec3 uHaze;
+uniform float uPowerR; uniform float uBurn; uniform float uBurnNear; uniform vec3 uFbC; uniform vec3 uHaze;
 varying vec3 vLoc; varying vec3 vSc; varying vec3 vWP; varying vec3 vWN; varying vec4 vS; varying vec3 vON; varying vec3 vCol; varying vec2 vIC;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) { vec2 s = smoothstep(a - w, a + w, f) * (1.0 - smoothstep(b - w, b + w, f)); return s.x * s.y; }
@@ -105,9 +105,10 @@ const LOOK = /* glsl */ `
       float rows = step(g0, y) * ok;
       float wv = mix(win, 0.8, far) * rows * (1.0 - broken);
       totalEmissiveRadiance += room * mix(lit, 0.46, far) * wv * power * (kind > 2.5 ? 1.1 : 0.85);
-      float cg = step(1.0 - 0.04 * uBurn, h21(id * 3.3 + vec2(seed, face)));
+      float nearF = uBurnNear * smoothstep(240.0, 90.0, length(vWP - cameraPosition));
+      float cg = step(1.0 - 0.04 * uBurn - 0.6 * nearF, h21(id * 3.3 + vec2(seed, face)));
       float fliC = 0.7 + 0.3 * sin(uTime * 11.0 + r * 40.0);
-      totalEmissiveRadiance += vec3(2.4, 0.6, 0.08) * mix(cg, 0.07 * uBurn, far) * wv * fliC;
+      totalEmissiveRadiance += vec3(2.4, 0.6, 0.08) * mix(cg, 0.07 * uBurn, far) * wv * fliC * (1.0 - 0.2 * nearF);
       // the panes flash as they burst (shards catching every light at once)
       totalEmissiveRadiance += vec3(0.9, 0.95, 1.0) * 0.8 * burst * max(win, 0.3 * far * ok);
       // street level: shop fronts (dark glass, an awning band, a fascia), lobbies on the towers
@@ -158,6 +159,20 @@ function facadeMaterial() {
         {
           float rr = length(vIC - uHit);
           float past = uBlastR > 0.0 ? uBlastR - rr : -1e4;
+          if (aS.z > 1.0) {
+            // a tower breaks at about 40% of its height: the top goes over sideways in one piece, the stump sinks into the dust
+            float H0 = aS.z;
+            float fall = clamp((past - 10.0) / (70.0 + H0 * 1.05), 0.0, 1.0);
+            fall = fall * fall;
+            float wy = transformed.y * aS.w, h0 = H0 * 0.4, th = 1.75 * fall;
+            float off = 0.0;
+            if (wy > h0) { float d = wy - h0; off = d * sin(th); wy = h0 + d * cos(th); }
+            wy -= 0.45 * H0 * smoothstep(0.35, 1.0, fall);
+            transformed.y = wy / aS.w;
+            float sd = vIC.x < -200.0 ? -1.0 : 1.0;
+            transformed.x += sd * 0.95 * off / length(instanceMatrix[0].xyz);
+            transformed.z += 0.3 * off / length(instanceMatrix[2].xyz);
+          } else {
           float fall = clamp((past - 10.0) / (70.0 + aS.w * 1.0), 0.0, 1.0);
           fall = fall * fall * (3.0 - 2.0 * fall);
           float lean = fall * (0.6 + 0.4 * hv21(vIC));
@@ -166,6 +181,7 @@ function facadeMaterial() {
           transformed.y *= 1.0 - 0.92 * fall;
           transformed.x += away.x * lean * yy * yy * aS.w * 0.55 / length(instanceMatrix[0].xyz);
           transformed.z += away.y * lean * yy * yy * aS.w * 0.55 / length(instanceMatrix[2].xyz);
+          }
         }
         vLoc = position - vec3(0.0, 0.5, 0.0); vON = normal; vS = aS; vCol = aCol;
         vSc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
@@ -229,14 +245,14 @@ function makeSignAtlas() {
 export function makeCity(scene, ctx) {
   const m4 = new THREE.Matrix4(), col = new THREE.Color();
   // ---- buildings ----
-  const geo = new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
+  const geo = new THREE.BoxGeometry(1, 1, 1, 1, 14, 1).translate(0, 0.5, 0);
   const n = BLD.length;
   const aS = new Float32Array(n * 4), aCol = new Float32Array(n * 3);
   const mesh = new THREE.InstancedMesh(geo, facadeMaterial(), n);
   BLD.forEach((b, i) => {
     m4.makeScale(b.w, b.h, b.d).setPosition(b.x, b.y, b.z);
     mesh.setMatrixAt(i, m4);
-    aS.set([(i * 0.6180339) % 1, b.kind, 0, b.h], i * 4);
+    aS.set([(i * 0.6180339) % 1, b.kind, b.hero || 0, b.h], i * 4);
     col.set(b.col).convertSRGBToLinear();
     aCol.set([col.r, col.g, col.b], i * 3);
   });

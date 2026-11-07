@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { HIT, CAM0, PLAIN, STALLS, TREES, groundY } from './layout.js';
 import { rng, smooth, clamp } from './util.js';
-import { V_WALL, V_STREET, V_SMOKE } from './timeline.js';
+import { REAL_HIT as V_WALL, V_STREET, V_SMOKE } from './timeline.js';
 
 const NOISE = /* glsl */ `
   float h13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }

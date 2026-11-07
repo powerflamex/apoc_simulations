@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { makeFleet } from './cars.js';
 import { rng, smooth, clamp } from './util.js';
-import { V_POWER, V_CRASH } from './timeline.js';
+import { V_POWER, V_CRASH, V_THROW, REAL_HIT } from './timeline.js';
 import { HIT, groundY } from './layout.js';
 
 const TAXI = [0xd8b23a, 0xd8b23a, 0x1a2a4a];
@@ -30,6 +30,8 @@ export const CARS = [];
     c.dies = R() < 0.5;
     c.tDie = V_POWER + 0.3 + R() * 1.4;
   });
+  // the one the blast throws at you
+  CARS.reduce((b, c) => (c.mv.dir > 0 && c.z < -95 && c.z > -130 && (!b || Math.abs(c.x + 9) < Math.abs(b.x + 9)) ? c : b), null).thrown = true;
   // the crashes: in front of you, a car on each carriageway never touches the brake and hits the one ahead of it
   for (const [dir, xx, near] of [[1, LANES[0], -46], [-1, LANES[0], -30]]) {
     const row = CARS.filter((c) => c.mv.dir === dir && Math.abs(Math.abs(c.x) - xx) < 0.1 && c.z < near).sort((a, b) => b.z - a.z);
@@ -43,6 +45,8 @@ export const CARS = [];
     }
   }
 }
+
+const stopX = (c, k, cam) => (1 - k) * c.px + k * cam.x;
 
 export function makeTraffic(scene, ctx) {
   const fleet = makeFleet(scene, CARS.length, ctx);
@@ -90,6 +94,16 @@ export function makeTraffic(scene, ctx) {
           const ax = (x - HIT.x) / rHit, az = (z - HIT.z) / rHit;
           x += ax * 60 * t; z += az * 60 * t; y += Math.max(0, 26 * t - 16 * t * t);
           rx += c.tumble[0] * t * 4; ry += c.tumble[1] * t * 3; rz += c.tumble[2] * t * 4;
+        }
+        c.px = x; c.py = y; c.pz = z;
+        // the car that comes at you: lifted out of the road by the front, end over end, straight into the lens
+        if (c.thrown && v > V_THROW) {
+          const u = clamp((v - V_THROW) / (REAL_HIT - V_THROW));
+          const k = u * u * (3 - 2 * u) * 0.35 + u * 0.65;
+          const cam = s.camPos;
+          x = stopX(c, k, cam); y = (1 - k) * (groundY(z) + 0.2) + k * cam.y + 7.5 * Math.sin(Math.PI * Math.min(k * 1.05, 1)); z = (1 - k) * z + k * (cam.z - 0.9);
+          rx += 3.1 * k + 0.35; rz += 1.3 * k; ry += 0.8 * k;
+          flung = true;
         }
         e.set(rx, ry, rz);
         q.setFromEuler(e);

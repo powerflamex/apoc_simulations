@@ -13,7 +13,7 @@ import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CAM0, FX, PROM, LAMPS, STALLS, groundY } from './layout.js';
 import { rng, clamp, smooth, wobble, lerp } from './util.js';
 import { V_PHONE, V_RUN as V_PANIC, V_DROP, V_BURN } from './timeline.js';
-const V_ALERT = V_PHONE - 0.2, V_FIRE = V_BURN + 5, V_FILL = V_DROP;
+const V_ALERT = V_PHONE - 0.2, V_FIRE = V_BURN + 5, V_FILL = V_DROP, V_HUG = 14.2;
 
 const SHIRTS = [0x1d2230, 0xe8e2d6, 0x3a3328, 0x6b5a44, 0xc8d4e8, 0x7a2a2a, 0x24384a, 0xf0c060, 0x2f3d2c, 0xb8b0a0, 0x15151a, 0x8a5a8a, 0xd05030, 0x3a4a6a, 0xffffff, 0x60a0d0];
 const PANTS = [0x15161a, 0x23252b, 0x2c3340, 0x4a4238, 0x1a1a1a, 0x3a3a40, 0x8a7a66, 0xc9c2b6];
@@ -39,12 +39,16 @@ export const PEOPLE = [];
     [7.6, -0.7, 'point'], [8.3, 2.7, 'phone'], [4.6, 3.1, 'phone'], [9.1, -3.0, 'head'], [10.0, 1.5, 'phone'],
     [3.9, 4.0, 'phone'], [3.8, -3.4, 'look'], [11.0, -1.2, 'phone'],
   ];
+  // the ones who don't run: a family and a couple right in front of you. They hold on to each other from 0:14 to the end
+  const HUG = [[3.6, 1.1, 2], [3.6, 1.95, 3], [3.35, 1.5, 0, 0.62], [4.8, -2.5, 5], [4.8, -1.75, 4]];
+  for (const [a, r, partner, s] of HUG) PEOPLE.push({ ...at(a, r), act: 'hug', s: s || 1, near: true, stay: true, partner });
   for (const [a, r, act, s] of NEAR) { const q = at(a, r); if (!STALLS.some((st) => Math.abs(q.x - st.x) < 1.7 && Math.abs(q.z - st.z) < 2.4)) PEOPLE.push({ ...q, act, s: s || 0.94 + R() * 0.12, near: true }); }
   // the crowd: a jittered scatter with at least 0.95 m between people
   const ok = (x, z) => PEOPLE.every((p) => (p.x - x) ** 2 + (p.z - z) ** 2 > 0.95 * 0.95) && (x - CAM0.x) ** 2 + (z - CAM0.z) ** 2 > 4;
   const areas = [
     [-4.3, 4.3, -26, 5, 150],                         // the promenade, round you
-    [-4.3, 4.3, -70, -26, 110],                       // further along it
+    [-4.3, 4.3, -70, -26, 130],                       // further along it
+    [-4.3, 4.3, -170, -70, 170],                      // down the hill: they come up past you in a stream
     [-21.5, -15.4, -16.5, 16.5, 45], [15.4, 21.5, -16.5, 16.5, 45],     // the sidewalks
     [-21.5, -15.4, -75, -17, 45], [15.4, 21.5, -75, -17, 45],
     [-21.5, -15.4, 17, 50, 18], [15.4, 21.5, 17, 50, 18],               // behind you
@@ -101,7 +105,7 @@ export const PEOPLE = [];
   // the whole way, otherwise they try a later start or another line, and if nothing fits they stay where they are.
   // Paths are planned from the south end north, so the people nearest the way out go first. Past the camera nobody is
   // booked (you can't see them).
-  const SL = 0.1, V0 = V_PANIC - 0.1, V1 = 37, NS = Math.ceil((V1 - V0) / SL), MIN = 0.75;     // (0.75 at each slot keeps two sprinters 0.6 m apart between slots)
+  const SL = 0.1, V0 = V_PANIC - 0.1, V1 = 45, NS = Math.ceil((V1 - V0) / SL), MIN = 0.75;     // (0.75 at each slot keeps two sprinters 0.6 m apart between slots)
   const key = (slot, ix, iz) => (slot * 4096 + (ix + 2048)) * 4096 + (iz + 2048);
   const table = new Map();
   const book = (id, pts) => pts.forEach((pt, slot) => {
@@ -161,7 +165,7 @@ export const PEOPLE = [];
     if (L > 1.5) {
       for (let k = 0; k < tries; k++) {
         const t = t0 + k * step;
-        setRun(p, dx, dz, Math.min(L, sp * (34.6 - t - RUN_TAU) - 2), sp, t, turnBack);
+        setRun(p, dx, dz, Math.min(L, sp * (44.4 - t - RUN_TAU) - 2), sp, t, turnBack);
         if (p.run.L < 1.5) break;
         const pts = pathOf(p);
         const byCam = pts.some((pt) => pt && (pt[0] - CAM0.x) ** 2 + (pt[1] - CAM0.z + 0.4) ** 2 < 1.3 * 1.3);    // not through you
@@ -177,14 +181,15 @@ export const PEOPLE = [];
   // who runs: all of the people round you, most of the crossing, most of the sidewalks. The rest freeze where they are.
   const onCross = (p) => Math.abs(p.x) < PROM;
   // (the ones who freeze are all in the north half of the crossing, so nobody between them and you blocks the way)
-  const wants = PEOPLE.filter((p) => p.near || (onCross(p) ? p.z > -10 || R() < 0.62 : R() < 0.8)).sort((a, b) => b.z - a.z);
+  const wants = PEOPLE.filter((p) => !p.stay && (p.near || (onCross(p) ? p.z > -10 || R() < 0.9 : R() < 0.8))).sort((a, b) => b.z - a.z);
   const SP = new Map(wants.map((p) => [p.i, 4.2 + R() * 1.3]));
   // a few passes: someone blocked on the first go gets another once the people in front of them have moved off
   for (let pass = 0; pass < 5; pass++) {
     for (const p of wants) {
       if (p.run || p.z > SEEN_Z) continue;                      // (behind you: out of the picture)
       const sp = SP.get(p.i);
-      const t0 = V_PANIC + (p.near ? R() * 0.4 + (CAM0.z - p.z) * 0.05 : pass * 0.45 + R() * 0.8 + (CAM0.z - p.z) * 0.035);
+      // (from further down the street they set off later, so people keep coming past you all the way to the end)
+      const t0 = V_PANIC + (p.near ? R() * 0.4 + (CAM0.z - p.z) * 0.05 : pass * 0.45 + R() * 0.8 + Math.min((CAM0.z - p.z) * 0.1, 8 + 14 * R()));
       const beyond = SEEN_Z + 3 - p.z;
       if (Math.abs(p.x) > 15) { tryRun(p, 0, 1, SEEN_Z + 4 - p.z, sp, t0, 8, 0.25); continue; }    // straight along the sidewalk
       const off = p.x - CAM0.x, side = Math.abs(off) > 0.15 ? Math.sign(off) : R() < 0.5 ? -1 : 1;
@@ -236,6 +241,11 @@ export function makePeople(scene) {
         {
           const tt = smooth(p.tTurn, p.tTurn + 0.45, v);
           if (tt > 0) { yaw += Math.PI * tt; armR = lerp(armR, 1.3, tt); look = lerp(look, -0.1, tt); }
+        }
+        if (p.stay) {
+          const w = smooth(V_HUG, V_HUG + 0.6, v), q = PEOPLE[p.partner];
+          yaw = lerp(yaw, Math.atan2(q.x - p.x, q.z - p.z) + Math.PI, w);
+          armL = armR = lerp(0.2, 1.05, w); look = lerp(look, -0.25, w);
         }
         // the alert: a glance down at the phone, then back up
         let alert = 0;

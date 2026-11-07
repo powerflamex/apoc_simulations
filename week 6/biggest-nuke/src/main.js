@@ -13,9 +13,11 @@ import { makeBlast } from './blast.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makePhone } from './phone.js';
+import { makeFlames } from './flames.js';
+import { makeEvents } from './events.js';
 import { makeOverlay } from './overlay.js';
 import { CAM0, HIT, PLAIN } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, POP, V_WALL, V_DROP, V_CLOUD, V_STREET, D_M } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, POP, REAL_HIT as V_WALL, V_DROP, V_HELI, V_STREET } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 
 const W = 1080, H = 1920, DEG = Math.PI / 180;
@@ -55,6 +57,8 @@ glows.cam = camera.position;
 const smoke = makeSmoke(scene, 2200);
 const blast = makeBlast(scene, smoke);
 const phone = makePhone(camera, ctx);
+const flames = makeFlames(scene);
+const events = makeEvents(scene, ctx, smoke, flames);
 
 // light: the blue of the evening from above, the warm light of the street's own shops, stalls and bulbs (until the
 // blackout), and the fireball ahead of you, low down: every shadow on the street points at you, shortening as it climbs
@@ -71,6 +75,10 @@ scene.add(hemi);
 const shopL = new THREE.PointLight(0xffb878, 0, 0, 1.6);
 shopL.position.set(CAM0.x + 1, 7, CAM0.z - 14);
 scene.add(shopL);
+// the fire on your own street: two lights low on either side, flickering
+const burnL = [new THREE.PointLight(0xff7a24, 0, 0, 1.5), new THREE.PointLight(0xff8a30, 0, 0, 1.5)];
+burnL[0].position.set(-12, 6, -28); burnL[1].position.set(10, 6, -40);
+scene.add(...burnL);
 
 const overlay = makeOverlay();
 const stampEl = document.getElementById('stamp');
@@ -131,16 +139,16 @@ const EYE = 2.5;
 function camAt(v, s) {
   const pos = new THREE.Vector3(CAM0.x, EYE, CAM0.z);
   // you stand still, swaying like a handheld phone, and your eyes go up with the cloud: then down to what's coming up the hill
-  let pitch = keys([[-1, 7], [0, 7], [10, 8], [22, 12], [36, 19], [39, 19], [43.2, 12], [46, 11]], v) * DEG;
+  let pitch = keys([[-1, 8], [0, 8], [10, 8.5], [22, 12], [36, 17], [39, 17], [43.2, 12], [46, 11]], v) * DEG;
   let yaw = -1.2 * DEG * smooth(30, 38, v);
   let fov = lerp(62, 65, smooth(20, 40, v));
   let roll = wobble(v * 0.3, 7) * 0.5 * DEG;
   pos.x += wobble(v * 0.5, 2) * 0.03; pos.y += wobble(v * 0.7, 5) * 0.02;
   yaw += wobble(v * 0.45, 4) * 0.4 * DEG; pitch += wobble(v * 0.55, 3) * 0.35 * DEG;
   // you get down too, as everyone does
-  pos.y -= 1.2 * smooth(V_DROP + 0.2, V_DROP + 1.3, v);
+  pos.y -= 0.5 * smooth(V_DROP + 0.2, V_DROP + 1.3, v);
   // the wall hits: you're thrown
-  const th = smooth(V_WALL - 0.14, V_WALL + 0.25, v);
+  const th = smooth(V_WALL - 0.01, V_WALL + 0.25, v);
   pitch += 26 * DEG * th; roll += 22 * DEG * th; pos.y += 1.5 * th; pos.z += 2.5 * th;
   return { pos, yaw, pitch, roll, fov };
 }
@@ -148,8 +156,9 @@ function camAt(v, s) {
 const C0 = new THREE.Vector3(CAM0.x, EYE, CAM0.z);
 const tmpC = new THREE.Color(), tmpS = new THREE.Vector3(), L = new THREE.Vector3();
 const COOL = new THREE.Color(1, 0.94, 0.82), HOT = new THREE.Color(1, 0.42, 0.14), DUSK_H = new THREE.Color(0.5, 0.62, 1.0), DUSK_G = new THREE.Color(0.3, 0.26, 0.24);
-function update(v, cover = -1) {
-  const s = state(v);
+function update(video, cover = -1) {
+  const s = state(video);
+  const v = s.rv;                          // (the world runs on real seconds; only the title, text and white run on video time)
   if (cover >= 0) s.flash = Math.max(s.flash, cover);
   CU.uTime.value = v; GU.uTime.value = v;
   const c = s.cloud;
@@ -164,6 +173,7 @@ function update(v, cover = -1) {
   camera.position.copy(cam.pos);
   camera.rotation.set(cam.pitch, cam.yaw, cam.roll);
   camera.fov = cam.fov * (1 - 0.02 * s.kick);
+  s.camPos = camera.position;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 
@@ -180,7 +190,7 @@ function update(v, cover = -1) {
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
   sky.mesh.scale.setScalar(8000);
-  u.uTime.value = v; u.uAge.value = s.t;
+  u.uTime.value = v; u.uAge.value = s.pt;
   u.uRo.value.set(ux, uy, uz);
   u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / H;
   u.uR.value = c.R; u.uH.value = c.H; u.uFlat.value = c.flat; u.uA.value = c.A; u.uB.value = c.B; u.uStem.value = c.stem;
@@ -204,11 +214,21 @@ function update(v, cover = -1) {
   hemi.groundColor.copy(DUSK_G).lerp(tmpC.copy(fc).multiplyScalar(0.55), 0.8);
   hemi.intensity = 0.8 + 0.6 * I;
   shopL.intensity = 70 * (1 - s.dark);
+  {
+    const crash = v > V_HELI ? 5 * Math.exp(-(v - V_HELI) / 0.5) : 0;
+    burnL[0].intensity = (360 * s.street + 100 * crash) * (0.78 + 0.22 * Math.sin(v * 11) * Math.sin(v * 7.3));
+    // (the car that's coming at you is lit by the fires behind you)
+    const carL = smooth(V_WALL - 0.42, V_WALL - 0.1, v);
+    burnL[0].position.set(-12 + carL * (camera.position.x + 12), 6 - 2 * carL, -28 + carL * (camera.position.z + 0.5 + 28));
+    burnL[0].intensity *= 1 - 0.75 * carL;
+    burnL[1].intensity = (420 * s.street + 900 * crash) * (0.78 + 0.22 * Math.sin(v * 13 + 1) * Math.sin(v * 5.7));
+  }
 
   // the blackout, the blast front, the fires, for the buildings and the ground
   CU.uBlastR.value = s.front; GU.uBlastR.value = s.front;
   CU.uPowerR.value = s.powerR; GU.uPowerR.value = s.powerR;
   CU.uBurn.value = s.burn; GU.uBurn.value = s.burn;
+  CU.uBurnNear.value = s.street;
   CU.uSun.value.copy(L); GU.uFbDir.value.copy(L);
   const K = 0.5 + 1.25 * I;
   CU.uFbC.value.copy(fc).multiplyScalar(K); GU.uFbC.value.copy(fc).multiplyScalar(K);
@@ -223,11 +243,14 @@ function update(v, cover = -1) {
   // ---------- things ----------
   glows.begin(camera);
   smoke.begin();
+  flames.begin(v);
   people.frame(v, s, glows);
   traffic.frame(v, s, glows);
   city.glows(glows, v, s);
   blast.frame(v, s, glows);
+  events.frame(v, s, glows);
   phone.frame(v);
+  flames.end();
   smoke.end();
   glows.end();
   smoke.mat.uniforms.uTime.value = v;
@@ -236,7 +259,7 @@ function update(v, cover = -1) {
 
   // ---------- post ----------
   bloom.strength = 0.2 + 0.12 * I + 0.12 * s.kick + 0.3 * smooth(V_WALL - 1, V_WALL, v);
-  finish.uniforms.uTime.value = v;
+  finish.uniforms.uTime.value = video;
   finish.uniforms.uAb.value = s.kick * 0.6 + quake * 0.4;
   finish.uniforms.uBlur.value = window.__cover ? 0 : s.kick * 0.022;
   // (the zoom blur of each jump comes out of the fireball)
@@ -247,9 +270,9 @@ function update(v, cover = -1) {
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : (1 - s.flash) * 0.95;
 
-  overlay(v, s, v);
+  overlay(video, s, video);
   {
-    const p = window.__cover ? null : popupAt(v);
+    const p = window.__cover ? null : popupAt(video);
     const a = p ? smooth(0, 0.06, p.dt) * (1 - smooth(POP - 0.35, POP, p.dt)) * (1 - s.flash) : 0;
     stampEl.style.opacity = a.toFixed(3);
     stampW.style.opacity = '0';
