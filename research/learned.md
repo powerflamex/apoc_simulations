@@ -427,6 +427,19 @@ Long videos (this month):
   Sun went out: under 1.3K. Asteroid survival: taken (Apophis 5.5M). Black hole appears on Earth: nothing this month.
 - No long topic is clearly hot and open. Decide after nuke-hour's first 3 days show whether "survive the first hour" works.
 
+## Nov 8 read (~11:15 AM ET)
+| Short | Posted (ET) | Views now | Views at 24 h | At 0:30 | Stayed | Avg watched |
+|---|---|---|---|---|---|---|
+| star picker | Nov 7, 1 PM | 107.6K at ~22 h ("2.5x usual"), +70 subs | not out | not out | 66.7% | 0:39 of 0:50 |
+| tornado, reworked | Nov 7, 7 AM | 69.9K, +87 subs | 65.9K | not out | 63.2% | 0:31 of 0:48 |
+| space station | Nov 6, 7 AM | 64.3K | 46.6K | 69% | 62.2% | 0:37 of 0:49 |
+| metal rod | Nov 6, 1 PM | 38.9K, +27 subs | 33.3K | 68% | 72.0% | 0:36 of 0:49 |
+| fall-through | Nov 5 | 73.8K | 48.7K | 71% | | |
+- Star picker was called the riskiest of the batch (sightseeing) and is the fastest start in weeks: wrong call. One video, curve still to come, so
+  the "real objects beat sightseeing" rule stands for now but has a counterexample. It opens on a giant Arcturus over a crowded beach, not space.
+- The rod's 68% at 0:30 and 33K at 24 h: real objects aren't an automatic win either, and stayed (72%) again didn't bring views.
+- Space station, rod, fall-through and rogue planet all sit at 66-71% at 0:30 but got 33-65K at 24 h: inside that band 0:30 doesn't sort views.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
