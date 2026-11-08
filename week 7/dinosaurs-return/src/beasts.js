@@ -213,13 +213,47 @@ function boatGeometry(len) {
   const win = new THREE.BoxGeometry(len * 0.39, h * 0.32, w * 0.74).translate(-len * 0.06, h * 1.12, 0);
   return { hull, cabin, win };
 }
+// the boat that breaks: two halves, each with its origin at the break, a dark torn end and splinters along it
+function boatHalves(B, hullMat, winMat) {
+  const len = B.len, w = len * 0.3, h = len * 0.12;
+  const parts = [-1, 1].map((sd) => {
+    const sh = new THREE.Shape();
+    if (sd < 0) { sh.moveTo(-len / 2, h); sh.lineTo(0, h); sh.lineTo(0, 0); sh.lineTo(-len / 2 + 0.2, 0); sh.lineTo(-len / 2, h * 0.3); sh.lineTo(-len / 2, h); }
+    else { sh.moveTo(0, h); sh.lineTo(len / 2 - len * 0.12, h); sh.quadraticCurveTo(len / 2, h, len / 2 + len * 0.02, h * 1.15); sh.lineTo(len / 2 - len * 0.18, 0); sh.lineTo(0, 0); sh.lineTo(0, h); }
+    const hull = new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.12, bevelSegments: 2 });
+    hull.translate(0, -h * 0.45, -w / 2);
+    const g = new THREE.Group();
+    const cw = sd < 0 ? len * 0.25 : len * 0.13;
+    const add = (geo, mat, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+    add(hull, hullMat(B.col));
+    add(new THREE.BoxGeometry(cw, h * 0.95, w * 0.72), hullMat(0xf2f0ea), sd * cw / 2, h);
+    add(new THREE.BoxGeometry(cw + 0.02, h * 0.32, w * 0.74), winMat, sd * cw / 2, h * 1.12);
+    add(new THREE.BoxGeometry(len * 0.46, len * 0.02, len * 0.31), hullMat(0x1f4a8a), sd * len * 0.23, len * 0.07);
+    // the torn end: dark inside, white splinters of hull sticking out of it
+    add(new THREE.BoxGeometry(0.04, h * 1.25, w + 0.26), new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.9 }), -sd * 0.135, h * 0.1);
+    for (let k = 0; k < 9; k++) {
+      const c = add(new THREE.ConeGeometry(0.16, 0.55 + (k % 3) * 0.2, 5), hullMat(0xf2f0ea), -sd * 0.3, -h * 0.35 + (k % 4) * h * 0.26, -w * 0.46 + k * w * 0.115);
+      c.rotation.z = sd * Math.PI / 2;
+    }
+    return g;
+  });
+  return parts;
+}
+
 function makeBoats(scene) {
   const out = [];
   const hullMat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.4 });
   const winMat = new THREE.MeshStandardMaterial({ color: 0x1a2430, roughness: 0.1, metalness: 0.3 });
   for (const B of [...BOATS, { ...TARGET_BOAT, target: true }]) {
-    const g = boatGeometry(B.len);
     const grp = new THREE.Group();
+    if (B.target) {
+      const parts = boatHalves(B, hullMat, winMat);
+      for (const p of parts) grp.add(p);
+      scene.add(grp);
+      out.push({ B, grp, parts });
+      continue;
+    }
+    const g = boatGeometry(B.len);
     const hull = new THREE.Mesh(g.hull, hullMat(B.col)), cabin = new THREE.Mesh(g.cabin, hullMat(0xf2f0ea)), win = new THREE.Mesh(g.win, winMat);
     const stripe = new THREE.Mesh(new THREE.BoxGeometry(B.len * 0.92, B.len * 0.02, B.len * 0.31), hullMat(0x1f4a8a));
     stripe.position.set(0.0, B.len * 0.07, 0);
@@ -251,13 +285,15 @@ export function makeBeasts(scene, ctx) {
   const boats = makeBoats(scene);
   const target = boats.find((b) => b.B.target);
   // its leap: an arc in a vertical plane from where it breaks the surface to the boat (apex 6.5 m up)
-  const E = new THREE.Vector3(TARGET_BOAT.x + 5.2, SEA_Y, TARGET_BOAT.z + 9.0), Bt = new THREE.Vector3(TARGET_BOAT.x, SEA_Y, TARGET_BOAT.z);
+  const E = new THREE.Vector3(TARGET_BOAT.x - 2.0, SEA_Y, TARGET_BOAT.z + 10.2), Bt = new THREE.Vector3(TARGET_BOAT.x, SEA_Y, TARGET_BOAT.z);
   const dH = new THREE.Vector3().subVectors(Bt, E); dH.y = 0; const D = dH.length(); dH.normalize();
   const APEX = 7.0, RAD = (D * D / 4 + APEX * APEX) / (2 * APEX);
   const CEN = new THREE.Vector3().addVectors(E, Bt).multiplyScalar(0.5); CEN.y = SEA_Y + APEX - RAD;
-  const ang0 = Math.atan2(E.y - CEN.y, -D / 2);              // angle (in the plane) where it breaks the surface
+  const ang0 = Math.PI - Math.atan2(E.y - CEN.y, D / 2);     // angle (in the plane) where it breaks the surface: going over the top, head first, the angle falls from here
   const angB = Math.atan2(Bt.y - CEN.y, D / 2);
-  const M_T0 = V_SEA - 0.15, M_T1 = V_SEA + 1.05;            // breaks the surface .. its head comes down on the boat
+  const M_T0 = V_SEA - 0.45, M_T1 = V_SEA + 1.15;            // starts up from below .. its head comes down on the boat
+  const M_SURF = V_SEA - 0.14;                               // its head breaks the surface
+  const T_BREAK = M_T1 - 0.15;                               // the boat's back snaps just before the head reaches the water
   const headAng = (v) => {
     // the head runs along the arc from below the surface, over the top, down onto the boat and under
     const u = (v - M_T0) / (M_T1 - M_T0);
@@ -265,7 +301,11 @@ export function makeBeasts(scene, ctx) {
   };
   const planePt = (a) => { const p = V3().copy(CEN).addScaledVector(dH, Math.cos(a) * RAD); p.y = CEN.y + Math.sin(a) * RAD; return p; };
 
-  const tmp = V3();
+  const CHUNK_N = 22, CHUNKS = [], R = rng(77);
+  for (let i = 0; i < CHUNK_N; i++) { const a = R() * Math.PI * 2, sp = 3 + R() * 8; CHUNKS.push({ vx: Math.cos(a) * sp, vz: Math.sin(a) * sp, up: 5 + R() * 9, ph: R() * 6, sp: 3 + R() * 7, s: 0.25 + R() * 0.55 }); }
+  const chunks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.25, 0.6), new THREE.MeshStandardMaterial({ color: 0xf0eee8, roughness: 0.5 }), CHUNK_N);
+  chunks.castShadow = true; chunks.frustumCulled = false; scene.add(chunks);
+  const ZERO = new THREE.Matrix4().makeScale(0, 0, 0), chunkM = new THREE.Matrix4(), chunkP = V3(), chunkQ = new THREE.Quaternion(), chunkE = new THREE.Euler(), chunkS = V3();
   return {
     herd, brach, qz, mosa,
     frame(v, s, glows, smoke) {
@@ -307,16 +347,18 @@ export function makeBeasts(scene, ctx) {
         }
       }
       // ---- the harbour: boats bobbing; the Mosasaurus ----
-      const hit = smooth(M_T1 - 0.1, M_T1 + 0.25, v);
       for (const b of boats) {
         const B = b.B, ph = B.x * 0.3 + B.z * 0.1;
         let y = SEA_Y + 0.1 + 0.08 * Math.sin(v * 1.3 + ph), rx = 0.02 * Math.sin(v * 1.1 + ph), rz = 0.03 * Math.sin(v * 0.9 + ph * 2);
         if (B.target) {
-          // the boat: shoved under and rolled over as it comes down on it, then it bobs up on its side
-          const k = hit, after = clamp((v - M_T1 - 0.25) / 2.5);
-          y -= 1.6 * k * (1 - 0.6 * after);
-          rz += 1.25 * k + 0.15 * Math.sin(v * 2) * after;
-          rx += 0.35 * k;
+          // the boat snaps in two as it comes down across the middle: the halves burst apart (the animal goes down between
+          // them), their outer ends kick up, then they settle low in the water
+          const t = Math.max(v - T_BREAK, 0), k = 1 - Math.exp(-t / 0.13), tip = 1 - Math.exp(-t / 0.4), sink = clamp(t / 3);
+          b.parts.forEach((p, i) => {
+            const sd = i ? 1 : -1;
+            p.position.set(sd * 3.9 * k, -1.0 * tip - 0.5 * sink, 0.25 * sd * tip);
+            p.rotation.set(0.14 * sd * tip, 0, sd * (0.62 * tip - 0.28 * sink) + 0.04 * Math.sin(v * 1.7 + i) * tip);
+          });
           // the rings run out from here
           GU.uSplash.value.set(B.x, B.z, M_T1, 1.0);
         } else {
@@ -336,19 +378,31 @@ export function makeBeasts(scene, ctx) {
           const ha = headAng(v);
           // each point of the body follows the head along the arc (and on below the surface once past its start)
           const spine = (x) => {
-            const a = ha + x / RAD;
+            // (anything well under water just waits at the bottom of the circle, so nothing comes back up the far side)
+            const a = clamp(ha + x / RAD, -1.5, 4.7);
             const p = planePt(a);
             // fwd: the way the head is going along the arc (the angle falls as it goes over); up: out from the arc's centre
             const fwd = V3().copy(dH).multiplyScalar(Math.sin(a)); fwd.y = -Math.cos(a);
             const up = V3().copy(dH).multiplyScalar(Math.cos(a)); up.y = Math.sin(a);
             return { p, fwd: fwd.normalize(), up: up.normalize() };
           };
-          const jaw = smooth(M_T0 + 0.1, M_T0 + 0.5, v) * (1 - smooth(M_T1 - 0.15, M_T1 + 0.05, v));
+          const jaw = smooth(M_SURF, M_SURF + 0.35, v) * (1 - smooth(M_T1 - 0.1, M_T1 + 0.05, v));
           mosa.pose(spine, 0.9 * jaw);
         }
       }
+      // chunks of the boat thrown out of the break
+      {
+        const t = v - T_BREAK;
+        for (let i = 0; i < CHUNK_N; i++) {
+          const c = CHUNKS[i], y = t > 0 ? 1.0 + c.up * t - 4.9 * t * t : -9;
+          if (t <= 0 || y < SEA_Y) { chunks.setMatrixAt(i, ZERO); continue; }
+          chunkE.set(c.ph + c.sp * t, c.ph * 2 + c.sp * 0.7 * t, 0);
+          chunks.setMatrixAt(i, chunkM.compose(chunkP.set(TARGET_BOAT.x + c.vx * t, y, TARGET_BOAT.z + c.vz * t), chunkQ.setFromEuler(chunkE), chunkS.setScalar(c.s)));
+        }
+        chunks.instanceMatrix.needsUpdate = true;
+      }
       // splashes: as it breaks the surface, and the big one as it comes down on the boat
-      for (const [t0, x, z, big] of [[M_T0, E.x, E.z, 0.6], [M_T1, TARGET_BOAT.x, TARGET_BOAT.z, 1.3]]) {
+      for (const [t0, x, z, big] of [[M_SURF, E.x, E.z, 0.6], [M_T1, TARGET_BOAT.x, TARGET_BOAT.z, 1.3]]) {
         const dt = v - t0;
         if (dt < 0 || dt > 3.5) continue;
         for (let k = 0; k < 26; k++) {

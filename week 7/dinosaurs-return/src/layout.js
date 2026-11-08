@@ -103,4 +103,4 @@ export const BOATS = [
   { x: 120, z: -60, len: 22, yaw: -0.3, col: 0xffffff },
   { x: 160, z: 40, len: 14, yaw: 1.1, col: 0xe8e2d8 },
 ];
-export const TARGET_BOAT = { x: 36.5, z: -13, len: 13, yaw: -0.5, col: 0xf6f4ee };
+export const TARGET_BOAT = { x: 36.5, z: -13, len: 13, yaw: -0.19, col: 0xf6f4ee };   // (side-on to the leap: it breaks across the middle)

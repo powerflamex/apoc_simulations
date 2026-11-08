@@ -162,7 +162,7 @@ export function makeSoundtrack(outFile) {
   addCrunch(TOSS_LAND + 0.84, 0.18, 6, 0.2, -0.35);
   addCrunch(V_SHOVE, 0.4, 16, 0.6, 0.3); addThud(V_SHOVE, 0.5, 48, 0.3, 0.35);
   // the harbour: a rush of water as it breaks the surface; the crash on the boat (fibreglass crunching, a boom)
-  const M_T0 = V_SEA - 0.15, M_T1 = V_SEA + 1.05;
+  const M_T0 = V_SEA - 0.14, M_T1 = V_SEA + 1.15;
   const bpan = clamp((TARGET_BOAT.x - CAM0.x) / 60, -0.8, 0.8);
   addCrunch(M_T1, 0.35, 14, 0.4, bpan * 0.6); addThud(M_T1, 0.9, 36, bpan * 0.5, 0.8);
   // car alarms: start when the ground starts shaking and when the cars get hit, each its own tone pair and pan

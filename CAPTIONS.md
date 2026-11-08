@@ -1445,10 +1445,10 @@ taxi's roof, glass bursting ("It's 40 feet long."). 0:09 "IT ROARS AT YOU" ("Its
 lifts it and flings it across the street: "IT THROWS A CAR" ("Its bite: 8,000 pounds."). 0:15 a Quetzalcoatlus sweeps in low over
 your head from behind ("Quetzalcoatlus: wings 36 feet wide."). 0:17.6 "A HERD STAMPEDES": six Triceratops burst out of the side
 street, four charge straight down the median and pass on your left, two run down between the jammed cars on your right
-("Triceratops: 6 tons each."). 0:22.9 "SOMETHING IN THE HARBOR": a Mosasaurus arcs out of the water and comes down on a moored boat
+("Triceratops: 6 tons each."). 0:22.9 "SOMETHING IN THE HARBOR": a Mosasaurus leaps out of the water head first, jaws open, and comes down across a moored boat, which snaps in two
 ("Mosasaurus: 50 feet long."). 0:26 a Brachiosaurus crosses the far end of the street, its head over the roofs, the T. rex in front
-("Brachiosaurus: 40 feet tall."). 0:27.8 back on the T. rex, much closer: "IT'S COMING FOR YOU" ("It runs 12 mph. Can you?"); 0:30 it
-bowls a car aside; "Everyone else is gone." 0:33 you turn to run: "THERE'S ANOTHER ONE" (a second T. rex steps out of the side street
+("Brachiosaurus: 40 feet tall."). 0:27.8 back on the T. rex, much closer: "IT'S COMING FOR YOU" ("It runs 12 mph. Can you?"); "Everyone else
+is gone." 0:32 it bowls a car aside. 0:33 you turn to run: "THERE'S ANOTHER ONE" (a second T. rex steps out of the side street
 behind you and roars; the owner's gasp, sounds/gasp.mp3 at -26 dB); "You're trapped." 0:36 back round: "IT SEES YOU" (its head comes
 down to yours, amber eyes; "Its eyes: 13x sharper than yours."). 0:39 "IT SMELLS YOU" (sniffs; "Its teeth: up to 12 inches long.").
 0:42 the jaws open. 0:44 it rears back and roars into your lens, its open jaws fill the frame, white at 0:45. Loop: the cut sits

@@ -9,14 +9,14 @@ import { makeFleet } from './cars.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 import { V_CRUSH, V_TOSS, V_SHOVE } from './timeline.js';
 import { LANES, END_Z, SIDE1, CAM0 } from './layout.js';
-import { CRUSH_CAR, PATH1, sRex1, PATH2, sRex2, PRINTS } from './rex.js';
+import { CRUSH_CAR, SHOVE, PATH1, sRex1, PATH2, sRex2, PRINTS } from './rex.js';
 import { HERD } from './herd.js';
 
 const PAINT = [0xe8e8e8, 0xd02a2a, 0x2a5ab0, 0x9aa0a8, 0x1c2e4a, 0x111111, 0xf0f0f0, 0xc9c2b0, 0x30a06e, 0xe87a2a, 0x5a2a6a, 0x80c0e0, 0xf0c030];
 const T_BITE = V_TOSS + 0.3, T_REL = V_TOSS + 0.66;
 
-// the shoved car: beside its path at 0:30, on its right
-const SHOVE = (() => { const q = PATH1.at(sRex1(V_SHOVE)); const r = { x: -Math.cos(q.yaw), z: Math.sin(q.yaw) }; return { x: q.x + r.x * 2.3, z: q.z + r.z * 2.3, yaw: 0.1, dx: r.x, dz: r.z }; })();
+// the thrown car comes down in the empty southbound lanes, well north of the herd's crossing
+export const TOSS_AT = { x: -6.2, z: -23.5 };
 
 export const CARS = [];
 {
@@ -94,12 +94,12 @@ export function makeTraffic(scene, ctx, rexes) {
     const pa = new THREE.Vector3().setFromMatrixPosition(a.clone().multiply(new THREE.Matrix4().makeTranslation(0, 0.75, 0)));
     const pb = new THREE.Vector3().setFromMatrixPosition(b.clone().multiply(new THREE.Matrix4().makeTranslation(0, 0.75, 0)));
     const vel = pb.clone().sub(pa).divideScalar(dt);
-    // the throw: the way its head swings it, flung 8 m/s out and 5 m/s up
-    const hz = Math.hypot(vel.x, vel.z) || 1;
-    vel.x *= 8 / hz; vel.z *= 8 / hz; vel.y = 5;
+    // the throw: flung 5 m/s up and across the street to where it lands
+    vel.y = 5;
     const qb = new THREE.Quaternion().setFromRotationMatrix(b);
     const g = 9.81, y0 = pb.y, yl = 0.95;
     const tl = (vel.y + Math.sqrt(vel.y * vel.y + 2 * g * (y0 - yl))) / g;     // flight time to landing
+    vel.x = (TOSS_AT.x - pb.x) / tl; vel.z = (TOSS_AT.z - pb.z) / tl;
     const roll = new THREE.Vector3(0, 0, 1).applyQuaternion(qb);             // it barrels about its long axis
     toss = { rest, at, pb, vel, qb, tl, roll, spin: 5.2 };
     console.log(`toss: rest ${tip.x.toFixed(1)},${tip.z.toFixed(1)} release ${pb.x.toFixed(1)},${pb.y.toFixed(1)},${pb.z.toFixed(1)} v ${vel.x.toFixed(1)},${vel.y.toFixed(1)},${vel.z.toFixed(1)} lands after ${tl.toFixed(2)} s at ${(pb.x + vel.x * tl).toFixed(1)},${(pb.z + vel.z * tl).toFixed(1)}`);
@@ -199,8 +199,8 @@ export function makeTraffic(scene, ctx, rexes) {
       // ---- the car knocked aside ----
       {
         const k = smooth(V_SHOVE - 0.05, V_SHOVE + 0.9, v), j = jolt(SHOVE.x, SHOVE.z);
-        const d = 2.8 * (1 - Math.pow(1 - k, 2));
-        e.set(0.02 * j, SHOVE.yaw + 0.9 * (1 - Math.pow(1 - k, 2)), 0.06 * Math.sin(Math.PI * k));
+        const d = 1.7 * (1 - Math.pow(1 - k, 2));
+        e.set(0.02 * j, SHOVE.yaw - 0.6 * (1 - Math.pow(1 - k, 2)), 0.06 * Math.sin(Math.PI * k));
         q.setFromEuler(e);
         hero.set(2, m4.compose(p.set(SHOVE.x + SHOVE.dx * d, 0.05 * j + 0.12 * Math.sin(Math.PI * Math.min(k * 2, 1)), SHOVE.z + SHOVE.dz * d), q, one), true);
         const dt = v - V_SHOVE;
@@ -210,4 +210,3 @@ export function makeTraffic(scene, ctx, rexes) {
     },
   };
 }
-export { SHOVE };

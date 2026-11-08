@@ -10,9 +10,10 @@ import * as THREE from 'three';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CAM0, MED, CURB, FXW, QX, SIDE1, TREES, LAMPS, BENCHES } from './layout.js';
 import { rng, clamp, smooth, lerp } from './util.js';
-import { PATH1, sRex1, PATH2, sRex2 } from './rex.js';
+import { PATH1, sRex1, PATH2, sRex2, CRUSH_CAR, SHOVE } from './rex.js';
+import { TOSS_AT } from './traffic.js';
 import { herdBlocks } from './herd.js';
-import { V_STOMP } from './timeline.js';
+import { V_STOMP, V_TOSS, V_SHOVE } from './timeline.js';
 
 const SHIRTS = [0xe8e2d6, 0xd05030, 0x3a6ab0, 0xf0c060, 0xffffff, 0x60a0d0, 0x2a8a5a, 0xe86a8a, 0x1d2230, 0xc8d4e8, 0x8a5a8a, 0xf4a040, 0x24384a, 0xb8b0a0, 0x7a2a2a, 0x40b0b0];
 const PANTS = [0x23252b, 0x2c3340, 0x4a6a9a, 0x8a7a66, 0xc9c2b6, 0x1a1a1a, 0x3a4a6a, 0xe8e2d6];
@@ -47,6 +48,7 @@ export const PEOPLE = [];
     ...TREES.map((t) => ({ x: t.x, z: t.z, r: 1.1 })), ...LAMPS.map((l) => ({ x: l.x, z: l.z, r: 0.5 })), ...BENCHES.map((b) => ({ x: b.x, z: b.z, r: 1.3 })),
   ];
   const STEPS = []; for (let v = -1.5; v <= 46; v += 0.2) STEPS.push(v);
+  const HERO_CARS = [[CRUSH_CAR.x, CRUSH_CAR.z, -9, 99], [2.7, -22.6, -9, V_TOSS + 0.8], [TOSS_AT.x, TOSS_AT.z, V_TOSS + 1, 99], [TOSS_AT.x - 2.2, TOSS_AT.z - 0.6, V_TOSS + 1, 99], [SHOVE.x, SHOVE.z, -9, V_SHOVE + 1], [SHOVE.x + SHOVE.dx * 1.7, SHOVE.z + SHOVE.dz * 1.7, V_SHOVE, 99]];
   const rexAt = STEPS.map((v) => {
     const q = PATH1.at(sRex1(v)), q2 = PATH2.at(sRex2(v));
     const b = [-5, -1.5, 2, 4.8].map((a) => ({ x: q.x + Math.sin(q.yaw) * a, z: q.z + Math.cos(q.yaw) * a, r: a > 4 ? 1.6 : 2.4 }));
@@ -69,6 +71,8 @@ export const PEOPLE = [];
       if (bx > MED - 0.4 && bx < CURB + 0.4 && !(a.z > SIDE1[0] + 3 && a.z < SIDE1[1] - 3)) return false;
       if (Math.hypot(a.x - CAM0.x, a.z - CAM0.z) < 1.5) return false;
       for (const o of obst) if ((a.x - o.x) ** 2 + (a.z - o.z) ** 2 < o.r * o.r) return false;
+      // the cars that stand where people run: the crushed taxi, the one it bites, where that one lands, the one it knocks aside
+      for (const [cx, cz, t0, t1] of HERO_CARS) if (v >= t0 && v <= t1 && (a.x - cx) ** 2 + (a.z - cz) ** 2 < 9) return false;
       for (const o of rexAt[k]) if ((a.x - o.x) ** 2 + (a.z - o.z) ** 2 < o.r * o.r) return false;
       for (const o of herdAtS[k]) if ((a.x - o.x) ** 2 + (a.z - o.z) ** 2 < (o.r + 0.6) ** 2) return false;
       for (const t of TR) { const dx = a.x - t.xs[k], dz = a.z - t.zs[k]; if (dx * dx + dz * dz < 0.5625) return false; }

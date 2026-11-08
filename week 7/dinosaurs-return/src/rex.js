@@ -49,10 +49,21 @@ const OFF1 = Math.ceil(GAIT1.gAt(V_CRUSH)) - GAIT1.gAt(V_CRUSH);
 const N_CRUSH = Math.round(GAIT1.gAt(V_CRUSH) + OFF1);
 const plant1 = (sd) => (vm, n) => {
   const q = PATH1.at(sRex1(vm)), r = rightOf(q.yaw);
-  return { x: q.x + r.x * sd * LAT, z: q.z + r.z * sd * LAT, yaw: q.yaw, y: sd < 0 && n === N_CRUSH ? CRUSHED_TOP : 0 };
+  const x = q.x + r.x * sd * LAT, z = q.z + r.z * sd * LAT;
+  return { x, z, yaw: q.yaw, y: (sd < 0 && n === N_CRUSH) || (vm > V_CRUSH && onCrushed(x, z)) ? CRUSHED_TOP : 0 };
 };
+function onCrushed(x, z) {
+  if (!CRUSH_CAR) return false;
+  const dx = x - CRUSH_CAR.x, dz = z - CRUSH_CAR.z, s = Math.sin(CRUSH_CAR.yaw), c = Math.cos(CRUSH_CAR.yaw);
+  return Math.abs(dx * c - dz * s) < 1.15 && Math.abs(dx * s + dz * c) < 2.5;
+}
 export const CRUSHED_TOP = 0.62;
-export const CRUSH_CAR = (() => { const p = plant1(-1)(GAIT1.vOf(N_CRUSH + 0.31 - OFF1), N_CRUSH); return { x: p.x - Math.sin(p.yaw) * 0.25, z: p.z - Math.cos(p.yaw) * 0.25, yaw: Math.PI + 0.35 }; })();
+export let CRUSH_CAR = null;
+CRUSH_CAR = (() => { const p = plant1(-1)(GAIT1.vOf(N_CRUSH + 0.31 - OFF1), N_CRUSH); return { x: p.x - Math.sin(p.yaw) * 0.25, z: p.z - Math.cos(p.yaw) * 0.25, yaw: Math.PI + 0.35 }; })();
+
+// the car it knocks aside at 0:32: on the median just ahead of you, on its left, clear of the herd's two routes (its
+// leg meets the car's back end)
+export const SHOVE = (() => { const q = PATH1.at(sRex1(35)); const l = { x: Math.cos(q.yaw), z: -Math.sin(q.yaw) }; return { x: q.x + l.x * 1.3, z: q.z + l.z * 1.3, yaw: q.yaw + Math.PI, dx: l.x, dz: l.z }; })();
 
 // ---- rex 2: out of the side street behind you ----
 const PATH2 = makePath([[-44, 27.5], [-30, 27], [-17, 26], [-8.5, 22], [-4, 16.5], [-2, 12.5]]);
