@@ -1,19 +1,20 @@
 // Procedural soundtrack for "What if the Sun turned into a black hole?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
-// What you hear: a busy beach at noon (the surf, people talking) and the owner's gasp on frame 0 (sounds/gasp.mp3, about
-// -25 dB: a natural reaction, not a scream); under it a low cosmic drone (music, as in the black hole video: this is a
+// What you hear: from space, the Sun's low roar, the owner's gasp on frame 0 (sounds/gasp.mp3, about -25 dB: a natural
+// reaction, not a scream), the collapse rising to one huge hit as the black hole forms, a thin ringing; at the hard cut
+// (0:02.5) a busy beach at noon (the surf, people talking); under it a low cosmic drone (music, as in the black hole video: this is a
 // cosmic topic) with a soft hit on each 3 s step and a ticking pulse that tightens as the counter closes. When the Sun goes
 // out: one deep hit, the drone drops away, the crowd's murmur rises and someone says "oh my god" (sounds/omg.mp3, about
 // -27 dB). The zoom into the black hole: a glassy shimmer. Then the dark beach: the surf, a hit on every beat, the crowd
 // leaving, a fire's soft crackle, the wind rising with the steam and the snow, the surf thickening to a slushy hiss, the
 // sea ice booming and singing, then a still, cold high tone; a riser as the lens freezes and one last hit. The loop: under
-// the solid ice the beach's sound comes back, so the sound runs on across the seam. Every onset is soft (8 ms+): no clacks.
+// the solid ice the Sun's roar comes back, so the sound runs on across the seam. Every onset is soft (8 ms+): no clacks.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  VIDEO_DURATION, LOOP, T_SWITCH, STEPS, V_DARK, V_GONE, V_LIGHTS, V_HOME, V_FIRE, V_STEAM, V_SNOW, V_PALMS, V_BURY, V_SLUSH, V_ICE, V_YEAR, V_SHUT,
+  VIDEO_DURATION, LOOP, T_SWITCH, STEPS, V_DARK, V_GONE, V_LIGHTS, V_HOME, V_FIRE, V_STEAM, V_SNOW, V_PALMS, V_BURY, V_SLUSH, V_ICE, V_YEAR, V_SHUT, V_CUT, V_HOLE,
 } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -103,7 +104,7 @@ export function makeSoundtrack(outFile) {
   // the lens freezing over: crackles
   const CRK = Array.from({ length: 220 }, () => ({ t: V_YEAR + 1.3 + R0() * (V_SHUT - V_YEAR - 1.3), d: 0.02 + R0() * 0.05, f: 2500 + R0() * 4000, g: 0.012 * (0.5 + R0()), pan: R0() * 1.8 - 0.9, fl: new SVF() }));
   const TICKS = [];
-  for (let t = 0; t < V_DARK - 3.2; t += 0.5) TICKS.push({ t, g: 0.25 + 0.2 * t / 6 });
+  for (let t = V_CUT; t < V_DARK - 3.2; t += 0.5) TICKS.push({ t, g: 0.25 + 0.2 * (t - V_CUT) / 3.5 });
   for (const t of [V_DARK - 3, V_DARK - 2, V_DARK - 1]) TICKS.push({ t, g: 0.75 });
   const CHORDS = [[-9, [73.4, 87.3, 110]], [V_DARK, [65.4, 77.8, 98]], [V_LIGHTS, [61.7, 73.4, 92.5]], [V_SNOW, [55, 65.4, 82.4]], [V_ICE, [49, 58.3, 73.4]]];
   const chordAt = (t) => { let c = CHORDS[0][1]; for (const [ts, ch] of CHORDS) if (t >= ts) c = ch; return c; };
@@ -112,6 +113,7 @@ export function makeSoundtrack(outFile) {
   const surfLP = new OnePole(500), surfLP2 = new OnePole(520), windF = [new SVF(), new SVF()], windLP = new OnePole(120);
   const braamLP = new SVF(), subLP = new OnePole(80), droneLP = [new OnePole(400), new OnePole(400)], shimF = [new SVF(), new SVF()], tickF = new SVF();
   const riserF = new SVF(), slushF = new SVF(), hissF = new SVF();
+  const roarF = new SVF(), roar2F = new SVF(), suckF = new SVF(), boomLP = new SVF(), blastF = new SVF();
   const revL = new Reverb(31), revR = new Reverb(32);
   const ph = new Float64Array(64);
   let brownL = 0, brownR = 0;
@@ -120,12 +122,12 @@ export function makeSoundtrack(outFile) {
     // (the lead-in before frame 0 is played under the solid ice at the end, and crossfades into it)
     const v = n / SR;
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;
-    const day = v < V_DARK ? 1 : 0;
+    const beach = smooth(V_CUT - 0.008, V_CUT + 0.014, v);              // (the beach's own sound starts at the hard cut)
     brownL = clamp(brownL + white() * 0.02, -1, 1) * 0.998;
     brownR = clamp(brownR + white() * 0.02, -1, 1) * 0.998;
     // --- the surf: a steady wash and the waves breaking; thickening to a slushy hiss; gone under the ice ---
     {
-      const sea = 1 - smooth(V_ICE - 0.2, V_ICE + 0.8, v);
+      const sea = (1 - smooth(V_ICE - 0.2, V_ICE + 0.8, v)) * beach;
       const thick = smooth(V_SLUSH - 0.4, V_SLUSH + 1, v);
       if (sea > 0) {
         const wash = (surfLP.run(brownL) * 0.5 + 0.5 * surfLP2.run(brownR)) * 0.35 * sea * (1 - 0.5 * thick);
@@ -143,7 +145,7 @@ export function makeSoundtrack(outFile) {
     }
     // --- people talking (louder, a rising murmur, when it goes dark), until they've gone ---
     {
-      const crowd = (1 - smooth(V_HOME + 0.5, V_FIRE + 0.5, v)) * (v < -0.2 || v > 0 ? 1 : 1);
+      const crowd = (1 - smooth(V_HOME + 0.5, V_FIRE + 0.5, v)) * beach;
       const react = smooth(V_DARK + 0.2, V_DARK + 1.2, v) * (1 - smooth(V_GONE + 2, V_LIGHTS + 1, v));
       if (crowd > 0) {
         let cv = 0;
@@ -153,6 +155,30 @@ export function makeSoundtrack(outFile) {
         }
         const g = (0.034 + 0.05 * react) * crowd;
         l += cv * g; r += cv * g * 0.92; wet += cv * g * 0.3;
+      }
+    }
+    // --- from space: the Sun's roar, the collapse rising, one huge hit as the black hole forms, a thin ringing; all gone at the cut ---
+    {
+      const sp = 1 - smooth(V_CUT - 0.01, V_CUT + 0.015, v);
+      if (sp > 0) {
+        const u = smooth(0.1, V_HOLE, v), left2 = 1 - smooth(V_HOLE - 0.02, V_HOLE + 0.05, v);
+        const w = white();
+        const rv = (roarF.run(w, 95 + 2300 * u * u * u, 0.55).bp * (0.34 + 0.75 * u * u) + roar2F.run(w, 420 + 3400 * u * u, 0.8).bp * 0.16 * u * u) * left2;
+        ph[30] += (42 + 330 * u * u * u) / SR; ph[31] += (42.6 + 334 * u * u * u) / SR;
+        const sv = suckF.run(saw(ph[30]) + saw(ph[31]), 240 + 1900 * u * u, 0.5).lp * (0.05 + 0.13 * u * u) * left2;
+        let bv = 0;
+        const dt = v - V_HOLE;
+        if (dt > -0.012) {
+          ph[32] += (26 + 62 * Math.exp(-Math.max(dt, 0) * 6)) / SR; ph[33] += 33 / SR; ph[34] += 33.3 / SR; ph[35] += 66.4 / SR;
+          const sub = Math.sin(TAU * ph[32]) * env(dt + 0.012, 0.012, 0.55) * 0.62;
+          const br = boomLP.run(saw(ph[33]) + saw(ph[34]) + 0.5 * saw(ph[35]), 900, 0.6).lp * env(dt + 0.012, 0.03, 0.7) * 0.13;
+          const bl = blastF.run(w, 700, 0.6).bp * env(dt + 0.012, 0.014, 0.22) * 0.32;
+          bv = sub + br + bl;
+          ph[36] += 1046.5 / SR; ph[37] += 1568 / SR;
+          const ring = (Math.sin(TAU * ph[36]) + 0.6 * Math.sin(TAU * ph[37])) * 0.012 * smooth(0.05, 0.4, dt);
+          l += ring; r += ring; wet += ring * 1.5;
+        }
+        dl += (rv * 0.95 + sv + bv) * sp; dr += (rv + sv * 0.95 + bv) * sp; wet += (rv * 0.1 + bv * 0.35) * sp;
       }
     }
     // --- the clips (set to their levels after the mix) ---
@@ -265,7 +291,6 @@ export function makeSoundtrack(outFile) {
       const xl = droneLP[0].run(a) * dg, xr = droneLP[1].run(b) * dg;
       dl += xl; dr += xr; wet += (xl + xr) * 0.6;
     }
-    void day;
     const rl = revL.run(wet * 0.5), rr = revR.run(wet * 0.5);
     const outL = l + dl + rl * 0.8, outR = r + dr + rr * 0.8;
     if (n < 0) { PL[n + N0] = outL; PR[n + N0] = outR; } else { L[n] = outL; R[n] = outR; }

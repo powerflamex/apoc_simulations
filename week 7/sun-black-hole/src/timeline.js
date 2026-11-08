@@ -1,6 +1,6 @@
 // "What if the Sun turned into a black hole?": the story as functions of VIDEO time v (seconds; STORY_START = 0).
-// A crowded beach at noon. The Sun has already collapsed: what you see is its last light, still on the way. The counter
-// races down the 8 min 20 s that light takes, the Sun goes out (its centre first, its edge 2.3 s later), and then the
+// From space: the Sun collapses into a black hole. Hard cut at 0:02.5 to a crowded beach at noon where nothing has changed:
+// what they see is its last light, still on the way. The counter races down the 8 min 20 s that light takes, the Sun goes out (its centre first, its edge 2.3 s later), and then the
 // twist: Earth stays where it is, circling a black hole 3.7 miles wide. After that a time-lapse of the beach in the dark,
 // one new thing every 3 s, from the lights coming on at noon to the sea frozen over a year later.
 // The numbers (all on screen are true):
@@ -26,16 +26,37 @@ export const LIGHT_S = 500;
 export const V_DARK = 9.0;            // the last light from the Sun's centre reaches you
 export const LIMB_S = 2.32;           // ...and from its edge, this much later
 export const V_GONE = V_DARK + LIMB_S;
-// seconds of light left at video time v: a time-lapse that slows down (rate ~140x at frame 0) to real time for the
-// last 3 s
+export const V_HOLE = 1.55;           // the Sun has fallen in: the flash, the black hole
+export const V_CUT = 2.5;             // hard cut from space to the beach; the counter starts racing here
+// seconds of light left at video time v: held at 8:20.00 in space, then a time-lapse that slows down (rate ~420x at the
+// cut) to real time for the last 3 s
 const LAPSE_END = V_DARK - 3;
+const LAPSE = LAPSE_END - V_CUT, LAPSE_S = LIGHT_S - 3 - LAPSE;
 export function leftAt(v) {
   if (v >= LAPSE_END) return V_DARK - v;
-  if (v <= 0) return LIGHT_S;                      // (the loop's lead-in: still 8:20.00, as on frame 0)
-  const u = v / LAPSE_END;
-  return 3 + (LAPSE_END - v) + (LIGHT_S - 3 - LAPSE_END) * Math.pow(1 - u, 3);
+  if (v <= V_CUT) return LIGHT_S;
+  return 3 + (LAPSE_END - v) + LAPSE_S * Math.pow(1 - (v - V_CUT) / LAPSE, 3);
 }
-export const rateAt = (v) => (v >= LAPSE_END ? 1 : 1 + 3 * (LIGHT_S - 3 - LAPSE_END) / LAPSE_END * Math.pow(1 - v / LAPSE_END, 2));
+export const rateAt = (v) => (v < V_CUT ? 0 : v >= LAPSE_END ? 1 : 1 + 3 * LAPSE_S / LAPSE * Math.pow(1 - (v - V_CUT) / LAPSE, 2));
+// the collapse, as drawn (space.js; the sound follows the same times): R the Sun's radius in pixels, cy its centre (pixels
+// from the top), heat 0..1, rag how torn its rim is, inflow the plasma spiralling in, hole/ring the black hole,
+// post seconds since it formed, flash, shake in pixels. Not to scale (the real black hole would be invisibly small).
+export function collapseAt(v) {
+  const u = clamp((v - 0.2) / (V_HOLE - 0.2));
+  const post = Math.max(0, v - V_HOLE);
+  return {
+    R: 575 * (1 - Math.pow(u, 2.3)),
+    cy: lerp(790, 650, smooth(0.2, V_HOLE, v)),
+    heat: Math.pow(smooth(0.65, V_HOLE, v), 1.4),
+    rag: 0.15 + 0.85 * smooth(0.05, 1.1, v),
+    inflow: smooth(0.25, 0.85, v) * (1 - smooth(V_HOLE - 0.03, V_HOLE + 0.3, v)),
+    hole: smooth(V_HOLE - 0.1, V_HOLE + 0.03, v),
+    ring: 165 * (1 + 0.28 * Math.exp(-post * 7) * Math.cos(post * 26)),
+    post,
+    flash: v < V_HOLE ? Math.pow(smooth(V_HOLE - 0.06, V_HOLE, v), 2) : Math.exp(-post / 0.09),
+    shake: 2.5 + 22 * smooth(0.35, V_HOLE, v) * (v < V_HOLE ? 1 : 0) + 42 * (v >= V_HOLE ? Math.exp(-post / 0.2) : 0),
+  };
+}
 // the people's own clock before the dark: lively, but never so fast that anyone zips about (max ~3x)
 export function animT(v) {
   const L = LAPSE_END;
@@ -90,8 +111,8 @@ export function tempAt(d) {
 // ---- the gold popups: one phrase saying what is happening (never a number) ----
 export const POP = 1.7;
 export const POPS = [
-  [3.0, 'THE SUN IS ALREADY GONE'],
-  [6.0, 'NOBODY CAN KNOW YET'],
+  [3.0, 'NOBODY KNOWS YET'],
+  [6.0, 'NOBODY CAN WARN THEM'],
   [V_DARK + 0.05, 'THE SUN GOES OUT'],
   [12.0, 'EARTH DOESN’T FLY AWAY'],
   [V_LIGHTS + 0.1, 'THE LIGHTS COME ON AT NOON'],

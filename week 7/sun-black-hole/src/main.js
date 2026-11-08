@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky } from './sky.js';
+import { makeSpace } from './space.js';
 import { makeSea } from './sea.js';
 import { makeBeach, wheelFrame, BU } from './beach.js';
 import { makePeople } from './people.js';
@@ -17,7 +18,7 @@ import { FU, frostify } from './frost.js';
 import { CAM_A, CAM_B, EYE, Z_W, SUN_DIR, SUN_AE, FIRE, FAR_FIRES, FAR, FAR_Y, LANES, ROAD, PROM, sandY, groundY } from './layout.js';
 import {
   state, animT, COUNTERS, VIDEO_DURATION, LOOP, popupAt, captionAt, POP, darkR, V_DARK, V_GONE, V_LIGHTS, V_HOME, V_FIRE, V_STEAM, V_SNOW, V_PALMS,
-  V_BURY, V_SLUSH, V_ICE, V_YEAR, V_SHUT,
+  V_BURY, V_SLUSH, V_ICE, V_YEAR, V_SHUT, V_CUT, V_HOLE,
 } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys, rng } from './util.js';
 
@@ -50,6 +51,7 @@ const shadowy = (m) => { m.frustumCulled = false; m.castShadow = true; m.receive
 const ctx = { plainMat, glowMat, shadowy };
 const sky = makeSky();
 scene.add(sky.mesh);
+const space = makeSpace();
 const sea = makeSea(scene);
 const beach = makeBeach(scene, ctx);
 const people = makePeople(scene);
@@ -132,7 +134,8 @@ const rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, sample
 const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(1);
 composer.setSize(W, H);
-composer.addPass(new RenderPass(scene, camera));
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
 composer.addPass(new ShaderPass({
   uniforms: { tDiffuse: { value: null } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
@@ -213,20 +216,20 @@ const finish = new ShaderPass({
 composer.addPass(finish);
 
 // ---------- the camera ----------
-// You start among the crowd and walk down toward the water during the time-lapse; at 0:07.6 your eyes go up to the Sun
+// (Before V_CUT the frame is the Sun in space, space.js.) You start among the crowd and walk down toward the water during the time-lapse; at 0:07.6 your eyes go up to the Sun
 // and the phone zooms in on it as it goes out; back down at the dark beach; then a crash zoom ~1,000x into the spot where
 // the Sun was (the ring); then the beach in the dark: one look per beat (the sea, back at the promenade, the fire, the sea,
 // the palms, along the beach, the surf at your feet, the frozen sea), and finally you rise as the lens freezes.
 // az: degrees right of straight out to sea; pitch: up; fov: vertical degrees
 const SUN_AZ = SUN_AE.az, SUN_EL = SUN_AE.el;
-const POS = [[-2, CAM_A.x, CAM_A.z], [0, CAM_A.x, CAM_A.z], [6, 0.05, 4.6], [7.6, CAM_B.x, CAM_B.z], [36.35, CAM_B.x, CAM_B.z], [36.95, 0.3, Z_W + 4], [42.6, 0.3, Z_W + 4], [46.8, 14, CAM_B.z + 22]];
-const AZ = [[-2, 3], [0, 3], [6, 4], [7.6, 5.5], [8.4, SUN_AZ], [11.35, SUN_AZ], [11.95, 4], [12.25, 4], [12.95, SUN_AZ], [15.0, SUN_AZ], [15.45, 4],
+const POS = [[-2, CAM_A.x, CAM_A.z], [V_CUT, CAM_A.x, CAM_A.z], [7.6, CAM_B.x, CAM_B.z], [36.35, CAM_B.x, CAM_B.z], [36.95, 0.3, Z_W + 4], [42.6, 0.3, Z_W + 4], [46.8, 14, CAM_B.z + 22]];
+const AZ = [[-2, 3], [V_CUT, 3], [6, 4], [7.6, 5.5], [8.4, SUN_AZ], [11.35, SUN_AZ], [11.95, 4], [12.25, 4], [12.95, SUN_AZ], [15.0, SUN_AZ], [15.45, 4],
   [18.35, 4], [18.95, 172], [21.35, 176], [21.95, 316], [24.35, 318], [24.95, 364], [30.35, 366], [30.95, 538], [33.35, 536], [33.95, 432],
   [36.35, 430], [36.95, 364], [42.3, 364], [43.2, 349], [46.8, 348]];
-const PITCH = [[-2, 12], [0, 12], [3, 10], [6, 8], [7.6, 13], [8.4, SUN_EL], [11.35, SUN_EL], [11.95, 7], [12.25, 7], [12.95, SUN_EL], [15.0, SUN_EL], [15.45, 7],
+const PITCH = [[-2, 12], [V_CUT, 12], [4.5, 10], [6, 8], [7.6, 13], [8.4, SUN_EL], [11.35, SUN_EL], [11.95, 7], [12.25, 7], [12.95, SUN_EL], [15.0, SUN_EL], [15.45, 7],
   [18.35, 7], [18.95, 11], [21.35, 11], [21.95, -9], [24.35, -9], [24.95, 5], [27.35, 5], [27.95, 1], [30.35, 1], [30.95, 20], [33.35, 20], [33.95, -2],
   [36.35, -2], [36.95, -24], [39.35, -24], [39.95, 4], [42.3, 4], [43.2, -4], [46.8, -7]];
-const FOVK = [[-2, 64], [0, 64], [6, 62], [7.6, 58], [8.4, 12], [11.35, 12], [11.95, 62], [12.25, 62], [12.7, 30], [13.55, 0.075], [14.95, 0.075], [15.45, 62],
+const FOVK = [[-2, 64], [V_CUT, 64], [6, 62], [7.6, 58], [8.4, 12], [11.35, 12], [11.95, 62], [12.25, 62], [12.7, 30], [13.55, 0.075], [14.95, 0.075], [15.45, 62],
   [21.35, 62], [21.95, 54], [24.35, 54], [24.95, 62], [30.35, 62], [30.95, 52], [33.35, 52], [33.95, 60], [36.35, 60], [36.95, 50], [39.35, 50], [39.95, 64], [42.3, 64], [43.2, 56], [46.8, 56]];
 const HEIGHT = [[-2, 0], [42.3, 0], [46.8, 24]];
 // FOV through the zoom: interpolated in log space, so the zoom feels steady
@@ -241,7 +244,7 @@ const fovAt = (v) => {
 };
 function camAt(v) {
   const x = keys(POS.map((p) => [p[0], p[1]]), v), z = keys(POS.map((p) => [p[0], p[2]]), v);
-  const walking = smooth(-0.5, 0.2, v) * (1 - smooth(5.6, 7.4, v));
+  const walking = smooth(V_CUT, V_CUT + 0.6, v) * (1 - smooth(5.6, 7.4, v));
   const y = groundY(x, z) + EYE + keys(HEIGHT, v) + Math.abs(Math.sin(v * 7.2)) * 0.035 * walking;
   let az = keys(AZ, v), pitch = keys(PITCH, v), fov = fovAt(v);
   const k = fov / 62;
@@ -448,6 +451,21 @@ function update(v, cover = -1) {
   { let cv = 0; for (const c of COUNTERS) cv = Math.max(cv, Math.min(clamp((v - c.from) / 0.45), clamp((c.to - v) / 0.45))); finish.uniforms.uCounter.value = window.__cover ? 0 : cv * (1 - lens); }
   finish.uniforms.uVig.value = 0.22;
 
+  // the opening: the frame is the Sun in space, on its own scene (Neutral keeps its oranges saturated)
+  const inSpace = v < V_CUT;
+  renderPass.scene = inSpace ? space.scene : scene;
+  renderPass.camera = inSpace ? space.camera : camera;
+  renderer.toneMapping = inSpace ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping;
+  if (inSpace) {
+    const c = space.frame(v);
+    renderer.toneMappingExposure = 1;
+    bloom.strength = (0.34 - 0.2 * c.hole) + 0.3 * c.flash;
+    const k = c.shake / 44;
+    finish.uniforms.uAb.value = k * 1.4;
+    finish.uniforms.uBlur.value = window.__cover ? 0 : k * 0.04;
+    finish.uniforms.uScope.value = 0;
+  }
+
   s.hide = smooth(0.82, 1.0, lens);
   overlay(v, s, v);
   {
@@ -485,7 +503,7 @@ async function boot() {
     const { makeCompositor } = await import('./compose.js');
     comp = await makeCompositor(renderer.domElement, stage);
   }
-  for (const t of [44, 38, 33, 28, 22, 19, 16, 14, 10, 4, 0]) renderFrame(t);
+  for (const t of [44, 38, 33, 28, 22, 19, 16, 14, 10, 4, 1.2, 0]) renderFrame(t);
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, sky, sea, state, update, camAt, BU, FU, comp: () => comp };

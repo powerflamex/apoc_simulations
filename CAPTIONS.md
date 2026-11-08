@@ -1367,10 +1367,13 @@ How long do you think you'd last down there? 👇
 
 47.9 s. A new scene: a made-up beach facing south, packed at noon (umbrellas in rows, towels, people sitting, talking, kids
 digging, waders in the surf), a pier with a Ferris wheel on the left, a city across the bay on the right, palms, lamps and hotels
-behind you. Frame 0: the title, the Sun high in a deep blue sky, the counter already racing (LIGHT STOPS IN 8:20.00, TIME-LAPSE),
-the crowd close round you, the owner's gasp (sounds/gasp.mp3, at -25 dB, a natural reaction, no scream).
-0:00-0:06 time-lapse that slows to real time while you walk down the beach toward the water (8:20 left at 0:00, 1:07 at 0:03,
-0:03 at 0:06): 0:03 "THE SUN IS ALREADY GONE", "Its light takes 8 min 20 s to reach you."; 0:06 "NOBODY CAN KNOW YET", "Nothing is
+behind you. Frame 0, from space: the title, the counter (LIGHT STOPS IN 8:20.00, held), the Sun filling the frame, burning orange, the
+owner's gasp (sounds/gasp.mp3, at -25 dB, a natural reaction, no scream). At once it starts to go: its rim tears, cracks of light run
+across it, it twists and heats to white as it falls in with plasma spiralling after it (0:00.2-0:01.55), a white flash and a huge
+hit, a shock ring racing out, and a black hole with a ring of bent light where the Sun was. 0:02.5 hard cut to the packed beach,
+people close to you, the Sun still shining, nothing changed: the counter starts racing here (TIME-LAPSE), so you know what's coming and
+they don't. 0:02.5-0:06 the time-lapse slows to real time while you walk down the beach toward the water (8:20 left at 0:02.5, 5:17 at
+0:03, 0:03 at 0:06): 0:03 "NOBODY KNOWS YET", "Its light takes 8 min 20 s to reach you."; 0:06 "NOBODY CAN WARN THEM", "Nothing is
 faster than light." (people splash and chat, nobody knows). 0:07.6 you look up and zoom in on the Sun. 0:09 "THE SUN GOES OUT": its
 middle goes dark first and the black spreads to its edge in 2.3 s (a ring of fire, then nothing), the sky goes from blue to black
 with stars, a deep hit and "oh my god" (sounds/omg.mp3, -27 dB). 0:11 back down: the beach in the dark, silhouettes, phones lighting
@@ -1386,8 +1389,8 @@ umbrellas left behind, day 7, 0°F; "In one week, it's below 0°F."); 0:36.5 "TH
 ice jostling in the swash, day 20; "Seawater freezes at 28°F."); 0:39.5 "THE SEA FREEZES OVER" (ice to the horizon, the sky clear
 and starry again; "Deep below, the ocean stays liquid."); 0:42.5 "ONE YEAR IN THE DARK" (you rise over the beach: the pier and the
 Ferris wheel standing in the frozen sea, the far city's lights; "And Earth keeps circling the black hole."), −100°F, frost grows
-over the lens until it's solid at 0:46.5. Loop: the cut sits inside the solid lens ice, which clears onto frame 0 (the counter
-holds at 8:20.00 underneath, the title fades in with it).
+over the lens until it's solid at 0:46.5. Loop: the cut sits inside the solid lens ice, which clears onto the Sun in space, frame 0
+(the counter holds at 8:20.00 underneath, the title fades in with it).
 Numbers (`src/timeline.js`): sunlight takes 8 min 20 s to reach Earth (1 AU / c = 499 s on average; 490-507 s through the year).
 The Sun's centre is 696,000 km closer to you than its edge, so its last light from the centre arrives 2.3 s before the edge's.
 Nothing (no signal, no change in gravity) outruns light, so nobody on Earth can know before it goes dark. A black hole with the
@@ -1398,6 +1401,9 @@ switch on by light sensors. Cooling follows published estimates for Earth's aver
 about −100°F after a year); the counter starts at the beach's 75°F. Seawater freezes at about 28°F; the ice keeps the deep ocean
 liquid underneath.
 What is drawn, not measured: the Sun is far too light to ever become a black hole (it will end as a white dwarf); this is a what-if.
+The opening collapse is drawn for the phone: the 1.3 s fall, the spiral, the flash and the shock ring are not computed, and the black
+hole there is drawn about 68,000x too big so you can see it (a true-size one would be 235,000x narrower than the Sun; the ring in the
+opening is 3.5x narrower). The later zoom shows the true size.
 The temperature in between is a smooth curve through those published points; the sea smoke, snow, palms browning and the sea
 freezing over are what that cold does, timed to fit the beats (a shallow bay freezes in weeks, the open sea takes longer). The star
 straight behind the black hole that makes the full ring is placed there (the ring needs a star almost exactly behind it, which
@@ -1405,11 +1411,12 @@ happens often as the black hole moves across the stars, ~1° a day). The Moon wo
 Sun (it is only 1.3 light-seconds away), so it isn't a separate beat. Nobody is ever shown hurt.
 Changed from the plan: "people notice the news on phones" before the dark can't happen (no news can travel faster than the light
 itself), so the phones light up right after the dark instead, when people check what happened.
-Sound: the surf and people talking, the gasp, a cosmic drone with a soft low pulse in the countdown, a deep hit when the Sun goes
+Sound: from space, the Sun's low roar, the gasp, the collapse rising to one huge hit as the black hole forms, a thin ringing; at the hard
+cut the surf and people talking, a cosmic drone with a soft low pulse in the countdown, a deep hit when the Sun goes
 out and the drone dropping away, the crowd's murmur and "oh my god", a glassy shimmer during the zoom, a hit on every beat, a fire's
 soft crackle, wind with the steam and the snow, the surf thickening to a slushy hiss, the sea ice booming and singing, a cold high
-tone, crackles and a riser as the lens freezes, one last hit; under the ice the beach's sound comes back for the loop.
-Cover: `week 7/sun-black-hole/out/sun-black-hole_v4_cover.png` (`node render.mjs --cover 14.2`: the zoom on where the Sun was, the stars bent into a bright ring round a dark middle; "WHAT IF THE SUN TURNED INTO / a black hole?")
+tone, crackles and a riser as the lens freezes, one last hit; under the ice the Sun's roar comes back for the loop.
+Cover: `week 7/sun-black-hole/out/sun-black-hole_v4_cover.png` (`node render.mjs --cover 1.0`: the Sun mid-collapse, burning orange and twisting, plasma spiralling in after it; "WHAT IF THE SUN TURNED INTO / a black hole?")
 
 **YouTube title** (85 characters):
 ```
