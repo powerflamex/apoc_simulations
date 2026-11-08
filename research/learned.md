@@ -440,6 +440,18 @@ Long videos (this month):
 - The rod's 68% at 0:30 and 33K at 24 h: real objects aren't an automatic win either, and stayed (72%) again didn't bring views.
 - Space station, rod, fall-through and rogue planet all sit at 66-71% at 0:30 but got 33-65K at 24 h: inside that band 0:30 doesn't sort views.
 
+## Nov 8 evening read (~5:45 PM ET): the star picker and tornado curves
+| Short | Age | Views | At 0:10 | At 0:20 | At 0:30 | At 0:40 | End | Avg watched |
+|---|---|---|---|---|---|---|---|---|
+| star picker | ~29 h | 128.7K ("2.5x usual"), +82 subs | 98% | 82% | **72%** | 66% | 50% | 0:40 of 0:50 |
+| tornado | ~35 h | 73.5K ("58% above"), +88 subs | 79% | 64% | **56%** | 50% | 38% | 0:31 of 0:49 |
+| nuke Short | ~6 h | 12.8K, 1.7K in the last hour, +11 subs | | | | | | 0:34; 66.9% stayed |
+Nuke long video: 160 views at ~4.5 h.
+- Star picker reaches the 72% hit zone (level with trillion years and the new asteroid). Between 11:15 AM and 5:45 PM it gained ~21K; the tornado gained ~3.6K.
+- The tornado had the best first 24 h of the Nov 3-6 group (66K) with a poor 0:30 (56%), and it has now nearly stopped. Star picker has both and keeps
+  climbing. Fits the idea that the first day is about wanting to click and 0:30 decides whether the push continues. Two videos: a guess until more curves are in.
+- Star picker is a counterexample to "sightseeing loses": the Sun is replaced over a crowded beach, a new star every ~6.5 s, and a "which would you pick" question. Its 0:10 (98%) is the best of the recent group.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
