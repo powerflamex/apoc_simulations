@@ -192,8 +192,11 @@ export function makeRexes(scene) {
         P.neckPitch = lerp(keep.np, P.neckPitch, A.down) + 0.025 * A.sniff * Math.sin(v * 9);
         P.headPitch = lerp(keep.hp, P.headPitch, A.down) - 0.18 * A.rear * 0 + 0.0;
         P.headYaw = lerp(keep.hy, P.headYaw, A.down);
+        // not dead straight at you: turned about 30 degrees, so you see the long snout and the line of the jaw, until it
+        // swings round to bring its open mouth at the lens
+        P.headYaw += -0.5 * A.down * (1 - 0.85 * A.lunge);
       }
-      P.jaw = A.jaw;
+      P.jaw = Math.max(A.jaw, 0.16 * A.down);          // (with its head down at you the teeth show)
       r1.pose(P);
       r1.act = A;
       // ---- rex 2 ----

@@ -50,6 +50,43 @@ export function skinMaterial({ rough = 0.72, bump = 1.0, sheen = 0 } = {}) {
   return m;
 }
 
+// skin for parts seen up close and from the front: the scale pattern comes from where a point sits on the resting head
+// (attribute aRest: fill it with setRest), laid on from three sides
+export function headMaterial({ rough = 0.62, bump = 0.015, K = 1.6 } = {}) {
+  const tex = scaleTexture();
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: rough, metalness: 0 });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uScale = { value: tex };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aRest; varying vec3 vRest;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRest = aRest;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uScale; varying vec3 vRest;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        vec3 rn = normalize(cross(dFdx(vRest), dFdy(vRest)));
+        vec3 bw = pow(abs(rn), vec3(4.0)); bw /= bw.x + bw.y + bw.z;
+        float scaleH = texture2D(uScale, vRest.yz * ${K.toFixed(2)}).r * bw.x + texture2D(uScale, vRest.xz * ${K.toFixed(2)}).r * bw.y + texture2D(uScale, vRest.xy * ${K.toFixed(2)}).r * bw.z;
+        // (no scales inside the mouth: gums and tongue are the red vertices)
+        float skinK = 1.0 - smoothstep(1.5, 2.3, vColor.r / (vColor.g + 0.02));
+        scaleH = mix(0.65, scaleH, skinK);
+        diffuseColor.rgb *= 0.66 + 0.5 * scaleH;`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {
+          vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition);
+          float hx = dFdx(scaleH) * ${bump.toFixed(3)}, hy = dFdy(scaleH) * ${bump.toFixed(3)};
+          vec3 R1 = cross(sy, normal), R2 = cross(normal, sx);
+          float det = dot(sx, R1) * faceDirection;
+          normal = normalize(abs(det) * normal - sign(det) * (hx * R1 + hy * R2));
+        }`);
+  };
+  m.customProgramCacheKey = () => 'dino-head-skin';
+  return m;
+}
+// remember each vertex's place on the resting part (for headMaterial)
+export function setRest(L, stations) {
+  L.update(stations);
+  const g = L.mesh.geometry;
+  g.setAttribute('aRest', new THREE.BufferAttribute(g.attributes.position.array.slice(), 3));
+}
+
 export function makeLoft(nS, nR, { color, uvLen = 4, uvRound = 2, mat, caps = [true, true] }) {
   const nV = nS * nR + 2;
   const pos = new Float32Array(nV * 3), col = new Float32Array(nV * 3), uv = new Float32Array(nV * 2);
@@ -93,9 +130,10 @@ export function makeLoft(nS, nR, { color, uvLen = 4, uvRound = 2, mat, caps = [t
           // a slightly squarer section than an ellipse (flanks), so bodies don't read as sausages
           const cx = Math.sign(c) * Math.pow(Math.abs(c), s.sq ?? 0.85), sy = Math.sign(sn) * Math.pow(Math.abs(sn), s.sq ?? 0.85);
           const k = (i * nR + j) * 3;
-          pos[k] = s.p.x + _S.x * s.w * cx + _U.x * h * sy;
-          pos[k + 1] = s.p.y + _S.y * s.w * cx + _U.y * h * sy;
-          pos[k + 2] = s.p.z + _S.z * s.w * cx + _U.z * h * sy;
+          const wd = s.w * (1 - (s.pinch ?? 0) * Math.max(sy, 0));
+          pos[k] = s.p.x + _S.x * wd * cx + _U.x * h * sy;
+          pos[k + 1] = s.p.y + _S.y * wd * cx + _U.y * h * sy;
+          pos[k + 2] = s.p.z + _S.z * wd * cx + _U.z * h * sy;
         }
       }
       const a = st[0].p, b = st[nS - 1].p;
@@ -119,11 +157,11 @@ export function resample(keys, perSeg) {
         0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
         0.5 * (2 * p1.z + (-p0.z + p2.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * t3));
       const e = t * t * (3 - 2 * t), A = keys[i], B = keys[i + 1];
-      out.push({ p, up: new THREE.Vector3().lerpVectors(A.up, B.up, t).normalize(), w: A.w + (B.w - A.w) * e, t: A.t + (B.t - A.t) * e, b: A.b + (B.b - A.b) * e, sq: (A.sq ?? 0.85) + ((B.sq ?? 0.85) - (A.sq ?? 0.85)) * e });
+      out.push({ p, up: new THREE.Vector3().lerpVectors(A.up, B.up, t).normalize(), w: A.w + (B.w - A.w) * e, t: A.t + (B.t - A.t) * e, b: A.b + (B.b - A.b) * e, sq: (A.sq ?? 0.85) + ((B.sq ?? 0.85) - (A.sq ?? 0.85)) * e, pinch: (A.pinch ?? 0) + ((B.pinch ?? 0) - (A.pinch ?? 0)) * e });
     }
   }
   const L = keys[n - 1];
-  out.push({ p: L.p.clone(), up: L.up.clone(), w: L.w, t: L.t, b: L.b, sq: L.sq });
+  out.push({ p: L.p.clone(), up: L.up.clone(), w: L.w, t: L.t, b: L.b, sq: L.sq, pinch: L.pinch });
   return out;
 }
 

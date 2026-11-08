@@ -1462,14 +1462,14 @@ Quetzalcoatlus northropi: wings 10-11 m (36 ft at the top of the range). Tricera
 hoffmannii: up to about 15-17 m (50 ft). Brachiosaurus: head about 12 m (40 ft) up. Every animal is drawn at that size.
 What is drawn, not measured: how a T. rex sounded is unknown, so the roar is made up (a deep growling bellow). Quetzalcoatlus is a
 pterosaur and Mosasaurus a sea reptile, not dinosaurs (the captions only name them). A T. rex lifting and throwing a car is the
-what-if (its bite could hold one; a car weighs about 1.5 t). The animals are low-poly shapes, teeth hidden by lips when the mouth is
-shut (the latest work on T. rex lips). Nobody is ever shown hurt: the crushed and thrown cars are empty, people run.
+what-if (its bite could hold one; a car weighs about 1.5 t). The animals are low-poly shapes, and the T. rex shows its teeth
+even with its mouth shut (whether it had lips is still argued). Nobody is ever shown hurt: the crushed and thrown cars are empty, people run.
 Sound: the panicking street (idling traffic, a crowd's roar), the far roar on frame 0, a deep thud for every footstep, louder as it
 comes, steel crumpling and glass for the crushed car, car alarms, the thrown car's whoosh and crash, wingbeats overhead, hooves
 and low bellows, the harbour's rush and crash, a far low call, steel scraping, a whoosh as you turn, the second roar, close growls,
 sniffs, your heartbeat, a deep hit on each beat over a dark drone, a riser into the last roar; in the white the far roar starts
 again for the loop. Opening at -25 dB (ffmpeg volumedetect over the first second).
-Cover: `week 7/dinosaurs-return/out/dinosaurs-return_v4_cover.png` (`node render.mjs --cover 41.2`: the T. rex's face right in front of you, amber eyes and fangs, the thrown red car behind it; "WHAT IF / dinosaurs / came back?" set low, under its head)
+Cover: `week 7/dinosaurs-return/out/dinosaurs-return_v4_cover.png` (`node render.mjs --cover 43.3`: the T. rex's head right in front of you, turned so you see the long snout, heavy brow, amber eye and open jaws full of teeth; "WHAT IF / dinosaurs / came back?" set low, under its head)
 
 **YouTube title** (71 characters):
 ```

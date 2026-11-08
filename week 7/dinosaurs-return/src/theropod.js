@@ -1,10 +1,10 @@
 // A Tyrannosaurus rex at real size (Sue, the biggest skeleton: 12.3 m long, hips about 3.6 m up, a 1.4 m skull): body,
-// tail and neck as one bending tube, a deep skull and a hinged lower jaw (lips cover the teeth when it's shut, as the
-// latest work suggests), little two-fingered arms, and long legs that bend at the knee, the ankle and the toes.
+// tail and neck as one bending tube, a skull wide at the back and narrowing fast to a long roof-shaped snout, heavy brows
+// over forward-set eyes, a deep hinged lower jaw and a full row of teeth round the whole mouth, little two-fingered arms, and long legs that bend at the knee, the ankle and the toes.
 // Colours: dark olive-brown on top with darker bands across the back and tail, paler flanks, a cream belly.
 //   const rex = makeTheropod(scene);  each frame: rex.pose({ x, z, yaw, ... }) (see POSE below)
 import * as THREE from 'three';
-import { makeLoft, resample, Frame, chain, ik2, makeSpikes, skinMaterial } from './loft.js';
+import { makeLoft, resample, Frame, chain, ik2, makeSpikes, skinMaterial, headMaterial, setRest } from './loft.js';
 import { smooth, clamp, lerp } from './util.js';
 
 const V3 = () => new THREE.Vector3();
@@ -16,10 +16,18 @@ const FWD_R = [[0.7, 0.62, 0.86], [0.8, 0.6, 1.12], [0.74, 0.58, 1.04], [0.58, 0
 const TAIL = [[1.0, 0.0], [1.15, -0.05], [1.15, -0.08], [1.1, -0.12], [1.0, -0.12], [0.85, -0.1]];
 const TAIL_R = [[0.7, 0.62, 0.86], [0.62, 0.6, 0.72], [0.5, 0.5, 0.58], [0.37, 0.39, 0.45], [0.25, 0.27, 0.3], [0.14, 0.16, 0.16], [0.04, 0.05, 0.05]];
 // the skull (head frame: at the back of the skull, X along it) and the lower jaw (jaw frame: at the hinge)
-const SKULL = [[-0.12, 0.05, 0.26, 0.28, 0.2], [0.06, 0.05, 0.43, 0.42, 0.3], [0.36, 0.03, 0.4, 0.42, 0.28], [0.72, -0.04, 0.3, 0.32, 0.25],
-  [1.06, -0.09, 0.23, 0.25, 0.22], [1.32, -0.12, 0.18, 0.19, 0.17], [1.47, -0.15, 0.08, 0.09, 0.09]];
+// (x, y, half width, top, bottom, how roof-shaped: the outline from the side is the old one; from above and in front it now
+// narrows hard just ahead of the eyes)
+const SKULL = [[-0.12, 0.05, 0.3, 0.28, 0.2, 0.1], [0.06, 0.05, 0.5, 0.42, 0.3, 0.15], [0.36, 0.03, 0.47, 0.42, 0.28, 0.25], [0.56, 0.0, 0.3, 0.37, 0.27, 0.55], [0.72, -0.04, 0.225, 0.32, 0.25, 0.68],
+  [1.06, -0.09, 0.165, 0.25, 0.22, 0.72], [1.32, -0.12, 0.14, 0.19, 0.17, 0.62], [1.47, -0.15, 0.07, 0.09, 0.09, 0.3]];
 const HINGE = [0.02, -0.28];
-const JAW = [[-0.06, -0.04, 0.36, 0.12, 0.2], [0.35, -0.09, 0.34, 0.12, 0.24], [0.8, -0.05, 0.26, 0.1, 0.17], [1.16, 0.0, 0.2, 0.08, 0.13], [1.36, 0.03, 0.09, 0.06, 0.07]];
+const JAW = [[-0.06, -0.04, 0.42, 0.12, 0.26], [0.35, -0.09, 0.36, 0.12, 0.32], [0.8, -0.05, 0.19, 0.1, 0.23], [1.16, 0.0, 0.14, 0.08, 0.17], [1.36, 0.03, 0.065, 0.06, 0.09]];
+// the section of the skull or jaw at x (for setting the teeth on its edge)
+function secAt(T, x) {
+  let i = 0; while (i < T.length - 2 && x > T[i + 1][0]) i++;
+  const u = clamp((x - T[i][0]) / (T[i + 1][0] - T[i][0])), e = u * u * (3 - 2 * u), A = T[i], B = T[i + 1];
+  return { y: lerp(A[1], B[1], u), w: lerp(A[2], B[2], e), t: lerp(A[3], B[3], e), b: lerp(A[4], B[4], e) };
+}
 export const LEG = { L1: 1.45, L2: 1.4, L3: 0.72, HIP: [0.12, -0.32, 0.5] };
 export const REACH = 5.6;                // pelvis to the tip of the snout, walking
 
@@ -38,7 +46,7 @@ export function headFrame(P, out = new Frame()) {
 }
 
 export function makeTheropod(scene, { seed = 0, tone = 0 } = {}) {
-  const BACK = hex(tone ? 0x2c2416 : 0x33291a), FLANK = hex(tone ? 0x6a5638 : 0x6f5a3a), BELLY = hex(0xcdbd98), STRIPE = hex(0x1c160e), MOUTH = hex(0x8a3a34), TONGUE = hex(0xa04a44);
+  const BACK = hex(tone ? 0x2c2416 : 0x33291a), FLANK = hex(tone ? 0x6a5638 : 0x6f5a3a), BELLY = hex(0xcdbd98), STRIPE = hex(0x1c160e), MOUTH = hex(0x8a3a34), TONGUE = hex(0xa04a44), THROAT = hex(0x140605);
   const skin = (u, a, { bands = 0, belly = 1 } = {}) => {
     const up = Math.sin(a);
     let c = mixc(FLANK, BACK, smooth(0.05, 0.85, up));
@@ -52,17 +60,24 @@ export function makeTheropod(scene, { seed = 0, tone = 0 } = {}) {
   const mat = skinMaterial({ rough: 0.68, bump: 1.2 });
   const NS = 1 + (FWD.length + TAIL.length) * 4;
   const body = makeLoft(NS, 20, { mat, uvLen: 26, uvRound: 5, color: (u, a) => skin(u, a, { bands: u < 0.62 ? 11 : 0 }) });
-  const skull = makeLoft(1 + (SKULL.length - 1) * 4, 18, { mat, uvLen: 6, uvRound: 3, color: (u, a) => {
+  const hmat = headMaterial();
+  const skull = makeLoft(1 + (SKULL.length - 1) * 4, 28, { mat: hmat, uvLen: 6, uvRound: 3, color: (u, a) => {
     const up = Math.sin(a);
     let c = skin(u, a, { belly: 0.3 });
-    if (up < -0.6 && u > 0.12 && u < 0.9) c = MOUTH;               // the palate (only seen with the mouth open)
-    const eye = Math.exp(-Math.pow((u - 0.28) / 0.1, 2)) * smooth(-0.2, 0.5, up) * (1 - smooth(0.6, 0.95, up));
-    return mixc(c, STRIPE, eye * 0.55);
+    if (up < -0.6 && u > 0.08 && u < 0.92) c = mixc(THROAT, MOUTH, smooth(0.12, 0.6, u));   // the palate (only seen with the mouth open)
+    else {
+      // a dark mask round the eyes, a paler ridge down the top of the snout, a dark line along the lips
+      const eye = Math.exp(-Math.pow((u - 0.36) / 0.09, 2)) * smooth(-0.2, 0.4, up) * (1 - smooth(0.65, 0.95, up));
+      c = mixc(c, STRIPE, eye * 0.75);
+      c = mixc(c, hex(0x8a7650), smooth(0.8, 0.98, up) * smooth(0.42, 0.6, u) * 0.75);
+      c = mixc(c, STRIPE, Math.exp(-Math.pow((up + 0.48) / 0.14, 2)) * smooth(0.25, 0.4, u) * 0.7);
+    }
+    return c;
   } });
-  const jaw = makeLoft(1 + (JAW.length - 1) * 4, 14, { mat, uvLen: 5, uvRound: 2, color: (u, a) => {
+  const jaw = makeLoft(1 + (JAW.length - 1) * 4, 22, { mat: hmat, uvLen: 5, uvRound: 2, color: (u, a) => {
     const up = Math.sin(a);
-    if (up > 0.6 && u > 0.05) return u > 0.2 && u < 0.75 && up > 0.85 ? TONGUE : MOUTH;
-    return mixc(skin(u, a, { belly: 1 }), BELLY, smooth(0.1, -0.6, up) * 0.6);
+    if (up > 0.55 && u > 0.05) return mixc(THROAT, u > 0.15 && u < 0.72 && up > 0.86 ? TONGUE : MOUTH, smooth(0.08, 0.5, u));
+    return mixc(mixc(skin(u, a, { belly: 1 }), BELLY, smooth(0.1, -0.6, up) * 0.6), STRIPE, Math.exp(-Math.pow((up - 0.42) / 0.14, 2)) * 0.6);
   } });
   const legs = [0, 1].map(() => makeLoft(1 + 6 * 3, 14, { mat, uvLen: 8, uvRound: 2, color: (u, a) => {
     const fr = Math.cos(a);                                          // (the "up" of a leg section is forward)
@@ -71,7 +86,13 @@ export function makeTheropod(scene, { seed = 0, tone = 0 } = {}) {
   const toes = [0, 1, 2, 3, 4, 5].map(() => makeLoft(4, 8, { mat, uvLen: 2, uvRound: 1, color: () => hex(0x3a2e20) }));
   const arms = [0, 1].map(() => makeLoft(7, 10, { mat, uvLen: 3, uvRound: 1, color: (u, a) => skin(u, a, { belly: 0.5 }) }));
   for (const L of [body, skull, jaw, ...legs, ...toes, ...arms]) scene.add(L.mesh);
-  const teeth = makeSpikes(scene, 60, 0xe8dcc0, 0.35);
+  const skullSt = (F) => SKULL.map(([x, y, w, t, b, pinch]) => ({ p: F.at(x, y, 0), up: F.dir(0, 1, 0), w, t, b, sq: 0.8, pinch }));
+  const jawSt = (F) => JAW.map(([x, y, w, t, b]) => ({ p: F.at(x, y, 0), up: F.dir(0, 1, 0), w, t, b, sq: 0.8 }));
+  const browSt = (F, sd) => [[0.2, 0.3, 0.42, 0.03], [0.32, 0.31, 0.385, 0.075], [0.46, 0.27, 0.32, 0.1], [0.6, 0.21, 0.235, 0.08], [0.72, 0.15, 0.17, 0.03]].map(([x, y, z, r]) => ({ p: F.at(x, y, sd * z), up: F.dir(0, 1, 0), w: r * 1.15, t: r, b: r * 0.8 }));
+  const rest = new Frame();
+  setRest(skull, resample(skullSt(rest), 4));
+  setRest(jaw, resample(jawSt(rest), 4));
+  const teeth = makeSpikes(scene, 72, 0xece2c8, 0.32);
   const claws = makeSpikes(scene, 14, 0x1a1612, 0.4);
   // eyes: an amber iris round a black pupil, glossy
   const eyeTex = (() => {
@@ -79,17 +100,19 @@ export function makeTheropod(scene, { seed = 0, tone = 0 } = {}) {
     const g = cv.getContext('2d');
     g.fillStyle = '#1a0f08'; g.fillRect(0, 0, 256, 128);
     const gr = g.createLinearGradient(0, 0, 0, 128);
-    gr.addColorStop(0, '#000'); gr.addColorStop(0.09, '#000'); gr.addColorStop(0.11, '#6a3a08'); gr.addColorStop(0.2, '#e0a020'); gr.addColorStop(0.3, '#b86a10'); gr.addColorStop(0.36, '#2a1806'); gr.addColorStop(1, '#1a0f08');
+    gr.addColorStop(0, '#000'); gr.addColorStop(0.07, '#000'); gr.addColorStop(0.09, '#7a4208'); gr.addColorStop(0.17, '#e8a81c'); gr.addColorStop(0.27, '#a85c0c'); gr.addColorStop(0.33, '#1a0e04'); gr.addColorStop(1, '#1a0f08');
     g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
     for (let k = 0; k < 90; k++) { g.strokeStyle = `rgba(60,25,0,${0.2 + Math.random() * 0.3})`; g.beginPath(); const x = k * 2.85; g.moveTo(x, 14); g.lineTo(x + 3, 44); g.stroke(); }
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
   })();
-  const eyeMat = new THREE.MeshStandardMaterial({ map: eyeTex, roughness: 0.1, metalness: 0, emissive: 0xffffff, emissiveMap: eyeTex, emissiveIntensity: 0.9 });
-  const eyes = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.085, 20, 14), eyeMat); scene.add(m); return m; });
-  const brows = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), mat); m.castShadow = true; scene.add(m); return m; });
-  for (const b of brows) { const g = b.geometry; const c = new Float32Array(g.attributes.position.count * 3); const cc = new THREE.Color().setRGB(...BACK, THREE.SRGBColorSpace); for (let i = 0; i < c.length; i += 3) c.set([cc.r, cc.g, cc.b], i); g.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
+  const eyeMat = new THREE.MeshStandardMaterial({ map: eyeTex, roughness: 0.1, metalness: 0, emissive: 0xffffff, emissiveMap: eyeTex, emissiveIntensity: 0.75 });
+  const eyes = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 20, 14), eyeMat); scene.add(m); return m; });
+  // the brows: a heavy ridge over each eye, sloping down and in toward the snout (the glare)
+  const brows = [-1, 1].map((sd) => { const L = makeLoft(1 + 4 * 3, 12, { mat: hmat, color: (u, a) => mixc(BACK, hex(0x6a5a3c), smooth(0.2, 0.95, Math.sin(a)) * 0.7) }); setRest(L, resample(browSt(rest, sd), 3)); scene.add(L.mesh); return L; });
+  const throat = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshStandardMaterial({ color: 0x0c0403, roughness: 1 }));
+  scene.add(throat);
   const nostrils = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshStandardMaterial({ color: 0x0a0806, roughness: 0.9 })); scene.add(m); return m; });
-  const all = [body, skull, jaw, ...legs, ...toes, ...arms].map((l) => l.mesh).concat(eyes, brows, nostrils, [teeth.mesh, claws.mesh]);
+  const all = [body, skull, jaw, ...legs, ...toes, ...arms].map((l) => l.mesh).concat(eyes, brows.map((l) => l.mesh), nostrils, [teeth.mesh, claws.mesh, throat]);
 
   const st = (f, r, sq) => ({ p: f.o.clone(), up: f.dir(0, 1, 0), w: r[0], t: r[1], b: r[2], sq });
   const root = new Frame(), tmp = V3(), tmp2 = V3(), hint = V3();
@@ -118,26 +141,34 @@ export function makeTheropod(scene, { seed = 0, tone = 0 } = {}) {
       body.update(resample(keys, 4));
       // the head
       const H = out.head.copy(fr[fr.length - 1]).turn(P.headYaw || 0, (P.headPitch || 0) - 0.12, P.headRoll || 0);
-      const sk = SKULL.map(([x, y, w, t, b]) => ({ p: H.at(x, y, 0), up: H.dir(0, 1, 0), w, t, b, sq: 0.8 }));
-      skull.update(resample(sk, 4));
+      skull.update(resample(skullSt(H), 4));
       const J = out.jaw.copy(H); J.o.copy(H.at(HINGE[0], HINGE[1], 0)); J.turn(0, -(P.jaw || 0) * 0.85);
-      jaw.update(resample(JAW.map(([x, y, w, t, b]) => ({ p: J.at(x, y, 0), up: J.dir(0, 1, 0), w, t, b, sq: 0.8 })), 4));
+      jaw.update(resample(jawSt(J), 4));
+      // the dark back of the mouth, between the palate and the tongue
+      throat.position.copy(J.o).lerp(H.at(0.05, -0.1, 0, tmp), 0.5); throat.quaternion.copy(H.q); throat.scale.set(0.22, 0.2 + 0.42 * (P.jaw || 0), 0.36);
       H.at(1.47, -0.15, 0, out.snout);
       // teeth: upper row along the skull's lower edges (pointing down), lower row along the jaw's upper edges
       teeth.begin();
-      for (const sd of [-1, 1]) for (let k = 0; k < 13; k++) {
-        const u = 0.32 + k * 0.083, big = 1 - Math.abs(k - 4) / 12;
-        const y = lerp(-0.02, -0.14, u / 1.4) - 0.25 + 0.05 * u / 1.4, w = lerp(0.4, 0.17, u / 1.4) * 0.8;
-        teeth.add(H.at(u, y + 0.06, sd * w), H.dir(0.12, -1, sd * 0.05), 0.11 + 0.08 * big, 0.026 + 0.012 * big);
-        if (k < 12) { const uj = 0.36 + k * 0.08, wj = lerp(0.33, 0.16, uj / 1.36) * 0.78; teeth.add(J.at(uj, lerp(-0.09, 0.02, uj / 1.36) + 0.06, sd * wj), J.dir(0.1, 1, sd * 0.05), 0.09 + 0.06 * big, 0.022 + 0.01 * big); }
+      for (const sd of [-1, 1]) {
+        for (let k = 0; k < 13; k++) {
+          // the same size all the way round, a little longer mid-row, shorter at the back
+          const x = 0.42 + k * 0.078, big = 0.5 + 0.5 * Math.sin(Math.PI * clamp((k + 2) / 13)), sv = 0.86 + 0.2 * Math.sin(k * 2.3 + 0.7);
+          const a = secAt(SKULL, x);
+          teeth.add(H.at(x, a.y - a.b * 0.62, sd * a.w * 0.84), H.dir(-0.14, -1, sd * 0.1), (0.12 + 0.11 * big) * sv, 0.021 + 0.011 * big);
+          const xj = 0.42 + k * 0.073, c = secAt(JAW, xj);
+          teeth.add(J.at(xj, c.y + c.t * 0.68, sd * c.w * 0.8), J.dir(-0.12, 1, sd * 0.1), (0.1 + 0.09 * big) * sv, 0.019 + 0.01 * big);
+        }
+        // the small front teeth, across the tip of each jaw
+        for (const [x, z] of [[1.4, 0.075], [1.435, 0.03]]) teeth.add(H.at(x, -0.24, sd * z), H.dir(0.2, -1, sd * 0.05), 0.11, 0.024);
+        for (const [x, z] of [[1.3, 0.07], [1.35, 0.028]]) teeth.add(J.at(x, 0.075, sd * z), J.dir(0.2, 1, sd * 0.05), 0.09, 0.022);
       }
       teeth.end();
       // eyes, brow bosses, nostrils
       for (const [i, sd] of [[0, -1], [1, 1]]) {
-        eyes[i].position.copy(H.at(0.37, 0.13, sd * 0.35));
-        eyes[i].quaternion.copy(H.q).multiply(new THREE.Quaternion().setFromUnitVectors(UPW, tmp.set(0.55, 0.08, sd * 0.83).normalize()));
-        brows[i].position.copy(H.at(0.33, 0.27, sd * 0.29)); brows[i].quaternion.copy(H.q); brows[i].scale.set(0.16, 0.08, 0.1);
-        nostrils[i].position.copy(H.at(1.36, -0.02, sd * 0.1)); nostrils[i].quaternion.copy(H.q); nostrils[i].scale.set(1.4, 0.6, 0.8);
+        eyes[i].position.copy(H.at(0.47, 0.145, sd * 0.3));
+        eyes[i].quaternion.copy(H.q).multiply(new THREE.Quaternion().setFromUnitVectors(UPW, tmp.set(0.74, 0.0, sd * 0.67).normalize()));
+        brows[i].update(resample(browSt(H, sd), 3));
+        nostrils[i].position.copy(H.at(1.36, -0.03, sd * 0.1)); nostrils[i].quaternion.copy(H.q); nostrils[i].scale.set(1.4, 0.7, 0.8);
         out.nose[i].copy(nostrils[i].position);
       }
       // legs: hip -> knee (forward) -> ankle -> ball of the foot; three toes forward, claws on them
