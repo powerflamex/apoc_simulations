@@ -1343,9 +1343,9 @@ Sound: wind, the lake's roar, the tourists' uproar, "oh my god" from frame 0, th
 speed, a slowed thud at the hit, hiss and bubbling, booming bubbles, the eruption's roar into the white.
 Cover: `week 6/volcano-fall/out/volcano-fall_v4_cover.png` (`node render.mjs --cover 2.2`: looking straight down at the glowing lava lake in its pit, rocks falling with you; "WHAT IF YOU / fell / into a volcano?"; tried the new rim shot of you falling at 2.75 s, but the small figure reads worse at phone size)
 
-**YouTube title** (49 characters):
+**YouTube title** (58 characters):
 ```
-What if you fell into a volcano? #science #shorts
+What if you fell into a volcano? You don't sink 🌋 #whatif
 ```
 
 **YouTube description:**
@@ -1411,9 +1411,9 @@ soft crackle, wind with the steam and the snow, the surf thickening to a slushy 
 tone, crackles and a riser as the lens freezes, one last hit; under the ice the beach's sound comes back for the loop.
 Cover: `week 7/sun-black-hole/out/sun-black-hole_v4_cover.png` (`node render.mjs --cover 14.2`: the zoom on where the Sun was, the stars bent into a bright ring round a dark middle; "WHAT IF THE SUN TURNED INTO / a black hole?")
 
-**YouTube title** (56 characters):
+**YouTube title** (85 characters):
 ```
-What if the Sun turned into a black hole? #space #shorts
+What if the Sun turned into a black hole? You wouldn't know for 8 min 20 s 🕳️ #whatif
 ```
 
 **YouTube description:**
@@ -1471,9 +1471,9 @@ sniffs, your heartbeat, a deep hit on each beat over a dark drone, a riser into 
 again for the loop. Opening at -25 dB (ffmpeg volumedetect over the first second).
 Cover: `week 7/dinosaurs-return/out/dinosaurs-return_v4_cover.png` (`node render.mjs --cover 41.2`: the T. rex's face right in front of you, amber eyes and fangs, the thrown red car behind it; "WHAT IF / dinosaurs / came back?" set low, under its head)
 
-**YouTube title** (50 characters):
+**YouTube title** (71 characters):
 ```
-What if dinosaurs came back? 🦖 #dinosaurs #shorts
+What if dinosaurs came back? A 9-ton T. rex is 130 feet away 🦖 #whatif
 ```
 
 **YouTube description:**
