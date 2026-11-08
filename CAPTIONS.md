@@ -1228,9 +1228,9 @@ life (a Hiroshima bomb 200 m away kills you; the crater's real size at the end w
 Sound: the owner's scream clip, surf, gulls and crowd, a sound on every flash, the blast slam 0.75 s later, a dark drone.
 Cover: `week 6/sand-grain/out/sand-grain_v4_cover.png` (`node render.mjs --cover 28.6`: the fireball swelling over the blacked-out condos, the sand burnt brown, wrecked umbrellas in front; "WHAT IF A GRAIN OF SAND / hit Earth / at the speed of light?")
 
-**YouTube title** (71 characters):
+**YouTube title** (98 characters):
 ```
-What if a grain of sand hit Earth at the speed of light? #space #shorts
+What if a grain of sand hit Earth at the speed of light? One grain = 10 billion Hiroshimas #whatif
 ```
 
 **YouTube description:**
@@ -1283,9 +1283,9 @@ rain and boiling, the hush of snow, a thin high tone once the air is gone, the s
 a riser to the last hit at zero.
 Cover: `week 6/world-freezes/out/world-freezes_v4_cover.png` (`node render.mjs --cover 39.6`: the cracked tower with its glass gone under a black, starry sky at noon, the frozen fountain and the ice people in front; "WHAT IF THE WORLD / froze / to absolute zero?")
 
-**YouTube title** (58 characters):
+**YouTube title** (78 characters, emoji counted as 2):
 ```
-What if the world froze to absolute zero? #science #shorts
+What if the world froze to absolute zero? The air itself rains down ❄️ #whatif
 ```
 
 **YouTube description:**
