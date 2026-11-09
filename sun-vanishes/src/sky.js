@@ -29,7 +29,7 @@ void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vDir = wp.xyz - cameraPosition;
   gl_Position = projectionMatrix * viewMatrix * wp;
-  gl_Position.z = gl_Position.w * 0.99999;
+  gl_Position.z = gl_Position.w;   // exactly on the far plane (see makeSky)
 }
 `;
 
@@ -191,10 +191,13 @@ export function makeSky() {
   };
   const mat = new THREE.ShaderMaterial({
     uniforms, vertexShader: vert, fragmentShader: frag,
-    side: THREE.BackSide, depthWrite: false, depthTest: false,
+    side: THREE.BackSide, depthWrite: false, depthTest: true,
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), mat);
   mesh.frustumCulled = false;
-  mesh.renderOrder = -10;
+  // Drawn after every other opaque object, depth-tested at the far plane: the sky shader (the heaviest in the
+  // scene) then only runs where sky is actually visible, not on the whole frame before the world is drawn
+  // over it. Transparent objects still come after it, so the picture is the same.
+  mesh.renderOrder = 10;
   return { mesh, uniforms };
 }

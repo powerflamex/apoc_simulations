@@ -59,28 +59,31 @@ const finish = new ShaderPass({
     void main() {
       vec2 c = vUv - 0.5;
       vec2 asp = vec2(1.0, 1920.0 / 1080.0);
-      // frost: grows in from the edges along crystal-like noise
-      vec2 fp = vUv * asp * 9.0;
-      float crystal = fbm(fp) * 0.6 + fbm(fp * 3.7 + 9.0) * 0.4;
-      float veins = pow(1.0 - abs(fbm(fp * 1.6 + 4.0) * 2.0 - 1.0), 6.0);
-      // facets: voronoi cell edges at two scales
-      float facet = 0.0;
-      for (int k = 0; k < 2; k++) {
-        vec2 q = fp * (k == 0 ? 1.4 : 4.3) + float(k) * 13.0;
-        vec2 i = floor(q), f = fract(q);
-        float d1 = 8.0, d2 = 8.0;
-        for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-          vec2 g = vec2(x, y); vec2 o = vec2(h(i + g), h(i + g + 7.7));
-          float d = length(g + o - f);
-          if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+      // frost: grows in from the edges along crystal-like noise. All of this noise is only evaluated while there
+      // is frost (most of the video has none); the texture reads stay outside the branch.
+      float crystal = 0.0, veins = 0.0, facet = 0.0, mask = 0.0;
+      vec2 off = vec2(0.0);
+      if (uFrost >= 0.001) {
+        vec2 fp = vUv * asp * 9.0;
+        crystal = fbm(fp) * 0.6 + fbm(fp * 3.7 + 9.0) * 0.4;
+        veins = pow(1.0 - abs(fbm(fp * 1.6 + 4.0) * 2.0 - 1.0), 6.0);
+        // facets: voronoi cell edges at two scales
+        for (int k = 0; k < 2; k++) {
+          vec2 q = fp * (k == 0 ? 1.4 : 4.3) + float(k) * 13.0;
+          vec2 i = floor(q), f = fract(q);
+          float d1 = 8.0, d2 = 8.0;
+          for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+            vec2 g = vec2(x, y); vec2 o = vec2(h(i + g), h(i + g + 7.7));
+            float d = length(g + o - f);
+            if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+          }
+          facet += smoothstep(0.08, 0.0, d2 - d1) * (k == 0 ? 0.6 : 0.4);
         }
-        facet += smoothstep(0.08, 0.0, d2 - d1) * (k == 0 ? 0.6 : 0.4);
+        float edge = max(abs(c.x) * 2.0, abs(c.y) * 2.0);
+        float reach = uFrost * 1.1;
+        mask = smoothstep(1.0 - reach, 1.0 - reach + 0.3, edge + (crystal - 0.5) * 0.35 + veins * 0.08);
+        off = (vec2(vn(fp * 2.0), vn(fp * 2.0 + 5.0)) - 0.5) * 0.02 * mask;
       }
-      float edge = max(abs(c.x) * 2.0, abs(c.y) * 2.0);
-      float reach = uFrost * 1.1;
-      float mask = smoothstep(1.0 - reach, 1.0 - reach + 0.3, edge + (crystal - 0.5) * 0.35 + veins * 0.08);
-      mask *= step(0.001, uFrost);
-      vec2 off = (vec2(vn(fp * 2.0), vn(fp * 2.0 + 5.0)) - 0.5) * 0.02 * mask;
       vec3 col = texture2D(tDiffuse, vUv + off).rgb;
       vec3 blur = (texture2D(tDiffuse, vUv + off + vec2(0.006, 0.0)).rgb + texture2D(tDiffuse, vUv + off - vec2(0.006, 0.0)).rgb +
                    texture2D(tDiffuse, vUv + off + vec2(0.0, 0.004)).rgb + texture2D(tDiffuse, vUv + off - vec2(0.0, 0.004)).rgb) * 0.25;
@@ -95,6 +98,14 @@ const finish = new ShaderPass({
     }`,
 });
 composer.addPass(finish);
+// The scene (with the bloom added onto it) stays in renderTarget2 and needs its 4 samples. renderTarget1 only
+// ever receives the tone-mapped full-screen pass, where all samples of a pixel are equal, so a plain buffer gives
+// the same image without filling and resolving a second multisampled target every frame. (True while the passes
+// swap the two buffers an even number of times per frame; otherwise both stay multisampled.)
+if (composer.passes.filter((pass) => pass.needsSwap).length % 2 === 0) {
+  composer.renderTarget1.dispose();
+  composer.renderTarget1 = composer.writeBuffer = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, depthBuffer: false });
+}
 
 // ----- story -> scene -----
 const dirFromAzEl = (az, el) => new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));

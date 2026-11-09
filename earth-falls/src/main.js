@@ -72,6 +72,14 @@ const finish = new ShaderPass({
     }`,
 });
 composer.addPass(finish);
+// The scene (with the bloom added onto it) stays in renderTarget2 and needs its 4 samples. renderTarget1 only
+// ever receives the tone-mapped full-screen pass, where all samples of a pixel are equal, so a plain buffer gives
+// the same image without filling and resolving a second multisampled target every frame. (True while the passes
+// swap the two buffers an even number of times per frame; otherwise both stay multisampled.)
+if (composer.passes.filter((pass) => pass.needsSwap).length % 2 === 0) {
+  composer.renderTarget1.dispose();
+  composer.renderTarget1 = composer.writeBuffer = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, depthBuffer: false });
+}
 
 // ----- story -> scene -----
 const dirFromAzEl = (az, el) => new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));
