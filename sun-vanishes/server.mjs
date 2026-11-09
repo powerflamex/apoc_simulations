@@ -15,8 +15,10 @@ const TYPES = {
   '.png': 'image/png',
 };
 
-export function startServer(port = 5178) {
+// onPost(req, res) handles POSTs (render.mjs receives frames that way); without it they are refused.
+export function startServer(port = 5178, onPost = null) {
   const server = http.createServer((req, res) => {
+    if (req.method === 'POST') { if (onPost) onPost(req, res); else res.writeHead(405).end(); return; }
     const url = new URL(req.url, 'http://x');
     let p = decodeURIComponent(url.pathname);
     if (p === '/') p = '/index.html';
