@@ -118,7 +118,7 @@ async function launchChrome() {
   let errTail = '';
   proc.stderr.on('data', (d) => { errTail = (errTail + d).slice(-4000); });
   const pending = new Map();
-  let nextId = 0, dead = null, sessionId;
+  let nextId = 0, dead = null, sessionId, pageError = null;
   const die = (why) => {
     if (dead) return;
     dead = new Error(why);
@@ -136,7 +136,11 @@ async function launchChrome() {
   });
   const onEvent = (m) => {
     if (m.method === 'Inspector.targetCrashed' || m.method === 'Target.targetCrashed') die('the page crashed');
-    else if (m.method === 'Runtime.exceptionThrown') console.log('[pageerror]', m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
+    else if (m.method === 'Runtime.exceptionThrown') {
+      const text = m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text;
+      pageError = pageError || text;
+      console.log('[pageerror]', text);
+    }
     else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') console.log('[page]', m.params.args.map((a) => a.value ?? a.description ?? '').join(' '));
     else if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error' && !m.params.entry.text.includes('404')) console.log('[page]', m.params.entry.text);
   };
@@ -172,14 +176,14 @@ async function launchChrome() {
     await Promise.all([s('Page.enable'), s('Runtime.enable'), s('Log.enable'), s('Inspector.enable')]);
     await s('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
   } catch (e) { await close(); throw e; }
-  return { evaluate, close, send: s, isDead: () => !!dead };
+  return { evaluate, close, send: s, isDead: () => !!dead, pageError: () => pageError };
 }
 
 // ---------- page-side helpers (these functions run inside the page) ----------
 // Raw path. The composite canvas is converted to planar YUV 4:2:0 on the GPU (BT.709, limited range, 2x2 box
 // chroma: the same conversion Chrome's own encoder applies), read back, and POSTed to render.mjs by a worker.
-// That is 3.1 MB per frame instead of 8.3 MB of RGBA, already in the layout x264 wants, and the uploads of
-// the read-back and upload of the last few frames overlap the drawing of the next one.
+// That is 3.1 MB per frame instead of 8.3 MB of RGBA, already in the layout x264 wants. Read-back and upload of
+// one frame overlap the drawing of the next ones.
 function installRaw() {
   const src = window.__comp.canvas;
   const W = src.width, H = src.height;
@@ -366,9 +370,11 @@ async function launch() {
       let st = null;
       // (evaluating can fail for a moment while the navigation swaps documents)
       try { st = await chrome.evaluate('({ error: window.__error ? String(window.__error) : null, ready: window.__ready === true, comp: !!window.__comp })'); } catch (e) { if (chrome.isDead()) throw e; }
-      if (st && st.error) throw new Error(st.error.split('\n')[0] + (/webgl/i.test(st.error) && !ANGLE ? '  (no usable GPU? try --angle swiftshader)' : ''));
       if (st && st.ready && !st.comp) throw new Error('page has no compositor');
       if (st && st.ready) break;
+      // an exception while the page loads (no WebGL, a syntax error...) means it will never get ready
+      const err = (st && st.error) || chrome.pageError();
+      if (err) throw new Error(err.split('\n')[0].replace(/^Error: /, '') + (/webgl/i.test(err) && !ANGLE ? '  (no usable GPU? try --angle swiftshader)' : ''));
       if (Date.now() - t0 > 300000) throw new Error('the page did not get ready within 5 minutes');
     }
     const gpu = await chrome.evaluate('window.__glInfo');
@@ -422,9 +428,9 @@ const X264_UPLOAD = ['-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxra
 const encoderKey = WEBCODECS ? `webcodecs ${BITRATE}` : `x264 i420 ${X264_MASTER.join(' ')}`;
 
 // ---------- segmented, parallel video render ----------
-// anything that changes the picture is in the folder name: page source, grain, fps, encoder settings
+// anything that changes the picture is in the folder name: page source, three.js version, grain, fps, encoder settings
 const srcHash = crypto.createHash('sha1');
-for (const f of ['index.html', ...fs.readdirSync(path.join(ROOT, 'src')).filter((f) => f.endsWith('.js')).sort().map((f) => `src/${f}`)]) {
+for (const f of ['index.html', 'node_modules/three/package.json', ...fs.readdirSync(path.join(ROOT, 'src')).filter((f) => f.endsWith('.js')).sort().map((f) => `src/${f}`)]) {
   srcHash.update(f).update(fs.readFileSync(path.join(ROOT, f)));
 }
 const SRC_KEY = srcHash.digest('hex').slice(0, 10);

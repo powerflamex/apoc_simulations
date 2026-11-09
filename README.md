@@ -35,26 +35,51 @@ bells overflowed the phase array and turned the whole mix into NaN); v3 fixes it
 
 ## Export
 ```bash
-node render.mjs                      # -> out/<folder>_1080x1920_60fps.mp4 with sound (~4 min)
+node render.mjs                      # -> out/<folder>_1080x1920_60fps.mp4 with sound
+node render.mjs --upload             # also writes out/<name>_tiktok.mp4 (the upload copy) in the same pass
 node render.mjs --out out/name.mp4   # custom output name
 node render.mjs --stills 5,30,60     # test frames -> stills/
-node render.mjs --draft              # quick 30fps preview
+node render.mjs --draft              # quick half-size 30fps preview
 node render.mjs --grain              # keep film grain (off by default: hurts TikTok compression)
-node render.mjs --screenshot         # old slow path (screenshots + x264), fallback only
+node render.mjs --workers 2          # pin the number of Chrome instances (default: finds out by itself, see below)
+node render.mjs --preset veryfast --crf 12   # x264 settings of the master (default superfast / 14; this one: smaller file)
+node render.mjs --webcodecs          # previous path (H.264 encoded inside Chrome), fallback only
 ```
-Upload copy (smaller file, same look):
+The log ends with `rendered N frames in X min (Y fps once Chrome was up)`: that is the number to compare between
+machines and settings.
+
+Masters + upload copies for several projects: `bash render-v4.sh asteroid sun-vanishes black-hole`.
+The upload copy of an existing master can still be made by hand (same settings `--upload` uses, but from the master
+instead of from the raw frames):
 ```bash
 ffmpeg -i out/X.mp4 -c:v libx264 -preset slow -crf 18 -maxrate 24M -bufsize 48M -pix_fmt yuv420p -c:a copy -movflags +faststart out/X_tiktok.mp4
 ```
-Re-render from scratch + upload copies: `bash render-v4.sh asteroid sun-vanishes black-hole` (~5 min each).
 
 Live preview: `node server.mjs` then open `http://127.0.0.1:5178/?t=45` (space = pause, ←/→ = seek).
 
 ## Things learned
-- Fast renderer: frames are composited into one canvas and H.264-encoded in Chrome (WebCodecs) → ~20–25 fps
-  render speed (4 min per video). The old screenshot path was ~2 fps (37 min). GPU draw is only ~7 ms/frame.
-- Renders are crash-safe: 10 s segments in `out/.segments/`, auto-relaunch, re-run resumes. Delete
-  `out/.segments/` before re-rendering after code changes (otherwise old segments are reused).
+- Renderer: frames are composited into one canvas, converted to YUV 4:2:0 on the GPU and handed to ffmpeg/x264 as
+  raw planes (a worker POSTs them to `render.mjs`). The master is one x264 encode of lossless frames; `--upload`
+  encodes the upload copy from the same frames in the same pass. Chrome's own H.264 encoder (the previous path,
+  still there as `--webcodecs`) was slower on busy scenes and lower fidelity. Measured on 1 s of captured frames
+  against the lossless originals (PSNR of luma): master 45.0 dB at 23 Mbps -> 52.5 dB at 44 Mbps (asteroid) and
+  46.0 dB at 50 Mbps -> 47.3 dB at 46 Mbps (black hole); upload copy 43.3 -> 46.6 dB and 41.9 -> 43.1 dB at the same
+  size. The master is constant-quality now, so calm scenes no longer get a smaller file than busy ones;
+  `--preset veryfast --crf 12` gives 48.8 dB at 12 Mbps / 46.2 dB at 32 Mbps if disk space matters more than speed.
+- `performance.now()` around `composer.render()` only times the *submission* of the GL commands. The GPU does the
+  work later; to time it, read a pixel back afterwards.
+- The read-back of frame N is collected after frame N+1 has been queued (two pixel-pack buffers), so the page keeps
+  working while the GPU draws.
+- Worker count: the render starts with one Chrome and tries a second (then a third) only if the frame rate really
+  goes up; the log says what it decided. A second Chrome helps when the page is the limit, not when the GPU is.
+- Each sky dome is drawn after the opaque objects and depth-tested at the far plane, so its shader only runs on
+  visible sky (the world covers 50-90 % of the frame). Only the scene buffer is multisampled. Both are pixel-identical
+  to drawing the sky first / multisampling every buffer.
+- puppeteer turns on DevTools network tracking for every page, which throttles large uploads from the page to
+  ~25 MB/s. `render.mjs` drives Chrome over the DevTools pipe itself (no puppeteer).
+- Renders are crash-safe: 10 s segments in `out/.segments/`, auto-relaunch, re-run resumes. The segment folder is
+  named after a hash of `index.html` + `src/*.js` + the encoder settings, so after a code change old segments are
+  never reused (and are deleted on the next render).
 - A render died once because the laptop went to sleep (lid closed). Set lid-close to "Do nothing" when plugged in.
 - TikTok serves new uploads at 540p first and upgrades to 720p/1080p as they age/get views. Keep
   "Allow high-quality uploads" on; don't re-upload to "fix" it.
@@ -66,7 +91,7 @@ Live preview: `node server.mjs` then open `http://127.0.0.1:5178/?t=45` (space =
   `featureSettings: '"lnum" 1, "tnum" 1'` for the counter digits.
 
 ## Requirements
-Node 26, ffmpeg (in PATH), Chrome. `npm install` already done in each folder (three, puppeteer-core, @fontsource/cormorant-garamond).
+Node 22 or newer, ffmpeg with libx264 (in PATH), Chrome. `npm install` in each folder (three, @fontsource/cormorant-garamond).
 
 
 ## Status at handoff (2026-10-04, evening)
@@ -80,12 +105,13 @@ Node 26, ffmpeg (in PATH), Chrome. `npm install` already done in each folder (th
      dry (cracked salt-crusted seabed); umbrellas burn; red-hot glow; sand fuses to glass. Cover `--cover 56`.
 - Next checks: open the finished asteroid + earth-falls `_tiktok.mp4`s (durations 69 s / 66 s, audio throughout),
   then post per `CAPTIONS.md` (YouTube titles <=100 chars). If a render died, re-run `bash render-v4.sh asteroid`
-  or the earth-falls block in `render-queue.sh` (it deletes `out/.segments` first).
+  or the earth-falls block in `render-queue.sh` (finished segments are kept).
 
 ## Working in the cloud (Claude Code cloud sessions)
 - This repo holds code only; videos, stills and `node_modules` stay on the laptop (see `.gitignore`).
 - On a fresh machine run `npm install` in each project folder (`earth-falls` used a junction to `asteroid/node_modules`
   locally; in the cloud just `npm install` there too).
-- `render.mjs` looks for Chrome at Windows paths; elsewhere pass `--chrome /path/to/chrome`. A cloud box likely has no
-  GPU, so WebGL falls back to the CPU: fine for code and a few `--stills` checks, far too slow for full renders.
+- `render.mjs` finds Chrome in the usual Windows/macOS/Linux places (else `--chrome /path/to/chrome` or `CHROME_PATH`).
+  A cloud box has no GPU: add `--angle swiftshader` to run WebGL on the CPU. That is fine for code and a few
+  `--stills` checks (3-5 s per frame), far too slow for full renders.
   Do final renders on the laptop (`bash render-v4.sh <folder>`), after `git pull`.

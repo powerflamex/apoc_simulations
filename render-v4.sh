@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Re-render the given projects from scratch (v4: action from the first frame, camera moves),
-# then make the TikTok upload copies.   usage: bash render-v4.sh asteroid sun-vanishes
+# Render the given projects (v4: action from the first frame, camera moves) and their TikTok upload copies.
+#   usage: bash render-v4.sh asteroid sun-vanishes
+# One pass per project: render.mjs --upload writes the master and the _tiktok.mp4 copy together.
+# Finished segments are reused only if the page source is unchanged, so nothing has to be deleted first.
 cd "$(dirname "$0")"
 for d in "$@"; do
   case $d in
@@ -9,10 +11,7 @@ for d in "$@"; do
     black-hole) name=black-hole_v4 ;;
     *) name=${d}_v4 ;;
   esac
-  rm -rf "$d/out/.segments"
-  (cd "$d" && node render.mjs --out "out/${name}_1080x1920_60fps.mp4" > out_render_v4.log 2>&1) || { echo "$d FAILED"; continue; }
-  m="$d/out/${name}_1080x1920_60fps.mp4"
-  ffmpeg -y -loglevel error -i "$m" -c:v libx264 -preset slow -crf 18 -maxrate 24M -bufsize 48M -pix_fmt yuv420p -profile:v high -level 5.1 -c:a copy -movflags +faststart "${m%.mp4}_tiktok.mp4"
+  (cd "$d" && node render.mjs --upload --out "out/${name}_1080x1920_60fps.mp4" > out_render_v4.log 2>&1) || { echo "$d FAILED (see $d/out_render_v4.log)"; continue; }
   echo "$d done"
 done
 echo "all done"
