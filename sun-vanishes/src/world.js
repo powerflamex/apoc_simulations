@@ -857,7 +857,14 @@ export function makeWorld(scene) {
   const mirrorCam = new THREE.PerspectiveCamera();
   const clip = [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.05)];
   lake.uniforms.uRefl.value = reflRT.texture;
+  // The reflection render below draws the sun's shadow map with the balcony and the lake hidden. Neither holds
+  // anything that casts a shadow, so that map is exactly the one the main view needs: the main render reuses it
+  // instead of drawing every caster into the 4096 map a second time. (Checked here, so adding a shadow caster to
+  // the balcony simply brings the second shadow pass back.)
+  let hiddenCasts = false;
+  for (const o of [lake.mesh, fg]) o.traverse((m) => { if (m.castShadow) hiddenCasts = true; });
   world.beforeRender = (renderer, camera, skyMesh) => {
+    renderer.shadowMap.autoUpdate = true;
     mirrorCam.copy(camera);
     mirrorCam.position.y = -camera.position.y;
     mirrorCam.rotation.set(-camera.rotation.x, camera.rotation.y, -camera.rotation.z, 'YXZ');
@@ -875,6 +882,7 @@ export function makeWorld(scene) {
     renderer.setRenderTarget(prevTarget);
     lake.mesh.visible = true; fg.visible = true;
     skyMesh.position.copy(skyPos);
+    renderer.shadowMap.autoUpdate = hiddenCasts;
   };
 
   // ---------- lights ----------
