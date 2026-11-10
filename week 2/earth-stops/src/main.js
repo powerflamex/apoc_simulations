@@ -97,6 +97,24 @@ const finish = new ShaderPass({
     }`,
 });
 composer.addPass(finish);
+// Only the scene needs 4 samples per pixel. When every scene render lands in renderTarget2 (checked below by walking
+// the passes), renderTarget1 only ever receives full-screen passes, where all samples of a pixel are equal: a plain
+// buffer gives the same image without filling and resolving a second multisampled target every frame.
+{
+  // the last pass draws to the screen; swapping the buffers after it only decides which one the next frame starts
+  // in. Keep the number of swaps per frame even, so the scene always starts in the same (multisampled) buffer.
+  if (composer.passes.filter((pass) => pass.needsSwap).length % 2 === 1) composer.passes[composer.passes.length - 1].needsSwap = false;
+  let read = composer.renderTarget2, write = composer.renderTarget1, sceneInTwo = true;
+  for (const pass of composer.passes) {
+    if (pass instanceof RenderPass && read !== composer.renderTarget2) sceneInTwo = false;
+    if (pass.needsSwap) [read, write] = [write, read];
+  }
+  if (sceneInTwo && read === composer.renderTarget2) {
+    const old = composer.renderTarget1;
+    composer.renderTarget1 = composer.writeBuffer = new THREE.WebGLRenderTarget(old.width, old.height, { type: old.texture.type, depthBuffer: false });
+    old.dispose();
+  }
+}
 
 // Catmull-Rom through [time, value] keys (smooth speed through each key: the camera never stops and starts)
 function spline(list, t) {

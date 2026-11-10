@@ -126,6 +126,23 @@ Use this for every new video and every rework:
   visually identical. Use that for new street-scale scenes (compare stills before/after); keep log depth for scenes
   spanning planets or space (speed-doubles, electrons, earth-falls). After that, the upload copy (x264 medium on 4
   cores, ~20 s per 5 s of video) is the limit on the whole job (~5.8 min for earth-stops).
+- Two more ways to give the graphics card less to do (Nov 10). Both leave the picture as it was: test frames from
+  the old and the new code were compared pixel for pixel, six moments per project. How much time they save on the
+  Quadro M620 has not been measured yet: compare the next render's time with the last one for the same project.
+  **Sky last.** `sky.js` used to paint the whole frame with the sky first and then draw the world over it, so the sky
+  shader also ran on all the pixels nobody sees (the world covers 50-90% of the frame). Now the sky is drawn after the
+  solid objects and only where nothing is in front of it: `depthTest: true`, `gl_Position.z = gl_Position.w` at the
+  end of its vertex shader, `mesh.renderOrder = 1000`. Use this in new projects. It needs every other solid object to
+  write and test depth, so leave the sky first when a second backdrop is drawn before the world (the `space.js` skies
+  in big-crunch and trillion-years, the Moon in moon-falls, gojo's void), when a solid object has its own
+  `renderOrder` (tsunami-nyc) or when something uses glass (`transmission`, earth-spins). After switching a sky,
+  compare stills before and after: in grow-trillion and star-picker one test frame changed by 1-2 steps out of 255 on
+  a few pixels, so those two stay on the old order, as do time-stop and dinosaurs-return (their frames differ a
+  little from run to run by themselves, so the comparison proves nothing there).
+  **One anti-aliased buffer, not two.** The block after `composer.addPass(finish)` in `main.js` keeps the 4x
+  anti-aliasing on the buffer the scene is drawn into and makes the other post-effect buffer a plain one (it only ever
+  holds full-screen passes). It is in every project except sand-grain, which switches a pass on and off while it runs.
+  Copy the block into new projects as it is.
 - Single test frames: `node render.mjs --stills 12.5,30` (video time) -> `stills/`. Live preview:
   `node server.mjs`, then open `http://127.0.0.1:5178/?t=30`.
 - Post titles and captions for each video are in `CAPTIONS.md`.

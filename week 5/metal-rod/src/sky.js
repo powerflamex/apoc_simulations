@@ -10,8 +10,8 @@ export function makeSky() {
     uRodDir: { value: new THREE.Vector3(0, 0.5, -0.8) }, uFire: { value: 0 }, uDust: { value: 0 }, uFlash: { value: 0 },
   };
   const mat = new THREE.ShaderMaterial({
-    uniforms, side: THREE.BackSide, depthWrite: false, depthTest: false,
-    vertexShader: /* glsl */ `varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0); }`,
+    uniforms, side: THREE.BackSide, depthWrite: false, depthTest: true,
+    vertexShader: /* glsl */ `varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0); gl_Position.z = gl_Position.w; }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uSunDir; uniform float uPx; uniform float uTime; uniform vec3 uRodDir; uniform float uFire; uniform float uDust; uniform float uFlash;
       varying vec3 vD;
@@ -60,6 +60,9 @@ export function makeSky() {
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), mat);
   mesh.frustumCulled = false;
-  mesh.renderOrder = -10;
+  // Drawn after every other opaque object, depth-tested at the far plane: the sky shader then only runs where sky
+  // is actually visible, instead of on the whole frame before the world is drawn over it. Transparent objects
+  // still come after it, so the picture is the same. (Needs every other opaque object to write and test depth.)
+  mesh.renderOrder = 1000;
   return { mesh, uniforms };
 }
