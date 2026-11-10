@@ -452,6 +452,27 @@ Nuke long video: 160 views at ~4.5 h.
   climbing. Fits the idea that the first day is about wanting to click and 0:30 decides whether the push continues. Two videos: a guess until more curves are in.
 - Star picker is a counterexample to "sightseeing loses": the Sun is replaced over a crowded beach, a new star every ~6.5 s, and a "which would you pick" question. Its 0:10 (98%) is the best of the recent group.
 
+## Whole-channel analysis (Nov 10; exact Studio numbers for 40 Shorts + 8 long videos, every video watched against its curve)
+Full write-up: `research/channel_analysis_2026-11-10.md`. Ranking: `research/shorts_ranking_2026-11-10.md`. Data + scripts: `research/data_2026-11-09/`.
+Pictures: `research/pictures_2026-11-10/`. Each point was tested on every Short; how sure it is, is in the write-up.
+- The 0:30 rule holds (link with views 0.59); 0:15 is the same signal read earlier (0.59). Stayed-to-watch, the % at 0:03 and the % at the end have no link.
+  Inside the 45-55 s Shorts alone (11) nothing in the curve predicts views: with a decent curve, the topic decides the size.
+- Every Short's steepest fall is 0:04-0:07. Good ones lose 20-29 points from 0:03 to 0:10, weak ones 34-44. It is not a loop artifact (tested).
+  Holds: the outcome hidden behind a racing countdown, or a clearly different picture every few seconds. Falls: one fixed street shot with the danger
+  fully visible in the sky on frame 0 and only growing (tornado, rogue planet, rod, Moon explodes: -38 to -41), and dark busy night scenes with many cuts.
+  How different the frame at 0:07 is from frame 0 goes with that hold (0.54; 0.79 for the short ones) but not with day-1 views inside the short ones (0.17).
+- Middle (0:13-0:30): a person or eye-level place kept in frame goes flat (-11 to -14); leaving for a far, hazy, aerial, space or near-blank view bleeds
+  (antimatter 76% -> 39%, oxygen, friction). More hard cuts in 0:15-0:30 go with a worse hold.
+- The opening gets the first day; the hold after 0:20 decides growth after day 1 (0.63). Views at 12 h predict 24 h at 0.96 (3 h: 0.82).
+- First-hour views dropped from 2.5K-16.5K (Oct 11-20) to 0.4K-3.4K since Oct 21. Top 5 Shorts = 68% of all views; 53% of a day's views come from Shorts older than Oct 20.
+- Since the 45-50 s switch the typical first day is ~50K (was ~26K), new viewers 18% (was 9-11%). The last three are down: nuke 37K at 24 h,
+  world freezes 22.9K at 18 h, sand grain 15.6K at 12 h (curves not read yet; both are the palest pictures on the channel, sand grain near-blank white 0:09-0:30).
+- Long videos: click rate (3.6-4.9%) and avg % watched (31-45%) are alike on all eight; the size is how many people they were shown to (7 Ways 377K, the rest 6-45K).
+  All lose 30-48% by 0:30 whatever the opening. One look held bleeds (nuke hour: one burning street 0:43-3:25, 56% -> 25%; IQ); changing places with a counter
+  heading to an end holds flat (black hole passed: 42-51% from 1:00 to 4:50). The black hole long video gets 7% of its views from the Short's link.
+- Ads: qualified Shorts views = engaged views (matches the Earn page on Nov 4). ~7.65M on Nov 9, ~200K a day: 10M around Nov 21 (Nov 19-24). Watch hours 1,613-1,720 of 4,000.
+- Studio shows exact curves only while its page is on screen: with the app window closed the video analytics pages load nothing (the content list and Earn page still do).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
