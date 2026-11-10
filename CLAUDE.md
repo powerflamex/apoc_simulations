@@ -83,6 +83,14 @@ Use this for every new video and every rework:
   NOT predict stay. A loud human reaction (a scream) in the first second helped (rain, grow-trillion).
 - **Danger comes at you, with a finish line** (Nov 4): rogue planet held 72% at 0:20 with one growing danger and a countdown;
   Moon explodes, with its rubble gone by ~0:13 and a counter with no end point, held 62% at 0:20 and 40% at 0:46 (rogue 62%).
+- **Plan 0:04-0:10 on purpose** (Nov 10, all 40 Shorts watched against their curves; `research/channel_analysis_2026-11-10.md`):
+  every Short's steepest fall is at 0:04-0:07. Hits lose 20-29 points from 0:03 to 0:10, weak ones 34-44. By 0:07 the picture must
+  be clearly a different one from frame 0 (something from the danger lands, a new place, the camera moves), or the outcome is hidden
+  behind a racing countdown (black hole passed, Sun vanishes). One fixed street shot with the danger whole in the sky on frame 0 and
+  only growing loses 38-41 (tornado, rogue planet, rod, Moon explodes). This explains the curve; that it lifts views is likely, not proven.
+- **0:13-0:30: stay with the person** (Nov 10): a person or eye-level place kept in frame while things change goes flat (grow
+  trillion, rain, fall through lose 11-14 points); leaving for a far, hazy, aerial, space or near-blank view bleeds (antimatter
+  76% -> 39%, oxygen, friction). Keep hard cuts there few.
 - **Real objects beat space sightseeing, and the story must keep moving** (OutwardAnimates, Nov 4): a metal rod 7.9M, ice
   cream 4M, vs 30-128K for universe tours. Show the object big and clear on frame 0; bring in something new every ~10 s (new
   people, a new situation), not just a bigger number: same formula on a mug 123K, on ice cream with a moving story 3.97M.
