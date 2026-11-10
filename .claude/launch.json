@@ -1,6 +1,189 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "black-hole", "runtimeExecutable": "node", "runtimeArgs": ["black-hole/server.mjs"], "port": 5178 }
+    {
+      "name": "black-hole",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "black-hole/server.mjs"
+      ],
+      "port": 5178
+    },
+    {
+      "name": "yellowstone",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "yellowstone/server.mjs"
+      ],
+      "port": 5179,
+      "env": {
+        "PORT": "5179"
+      }
+    },
+    {
+      "name": "earth-stops",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "earth-stops/server.mjs"
+      ],
+      "port": 5181,
+      "env": {
+        "PORT": "5181"
+      }
+    },
+    {
+      "name": "trillion-years",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "trillion-years/server.mjs"
+      ],
+      "port": 5182,
+      "env": {
+        "PORT": "5182"
+      }
+    },
+    {
+      "name": "big-crunch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "big-crunch/server.mjs"
+      ],
+      "port": 5183,
+      "env": {
+        "PORT": "5183"
+      }
+    },
+    {
+      "name": "jump-doubles",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/jump-doubles/server.mjs"
+      ],
+      "port": 5185,
+      "env": {
+        "PORT": "5185"
+      }
+    },
+    {
+      "name": "big-rip",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "longform/big-rip/server.mjs"
+      ],
+      "port": 5190,
+      "env": {
+        "PORT": "5190"
+      }
+    },
+    {
+      "name": "oxygen-5s",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/oxygen-5s/server.mjs"
+      ],
+      "port": 5186,
+      "env": {
+        "PORT": "5186"
+      }
+    },
+    {
+      "name": "sun-explodes",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 3/sun-explodes/server.mjs"
+      ],
+      "port": 5195,
+      "env": {
+        "PORT": "5195"
+      }
+    },
+    {
+      "name": "iq-1000",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "longform/iq-1000/server.mjs"
+      ],
+      "port": 5195,
+      "env": {
+        "PORT": "5195"
+      }
+    },
+    {
+      "name": "punch-10x",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 4/punch-10x/server.mjs"
+      ],
+      "port": 5197,
+      "env": {
+        "PORT": "5197"
+      }
+    },
+    {
+      "name": "star-picker",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/star-picker/server.mjs"
+      ],
+      "port": 5199,
+      "env": {
+        "PORT": "5199"
+      }
+    },
+    {
+      "name": "time-stop",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 4/time-stop/server.mjs"
+      ],
+      "port": 5201,
+      "env": {
+        "PORT": "5201"
+      }
+    },
+    {
+      "name": "fall-through-earth",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/fall-through-earth/server.mjs"
+      ],
+      "port": 5202,
+      "env": {
+        "PORT": "5202"
+      }
+    },
+    {
+      "name": "metal-rod",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 5/metal-rod/server.mjs"
+      ],
+      "port": 5203,
+      "env": {
+        "PORT": "5203"
+      }
+    },
+    {
+      "name": "volcano-fall",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 6/volcano-fall/server.mjs"
+      ],
+      "port": 5211,
+      "env": {
+        "PORT": "5211"
+      }
+    },
+    {
+      "name": "world-freezes",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 6/world-freezes/server.mjs"
+      ],
+      "port": 5214,
+      "env": {
+        "PORT": "5214"
+      }
+    }
   ]
 }

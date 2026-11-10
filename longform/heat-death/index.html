@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<script>{ const q = new URLSearchParams(location.search); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
+<title>Heat Death</title>
+<style>
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: italic; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-italic.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 600;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 700;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-700-normal.woff2') format('woff2'); }
+
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  #stage canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing, .clean #name, .clean #sky, .clean #scopek, .clean #here { display: none !important; }
+
+  .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
+
+  #counter { position: absolute; left: 86px; top: 775px; width: 1200px;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7); }
+  #counter .row { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  #counter .label { font: 600 30px 'Cormorant', serif; letter-spacing: .32em; opacity: .85; }
+  #counter .value { font: 500 96px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 4px;
+    font-variant-numeric: lining-nums tabular-nums; }
+  #counter .unit { font: 700 44px 'Cormorant', serif; letter-spacing: .12em; margin-top: 10px; color: #f1c978; }
+  #counter .badge { display: none; }
+
+  #sky { position: absolute; right: 86px; top: 775px; width: 900px; text-align: right; opacity: 0;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7); }
+  #sky .label { font: 600 30px 'Cormorant', serif; letter-spacing: .32em; opacity: .85; padding-right: 0; }
+  #sky .value { font: 500 96px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 4px; white-space: nowrap;
+    font-variant-numeric: lining-nums tabular-nums; }
+
+  #scopek { position: absolute; left: 0; right: 0; top: 1000px; text-align: center; opacity: 0;
+    font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; }
+
+  #stamp { position: absolute; left: 0; right: 0; top: 405px; text-align: center; opacity: 0;
+    font: italic 500 150px/1 'Cormorant', serif; color: #f1c978;
+    text-shadow: 0 4px 40px rgba(0,0,0,.85), 0 2px 6px rgba(0,0,0,.9); }
+  #stampk { position: absolute; left: 0; right: 0; top: 365px; text-align: center; opacity: 0;
+    font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; color: #f4efe6;
+    text-shadow: 0 2px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
+
+  #title { position: absolute; left: 80px; right: 80px; top: 300px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
+  #title .t { font: 600 106px/1.05 'Cormorant', serif; }
+  #title .s { font: italic 500 58px/1.1 'Cormorant', serif; color: #f1c978; margin-top: 22px; }
+
+  #name { position: absolute; left: 0; right: 0; top: 330px; text-align: center; opacity: 0;
+    font: 600 180px/1 'Cormorant', serif; letter-spacing: .08em; padding-left: .08em; color: #f1c978;
+    text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
+
+  #closing { position: absolute; left: 200px; right: 200px; top: 360px; text-align: center; opacity: 0;
+    font: italic 500 92px/1.15 'Cormorant', serif;
+    text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
+
+  /* the thumbnail (render.mjs --cover): the channel's cover style, on the right over the plain sky */
+  #cover { position: absolute; right: 70px; top: 300px; width: 1300px; text-align: right; opacity: 0;
+    text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
+  #cover .k { font: 700 66px/1.12 'Cormorant', serif; letter-spacing: .16em; color: #fbf6ec; font-variant-numeric: lining-nums tabular-nums; }
+  #cover .w { font: 700 300px/1 'Cormorant', serif; color: #ffd27a; margin: 6px 0 0; white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; }
+
+  #here { position: absolute; left: 0; top: 0; width: 600px; text-align: center; opacity: 0;
+    font: 700 28px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; color: #f1c978;
+    text-shadow: 0 2px 14px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.95); }
+
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+
+  #stage.compositing > div { visibility: hidden; }
+  #hud { position: fixed; right: 8px; bottom: 8px; font: 12px monospace; color: #9f9;
+    background: rgba(0,0,0,.6); padding: 4px 6px; z-index: 9; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="counter" class="serif"></div>
+  <div id="sky" class="serif"><div class="label">EARTH</div><div class="value"></div></div>
+  <div id="scopek" class="serif"></div>
+  <div id="stampk" class="serif"></div>
+  <div id="stamp" class="serif"></div>
+  <div id="title" class="serif">
+    <div class="t">What if you watched the universe die?</div>
+    <div class="s">The last light goes out in a googol years.</div>
+  </div>
+  <div id="name" class="serif">THE HEAT DEATH</div>
+  <div id="closing" class="serif"></div>
+  <div id="here" class="serif">YOU ARE HERE</div>
+  <div id="cover" class="serif">
+    <div class="k"><div>EARTH,</div><div>7.7 BILLION YEARS FROM NOW</div></div>
+    <div class="w">1,149 °C</div>
+  </div>
+  <div id="flash"></div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

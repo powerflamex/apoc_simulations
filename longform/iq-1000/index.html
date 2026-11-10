@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<script>{ const q = new URLSearchParams(location.search); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
+<title>IQ 1,000x</title>
+<style>
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: italic; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-italic.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 600;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 700;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-700-normal.woff2') format('woff2'); }
+
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  #stage canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #stampk, .clean #closing, .clean #right, .clean #hud3 { display: none !important; }
+
+  .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
+
+  #counter { position: absolute; left: 86px; top: 776px; width: 1200px;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7); }
+  #counter .row { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  #counter .label { font: 600 30px 'Cormorant', serif; letter-spacing: .26em; opacity: .9; }
+  #counter .value { font: 500 112px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 4px;
+    font-variant-numeric: lining-nums tabular-nums; }
+  #counter .unit { font: 700 44px 'Cormorant', serif; letter-spacing: .08em; margin-top: 10px; color: #f1c978; white-space: nowrap; line-height: 1.1; }
+
+  #right { position: absolute; right: 86px; top: 776px; width: 900px; text-align: right; opacity: 0;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7); }
+  #right .label { font: 600 30px 'Cormorant', serif; letter-spacing: .26em; opacity: .9; }
+  #right .value { font: 500 96px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 4px;
+    font-variant-numeric: lining-nums tabular-nums; }
+  #right .unit { font: 700 44px 'Cormorant', serif; letter-spacing: .08em; margin-top: 10px; color: #f1c978; white-space: nowrap; line-height: 1.1; }
+  #right.hot .value { font-size: 124px; color: #ffb08a; }
+  #right.hot .label { color: #ffc2a8; }
+
+  #stamp { position: absolute; left: 60px; right: 60px; top: 190px; text-align: center; opacity: 0; white-space: nowrap;
+    font: 700 76px/1 'Cormorant', serif; letter-spacing: .1em; padding-left: .1em; color: #ffd98a;
+    text-shadow: 0 0 3px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.85); }
+  #stampk { position: absolute; left: 0; right: 0; top: 365px; text-align: center; opacity: 0;
+    font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; color: #f4efe6;
+    text-shadow: 0 2px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
+
+  #title { position: absolute; left: 160px; right: 160px; top: 300px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
+  #title .t { font: 600 112px/1.05 'Cormorant', serif; }
+  #title .s { font: italic 500 58px/1.1 'Cormorant', serif; color: #f1c978; margin-top: 22px; }
+
+  #closing { position: absolute; left: 260px; right: 260px; top: 380px; text-align: center; opacity: 0;
+    font: italic 500 72px/1.15 'Cormorant', serif;
+    text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
+
+  #cover { position: absolute; left: 90px; right: 900px; top: 110px; text-align: left; opacity: 0;
+    text-shadow: 0 4px 44px rgba(0,0,0,.9), 0 2px 6px rgba(0,0,0,.9); }
+  #cover .k { font: 700 56px 'Cormorant', serif; letter-spacing: .3em; }
+  #cover .w { font: 700 230px/1 'Cormorant', serif; color: #f1c978; margin: 16px 0 0; font-variant-numeric: lining-nums tabular-nums; }
+
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+
+  #stage.compositing > div { visibility: hidden; }
+  #stage.compositing #hud3 { visibility: hidden; }
+  #hud { position: fixed; right: 8px; bottom: 8px; font: 12px monospace; color: #9f9;
+    background: rgba(0,0,0,.6); padding: 4px 6px; z-index: 9; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="counter" class="serif"></div>
+  <div id="right" class="serif"><div class="label"></div><div class="value"></div><div class="unit"></div></div>
+  <div id="stampk" class="serif"></div>
+  <div id="stamp" class="serif"></div>
+  <div id="title" class="serif">
+    <div class="t">What if your IQ was 1,000 times higher?</div>
+    <div class="s">The whole world would stop.</div>
+  </div>
+  <div id="closing" class="serif"></div>
+  <div id="cover" class="serif">
+    <div class="k">YOUR IQ</div>
+    <div class="w">102,400</div>
+  </div>
+  <div id="flash"></div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

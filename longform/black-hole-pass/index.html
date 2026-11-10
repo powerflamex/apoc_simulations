@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<script>{ const q = new URLSearchParams(location.search); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
+<title>Black hole passes Earth</title>
+<style>
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: italic; font-weight: 500;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-italic.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 600;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 700;
+    src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-700-normal.woff2') format('woff2'); }
+
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  #stage canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+  .clean #counter, .clean #title, .clean #cover, .clean #stamp, .clean #chap, .clean #closing, .clean #cap, .clean #note { display: none !important; }
+
+  .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
+
+  #counter { position: absolute; left: 86px; top: 790px; width: 1200px;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7); }
+  #counter .row { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  #counter .label { font: 600 30px 'Cormorant', serif; letter-spacing: .26em; opacity: .9; }
+  #counter .value { font: 500 112px/1 'Cormorant', serif; letter-spacing: .01em; margin-top: 4px;
+    font-variant-numeric: lining-nums tabular-nums; }
+  #counter .unit { font: 700 44px 'Cormorant', serif; letter-spacing: .08em; margin-top: 10px; color: #f1c978; white-space: nowrap; line-height: 1.1; }
+
+  #stamp { position: absolute; left: 60px; right: 60px; top: 190px; text-align: center; opacity: 0; white-space: nowrap;
+    font: 700 76px/1 'Cormorant', serif; letter-spacing: .1em; padding-left: .1em; color: #ffd98a;
+    text-shadow: 0 0 3px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.85); }
+  #chap { position: absolute; left: 60px; right: 60px; top: 170px; text-align: center; opacity: 0; white-space: nowrap;
+    font: 600 104px/1 'Cormorant', serif; letter-spacing: .14em; padding-left: .14em; color: #f4efe6;
+    text-shadow: 0 0 4px rgba(0,0,0,1), 0 2px 12px rgba(0,0,0,.95), 0 0 40px rgba(0,0,0,.85); }
+
+  #title { position: absolute; left: 160px; right: 160px; top: 500px; text-align: center; opacity: 0;
+    text-shadow: 0 2px 30px rgba(0,0,0,.9), 0 1px 4px rgba(0,0,0,.9); }
+  #title .t { font: 600 120px/1.05 'Cormorant', serif; }
+
+  #cap { position: absolute; left: 300px; right: 300px; top: 640px; text-align: center; opacity: 0;
+    font: italic 500 60px/1.15 'Cormorant', serif;
+    text-shadow: 0 2px 24px rgba(0,0,0,.95), 0 1px 4px rgba(0,0,0,.95); }
+
+  #closing { position: absolute; left: 260px; right: 260px; top: 450px; text-align: center; opacity: 0;
+    font: italic 500 92px/1.15 'Cormorant', serif; }
+
+  /* the phone's notification card, top right */
+  #note { position: absolute; right: 56px; top: 48px; width: 660px; opacity: 0;
+    background: rgba(242, 242, 246, 0.93); border-radius: 30px; padding: 26px 32px 30px 32px; box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif; color: #111; }
+  #note .app { position: relative; height: 40px; }
+  #note .icon { position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-radius: 10px; background: #34c759; }
+  #note .appname { position: absolute; left: 56px; top: 2px; font: 600 25px 'Segoe UI', Arial, sans-serif; letter-spacing: .04em; color: #555; }
+  #note .when { position: absolute; right: 0; top: 2px; font: 400 25px 'Segoe UI', Arial, sans-serif; color: #777; }
+  #note .from { font: 700 36px/1.2 'Segoe UI', Arial, sans-serif; margin-top: 16px; color: #111; }
+  #note .text { font: 400 36px/1.25 'Segoe UI', Arial, sans-serif; margin-top: 4px; color: #111; }
+  #note .fail { font: 600 28px/1.2 'Segoe UI', Arial, sans-serif; margin-top: 14px; color: #ff3b30; }
+  #note.alert { background: rgba(255, 238, 236, 0.95); }
+  #note.alert .icon { background: #ff3b30; }
+  #note.alert .from { color: #c4140c; letter-spacing: .02em; }
+
+  #cover { position: absolute; left: 80px; right: 60px; top: 800px; text-align: left; opacity: 0;
+    text-shadow: 0 0 70px rgba(0,0,0,.95), 0 4px 30px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.95); }
+  #cover .k { font: 700 56px 'Cormorant', serif; letter-spacing: .3em; }
+  #cover .w { font: 700 210px/1 'Cormorant', serif; color: #f1c978; margin: 0; white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; }
+
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+
+  #stage.compositing > div { visibility: hidden; }
+  #hud { position: fixed; right: 8px; bottom: 8px; font: 12px monospace; color: #9f9;
+    background: rgba(0,0,0,.6); padding: 4px 6px; z-index: 9; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="counter" class="serif"></div>
+  <div id="cap" class="serif"></div>
+  <div id="chap" class="serif"></div>
+  <div id="stamp" class="serif"></div>
+  <div id="title" class="serif">
+    <div class="t">What if a black hole passed Earth?</div>
+  </div>
+  <div id="note">
+    <div class="app"><div class="icon"></div><div class="appname"></div><div class="when">now</div></div>
+    <div class="from"></div>
+    <div class="text"></div>
+    <div class="fail"></div>
+  </div>
+  <div id="cover" class="serif">
+    <div class="w">1 HOUR LEFT</div>
+  </div>
+  <div id="flash"></div>
+  <div id="closing" class="serif"></div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
