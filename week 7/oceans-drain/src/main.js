@@ -135,6 +135,8 @@ function update(v, cover = -1) {
   GU.uTime.value = v;
   GU.uLevel.value = st.level(v);
   WU.uFlow.value = st.flow ?? 1;
+  { const wd = st.water || {}; WU.uFarY.value = wd.farY ?? 1e9; WU.uDropA.value = wd.dropA ?? 0; WU.uDropB.value = wd.dropB ?? -1; }
+  { const dp = typeof st.deep === 'function' ? st.deep(v) : st.deep; GU.uDeep.value = dp ? dp.k : 0; if (dp) { GU.uDeepFloor.value = dp.floor; GU.uShaft.value.set(dp.x, dp.z, dp.r); } }
 
   // ---------- the camera: you, walking (a dash forward between shots) ----------
   const c = st.cam(v, s);

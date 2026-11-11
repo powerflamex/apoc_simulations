@@ -5,19 +5,23 @@ import * as THREE from 'three';
 import { NOISE_GLSL } from './noise.js';
 import { GU } from './ground.js';
 
-export const WU = { uFlow: { value: 1 }, uPx: { value: 0.0006 }, uFlowDir: { value: new THREE.Vector2(0, -1) }, uFoam: { value: 1 } };
+export const WU = { uFlow: { value: 1 }, uPx: { value: 0.0006 }, uFlowDir: { value: new THREE.Vector2(0, -1) }, uFoam: { value: 1 },
+  uFarY: { value: 1e9 }, uDropA: { value: 0 }, uDropB: { value: -1 } };
 
 const vert = /* glsl */ `
-attribute float aH; uniform float uLevel; varying vec3 vWP; varying float vH;
+attribute float aH; uniform float uLevel; uniform float uFarY; uniform float uDropA; uniform float uDropB; varying vec3 vWP; varying float vH; varying float vFall;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  wp.y = uLevel;
+  // past the drop-off (between z = uDropA and uDropB) the sea falls to the far level
+  float s = 1.0 - smoothstep(uDropB, uDropA, wp.z);
+  wp.y = mix(uLevel, min(uLevel, uFarY), s);
+  vFall = s * (1.0 - s) * 4.0 * step(uFarY + 0.5, uLevel);
   vWP = wp.xyz; vH = aH;
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
 const frag = /* glsl */ `
 precision highp float;
-varying vec3 vWP; varying float vH;
+varying vec3 vWP; varying float vH; varying float vFall;
 uniform float uTime; uniform float uLevel; uniform vec3 uSun; uniform vec3 uSkyHi; uniform vec3 uSkyLo;
 uniform float uFlow; uniform float uPx; uniform vec2 uFlowDir; uniform float uFoam;
 ${NOISE_GLSL}
@@ -42,7 +46,7 @@ vec3 waveN(vec2 p, float px) {
   return normalize(vec3(-g.x, 1.0, -g.y));
 }
 void main() {
-  float depth = uLevel - vH;
+  float depth = vWP.y - vH;
   if (depth < 0.0) discard;
   vec2 p = vWP.xz;
   vec3 V = normalize(vWP - cameraPosition);
@@ -65,8 +69,8 @@ void main() {
   vec2 q = vec2(dot(p, vec2(-uFlowDir.y, uFlowDir.x)), dot(p, uFlowDir));
   float streak = fbm2(vec2(q.x * 0.5, q.y * 0.06 - uTime * (0.5 + 1.6 * uFlow)));
   float streaks = smoothstep(0.56, 0.74, streak) * uFlow * smoothstep(8.0, 0.4, depth) * smoothstep(1.2, 0.25, px);
-  float edge = smoothstep(0.5, 0.0, depth) * mix(0.55 + 0.45 * n2(p * 0.6 + vec2(0.0, uTime * 2.0)), 0.75, smoothstep(0.3, 1.5, px));
-  float foam = clamp(edge + streaks * 0.8, 0.0, 1.0) * uFoam;
+  float edge = smoothstep(0.32 + 0.3 * uFlow, 0.0, depth) * mix(0.65 + 0.35 * n2(p * 0.6 + vec2(0.0, uTime * 2.0)), 0.85, smoothstep(0.3, 1.5, px));
+  float foam = clamp(edge + streaks * 0.8 + smoothstep(0.15, 0.6, vFall), 0.0, 1.0) * uFoam;
   col = mix(col, vec3(0.93, 0.96, 0.97), foam);
   float a = smoothstep(0.0, 0.1, depth) * mix(0.55, 1.0, smoothstep(0.1, 1.5, depth));
   a = max(a, foam * smoothstep(0.0, 0.04, depth));

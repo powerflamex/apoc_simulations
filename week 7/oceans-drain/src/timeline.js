@@ -25,14 +25,16 @@ export const V_TITANIC = 21.5;         // the Titanic's bow
 export const V_MOUNT = 25.8;           // an undersea mountain rises out of the falling sea
 export const V_TRENCH = 30.0;          // the Mariana Trench: the walls close in
 export const V_BOTTOM = 35.6;          // the bottom of the trench
-export const V_FLOOR = 40.5;           // the counter reaches -36,000 ft: you step onto the deepest spot
-export const V_ROAR = 42.4;            // a roar
-export const V_WAVE = 43.0;            // the water comes back round the bend
-export const V_HIT = 46.15;            // it hits the lens
-export const V_WHITE = 46.32;          // full white
-export const T_SWITCH = 46.9;          // the loop point, inside the white
+export const V_FISH = 34.0;            // deep-sea fish stranded on the trench floor
+export const V_GLOW = 37.3;            // jellyfish light up in the dark
+export const V_FLOOR = 40.5;           // the counter reaches -36,000 ft: you step onto the deepest spot, by its marker
+export const V_ROAR = 44.1;            // a roar
+export const V_WAVE = 44.7;            // the water comes back round the bend
+export const V_HIT = 47.85;            // it hits the lens
+export const V_WHITE = 48.02;          // full white
+export const T_SWITCH = 48.6;          // the loop point, inside the white
 export const LOOP = 0.6;
-export const VIDEO_DURATION = T_SWITCH + LOOP;        // 47.5 s
+export const VIDEO_DURATION = T_SWITCH + LOOP;        // 49.2 s
 export const CUTS = [V_WRECK, V_WHALES, V_CARGO, V_VENTS, V_TITANIC, V_MOUNT, V_TRENCH, V_BOTTOM];
 export const SHOTS = ['beach', 'wreck', 'shelf', 'cargo', 'vents', 'titanic', 'mount', 'trench', 'bottom'];
 export function shotAt(v) { let i = 0; while (i < CUTS.length && v >= CUTS[i]) i++; return i; }
@@ -55,9 +57,11 @@ export const M = 0.3048;
 
 // ---- the dash between shots: the camera rushes forward into a blur, the cut hides in it, and it rushes on out ----
 export const DASH_IN = 0.3, DASH_OUT = 0.34;
+// (no dash at the cargo ship or into the trench: plain cuts, so no blur through blue water)
+export const DASHES = CUTS.filter((c) => c !== V_CARGO && c !== V_TRENCH);
 export function dashAt(v) {
   let blur = 0, push = 0;
-  for (const c of CUTS) {
+  for (const c of DASHES) {
     const dt = v - c;
     if (dt < -DASH_IN || dt > DASH_OUT) continue;
     if (dt < 0) { const u = 1 + dt / DASH_IN; blur = u * u; push = 7 * u * u * u; }
@@ -78,7 +82,9 @@ export const POPS = [
   [V_TITANIC + 0.15, 'THE TITANIC'],
   [V_MOUNT + 0.15, 'A MOUNTAIN RISES FROM THE SEA'],
   [V_TRENCH + 0.15, 'THE MARIANA TRENCH'],
-  [38.3, 'THE DEEPEST SPOT ON EARTH'],
+  [V_FISH, 'STRANGE FISH FROM THE DEEP'],
+  [V_GLOW, 'THEY GLOW IN THE DARK'],
+  [V_FLOOR + 0.1, 'THE DEEPEST SPOT ON EARTH'],
   [V_ROAR + 0.25, 'THE WATER COMES BACK'],
 ];
 export const BEATS = POPS.map((p) => p[0]);
@@ -90,7 +96,7 @@ export function popupAt(v) {
 
 // ---- the one caption ----
 export const CAPTIONS = [
-  [V_FLOOR + 0.1, V_ROAR + 0.15, 'You are standing deeper than Everest is tall.'],
+  [V_FLOOR + 1.8, V_ROAR - 0.05, 'You are standing deeper than Everest is tall.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;

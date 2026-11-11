@@ -1,6 +1,6 @@
 // The animals left behind: fish flopping on the wet sand, crabs running, kelp lying flat, humpback whales the size of buses.
 import * as THREE from 'three';
-import { paint, place, ball, box, merge, propMaterial } from './build.js';
+import { paint, place, ball, box, rod, merge, propMaterial } from './build.js';
 import { rng, clamp, lerp, smooth, wobble } from './util.js';
 
 const tc = new THREE.Color();
@@ -160,7 +160,7 @@ export function whaleGeo(L = 14.5) {
   const R = rng(77);
   for (let k = 0; k < 16; k++) { const u = 0.02 + R() * 0.13, [hh, hw] = prof(u), a = (R() - 0.5) * 1.6; parts.push(ball(0.11, 0x333c45, (0.5 - u) * L, hh * 0.78 + hh * Math.cos(a) * 0.97, hw * Math.sin(a) * 0.97, 1, 0.7, 1, 6)); }
   for (const sd of [-1, 1]) {
-    { const u = 0.17, [hh, hw] = prof(u); parts.push(ball(0.09, 0x0c0d0e, (0.5 - u) * L, hh * 0.78 - 0.05, sd * hw * 0.99, 1, 1, 0.6, 8)); }
+    { const u = 0.17, [hh, hw] = prof(u); parts.push(ball(0.3, 0x8f8a84, (0.5 - u) * L, hh * 0.78 - 0.05, sd * hw * 0.97, 1.25, 0.85, 0.35, 10), ball(0.15, 0x060708, (0.5 - u) * L, hh * 0.78 - 0.05, sd * (hw * 0.97 + 0.07), 1.15, 1, 0.6, 10)); }   // (a pale ring round a dark eye: it reads at 20 m)
     // the flipper: splayed out on the sand
     const fl = new THREE.SphereGeometry(1, 12, 8).scale(2.5, 0.13, 0.55);
     const n = fl.attributes.position.count, a = new Float32Array(n * 3);
@@ -207,4 +207,69 @@ export function makeWhales(parent, list, h) {
       }
     },
   };
+}
+
+// ---- soft glows (bioluminescence): camera-facing additive spots, all moved in the vertex shader ----
+//   pts: [{ x, y, z, r, col: [r, g, b], ph }]; returns { uniforms: { uTime, uK } } (uK: 0 dark .. 1 full glow)
+export function makeHalos(parent, pts) {
+  const n = pts.length;
+  const geo = new THREE.InstancedBufferGeometry();
+  const base = new THREE.PlaneGeometry(1, 1);
+  geo.index = base.index;
+  geo.setAttribute('position', base.attributes.position);
+  geo.setAttribute('uv', base.attributes.uv);
+  const aO = new Float32Array(n * 4), aC = new Float32Array(n * 4);
+  pts.forEach((p, i) => { aO.set([p.x, p.y, p.z, p.r], i * 4); aC.set([...p.col, p.ph ?? i * 0.37], i * 4); });
+  geo.setAttribute('aO', new THREE.InstancedBufferAttribute(aO, 4));
+  geo.setAttribute('aC', new THREE.InstancedBufferAttribute(aC, 4));
+  geo.instanceCount = n;
+  const uniforms = { uTime: { value: 0 }, uK: { value: 1 } };
+  const mat = new THREE.ShaderMaterial({
+    uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */ `attribute vec4 aO; attribute vec4 aC; uniform float uTime; uniform float uK; varying vec2 vUv; varying vec3 vC;
+      void main() {
+        vec3 o = (modelMatrix * vec4(aO.xyz, 1.0)).xyz;
+        vec3 V = normalize(cameraPosition - o);
+        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), V)), up = cross(V, right);
+        float pulse = 0.75 + 0.25 * sin(uTime * 2.3 + aC.w * 6.28);
+        vec3 wp = o + (right * position.x + up * position.y) * aO.w * 2.0;
+        vUv = uv; vC = aC.rgb * uK * pulse;
+        gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
+      }`,
+    fragmentShader: /* glsl */ `varying vec2 vUv; varying vec3 vC;
+      void main() { float r = length(vUv - 0.5) * 2.0; float a = exp(-r * r * 4.5) * (1.0 - smoothstep(0.85, 1.0, r)); gl_FragColor = vec4(vC * a, 1.0); }`,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.frustumCulled = false; mesh.renderOrder = 6;
+  parent.add(mesh);
+  return { mesh, uniforms };
+}
+
+// ---- deep-sea anglerfish, stranded: a black ball of a body, a huge jaw full of needle teeth, a glowing lure ----
+// (about 1.1 m long at s = 1; the biggest deep-sea anglerfish reach about 1.2 m)
+export function anglerGeo() {
+  const P = [];
+  P.push(ball(1, 0x2b201c, 0, 0.42, 0, 0.55, 0.42, 0.38, 14));                       // body
+  P.push(ball(1, 0x3d2b25, 0.38, 0.27, 0, 0.32, 0.17, 0.35, 12));                     // the jutting lower jaw
+  P.push(ball(1, 0x6a1414, 0.44, 0.38, 0, 0.24, 0.09, 0.29, 10));                     // inside the open mouth
+  for (let k = 0; k < 11; k++) {
+    const zz = -0.27 + k * 0.054, xx = 0.52 + 0.12 * Math.cos((zz / 0.3) * 1.4);
+    const lo = paint(new THREE.ConeGeometry(0.022, 0.16 + 0.06 * (k % 3), 5), 0xf2ece0); lo.translate(xx, 0.37, zz); P.push(lo);
+    const up = paint(new THREE.ConeGeometry(0.02, 0.13 + 0.05 * ((k + 1) % 3), 5).rotateZ(Math.PI), 0xf2ece0); up.translate(xx - 0.03, 0.47, zz); P.push(up);
+  }
+  for (const sd of [-1, 1]) P.push(ball(0.06, 0xd8d0b8, 0.28, 0.66, sd * 0.2, 1, 1, 1, 8), ball(0.035, 0x050505, 0.31, 0.67, sd * 0.235, 1, 1, 1, 6));
+  P.push(place(paint(new THREE.ConeGeometry(0.28, 0.4, 4).scale(1, 1, 0.15), 0x2b201c), -0.66, 0.42, 0, 0, 0, Math.PI / 2));   // tail
+  P.push(place(paint(new THREE.ConeGeometry(0.1, 0.22, 4).scale(1, 1, 0.12), 0x2b201c), -0.1, 0.84, 0, 0, 0, 0.3));            // dorsal fin
+  // the lure: a stalk arching forward over the mouth
+  const pts = [[0.18, 0.8], [0.32, 1.02], [0.52, 1.12], [0.7, 1.08], [0.8, 0.98]];
+  for (let k = 1; k < pts.length; k++) P.push(rod(pts[k - 1][0], pts[k - 1][1], 0, pts[k][0], pts[k][1], 0, 0.018, 0x4a3a30, 5));
+  return { geo: merge(P), bulb: { x: 0.82, y: 0.95, z: 0 } };
+}
+
+// ---- glowing jellyfish lying on the mud (Atolla: a dark red dome with a ring of blue light round its rim) ----
+export function jellyGeo() {
+  const dome = ball(1, 0x8a1424, 0, 0.12, 0, 0.42, 0.2, 0.42, 16);
+  const skirt = paint(new THREE.CylinderGeometry(0.5, 0.56, 0.05, 20), 0x5a0c18); skirt.translate(0, 0.03, 0);
+  const ring = new THREE.TorusGeometry(0.44, 0.03, 6, 28).rotateX(Math.PI / 2).translate(0, 0.08, 0);
+  return { body: merge([dome, skirt]), ring };
 }

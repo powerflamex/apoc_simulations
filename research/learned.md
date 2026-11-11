@@ -636,3 +636,10 @@ Film "The Gardener at the End of the World | Animated Short Film" (6:00, posted 
   true sea level only reads on frame 0 if the beach is shaped for it (the water's edge 15 m out at -3 ft, 1.5 km at -100 ft); a few long
   sine waves look like a lattice from above (use drifting noise for swells); a walker who should stop ahead of a camera that runs to the
   same edge must start further ahead and run faster, or the camera passes him. Not posted yet.
+- Nov 10 (late): oceans-drain reworked after the owner checked frames. Lessons: a sea far below looks level with the ledge you
+  stand on unless you see the drop, so lean the camera half a metre out past the lip and look down (a person on a ledge with
+  open sea behind reads as a full sea); a 15 m animal side-on needs ~20 m of distance and a wider lens in a 9:16 frame, so
+  pitch up a few degrees to drop it below the counter; a slot canyon (walls 1,800 m, rising within ~90 m) gives the thin sky
+  strip, but a sun patch on the floor only reads if the direct sun is turned down outside it; an additive light-shaft
+  cylinder quickly washes the whole frame into haze (keep it very faint); creatures facing away read as black balls: turn
+  the jaws to the lens.

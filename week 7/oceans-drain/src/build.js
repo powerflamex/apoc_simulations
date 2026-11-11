@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { rng, clamp, lerp } from './util.js';
-import { GU } from './ground.js';
+import { GU, DEEP_GLSL } from './ground.js';
 
 const tc = new THREE.Color();
 // give a geometry one flat colour (as vertex colours, sRGB hex in)
@@ -49,7 +49,8 @@ export function propMaterial(o = {}) {
           pWP = (modelMatrix * vec4(transformed, 1.0)).xyz; pNW = normalize(mat3(modelMatrix) * normal);
         #endif`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 pWP; varying vec3 pNW; uniform vec3 uSkyHi; uniform vec3 uSkyLo; uniform float pGloss;')
+      .replace('#include <common>', '#include <common>\nvarying vec3 pWP; varying vec3 pNW; uniform vec3 uSkyHi; uniform vec3 uSkyLo; uniform float pGloss;\n' + DEEP_GLSL)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= deepK(pWP);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {
           vec3 V = normalize(cameraPosition - pWP);

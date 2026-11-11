@@ -10,7 +10,20 @@ export const GU = {
   uTime: { value: 0 }, uLevel: { value: 0 },
   uSun: { value: new THREE.Vector3(0, 1, 0) },
   uSkyHi: { value: new THREE.Color(0.05, 0.2, 0.72) }, uSkyLo: { value: new THREE.Color(0.4, 0.66, 0.98) },
+  // deep down (the trench): little light reaches the floor except where a shaft of sun lands (x, z, radius)
+  uDeep: { value: 0 }, uDeepFloor: { value: 0 }, uShaft: { value: new THREE.Vector3(0, 0, 10) },
 };
+export const DEEP_GLSL = /* glsl */ `
+uniform float uDeep; uniform float uDeepFloor; uniform vec3 uShaft;
+float deepK(vec3 wp) {
+  if (uDeep <= 0.0) return 1.0;
+  float hgt = wp.y - uDeepFloor;
+  float ao = mix(0.3, 1.0, smoothstep(0.0, 900.0, hgt));
+  float r = length(wp.xz - uShaft.xy);
+  float sh = (1.0 - smoothstep(uShaft.z * 0.55, uShaft.z, r)) * (1.0 - smoothstep(6.0, 60.0, hgt));
+  return mix(1.0, mix(ao, 1.9, sh), uDeep);
+}
+`;
 
 const C = (v) => new THREE.Color(v);
 // o: colA/colB (two tones mixed in big patches), rock (steep faces), patch/patchAmt/patchS/patchT (stains: algae, coral,
@@ -38,6 +51,7 @@ export function groundMaterial(o = {}) {
         uniform float gScale; uniform float gRipple; uniform float gWet; uniform float gDry; uniform float gFalls; uniform float gPebble; uniform vec2 gSteep;
         uniform float gStrata; uniform float gSurf; uniform float gFallS; uniform float gLayer;
         ${NOISE_GLSL}
+        ${DEEP_GLSL}
         float gGloss = 0.0;
         float rippleH(vec2 p) {
           float w = n2(p * 0.07) * 6.0;
@@ -81,7 +95,7 @@ export function groundMaterial(o = {}) {
           // surf where the sea still stands against it
           float surf = gSurf > 0.0 ? smoothstep(gSurf, 0.0, above) * step(0.0, above + gSurf * 0.3) * (0.55 + 0.45 * n2(vec2((gWP.x + gWP.z) * 0.02 * gFallS, uTime * 1.2))) : 0.0;
           base = mix(base, vec3(0.95, 0.97, 1.0), surf);
-          diffuseColor.rgb = base;
+          diffuseColor.rgb = base * deepK(gWP);
           gGloss = wet * max(pud, max(film * 0.7, 0.26)) * (1.0 - falls) * (1.0 - 0.75 * steep);
         }`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
@@ -111,7 +125,7 @@ export function groundMaterial(o = {}) {
           // the wet seabed mirrors the sky at grazing angles
           vec3 V = normalize(cameraPosition - gWP);
           float fr = pow(1.0 - clamp(dot(normalize(gNW), V), 0.0, 1.0), 5.0);
-          totalEmissiveRadiance += mix(uSkyLo, uSkyHi, 0.6) * fr * gGloss * 0.85;
+          totalEmissiveRadiance += mix(uSkyLo, uSkyHi, 0.6) * fr * gGloss * 0.85 * deepK(gWP) * deepK(gWP);
         }`);
   };
   mat.customProgramCacheKey = () => 'ground';

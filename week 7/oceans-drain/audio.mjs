@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, CUTS, BEATS, V_WRECK, V_WHALES, V_EDGE, V_CARGO, V_VENTS, V_TITANIC, V_MOUNT, V_TRENCH, V_BOTTOM, V_FLOOR, V_ROAR, V_WAVE, V_HIT, V_WHITE } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, CUTS, DASHES, BEATS, V_WRECK, V_WHALES, V_EDGE, V_CARGO, V_VENTS, V_TITANIC, V_MOUNT, V_TRENCH, V_BOTTOM, V_FLOOR, V_ROAR, V_WAVE, V_HIT, V_WHITE } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -96,7 +96,7 @@ export function makeSoundtrack(outFile) {
   // whales: [start, length, f0, f1, f2] (a moan that rises and falls)
   const CALLS = [[V_WHALES + 0.45, 2.3, 150, 330, 120], [V_WHALES + 2.9, 1.9, 260, 520, 300], [V_EDGE + 0.2, 2.0, 120, 210, 90]]
     .map(([t, d, a, b, c]) => ({ t, d, a, b, c, ph: 0 }));
-  const HITS = [...BEATS, V_FLOOR].sort((a, b) => a - b).map((t, n) => ({ t, k: t === V_FLOOR ? 0.75 : clamp(0.34 + 0.045 * n, 0, 0.85), root: 55 * Math.pow(2, -Math.min(n, 12) / 22) }));
+  const HITS = BEATS.map((t, n) => ({ t, k: Math.abs(t - V_FLOOR) < 0.3 ? 0.8 : clamp(0.34 + 0.045 * n, 0, 0.85), root: 55 * Math.pow(2, -Math.min(n, 12) / 22) }));
 
   const rushF = [new SVF(), new SVF()], rushLP = [new OnePole(5200), new OnePole(5200)];
   const crowdF = [new SVF(), new SVF(), new SVF()], crowdE = [new OnePole(5), new OnePole(6), new OnePole(4)];
@@ -143,7 +143,7 @@ export function makeSoundtrack(outFile) {
       }
     }
     // --- every jump forward: a whoosh up into the cut and away, with a soft thud on it ---
-    for (const c of CUTS) {
+    for (const c of DASHES) {
       const dt = v - c;
       if (dt < -0.4 || dt > 0.6) continue;
       const e = dt < 0 ? Math.pow(smooth(-0.4, 0, dt), 2) : Math.pow(1 - smooth(0, 0.55, dt), 1.5);

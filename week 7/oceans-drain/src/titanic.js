@@ -12,7 +12,7 @@ import { fbm } from './noise.js';
 import { V_TITANIC, V_MOUNT } from './timeline.js';
 import { rng, smooth, lerp, DEG } from './util.js';
 
-const BOW = { x: 1.2, z: -34, yaw: -1.42, sink: 2.4 };       // the prow's tip, pointing almost straight at you: both its sides show
+const BOW = { x: 4, z: -36, yaw: -1.25, sink: 2.4 };         // the prow's tip, seen three-quarters on: the pointed bow against the sky, the hull running back to your left
 function hTitanic(x, z) {
   // the mud it ploughed up round the bow
   const c = Math.cos(BOW.yaw), s = Math.sin(BOW.yaw), dx = x - BOW.x, dz = z - BOW.z;
@@ -62,15 +62,25 @@ export function makeTitanic(ctx) {
   for (const sd of [-1, 1]) {
     const pts = [];
     for (let u = 0.845; u <= 0.9995; u += 0.0045) pts.push(Hh.edge(u, sd));
-    P.push(...railing(pts, 1.15, ru(), 0.045));
+    P.push(...railing(pts, 1.4, 0x3a2a20, 0.075));
     const a = Hh.side(0.972, 0.8, sd);
     P.push(box(0.6, 3.6, 0.5, 0x1c1614, a.x, a.y, a.z + sd * 0.3), box(0.5, 0.7, 2.6, 0x1c1614, a.x, a.y - 1.7, a.z + sd * 0.35, 0.5 * sd, 0, 0));
     P.push(box(10, 1.3, 0.25, ru(), X0 - 30, dk(0.89) + 0.65, sd * 5.2, 0, sd * 0.42, 0));        // the breakwater
     for (const [du, dz] of [[0.955, 2.2], [0.93, 3.4], [0.905, 4.4]]) P.push(cyl(0.55, 0.65, 1.0, ru(), (du - 0.5) * L, dk(du) + 0.5, sd * dz, 0, 0, 0, 10));
   }
   { const tip = Hh.edge(0.9995, 1); P.push(rod(tip.x - 2.5, tip.y, 0, tip.x - 1.6, tip.y + 4.2, 0, 0.14, ru()), rod(tip.x - 1.6, tip.y + 4.2, 0, tip.x + 0.8, tip.y + 3.6, 0, 0.11, ru())); }
-  // the foremast, fallen back across the deck onto the bridge; two hatch coamings; cargo cranes
-  P.push(rod(X0 - 36, dk(0.86) + 1.2, 0.5, X0 - 82, dk(0.7) + 8.2, -1.5, 0.5, ru(), 8), cyl(0.9, 0.9, 1.5, ru(), X0 - 52, dk(0.8) + 4.4, -0.3, 0, 0, 1.4, 8));
+  // the foremast, still standing but leaning out over the bow towards you, with its crow's nest and the stay down to the
+  // prow (on the real wreck it has fallen back onto the bridge); two hatch coamings; cargo cranes
+  {
+    const b = { x: X0 - 38, y: dk(0.86), z: 0 }, tp = { x: X0 - 16, y: dk(0.86) + 27, z: -5 };
+    const at = (k) => ({ x: b.x + (tp.x - b.x) * k, y: b.y + (tp.y - b.y) * k, z: b.z + (tp.z - b.z) * k });
+    P.push(rod(b.x, b.y, b.z, tp.x, tp.y, tp.z, 0.55, 0x4a2c1c, 10));
+    const n = at(0.48);
+    P.push(cyl(1.1, 0.95, 1.9, 0x5a341e, n.x, n.y, n.z, 0, 0, 0, 12), cyl(1.15, 1.15, 0.25, 0x2a1a12, n.x, n.y + 1.0, n.z, 0, 0, 0, 12));
+    const tip = Hh.edge(0.9995, 1);
+    P.push(rod(tp.x, tp.y, tp.z, tip.x, tip.y, 0, 0.09, 0x2a1d16, 5));                       // the forestay
+    for (const sd of [-1, 1]) P.push(rod(at(0.7).x, at(0.7).y, at(0.7).z, X0 - 44, dk(0.84), sd * 11, 0.07, 0x2a1d16, 5));
+  }
   P.push(box(8, 1.2, 6, ru(), X0 - 22, dk(0.92) + 0.6, 0), box(9, 1.2, 7, ru(), X0 - 46, dk(0.83) + 0.6, 0));
   for (const sd of [-1, 1]) P.push(cyl(0.35, 0.45, 5, ru(), X0 - 40, dk(0.85) + 2.5, sd * 8), rod(X0 - 40, dk(0.85) + 4.6, sd * 8, X0 - 47, dk(0.85) + 6.5, sd * 5, 0.2, ru()));
   // what is left of the bridge and the decks behind it, stepping up
@@ -129,7 +139,7 @@ export function makeTitanic(ctx) {
     const t = v - T;
     return {
       x: -3.0, z: -2.2 * t, eye: 1.66 + 0.03 * Math.sin(t * 8.4),
-      yaw: lerp(-3.5, -5, smooth(0, 4.3, t)) * DEG, pitch: lerp(9.5, 18, smooth(0, 4.3, t)) * DEG, fov: lerp(62, 65, smooth(0, 4.3, t)),
+      yaw: lerp(2, 0, smooth(0, 4.3, t)) * DEG, pitch: lerp(14, 22, smooth(0, 4.3, t)) * DEG, fov: lerp(64, 66, smooth(0, 4.3, t)),
     };
   }
   return {

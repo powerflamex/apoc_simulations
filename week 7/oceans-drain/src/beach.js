@@ -12,13 +12,16 @@ import { fbm, vnoise } from './noise.js';
 import { feetAt, M, V_WRECK } from './timeline.js';
 import { rng, clamp, smooth, lerp, wobble, DEG } from './util.js';
 
-const SHORE = -2;
+const SHORE = 4;
+export const DROP_D = 150;                    // the seabed drops away this far out from the old shoreline
+export const FAR_Y = -70;                     // and the sea beyond it is already this low
 export function hBeach(x, z) {
   const d = SHORE - z;                       // metres out from the old shoreline
   if (d <= 0) return 2.5 * (1 - Math.exp(d / 7.5)) + 0.012 * -d + 0.05 * (fbm(x * 0.2, z * 0.2) - 0.5);
-  // (the bed is cut so that the true sea level puts the water's edge 14 m out on frame 0, 60 m at 0:01, 200 m at 0:02,
-  //  600 m at 0:03 and 1.5 km at 0:04.7: steep by the shore, flatter and flatter beyond, like a real beach)
-  const depth = d < 14 ? 0.065 * d : d < 60 ? 0.91 + 0.0302 * (d - 14) : d < 200 ? 2.3 + 0.025 * (d - 60) : d < 600 ? 5.8 + 0.0175 * (d - 200) : 12.8 + 0.0102 * (d - 600);
+  // (the bed is cut so that the true sea level puts the water's edge at the feet of the people in front of you on frame 0
+  //  (5 m out) and 30 m out at 0:01; from 0:01.6 the last of it pours over the drop-off 150 m out)
+  let depth = d < 5 ? 0.182 * d : d < 30 ? 0.91 + 0.06 * (d - 5) : d < 200 ? 2.41 + 0.022 * (d - 30) : 6.15 + 0.0175 * (d - 200);
+  if (d > DROP_D) depth = Math.max(depth, lerp(depth, -FAR_Y + 12 + 0.02 * (d - DROP_D), smooth(DROP_D, DROP_D + 30, d)));
   const bars = 0.3 * Math.sin(d * 0.055 + 2.2 * vnoise(x * 0.012, 3.3) + 1.2) * smooth(30, 90, d);
   const pools = 0.4 * (fbm(x * 0.045, z * 0.045) - 0.5) * smooth(8, 40, d);
   return -depth + bars + pools;
@@ -70,7 +73,7 @@ function makeBoat(kind, parts) {
 // where things are: [kind, x, z, yaw, heel]
 const BOATS = [
   ['sail', -6.2, -19.5, 2.5, 1.08], ['motor', 5.4, -12.5, -0.7, -0.42], ['fish', -1.5, -46, 0.5, 0.52],
-  ['row', 3.4, -6.2, 1.2, 0.3], ['motor', -13, -34, 2.0, 0.5], ['sail', 14, -72, -0.4, -1.0], ['fish', -24, -95, -1.1, -0.5], ['sail', 30, -140, 1.0, 1.05],
+  ['row', 3.4, -6.2, 1.2, 0.3], ['motor', -13, -34, 2.0, 0.5], ['sail', 14, -72, -0.4, -1.0], ['fish', -24, -95, -1.1, -0.5], ['sail', 30, -112, 1.0, 1.05],
 ];
 const UMB = [[-2.9, 8.4, 0xe8483a], [3.5, 7.2, 0x2f8fd8], [-6.5, 4.5, 0xf3c52f], [7.4, 3.2, 0x29a36a], [-11, 8, 0xff7f2a], [12, 9, 0xd93c8c], [-16, 3.5, 0x16b3b0], [17.5, 5, 0xe8483a], [-22, 7, 0x2f8fd8], [24, 6.5, 0xf3c52f]];
 const TCOL = [0xffffff, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4, 0x7a4fd0, 0xff8a3d];
@@ -118,9 +121,9 @@ export function makeBeach(ctx) {
   const FISH = [];
   {
     const R = rng(9);
-    const near = [[-0.9, -3.4, 0.95], [0.8, -4.6, 0.8], [-0.2, -6.4, 1.0], [1.9, -7.4, 0.85], [-2.2, -6.0, 0.9], [0.4, -9.0, 1.05], [-1.4, -10.5, 0.9], [2.6, -11, 1.0], [-3.4, -9, 0.8]];
+    const near = [[-0.9, -1.4, 0.95], [0.8, -2.6, 0.8], [-0.2, -4.4, 1.0], [1.9, -5.4, 0.85], [-2.2, -4.0, 0.9], [0.4, -7.0, 1.05], [-1.4, -8.5, 0.9], [2.6, -9, 1.0], [-3.4, -7, 0.8]];
     for (const [x, z, s] of near) FISH.push({ x, z, s, yaw: R() * 6.28, ph: R() * 20 });
-    for (const [x, z, s] of [[0.5, -2.9, 1.7], [-1.6, -3.6, 1.5], [1.9, -4.4, 1.4], [-0.4, -5.2, 1.6]]) FISH.push({ x, z, s, yaw: R() * 6.28, ph: R() * 20 });   // big ones at the old shoreline: seen from frame 0
+    for (const [x, z, s] of [[0.6, 2.6, 1.25], [-1.7, 1.6, 1.2], [1.9, 0.9, 1.15], [-0.4, 0.2, 1.3]]) FISH.push({ x, z, s, yaw: R() * 6.28, ph: R() * 20 });   // big ones at the old shoreline: seen from frame 0
     for (let k = 0; k < 34; k++) FISH.push({ x: (R() - 0.5) * 30, z: -3 - R() * 34, s: 0.6 + R() * 0.6, yaw: R() * 6.28, ph: R() * 20 });
   }
   const fish = makeFish(group, FISH);
@@ -164,5 +167,23 @@ export function makeBeach(ctx) {
       yaw: (1.5 * Math.sin(v * 0.6 + 1)) * DEG, pitch: lerp(-4.6, -3.5, smooth(0, 4, v)) * DEG, fov: lerp(54, 60, smooth(0.6, 4, v)),
     };
   }
-  return { name: 'beach', group, h, level, cam, people, flow: 1, frame(v) { fish.frame(v, h); } };
+  // the sea pouring over the drop-off on the horizon: a curtain of spray all along it while the water still goes over
+  const SPRAY = [];
+  { const R = rng(17); for (let k = 0; k < 150; k++) SPRAY.push({ x: -380 + k * 5.1 + (R() - 0.5) * 3, ph: R(), s: 0.7 + R() * 0.6 }); }
+  const dropZ = SHORE - DROP_D;
+  return {
+    name: 'beach', group, h, level, cam, people, flow: 1,
+    water: { farY: FAR_Y, dropA: dropZ + 1, dropB: dropZ - 26 },
+    frame(v, s, fx) {
+      fish.frame(v, h);
+      const k = 1 - smooth(1.5, 2.6, v);
+      if (k <= 0.001) return;
+      // a low wall of white spray hugging the lip (no tall soft puffs: those read as cloud)
+      const lip = level(v);
+      for (const p of SPRAY) {
+        const a = ((v * 0.7 + p.ph) % 1 + 1) % 1;
+        fx.smoke.puff(p.x, lip - 1 + 7 * a * p.s, dropZ - 3 - 3 * a, (3.2 + 2.5 * a) * p.s, k * smooth(0, 0.1, a) * (1 - 0.6 * a), 1.0, 0, p.ph);
+      }
+    },
+  };
 }

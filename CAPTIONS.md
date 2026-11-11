@@ -1557,49 +1557,61 @@ Cover: `week 7/planet-picker/out/planet-picker_v4_cover.png` (`node render.mjs -
 
 ## Next Short. What if the oceans drained away? — `week 7/oceans-drain/out/oceans-drain_v4_1080x1920_60fps_tiktok.mp4`
 
-47.5 s, loops. A new project (nine small scenes, one per shot, in `week 7/oceans-drain/src/`). You are on a packed beach and
+49.2 s, loops. A new project (nine small scenes, one per shot, in `week 7/oceans-drain/src/`). You are on a packed beach and
 the sea runs away from you; you follow the water's edge down the seabed, and each thing you pass is deeper and stranger,
 until you stand on the deepest spot on Earth. The counter is the sea level in feet (label "SEA LEVEL · TIME-LAPSE", one
-line under it: "DEEPEST SPOT: −36,000 FT"); it never stops until the bottom. Between shots the camera dashes forward into
-a blur and out of it (the time-lapse skipping ahead), so there are no hard cuts. The walker in the red shirt, or people
-next to you, are in every shot; there is no aerial, map or space view.
-What you see, in order: 0:00 a bright beach, people in front of you pointing and holding their heads, the sea already 15 m
-out and racing away, a sailboat, a fishing boat and a motorboat tipped over on wet sand, big fish flopping where the water
-was, the title, the counter at −3 ft; the owner's scream in the first second. By 0:02 the water's edge is 200 m out, by
-0:04 a line on the horizon; people start walking out after it ("THE SEA RUNS AWAY"). 0:04.8 "A LOST SHIPWRECK": down on the
+line under it: "DEEPEST SPOT: −36,000 FT"); it never stops until the bottom. Most shots are joined by a quick dash forward
+into a blur (the time-lapse skipping ahead); the cargo ship (0:13) and the trench (0:30) come in on plain cuts. The walker
+in the red shirt, or people next to you, are in every shot; there is no aerial, map or space view.
+Reworked Nov 10 after the owner checked the frames: the sea visibly running away on frame 0, a look over the cliff edge
+down at the sea far below, the whale whole and side-on, the Titanic's pointed bow and leaning mast, a deep trench with
+new things in it, a bigger Everest caption.
+What you see, in order: 0:00 a bright beach, people in front of you pointing and holding their heads, the water's edge
+right at their feet with a line of foam racing out across the wet sand, a sailboat, a fishing boat and a motorboat tipped
+over on wet sand, big fish flopping, and on the horizon a white wall of spray where the sea pours over a drop-off; the
+title, the counter at −3 ft; the owner's scream in the first second. By 0:01 the water's edge is 30 m out and by 0:02 the
+last of it has gone over the edge; people walk out after it ("THE SEA RUNS AWAY"). 0:04.8 "A LOST SHIPWRECK": down on the
 seabed a rusted steamer leans over you, streaming water, crabs running across the sand, giant kelp lying flat. 0:07.5
-"STRANDED WHALES": a humpback the size of a bus lies across your way, its calf beside your path, people touching them, the
-tails still lifting. 0:10.3 "THE SEABED DROPS AWAY": you run to the edge and look straight down a gorge in the shelf, the sea
-far below and falling (the owner's gasp). 0:13.1 "A SUNKEN CARGO SHIP": a container ship heeled over on the mud, yellow
-cranes, coloured boxes spilled in a trail towards you. 0:17.3 "HOT VENTS, STILL SMOKING": mineral chimneys taller than
-houses pouring black smoke, red tube worms round their feet. 0:21.5 "THE TITANIC": the bow, upright, its rail and anchors
-still on, hung with rust, towering over the people at its foot while sheets of water pour off the decks ("oh my god").
-0:25.8 "A MOUNTAIN RISES FROM THE SEA": at the water's edge on the deep plain, an undersea mountain climbs out of the falling
-sea, water streaming down it. 0:30 "THE MARIANA TRENCH": you walk down into it, walls rising on both sides, the last water
-running away below. 0:35.6 the bottom: a narrow floor of pale mud in a shaft of sun, walls going up out of sight, the
-counter slowing; 0:38.3 "THE DEEPEST SPOT ON EARTH"; 0:40.5 the counter stops at −36,000 ft and the one caption comes up:
-"You are standing deeper than Everest is tall." 0:42.4 a roar, dust off the walls; "THE WATER COMES BACK": a wall of water
-comes round the bend and down the trench, everyone runs past you, it hits the lens at 0:46.2, white. The white clears onto
-the beach with the sea rushing out (frame 0).
+"STRANDED WHALES": a humpback as long as a city bus (12 m) lies side-on in front of you, whole: knobbly head, eye, dorsal
+fin, tail; the walker in red has a hand on it, others stand beside it for size, its calf further off. 0:10.3 "THE SEABED
+DROPS AWAY": you run to the edge, lean out over it with your phone and look straight down a 100 m cliff and the slope
+below it to the sea, far below and shrinking away from the foot of the slope (the owner's gasp). 0:13.1 "A SUNKEN CARGO
+SHIP": a container ship heeled over on the mud, yellow cranes, coloured boxes spilled in a trail towards you. 0:17.3 "HOT
+VENTS, STILL SMOKING": mineral chimneys taller than houses pouring black smoke, red tube worms round their feet. 0:21.5
+"THE TITANIC": the bow seen three-quarters on, its pointed stem and railing against the sky, the foremast with its crow's
+nest leaning out over the bow, rust hanging off it, people at its foot, sheets of water pouring off the decks ("oh my
+god"). 0:25.8 "A MOUNTAIN RISES FROM THE SEA": at the water's edge on the deep plain, an undersea mountain climbs out of
+the falling sea, water streaming down it. 0:30 "THE MARIANA TRENCH": a slot between walls that go up out of frame on both
+sides, the sky a thin bright strip high above, the floor in shade except a patch of sun. 0:34 "STRANGE FISH FROM THE DEEP":
+three anglerfish stranded in the patch of sun, jaws of needle teeth towards you, their lures glowing, silver fish round
+them. 0:35.6 the bottom; 0:37.3 "THEY GLOW IN THE DARK": jellyfish lying on the mud light up in blue rings. 0:40.5 the
+walker reaches the marker at the deepest spot (a striped pole, a red flag, a "CHALLENGER DEEP" sign) in a shaft of sun and
+raises his arms, the counter stops at −36,000 ft: "THE DEEPEST SPOT ON EARTH", then the one caption, as big as the
+popups: "You are standing deeper than Everest is tall." 0:44.1 a roar, dust off the walls; "THE WATER COMES BACK": a wall
+of water comes down the trench, everyone runs past you, it hits the lens at 0:47.9, white. The white clears onto the beach
+with the sea rushing out (frame 0).
 Numbers (`src/timeline.js`, checked Nov 10): giant kelp grows down to about 100 ft, so it lies round the first wreck (the
-brief had it deeper; moved to keep true depth order); the continental shelf's edge is on average about 440 ft down (it
-varies, 65-1,800 ft; the counter passes 440-600 ft at the gorge); hot vents sit mostly 7,000-8,000 ft down (Von Damm field
-7,500 ft; the counter passes 5,000-9,700 ft in that shot); the Titanic's bow lies at 12,467 ft (NOAA), "about 12,500 ft"
-(the counter reads 12,500 in the middle of its shot); the deep plains are 13,000-20,000 ft down and seamounts stand
-thousands of feet above them; Challenger Deep is 35,876 ft (NOAA 2021; other surveys 35,800-36,070 ft), shown as
-−36,000 ft; Everest is 29,032 ft. The finish line reads "DEEPEST SPOT" rather than "ocean floor" (the average ocean floor
-is only about 12,100 ft down).
+brief had it deeper; moved to keep true depth order); a humpback is 12-16 m long (a city bus is 12 m); the continental
+shelf's edge is on average about 440 ft down (it varies, 65-1,800 ft; the counter passes 440-600 ft as you reach the
+edge); hot vents sit mostly 7,000-8,000 ft down (Von Damm field 7,500 ft; the counter passes 5,000-9,700 ft in that shot);
+the Titanic's bow lies at 12,467 ft (NOAA), "about 12,500 ft" (the counter reads 12,500 in the middle of its shot); the
+deep plains are 13,000-20,000 ft down and seamounts stand thousands of feet above them; Challenger Deep is 35,876 ft
+(NOAA 2021; other surveys 35,800-36,070 ft), shown as −36,000 ft; Everest is 29,032 ft. The finish line reads "DEEPEST
+SPOT" rather than "ocean floor" (the average ocean floor is only about 12,100 ft down).
 Honest notes: the walk is a time-lapse (on foot it would take weeks; the counter says so). Distances between the things
-are squeezed and each shot is its own made-up place. The shelf edge is drawn as a 440 ft cliff and the trench as a narrow
-canyon so both walls are in frame (the real trench is about 43 miles wide with gentle slopes); the mountain is steeper
-than a typical seamount; the Titanic's bow stands a little higher out of the mud than the real one (which is buried to
-its anchors). Whales are simply left behind by the water; nobody is shown hurt. The water coming back is the ending, not
-a prediction.
-Sound: the sea rushing out and a beach full of people; a whoosh and soft thud on every jump; a deep hit on every popup,
+are squeezed and each shot is its own made-up place. The drop-off off the beach, the 100 m cliff at the shelf edge and
+the trench's narrow slot are drawn so they read (the real shelf slopes down gently and the real trench is about 43 miles
+wide); the water below the cliff is kept far below you and falls with the counter. The mountain is steeper than a typical
+seamount. The Titanic's bow stands a little higher out of the mud than the real one (buried to its anchors), and its
+foremast is shown standing (on the wreck it has fallen back onto the bridge). The anglerfish and glowing jellyfish live
+higher up (about 3,000-13,000 ft); they are shown stranded in the trench. There is no real marker at Challenger Deep; the
+pole and sign are added to show where it is. Whales are simply left behind by the water; nobody is shown hurt. The water
+coming back is the ending, not a prediction.
+Sound: the sea rushing out and a beach full of people; a whoosh and soft thud on every dash; a deep hit on every popup,
 lower each time, over a drone that sinks as you go down; drips and groaning steel at the wrecks, whale calls, steam and a
 rumble at the vents, water roaring off the mountain, wind in the trench, near silence at the bottom, then the roar and
 the crash; in the white it turns back into the sea rushing out. Opening at -25 dB.
-Cover: `week 7/oceans-drain/out/oceans-drain_v4_cover.png` (`node render.mjs --cover 24.4`: the Titanic's bow towering over the people at its foot, water pouring off it, under a deep blue sky; "WHAT IF THE OCEANS / drained away?")
+Cover: `week 7/oceans-drain/out/oceans-drain_v4_cover.png` (`node render.mjs --cover 24.0`: the Titanic's bow three-quarters on, its pointed stem, railing and leaning foremast against a deep blue sky, people at its foot; "WHAT IF THE OCEANS / drained away?")
 
 **YouTube title** (86 characters, emoji counted as 2):
 ```
