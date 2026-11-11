@@ -184,6 +184,17 @@
       "env": {
         "PORT": "5214"
       }
+    },
+    {
+      "name": "solar-storm",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 7/solar-storm/server.mjs"
+      ],
+      "port": 5241,
+      "env": {
+        "PORT": "5241"
+      }
     }
   ]
 }

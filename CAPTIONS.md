@@ -1624,6 +1624,53 @@ How far down would you walk? 👇
 #whatif #ocean #titanic #marianatrench #shorts
 ```
 
+## Next Short. What if the biggest solar storm ever hit tonight? — `week 7/solar-storm/out/solar-storm_v4_1080x1920_60fps_tiktok.mp4`
+
+47.0 s, loops. The 1859 solar storm (the Carrington Event) hits today's world. A made-up U.S. downtown avenue at night;
+you walk up the sidewalk with the crowd, filming. Frame 0: the title, the counter racing (STORM HITS IN 0:05.00, PEOPLE
+WITHOUT POWER: 0), the whole sky already rippling red and green over lit signs and screens, people right ahead of you
+with their phones up. 0:02.7 the street lights flicker; 0:05 the hit: every sign, screen and street lamp pops and dies in
+a wave running away up the street, sparks, the scream; the street is now lit only by the aurora and the headlights and
+the counter starts racing to its finish line. 0:07.5 the transformer on the pole just ahead buzzes and blows in a
+blue-white flash and a rain of sparks; 0:08 arcs run off along the wires from pole to pole. 0:12 every traffic light is
+dead; you hold your phone up over the crowd and at 0:14.2 a car pulls out into the dead crossing and hits a car's side.
+0:17 your phone: NO SERVICE. 0:22 people walk out of the black subway doorway right beside you with their phone torches.
+0:26 satellites burn up across the aurora. 0:29 the skyline down the avenue goes dark block by block; 0:31 the counter
+hits 40,000,000. Phone torches all along the street; the facts about months without power and the transformers.
+0:42 the aurora flares until the whole sky is white (a short flash at 0:46.2); the white clears onto frame 0 (the loop).
+
+**YouTube title (95 chars, emoji counted as 2)**
+What if the biggest solar storm ever hit tonight? Up to 40 million lose power ⚡ #whatif #space
+
+**YouTube description**
+In 1859 the biggest solar storm on record hit Earth: the Carrington Event. The sky glowed red and green as far south as the Caribbean, bright enough to read by, and telegraph wires sparked and set paper on fire.
+
+If it hit tonight:
+Every sign, screen and street light dies in seconds.
+Transformers blow. Traffic lights go dark. Phones lose service.
+The subway stops and everyone walks out of the tunnels.
+Satellites get dragged down and burn up.
+
+Lloyd's of London worked it out in 2013: 20 to 40 million Americans could lose power, for weeks or even 1 to 2 years, because the giant transformers that blow are built to order and take a year or more to replace.
+
+Your car would still run. Planes would still fly. But no heat, no fridge, and soon no tap water.
+
+How long could you last without power? 👇
+
+#whatif #solarstorm #space #science #simulation
+
+Sound (Nov 10, owner: "why does it get randomly louder at 0:05", "bro the scream"): the hit is ~10 dB over the street, the scream sits level with it right as the lights pop, the transformer and crash are softer. Loop flash shortened (0.7 s in, 0.2 s held, 0.6 s out).
+
+Cover: `week 7/solar-storm/out/solar-storm_v4_cover.png` (`node render.mjs --cover 27.4`: the red and green aurora filling the sky over the street, a satellite streaking down through it, a still-lit tower in the middle; "WHAT IF THE BIGGEST / solar storm / hit tonight?")
+
+What is drawn vs real (also in `src/timeline.js`): the numbers are Lloyd's of London + AER, "Solar storm risk to the North
+American electric grid" (2013): 20-40 million people in the U.S., outages from several weeks to 1-2 years; the counter runs to
+the top of that range and says "up to". Big transformers: DOE (2014) 5-16 months lead time before the shortage, 2-4 years now.
+Compressed for the story: a real grid collapses within a minute or two (Quebec 1989: 92 s), not one street in a second; the
+whole country's count is shown racing in ~26 s; satellites dragged down by a storm re-enter over days (Starlink lost 38 in a
+mild storm in 2022), not in the same minute; the pole transformer blowing and the sparks at the signs stand in for the surges
+(1859's telegraph wires really sparked). Cars keep running, planes keep flying, nobody is hurt by the storm itself.
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
