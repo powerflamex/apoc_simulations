@@ -473,6 +473,29 @@ Pictures: `research/pictures_2026-11-10/`. Each point was tested on every Short;
 - Ads: qualified Shorts views = engaged views (matches the Earn page on Nov 4). ~7.65M on Nov 9, ~200K a day: 10M around Nov 21 (Nov 19-24). Watch hours 1,613-1,720 of 4,000.
 - Studio shows exact curves only while its page is on screen: with the app window closed the video analytics pages load nothing (the content list and Earn page still do).
 
+## Nov 10 evening read (~8 PM ET; exact hourly views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | Now | YouTube's "typical" for its age | Stayed | Avg watched |
+|---|---|---|---|---|---|---|---|---|---|---|
+| star picker | Nov 7, 1 PM | 2,276 | 8,256 | 20,262 | 58,448 | 117,222 | 173.9K | | | 0:40 of 0:50 |
+| nuke | Nov 8, 11:23 AM | 3,143 | 6,745 | 12,468 | 29,626 | 37,459 | 44.1K (58 h) | 53.3K | 68.8% | 0:36.5 (74.4%) |
+| world freezes | Nov 9, 7 AM | 1,658 | 5,060 | 11,308 | 20,878 | 28,395 | 32.9K (37 h) | 44.3K | 68.3% | 0:36.4 (74.3%) |
+| sand grain | Nov 9, 1 PM | 2,183 | 6,463 | 12,086 | 19,023 | 32,300 | 35.2K (31 h) | 51.4K | 69.7% | 0:37.6 (76.8%) |
+| volcano | Nov 10, 8:40 AM | 973 | 3,786 | 7,570 | | | 12.8K (11 h) | 25.1K | | |
+| Sun black hole | Nov 10, 2 PM | 1,427 | 4,739 | | | | 9.8K (6 h) | 11.5K | | |
+Others now: tornado 85.5K, rogue planet 151.4K, Moon explodes 117.7K, fall through 93.4K, space station 90.8K, rod 44.6K, grow trillion 246.6K, trillion years 2.146M.
+Film "The Gardener at the End of the World | Animated Short Film" (6:00, posted Nov 10 9:52 AM with the bright opening, the shorter night and bigger text):
+114 views at 10 h, 1,100 impressions, 3% clicked, average view 0:45 (12.6%), -2 subs; 45% of views from the subscriptions feed, 17% channel pages, 7% notifications.
+- Five Shorts in a row since star picker are under YouTube's own "typical" line for the channel; volcano is at half of it.
+- Their hold is not the problem: stayed 68-70% and 36-38 s watched of 49 is as good as or better than the Nov 3-7 group. What is low is how many people it reaches.
+  Same finding as the Nov 10 analysis: inside the 49 s Shorts the curve does not decide the size.
+- Two calls of mine from the morning were wrong. At 12-18 h I wrote that world freezes had "nearly stopped" and sand grain "slowed sharply": both kept going
+  (28.4K and 32.3K at 24 h). And sand grain's near-white middle has not shown up as a loss: its average watch (37.6 s) is the best of the three. Wait for curves
+  before reading a middle, and don't read a first day before 24 h.
+- Observation, weak (a handful of videos): the best first days of the 49 s era (star picker, tornado, rogue planet, Moon explodes, black hole appears) all open
+  with a huge strange thing filling the sky over a crowd. Nuke, world freezes and sand grain open on a normal-looking place; volcano opens on a dark frame that
+  doesn't read at a glance and stays one brown-orange texture for the whole video. Rod (33K) is a counterexample: thing in the sky, but small on frame 0.
+- The film: the what-if subscribers who clicked left after ~45 s; YouTube has shown it to almost nobody else yet. Curve due ~Nov 12; no verdict from 114 views.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
