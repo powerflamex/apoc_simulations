@@ -1501,6 +1501,60 @@ Could you outrun it? 👇
 #dinosaurs #trex #whatif #shorts
 ```
 
+## Next Short. What if other planets replaced the Moon? — `week 7/planet-picker/out/planet-picker_v4_1080x1920_60fps_tiktok.mp4`
+
+47.9 s, loops. The sequel to star-picker (Nov 10 build), on the same Santa Monica beach, at night. Every planet sits
+exactly where the Moon is, at the Moon's distance (384,400 km), true to size, and lights the whole beach in its own colour.
+What you see, in order: 0:00 a packed beach at night, people right in front of you pointing up and filming, Jupiter over
+the sea filling most of the frame's width (stripes, the Great Red Spot), everything lit orange, the owner's scream in the
+first second; the title, the picker bar (Moon, Mars, Venus, Neptune, Saturn, Jupiter; Jupiter lit) and the counter
+"SIZE IN THE SKY · AT THE MOON'S DISTANCE: 40× THE MOON". 0:03 the cursor snaps back to the Moon: a small silver Moon, a
+blue moonlit beach, the pier's lights ("The Moon you know"). 0:05 Mars, 2×: the whole beach turns rust red; you lift the
+phone over the heads and swing right along the red beach to the lit pier and its Ferris wheel. 0:10 Venus, 3.5×: a
+blinding cream-white ball, hard shadows, a dusk-blue sky ("Night looks like dusk"), hands go up against the glare.
+0:15.5 Neptune, 14×: a deep blue ball with its dark spot, everything blue; you walk down through the crowd toward the
+water. 0:21 Saturn, 34×: its rings cross the whole frame ("Its rings: 75× wider than the Moon"), arms go up; 0:26 you
+turn right round to the faces behind you, lit gold in front of the hotels ("As bright as a cloudy day"), and back.
+0:31 the cursor lands on its last slot, Jupiter, 40×, and one line gives the hard number: "Its pull on our seas:
+26,000× the Moon's". The sea heaps up into a dome on the horizon under Jupiter and climbs the sand; everyone turns and
+runs past you while you back up the beach; a few keep filming. 0:41 a wall of water comes in from the dome, towers over
+the pier and the Ferris wheel, and at 0:46.3 hits the lens: white. The white clears onto Jupiter over the beach (frame 0).
+Numbers (`src/timeline.js`, all computed from each planet's real mean radius, mass and albedo): size in the sky =
+asin(radius / 384,400 km) against the Moon's (Mars 1.95×, Venus 3.48×, Neptune 14.2×, Saturn 33.7×, Jupiter 40.5×; the
+owner's "about 33×" for Saturn is the plain width ratio 33.5, the angle in the sky is 33.7, shown as 34×); brightness at
+full phase = (albedo / the Moon's 0.12) × (radius ratio)²: Mars 5.4×, Venus 70×, Neptune 740×, Saturn 4,700×, Jupiter
+7,300× (a full Moon is ~0.25 lux, so Venus gives ~17 lux, deep dusk, and Saturn ~1,200 lux, an overcast day); Saturn's
+rings (A ring's outer edge, 136,775 km from the centre) span 39°, 75.6 Moons; the tide a body raises goes as mass /
+distance³, so at the same distance it is the mass ratio: Jupiter 25,854 Moons.
+Honest notes: the planets' sizes, shapes and the rings' span are true; the night is exposed bright under every planet
+(the picture under Jupiter is not 7,000 times brighter than under the Moon, and each planet's colour on the beach is
+pushed); the planets are drawn 28° from full so one edge darkens and they read as balls; a real 26,000× tide would be
+kilometres high and Earth would be circling Jupiter: the video shows a ~1.3 km dome 16 km out and an 80 m wall, in 15 s.
+Music soundtrack (cosmic topic) with picker ticks, a click and a braam on every landing, the sea's roar and a deep hit
+at the end; the owner's scream at 0:00 and again as the sea starts up the beach.
+
+**YouTube title (95 chars, emoji counted as 2)**
+What if other planets replaced the Moon? Jupiter pulls the sea up into a wall 🪐 #space #whatif
+
+**YouTube description**
+Every few seconds a different planet takes the Moon's place over Santa Monica beach, at the Moon's distance, true to size.
+
+Jupiter (40x the Moon's width): about 7,000x brighter than a full Moon.
+The Moon: the night you know.
+Mars (2x): 5x brighter. The whole beach turns red.
+Venus (3.5x): 70x brighter. Night looks like dusk.
+Neptune (14x): 700x brighter. Everything you see turns blue.
+Saturn (34x): its rings stretch 75 Moons across the sky. As bright as a cloudy day.
+Jupiter again: its pull on our seas would be about 26,000 times the Moon's.
+
+(Sizes from each planet's real width at 384,400 km; brightness from how much sunlight each one reflects.)
+
+Which planet would you want in our sky? 👇
+
+#whatif #space #planets #moon #astronomy #shorts
+
+Cover: `week 7/planet-picker/out/planet-picker_v4_cover.png` (`node render.mjs --cover 23.5`: Saturn over the sea, its rings crossing the whole frame, the crowd's arms up in front of you, the pier and its Ferris wheel on the right; "WHAT IF / Saturn / replaced the Moon?"; the cover names whichever planet is in the sky at that moment)
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
