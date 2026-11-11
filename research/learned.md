@@ -613,3 +613,15 @@ Film "The Gardener at the End of the World | Animated Short Film" (6:00, posted 
   glow at 120 km, the suit torn apart at 80 km, one 1.5-s cutaway of two people on a hill seeing the shooting star,
   "That shooting star was you", white, loop. Cover at 33.5 s, copy in CAPTIONS.md. Not posted yet. fall-through-earth
   was still unposted when this was built, so "you falling" had no numbers to judge by.
+- Nov 10 fresh ideas (none made, none checked on YouTube yet; picked to open on something huge and strange over a crowd, change by 0:07, stay with
+  "you", and have a finish line). My build order: 1, 2, 3 (a week after star picker), 4, 5.
+  1. The oceans drain away: a crowded beach, the sea already pulling back and boats tipping on frame 0; sea level counter racing to -11,000 m; you walk
+     down the seabed (first wreck by 0:07, stranded whales, the Titanic, an underwater mountain range) to the bottom of the Mariana Trench.
+  2. The biggest solar storm ever hits tonight (real: 1859): auroras over a busy city street on frame 0; street lights blow and phones die at 0:05;
+     transformers, a plane going dark, satellites falling like shooting stars; a "homes without power" counter to the whole country.
+  3. Other planets replace the Moon: star picker's format at night over a packed beach (Jupiter filling half the sky on frame 0, then Mars, Venus, Saturn's
+     rings, Neptune, Jupiter's pull dragging the sea up the beach). A near-twin of star picker: post at least a week apart.
+  4. You shrink to the size of an atom: grow-trillion in reverse, you always in frame (shoe, cat, ant the size of a bus, dust mites, a cell, DNA, atoms);
+     uneven steps that name what you are as small as, not 10x every 3 s.
+  5. A marble-size black hole appears in front of you (that size weighs as much as the Earth): a black dot over a crowded square bending the street on
+     frame 0, cars sliding in at 0:05, the Earth gone into something you could hold. Overlaps "black hole appears": space them apart.
