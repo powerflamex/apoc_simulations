@@ -10,12 +10,12 @@ import { ORIGIN, dieAt } from './timeline.js';
 export const CU = {
   uTime: { value: 0 }, uFront: { value: -1 }, uOrigin: { value: new THREE.Vector2(ORIGIN.x, ORIGIN.z) }, uFlick: { value: 1 },
   uSkyHi: { value: new THREE.Color(0.5, 0.08, 0.12) }, uSkyLo: { value: new THREE.Color(0.1, 0.6, 0.25) }, uAur: { value: 1 },
-  uHaze: { value: new THREE.Color(0.03, 0.06, 0.05) }, uHazeD: { value: 2600 }, uStreetK: { value: 1 },
+  uHaze: { value: new THREE.Color(0.03, 0.06, 0.05) }, uHazeD: { value: 2600 }, uStreetK: { value: 1 }, uCandle: { value: 0 },
 };
 
 const PARS = /* glsl */ `
 uniform float uTime; uniform float uFront; uniform vec2 uOrigin; uniform float uFlick; uniform vec3 uSkyHi; uniform vec3 uSkyLo; uniform float uAur;
-uniform vec3 uHaze; uniform float uHazeD; uniform float uStreetK;
+uniform vec3 uHaze; uniform float uHazeD; uniform float uStreetK; uniform float uCandle;
 varying vec3 vLoc; varying vec3 vSc; varying vec3 vWP; varying vec3 vWN; varying vec4 vS; varying vec3 vON; varying vec3 vCol; varying vec2 vIC;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float rect(vec2 f, vec2 a, vec2 b, vec2 w) { vec2 s = smoothstep(a - w, a + w, f) * (1.0 - smoothstep(b - w, b + w, f)); return s.x * s.y; }
@@ -61,7 +61,9 @@ const LOOK = /* glsl */ `
       vec3 col = base; float win = 0.0;
       // who's home: about half the windows lit, warm or office white; a far building's lit share is an even tone
       float lit = step(0.58, h21(id * 1.31 + vec2(seed * 0.71, face)));
-      float gen = step(0.975, h21(id * 2.71 + vec2(seed * 0.33, face)));   // on a generator: stays on, dim
+      // candles: after the blackout people light them, one window here and there, more as time goes on (near buildings only)
+      float cnd = step(1.0 - 0.2 * uCandle * (0.4 + 0.6 * h21(vec2(seed, 9.0))), h21(id * 2.71 + vec2(seed * 0.33, face))) * smoothstep(260.0, 60.0, length(vWP - cameraPosition));
+      float flk = 0.75 + 0.25 * sin(uTime * 9.0 + r * 50.0) * sin(uTime * 5.3 + r * 23.0);
       vec3 room = mix(vec3(1.0, 0.72, 0.42), vec3(0.86, 0.92, 1.0), step(0.7, h21(id + vec2(seed, 2.0))));
       room *= 0.6 + 0.7 * h21(id * 2.1 + seed);
       if (kind > 0.5 && kind < 1.5 || kind > 3.5) {
@@ -91,7 +93,9 @@ const LOOK = /* glsl */ `
       float rows = step(g0, y) * ok;
       float wv = mix(win, 0.8, far) * rows;
       totalEmissiveRadiance += room * mix(lit, 0.42, far) * wv * power * mix(0.55, 0.9, far);
-      totalEmissiveRadiance += vec3(0.75, 0.82, 0.9) * mix(gen, 0.025, far) * wv * (1.0 - power) * 0.35;
+      // a candle: a small warm glow low in the window
+      float spot = exp(-pow((f.x - 0.5) / 0.3, 2.0) - pow((f.y - 0.38) / 0.32, 2.0));
+      totalEmissiveRadiance += vec3(1.0, 0.55, 0.2) * cnd * mix(spot, 0.4, far) * flk * rows * (1.0 - power) * 3.0;
       // street level: shop fronts (lit glass, a fascia band), the light they and the lamps throw on the walls
       if (y < g0 && kind < 2.5) {
         float nb = max(1.0, floor(W / 5.5));
@@ -339,20 +343,37 @@ export function makeCity(scene, ctx) {
     }
   }
 
-  // ---- the subway: a station doorway in the shop fronts, black inside, a sign over it, two globes beside it ----
+  // ---- the subway: an open stairwell on the sidewalk, its mouth toward you; see-through railings on three sides, steps
+  //      going down northward to a black station door at the bottom; a sign post with two globes at the mouth ----
   {
-    const S = SUBWAY, W = S.z0 - S.z1, H = 3.0;
-    const add = (g, mat, x, y, z) => { const mm = new THREE.Mesh(g, mat); mm.position.set(x, y, z); mm.receiveShadow = true; scene.add(mm); return mm; };
+    const S = SUBWAY, x0 = S.x - S.w / 2, x1 = S.x + S.w / 2, L = S.z0 - S.z1;
+    const rail = ctx.plainMat(0x1f4a2a, 0.5, { metalness: 0.4 });
+    const add = (g, mat, x, y, z) => { const mm = new THREE.Mesh(g, mat); mm.position.set(x, y, z); mm.castShadow = true; mm.receiveShadow = true; scene.add(mm); return mm; };
+    for (const x of [x0 - 0.05, x1 + 0.05]) {
+      add(new THREE.BoxGeometry(0.07, 0.07, L), rail, x, 1.0, (S.z0 + S.z1) / 2);
+      add(new THREE.BoxGeometry(0.05, 0.05, L), rail, x, 0.5, (S.z0 + S.z1) / 2);
+      for (let z = S.z1; z <= S.z0 + 0.01; z += L / 5) add(new THREE.BoxGeometry(0.06, 1.0, 0.06), rail, x, 0.5, z);
+      add(new THREE.BoxGeometry(0.14, 0.12, L), ctx.plainMat(0x4a4a46, 0.8), x, 0.06, (S.z0 + S.z1) / 2);
+    }
+    add(new THREE.BoxGeometry(S.w + 0.2, 0.07, 0.07), rail, S.x, 1.0, S.z1 - 0.05);
+    add(new THREE.BoxGeometry(S.w + 0.2, 0.05, 0.05), rail, S.x, 0.5, S.z1 - 0.05);
+    const wall = ctx.plainMat(0x4a4a46, 0.85), step = ctx.plainMat(0x6a6864, 0.8);
+    add(new THREE.BoxGeometry(0.1, S.D + 1, L), wall, x0 + 0.02, -(S.D + 1) / 2, (S.z0 + S.z1) / 2);
+    add(new THREE.BoxGeometry(0.1, S.D + 1, L), wall, x1 - 0.02, -(S.D + 1) / 2, (S.z0 + S.z1) / 2);
+    add(new THREE.BoxGeometry(S.w, S.D + 1, 0.1), wall, S.x, -(S.D + 1) / 2, S.z1 - 0.02);
     const black = new THREE.MeshBasicMaterial({ color: 0x010101 });
-    add(new THREE.PlaneGeometry(W, H).rotateY(-Math.PI / 2), black, S.x - 0.02, H / 2, S.zc);
-    const frame = ctx.plainMat(0x2a2d30, 0.5, { metalness: 0.4 });
-    for (const z of [S.z0 + 0.12, S.z1 - 0.12]) add(new THREE.BoxGeometry(0.3, H + 0.3, 0.24), frame, S.x - 0.12, (H + 0.3) / 2, z);
-    add(new THREE.BoxGeometry(0.3, 0.3, W + 0.5), frame, S.x - 0.12, H + 0.15, S.zc);
+    add(new THREE.PlaneGeometry(S.w - 0.25, 2.3), black, S.x, -S.D + 1.15, S.z1 + 0.04);
+    const NS = 20;
+    for (let k = 0; k < NS; k++) {
+      const Ls = L - 1.2, z = S.z0 - (k + 0.5) * (Ls / NS), y = -(k + 0.5) * (S.D / NS) - 0.3;
+      add(new THREE.BoxGeometry(S.w - 0.1, 0.6, Ls / NS + 0.02), step, S.x, y, z);
+    }
+    add(new THREE.BoxGeometry(S.w - 0.1, 0.2, 1.2), step, S.x, -S.D - 0.1 + 0.0, S.z1 + 0.6);
     const sub = makeSubwayTex();
     const subMat = new THREE.MeshBasicMaterial({ map: sub, toneMapped: true });
-    var sg = add(new THREE.PlaneGeometry(3.2, 0.8).rotateY(-Math.PI / 2), subMat, S.x - 0.32, H + 0.75, S.zc);
-    add(new THREE.BoxGeometry(0.2, 0.9, 3.35), ctx.plainMat(0x15171a, 0.6), S.x - 0.2, H + 0.75, S.zc);
-    for (const z of [S.z0 + 0.45, S.z1 - 0.45]) add(new THREE.BoxGeometry(0.08, 2.4, 0.08), frame, S.x - 0.7, 1.2, z);
+    var sg = add(new THREE.PlaneGeometry(1.9, 0.48), subMat, x1 + 0.35, 2.55, S.z0 + 0.12);
+    add(new THREE.BoxGeometry(2.0, 0.56, 0.1), ctx.plainMat(0x15171a, 0.6), x1 + 0.35, 2.55, S.z0 + 0.05);
+    for (const x of [x0 - 0.05, x1 + 0.05]) add(new THREE.BoxGeometry(0.1, 2.4, 0.1), rail, x, 1.2, S.z0 + 0.1);
     return { mesh, subSign: sg, subMat };
   }
 }

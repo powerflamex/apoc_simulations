@@ -94,10 +94,18 @@ function simLane(li, R) {
         const gap = as - a.len / 2 - (c.cur + c.len / 2) - 2.2;
         lim = Math.min(lim, Math.max(0, gap / 1.1));
       }
+      // the outer northbound lane stops short of the crossing too from 0:27 (people walk out to the crashed car)
+      if (li === 3 && v > 27) {
+        const stopS = sOf(CROSS[1] + 4.3) - c.len / 2;
+        if (c.held3 === undefined) c.held3 = c.cur <= stopS - 3;
+        if (c.held3) lim = Math.min(lim, Math.max(0, (stopS - c.cur) * 1.2));
+        else if (c.cur < stopS + 40) lim = Math.max(lim, 5.5);
+      }
       const acc = clamp((lim - c.sp) / 0.5, -7, 2.4);
       c.sp = Math.max(0, c.sp + acc * DT);
       c.cur += c.sp * DT;
       if (c.held) c.cur = Math.min(c.cur, sOf(CROSS[0] - 4.3) - c.len / 2);
+      if (c.held3) c.cur = Math.min(c.cur, sOf(CROSS[1] + 4.3) - c.len / 2);
       c.s[k] = c.cur;
     }
     for (let i = live.length - 1; i >= 0; i--) { const c = live[i]; const s = c.hero ? c.s[k] : c.cur; if (s > L) live.splice(i, 1); }

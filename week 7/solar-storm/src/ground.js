@@ -3,7 +3,7 @@
 // "spots" set each frame: the lamps' pools (warm, while the power's on), headlight cones, phone torches. The asphalt has
 // a slight sheen that catches the aurora.
 import * as THREE from 'three';
-import { CURB, FX, CROSS } from './layout.js';
+import { CURB, FX, CROSS, SUBWAY } from './layout.js';
 
 export const NSPOT = 48;
 export const GU = {
@@ -35,7 +35,9 @@ export function makeGround(scene) {
         uniform float uTime; uniform vec3 uSkyHi; uniform vec3 uSkyLo; uniform float uAur; uniform vec3 uHaze; uniform float uHazeD;
         uniform vec4 uSpotP[${NSPOT}]; uniform vec4 uSpotC[${NSPOT}];
         ${NOISE}`)
-            .replace('#include <map_fragment>', `#include <map_fragment>
+            .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        if (vGW.x > ${(SUBWAY.x - SUBWAY.w / 2).toFixed(2)} && vGW.x < ${(SUBWAY.x + SUBWAY.w / 2).toFixed(2)} && vGW.z < ${SUBWAY.z0.toFixed(2)} && vGW.z > ${SUBWAY.z1.toFixed(2)}) discard;`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
         vec2 P = vGW.xz;
         float aw = max(fwidth(P.x), fwidth(P.y));
         float bx = abs(P.x);

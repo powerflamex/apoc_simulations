@@ -9,7 +9,7 @@
 // the sheets converge into a corona the way real auroral rays do).
 import * as THREE from 'three';
 
-export const NSAT = 6;
+export const NSAT = 8;
 
 export function makeSky() {
   const uniforms = {
@@ -87,23 +87,28 @@ export function makeSky() {
           // stars, faint behind it all
           vec2 sc = d.xz / (yy + 0.4) * 340.0;
           c += vec3(0.8, 0.85, 1.0) * step(0.997, h12(floor(sc))) * h12(floor(sc) + 7.0) * 0.35 * smoothstep(0.1, 0.4, y);
-          // satellites burning up: a white-yellow head breaking up, an orange trail
+          // satellites burning up: big slow streaks, a white-hot head breaking into pieces, a long orange trail
           for (int k = 0; k < ${NSAT}; k++) {
             vec4 A = uSatA[k], B = uSatB[k];
             float u = (t - A.w) / B.w;
-            if (u < 0.0 || u > 1.15) continue;
+            if (u < 0.0 || u > 1.2) continue;
             float uh = min(u, 1.0);
             vec3 head = normalize(mix(A.xyz, B.xyz, uh));
-            vec3 tail = normalize(mix(A.xyz, B.xyz, max(uh - 0.32, 0.0)));
+            vec3 tail = normalize(mix(A.xyz, B.xyz, max(uh - 0.5, 0.0)));
             vec3 ab = head - tail; float L = max(length(ab), 1e-5);
             float pr = clamp(dot(d - tail, ab) / (L * L), 0.0, 1.0);
             float dist = length(d - (tail + ab * pr));
-            float fade = smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.92, 1.15, u));
-            float trail = exp(-dist * dist / 3.0e-5) * pr * (0.6 + 0.4 * sin(pr * 60.0 - t * 30.0));
-            float hd = exp(-pow(length(d - head), 2.0) / 8.0e-6);
-            vec3 head2 = normalize(mix(A.xyz, B.xyz, max(uh - 0.04, 0.0)) + vec3(0.0, -0.004, 0.003) * u);
-            hd += 0.6 * exp(-pow(length(d - head2), 2.0) / 6e-7) * step(0.35, u);
-            c += (vec3(1.6, 0.75, 0.25) * trail * 22.0 + vec3(5.0, 4.4, 3.2) * hd * 25.0 + vec3(1.0, 0.55, 0.25) * exp(-pow(length(d - head), 2.0) / 2.5e-4) * 1.6) * fade;
+            float fade = smoothstep(0.0, 0.06, u) * (1.0 - smoothstep(0.9, 1.2, u));
+            float flick = 0.7 + 0.3 * sin(pr * 90.0 - t * 22.0);
+            float core = exp(-dist * dist / 1.4e-5), glow = exp(-dist * dist / 1.6e-4);
+            c += (vec3(1.3, 1.05, 0.7) * core * 6.0 + vec3(1.6, 0.5, 0.12) * glow * 2.0) * pr * flick * fade;
+            vec3 side = normalize(cross(A.xyz, B.xyz));
+            for (int j = 0; j < 3; j++) {
+              float fj = float(j);
+              vec3 hj = normalize(mix(A.xyz, B.xyz, max(uh - 0.03 * fj * (0.4 + u), 0.0)) + side * (fj - 1.0) * 0.003 * u * step(0.5, fj));
+              float dj = dot(d - hj, d - hj);
+              c += (vec3(9.0, 8.0, 6.5) * exp(-dj / 2.0e-5) + vec3(2.6, 1.1, 0.35) * exp(-dj / 5.0e-4) * 0.9) * fade * (1.0 - 0.3 * fj);
+            }
           }
           c = mix(c, vec3(1.0, 0.98, 0.95) * 6.0, uWhiteSky);
         } else {

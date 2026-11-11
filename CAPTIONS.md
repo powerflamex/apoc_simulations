@@ -1628,16 +1628,16 @@ How far down would you walk? 👇
 
 47.0 s, loops. The 1859 solar storm (the Carrington Event) hits today's world. A made-up U.S. downtown avenue at night;
 you walk up the sidewalk with the crowd, filming. Frame 0: the title, the counter racing (STORM HITS IN 0:05.00, PEOPLE
-WITHOUT POWER: 0), the whole sky already rippling red and green over lit signs and screens, people right ahead of you
-with their phones up. 0:02.7 the street lights flicker; 0:05 the hit: every sign, screen and street lamp pops and dies in
-a wave running away up the street, sparks, the scream; the street is now lit only by the aurora and the headlights and
-the counter starts racing to its finish line. 0:07.5 the transformer on the pole just ahead buzzes and blows in a
-blue-white flash and a rain of sparks; 0:08 arcs run off along the wires from pole to pole. 0:12 every traffic light is
-dead; you hold your phone up over the crowd and at 0:14.2 a car pulls out into the dead crossing and hits a car's side.
-0:17 your phone: NO SERVICE. 0:22 people walk out of the black subway doorway right beside you with their phone torches.
-0:26 satellites burn up across the aurora. 0:29 the skyline down the avenue goes dark block by block; 0:31 the counter
-hits 40,000,000. Phone torches all along the street; the facts about months without power and the transformers.
-0:42 the aurora flares until the whole sky is white (a short flash at 0:46.2); the white clears onto frame 0 (the loop).
+WITHOUT POWER: 0), the whole sky already rippling red and green over lit signs, screens and skyscrapers, people right
+ahead of you with their phones up. 0:02.7 the street lights flicker; 0:05 the hit: every sign, screen and street lamp
+pops in a wave running up the street, sparks, the scream, and within 1.6 s every tower down the avenue goes dark one
+after another; from then on only the aurora, headlights and phones light anything. 0:07.5 the transformer on the pole
+ahead blows; arcs run along the wires. 0:14.2 a car pulls into the dead crossing and hits a car's side (filmed with your
+phone held up over the crowd). 0:17 your phone: NO SERVICE. 0:22 people climb the subway stairs toward you out of the
+black station door, lit by their phones. 0:28 satellites burn up across the aurora: big slow streaks, seven at once,
+people pointing. 0:32 phone torches all along the street. 0:36 candles appear in the windows and people stand round the
+crashed car's light and radio. 0:40 the counter lands on 40,000,000. 0:42 the aurora flares to white (a short flash at
+0:46.2) and clears onto frame 0 (the loop).
 
 **YouTube title (95 chars, emoji counted as 2)**
 What if the biggest solar storm ever hit tonight? Up to 40 million lose power ⚡ #whatif #space
@@ -1648,8 +1648,9 @@ In 1859 the biggest solar storm on record hit Earth: the Carrington Event. The s
 If it hit tonight:
 Every sign, screen and street light dies in seconds.
 Transformers blow. Traffic lights go dark. Phones lose service.
-The subway stops and everyone walks out of the tunnels.
+The subway stops and everyone walks up out of the tunnels.
 Satellites get dragged down and burn up.
+People light candles and huddle round car radios for news.
 
 Lloyd's of London worked it out in 2013: 20 to 40 million Americans could lose power, for weeks or even 1 to 2 years, because the giant transformers that blow are built to order and take a year or more to replace.
 
@@ -1659,9 +1660,11 @@ How long could you last without power? 👇
 
 #whatif #solarstorm #space #science #simulation
 
+Nov 10 rework (owner, after checking frames): the whole skyline goes dark at 0:05, not at 0:30; the satellites got the 0:28 slot and are big and visible; the subway shows people climbing toward you; the counter lands at 0:40 with candles and the car radio at 0:36.
+
 Sound (Nov 10, owner: "why does it get randomly louder at 0:05", "bro the scream"): the hit is ~10 dB over the street, the scream sits level with it right as the lights pop, the transformer and crash are softer. Loop flash shortened (0.7 s in, 0.2 s held, 0.6 s out).
 
-Cover: `week 7/solar-storm/out/solar-storm_v4_cover.png` (`node render.mjs --cover 27.4`: the red and green aurora filling the sky over the street, a satellite streaking down through it, a still-lit tower in the middle; "WHAT IF THE BIGGEST / solar storm / hit tonight?")
+Cover: `week 7/solar-storm/out/solar-storm_v4_cover.png` (`node render.mjs --cover 30.2`: several burning satellites streaking across the red and green aurora over the dark towers, the crowd and headlights below; "WHAT IF THE BIGGEST / solar storm / hit tonight?")
 
 What is drawn vs real (also in `src/timeline.js`): the numbers are Lloyd's of London + AER, "Solar storm risk to the North
 American electric grid" (2013): 20-40 million people in the U.S., outages from several weeks to 1-2 years; the counter runs to

@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CAM_X, camZ, CURB, FX, CROSS, SUBWAY, POLES, SIGNALS } from './layout.js';
 import { rng, clamp, smooth, wobble, lerp } from './util.js';
-import { V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_TORCH, V_FLARE, ORIGIN } from './timeline.js';
+import { V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_TORCH, V_FLARE, ORIGIN } from './timeline.js';
 import { XF } from './power.js';
 
 const SHIRTS = [0x1d2230, 0xe8e2d6, 0x3a3328, 0x6b5a44, 0xc8d4e8, 0x7a2a2a, 0x24384a, 0xf0c060, 0x2f3d2c, 0xb8b0a0, 0x15151a, 0x8a5a8a, 0xd05030, 0x3a4a6a, 0xffffff, 0x60a0d0, 0xe86a8a, 0x40b0b0];
@@ -39,7 +39,8 @@ function posOf(p, v, out = {}) {
   return out;
 }
 // height of the ground under someone (the subway stairs go down northward from its south end)
-const yAt = () => 0;
+const inStair = (x, z) => x > SUBWAY.x - SUBWAY.w / 2 && x < SUBWAY.x + SUBWAY.w / 2 && z < SUBWAY.z0 && z > SUBWAY.z1;
+const yAt = (x, z) => (inStair(x, z) ? -SUBWAY.D * Math.min(1, (SUBWAY.z0 - z) / (SUBWAY.z0 - SUBWAY.z1 - 1.2)) : 0);
 
 export const PEOPLE = [];
 {
@@ -59,17 +60,19 @@ export const PEOPLE = [];
       if (p.sub && v < p.t0) { xs[k] = NaN; zs[k] = NaN; continue; }      // (not there yet: still down in the station)
       const bx = Math.abs(a.x);
       // sidewalks only (except the subway people on their stairs, and the crossing of the cross street on the east side)
-      if (bx < CURB + 0.5 || (bx > FX - 0.4 && !(p.sub && a.z < SUBWAY.z0 - 0.4 && a.z > SUBWAY.z1 + 0.4))) return false;
-      if (a.z < CROSS[1] + 0.5 && a.z > CROSS[0] - 0.5 && !(a.x > CURB + 1.2 && a.x < FX - 1.2)) return false;
-      // the doorway: only the subway people come through it; nobody else stands in front of it
-      const inDoor = a.z < SUBWAY.z0 + 0.8 && a.z > SUBWAY.z1 - 0.8;
-      if (!p.sub && inDoor && a.x > FX - 2.6) return false;
+      if (!p.gather && (bx < CURB + 0.5 || bx > FX - 0.4)) return false;
+      if (!p.gather && a.z < CROSS[1] + 0.5 && a.z > CROSS[0] - 0.5 && !(a.x > CURB + 1.2 && a.x < FX - 1.2)) return false;
+      // the stairwell and its railings: only the subway people, and only inside it
+      const nearSub = a.x > SUBWAY.x - SUBWAY.w / 2 - 0.45 && a.x < SUBWAY.x + SUBWAY.w / 2 + 0.45 && a.z < SUBWAY.z0 + 0.25 && a.z > SUBWAY.z1 - 0.45;
+      if (nearSub && !(p.sub && a.x > SUBWAY.x - SUBWAY.w / 2 + 0.3 && a.x < SUBWAY.x + SUBWAY.w / 2 - 0.3 && a.z > SUBWAY.z1 + 0.2)) return false;
       // you: keep clear, more so in front of the lens
       const cz = camZ(v), dz = a.z - cz, dx = a.x - CAM_X;
       if (dx * dx + dz * dz < (dz < 0 ? 1.7 : 1.0) ** 2) return false;
       for (const o of obst) if ((a.x - o.x) ** 2 + (a.z - o.z) ** 2 < o.r * o.r) return false;
       // the view from you down into the subway stays clear while people come up (0:21.5-0:25.5)
-      if (v > 21.3 && v < 25.8 && !p.sub) { const ex = SUBWAY.x - 1.2 - CAM_X, ez = SUBWAY.zc - cz, L2 = ex * ex + ez * ez, u = clamp((dx * ex + dz * ez) / L2, 0, 1); if ((dx - u * ex) ** 2 + (dz - u * ez) ** 2 < 0.8 * 0.8) return false; }
+      if (v > 21.3 && v < 27.0 && !p.sub) { const ex = SUBWAY.x - CAM_X, ez = SUBWAY.z0 - cz, L2 = ex * ex + ez * ez, u = clamp((dx * ex + dz * ez) / L2, 0, 1); if ((dx - u * ex) ** 2 + (dz - u * ez) ** 2 < 0.8 * 0.8) return false; }
+      // the view from you to the crashed car stays clear while people gather round it (0:35-0:40.5)
+      if (v > 34.8 && v < 40.6 && !p.gather) { const ex = 2.6 - CAM_X, ez = CROSS[1] - 3.55 - cz, L2 = ex * ex + ez * ez, u = clamp((dx * ex + dz * ez) / L2, 0, 1); if (u * Math.sqrt(L2) > 0.8 && (dx - u * ex) ** 2 + (dz - u * ez) ** 2 < 0.75 * 0.75) return false; }
       // the view from you to the crossing stays clear while you watch the cars (0:11.5-0:15.7)
       if (v > 11.4 && v < 15.8) { const ex = 0.5 - CAM_X, ez = CROSS[1] - 3.2 - cz, L2 = ex * ex + ez * ez, u = clamp((dx * ex + dz * ez) / L2, 0, 1); if (u * Math.sqrt(L2) > 1.2 && (dx - u * ex) ** 2 + (dz - u * ez) ** 2 < 0.7 * 0.7) return false; }
       for (const t of TR) { const ex = a.x - t.xs[k], ez = a.z - t.zs[k]; if (ex * ex + ez * ez < 0.36) return false; }
@@ -89,11 +92,22 @@ export const PEOPLE = [];
     const z0 = camZ(-3) - dz;
     add(walker([[x, z0], [x, -70]], 0.33, -3, { act, ahead: true }));
   }
-  // ---- out of the subway: up the stairs from below, then off down the sidewalk ----
-  // (two files, one up each side of the stairs, a person every ~1 s in each; then south along the shop fronts)
-  for (let k = 0; k < 26; k++) {
-    const col = k % 2, z = SUBWAY.zc - 0.55 + 1.1 * col, out = col ? FX - 0.7 : FX - 1.45;
-    add(walker([[FX + 1.4, z], [out, z], [out, SUBWAY.z0 + 1.6], [out, 40]], 1.05, V_SUBWAY - 1.2 + k * 0.5 + R() * 0.15, { act: "none", sub: true }));
+  // ---- out of the subway: up the stairs toward you from the black door at the bottom, phones lit, then off down the
+  //      sidewalk (one file up each side of the stairs, a person every ~1.1 s in each) ----
+  for (let k = 0; k < 24; k++) {
+    const col = k % 2, x = SUBWAY.x + (col ? 0.42 : -0.42);
+    const lane = col ? 13.3 : 12.65;
+    const pts = [[x, SUBWAY.z1 + 0.35], [x, SUBWAY.z0 + 0.6], [lane, SUBWAY.z0 + 1.6 + 0.6 * (1 - col)], [lane, 40]];
+    add(walker(pts, 0.95, V_SUBWAY - 3.4 + k * 0.55 + R() * 0.1, { act: "none", sub: true }));
+  }
+  // ---- 0:32-0:36 a few people walk out from the far corner to the crashed car in the crossing and stand round its light (and its radio) ----
+  {
+    const NX = 2.5, NZ = CROSS[1] - 3.2 - 0.35;
+    const spots = [[4.7, NZ + 1.0], [4.9, NZ - 1.1], [3.5, NZ + 3.3], [5.5, NZ + 2.6], [5.6, NZ - 2.8], [4.1, NZ - 3.4], [1.0, NZ + 3.4]];
+    spots.forEach(([sx, sz], k) => {
+      const x0 = 8.4 + (k % 4) * 1.1, z0 = CROSS[0] - 0.8 - Math.floor(k / 4) * 0.9;
+      add(walker([[x0, z0], [sx, sz]], 1.0, 31.8 + k * 0.5, { act: "none", gather: true, face: [NX, NZ] }));
+    });
   }
   // ---- standing and looking up, both sidewalks ----
   for (let k = 0; k < 3000 && PEOPLE.length < 120; k++) {
@@ -127,9 +141,9 @@ export const PEOPLE = [];
     p.s = R() < 0.06 ? 0.72 : 0.92 + R() * 0.16;
     p.ph = R() * 10;
     p.tHit = V_HIT + Math.hypot(p.pts[0][0] - ORIGIN.x, p.pts[0][1] - ORIGIN.z) / 140 + 0.12 + R() * 0.25;
-    p.torch = R() < 0.55 || p.sub;
+    p.torch = R() < 0.55 || p.sub || p.gather;
     p.torchTurn = (R() - 0.5) * 2 * Math.PI;
-    p.tTorch = p.sub ? p.t0 - 0.5 : V_TORCH + R() * 5;
+    p.tTorch = p.sub ? p.t0 - 0.5 : p.gather ? p.t0 + 0.5 : V_TORCH + R() * 5;
     p.tPhone = V_PHONE - 0.3 + R() * 1.5;
     p.lookAround = R();
   });
@@ -183,6 +197,12 @@ export function makePeople(scene) {
         // torches: the phone held out, pointing ahead at the ground
         const tor = p.torch ? smooth(p.tTorch, p.tTorch + 0.5, v) * (1 - smooth(V_FLARE + 0.5, V_FLARE + 1.5, v)) : 0;
         if (tor > 0) { armR = lerp(armR, 0.85, tor); look = lerp(look, 0.1, tor); if (!a.moving) yaw += p.torchTurn * smooth(p.tTorch, p.tTorch + 1.5, v); }
+        // the satellites: people point up at them
+        {
+          const sp = !a.moving && !p.gather && p.lookAround > 0.2 ? smooth(V_SATS + 0.3 + (p.ph % 1) * 0.8, V_SATS + 0.9 + (p.ph % 1) * 0.8, v) * (1 - smooth(V_SATS + 5.0, V_SATS + 5.8, v)) : 0;
+          if (sp > 0) { armL = lerp(armL, 1.5, sp); look = lerp(look, 0.85, sp); yaw = lerp(yaw, Math.PI + 0.35, sp * 0.6); }
+        }
+        if (p.face && !a.moving && v > p.t0) yaw = lerp(yaw, Math.atan2(p.face[0] - a.x, p.face[1] - a.z), smooth(p.t0, p.t0 + 6, v));
         // the flare: everyone looks up, a hand up against the light
         const up = smooth(V_FLARE + 0.3 + (p.ph % 1) * 0.8, V_FLARE + 1.2 + (p.ph % 1) * 0.8, v);
         if (up > 0) { look = lerp(look, 0.75, up); armL = lerp(armL, 1.25, up * (act === 'phone' ? 0 : 1)); armR = lerp(armR, 1.0, up); }
@@ -195,7 +215,7 @@ export function makePeople(scene) {
           if (phone && tor < 0.5) glows.add(hx, hy + 0.12 * (1 - alert), hz, 0.13, 1.4 + 0.8 * alert, 1.6 + 0.4 * alert, 2.2 - 0.4 * alert);
           if (tor > 0) {
             glows.add(hx + Math.sin(yaw) * 0.05, hy, hz + Math.cos(yaw) * 0.05, 0.22 * tor, 6 * tor, 6 * tor, 5.6 * tor);
-            torches.push([hx, hz, yaw, tor, Math.hypot(hx - camPos.x, hz - camPos.z)]);
+            torches.push([hx, hz, yaw, tor, Math.hypot(hx - camPos.x, hz - camPos.z), hy, p.sub && inStair(a.x, a.z)]);
           }
         }
       }

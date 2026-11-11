@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_FLICK, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_SKYLINE, V_FULL, V_FLARE, V_WHITE, aurora } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_FLICK, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FULL, V_FLARE, V_WHITE, aurora } from './src/timeline.js';
 import { FLASHES, RUNNERS } from './src/power.js';
 import { CAM_X } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -21,7 +21,7 @@ import { rng, smooth, clamp } from './src/util.js';
 const SR = 48000;
 const TAU = Math.PI * 2;
 const TARGET_OPENING_DB = -25;
-const SCREAM_AT = V_HIT + 0.02, SCREAM_LEN = 1.7, SCREAM_DB = -14.5, GASP_AT = V_XF + 0.25, GASP_DB = -15, OMG_AT = V_SKYLINE + 0.9, OMG_DB = -17;
+const SCREAM_AT = V_HIT + 0.02, SCREAM_LEN = 1.7, SCREAM_DB = -14.5, GASP_AT = V_XF + 0.25, GASP_DB = -15, OMG_AT = V_SATS + 1.3, OMG_DB = -17;
 
 class OnePole {
   constructor(fc) { this.y = 0; this.set(fc); }
@@ -101,10 +101,10 @@ export function makeSoundtrack(outFile) {
   // footsteps out of the subway
   const STEPS = [];
   for (let k = 0; k < 90; k++) STEPS.push({ t: V_SUBWAY - 0.6 + k * 0.11 + R0() * 0.05, g: 0.05 + R0() * 0.05, pan: 0.45 + R0() * 0.3, f: new SVF(), fr: 700 + R0() * 500 });
-  const HITS = BEATS.map((t, n) => ({ t, k: [0.42, 0.3, 0.4, 0.3, 0.35, 0.4, 0.6, 0.55][n] ?? 0.4, root: [41, 46, 49, 52, 49, 46, 39, 44][n] ?? 46 }));
+  const HITS = BEATS.map((t, n) => ({ t, k: [0.42, 0.3, 0.4, 0.3, 0.35, 0.4, 0.28, 0.55][n] ?? 0.4, root: [41, 46, 49, 52, 49, 46, 39, 44][n] ?? 46 }));
 
   const trafLP = new OnePole(160), crowdF = [new SVF(), new SVF(), new SVF()], crowdE = [new OnePole(1.5), new OnePole(2.2), new OnePole(1.1)];
-  const crE = new OnePole(70), humF = new OnePole(900), whineF = new SVF(), xfBuzzF = new OnePole(1500), sizF = [new SVF(), new SVF()], arcF = new SVF(), rumbleF = new OnePole(90), satF = new SVF();
+  const radF = new SVF(), crE = new OnePole(70), humF = new OnePole(900), whineF = new SVF(), xfBuzzF = new OnePole(1500), sizF = [new SVF(), new SVF()], arcF = new SVF(), rumbleF = new OnePole(90), satF = new SVF();
   const braamLP = new SVF(), subLP = new OnePole(80), droneLP = [new OnePole(380), new OnePole(380)], riserF = new SVF(), shimLP = new OnePole(5000);
   const revL = new Reverb(41), revR = new Reverb(42);
   const ph = new Float64Array(64);
@@ -127,7 +127,7 @@ export function makeSoundtrack(outFile) {
     {
       const tr = 0.14 * (1 - 0.45 * smooth(V_HIT, V_HIT + 4, v));
       l += trafLP.run(brownL) * tr; r += trafLP.y * 0.35 * tr + brownR * 0.004;
-      const crowd = 0.5 + 0.25 * smooth(V_HIT, V_HIT + 0.6, v) * (1 - 0.5 * smooth(V_HIT + 3, V_HIT + 8, v)) + 0.35 * smooth(V_SUBWAY - 0.5, V_SUBWAY + 1, v) * (1 - smooth(V_SUBWAY + 5, V_SUBWAY + 9, v)) + 0.2 * smooth(V_SKYLINE, V_SKYLINE + 1, v) - 0.3 * smooth(V_FLARE, V_WHITE, v);
+      const crowd = 0.5 + 0.25 * smooth(V_HIT, V_HIT + 0.6, v) * (1 - 0.5 * smooth(V_HIT + 3, V_HIT + 8, v)) + 0.35 * smooth(V_SUBWAY - 0.5, V_SUBWAY + 1, v) * (1 - smooth(V_SUBWAY + 5, V_SUBWAY + 9, v)) + 0.2 * smooth(V_SATS + 0.5, V_SATS + 1.5, v) * (1 - smooth(V_SATS + 5, V_SATS + 7, v)) - 0.3 * smooth(V_FLARE, V_WHITE, v);
       let c = 0;
       for (let q = 0; q < 3; q++) {
         const e = crowdE[q].run(0.5 + 0.5 * Math.sin(v * (3.1 + q * 1.7) + q * 2.1) + white() * 0.3);
@@ -202,10 +202,16 @@ export function makeSoundtrack(outFile) {
       const k = smooth(V_SATS - 0.3, V_SATS + 0.8, v) * (1 - smooth(V_SATS + 3.2, V_SATS + 4.5, v));
       if (k > 0.001) { const x = rumbleF.run(brownL) * 0.5 * k + satF.run(white(), 1800 + 900 * Math.sin(v * 0.9), 0.7).bp * 0.025 * k; put(x, -0.3 + 0.5 * smooth(V_SATS, V_SATS + 3, v), 0.7); }
     }
-    // --- the skyline: a deep power-down groan ---
+    // --- the crashed car's radio from 0:35: a muffled tune through static (a car radio runs off its battery) ---
     {
-      const t = v - V_SKYLINE - 0.4;
-      if (t > 0 && t < 3.2) { ph[3] += (95 * Math.exp(-t / 1.1) + 28) / SR; const x = (saw(ph[3]) * 0.6 + Math.sin(TAU * ph[3] * 0.5)) * env(t, 0.15, 1.3) * 0.08; put(x, 0, 0.5); }
+      const k = smooth(V_CANDLE - 1.2, V_CANDLE, v) * (1 - smooth(V_FLARE + 1, V_WHITE, v));
+      if (k > 0.001) {
+        const bar = Math.floor(v * 2.2) % 4, ch = [[220, 277.2, 329.6], [196, 246.9, 293.7], [174.6, 220, 261.6], [196, 246.9, 293.7]][bar];
+        let x = 0; ch.forEach((f, q) => { ph[20 + q] += f / SR; x += Math.tanh(Math.sin(TAU * ph[20 + q]) * 2); });
+        ph[24] += (ch[2] * 2 * (1 + 0.003 * Math.sin(v * 5))) / SR; x += 0.6 * Math.sin(TAU * ph[24]) * (0.5 + 0.5 * Math.sin(v * TAU * 2.2));
+        const y = radF.run(x * 0.4 + white() * 0.25, 1300, 0.9).bp;
+        put(y * 0.035 * k, -0.35, 0.3);
+      }
     }
     // --- the music: hits on the beats, a dark drone, a shimmer that follows the aurora, the riser to the white ---
     {

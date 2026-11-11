@@ -14,7 +14,7 @@ export const LANES = [-5.25, -1.75, 1.75, 5.25];                  // southbound 
 export const CROSS = [-22, -10];                                  // the cross street (z range)
 export const CROSS_Z = (CROSS[0] + CROSS[1]) / 2;
 export const END_Z = -235;                                        // the avenue bends away behind a block across the end
-export const SUBWAY = { x: FX, z0: -1.3, z1: -4.9, zc: -3.1 };       // the station doorway in the east shop fronts (faces the street)
+export const SUBWAY = { x: 11.9, w: 2.0, z0: -3.6, z1: -8.8, zc: -3.6, D: 3.9 };   // the stairwell on the sidewalk: its mouth faces south (you), the stairs go down northward
 export const groundY = () => 0;
 
 // ---- buildings: { x, y, z, w (along x), d (along z), h, kind, col } ----

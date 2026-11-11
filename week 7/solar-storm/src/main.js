@@ -8,13 +8,13 @@ import { makeSky, NSAT } from './sky.js';
 import { makeGround, GU, NSPOT } from './ground.js';
 import { makeCity, CU } from './city.js';
 import { makePower, drawSparks, RUNNERS, runnerAt, wireAt, XF } from './power.js';
-import { makeTraffic, cAt, C_X, EB_Z } from './traffic.js';
+import { makeTraffic, cAt, C_X, EB_Z, HERO_N, carAt, nShove } from './traffic.js';
 import { makePeople } from './people.js';
 import { makePhone } from './phone.js';
 import { makeGlows } from './glows.js';
 import { makeOverlay } from './overlay.js';
 import { CAM_X, camZ, EYE, LAMPS, lampHead, SIGNALS, SUBWAY, SIGNS, SCREENS } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, popupAt, captionAt, POP, ORIGIN, dieAt, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_SKYLINE, V_FLARE, V_WHITE, V_FLICK } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, popupAt, captionAt, POP, ORIGIN, dieAt, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FLARE, V_WHITE, V_FLICK } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 
 const W = 1080, H = 1920, DEG = Math.PI / 180;
@@ -71,6 +71,9 @@ const auroraG = new THREE.DirectionalLight(0x60ff90, 0);
 auroraG.position.set(0, 50, -100);
 scene.add(auroraG);
 const flashL = new THREE.PointLight(0xcfe0ff, 0, 60, 1.6);
+// the phones of the two people coming up the stairs closest to you light their faces
+const phoneL = [new THREE.PointLight(0xe8f0ff, 0, 3.5, 2), new THREE.PointLight(0xe8f0ff, 0, 3.5, 2)];
+phoneL.forEach((l) => scene.add(l));
 scene.add(flashL);
 
 const overlay = makeOverlay();
@@ -79,8 +82,8 @@ const stampW = document.getElementById('stampw');
 
 // ---------- the satellites coming down (direction from (azimuth from north toward the west, elevation), degrees) ----------
 const dirOf = (az, el) => new THREE.Vector3(-Math.sin(az * DEG) * Math.cos(el * DEG), Math.sin(el * DEG), -Math.cos(az * DEG) * Math.cos(el * DEG));
-const SATS = [[V_SATS - 0.1, 3.0, 20, 40, -16, 22], [V_SATS + 0.6, 2.8, 8, 48, -18, 30], [V_SATS + 1.2, 2.8, 22, 28, -4, 12], [V_SATS + 1.7, 2.4, 0, 44, -20, 32],
-  [V_SATS + 2.3, 2.6, 16, 36, -10, 18], [V_SATS + 9.0, 2.6, 30, 30, 5, 15]];
+const SATS = [[V_SATS - 0.2, 4.6, 30, 46, 2, 34], [V_SATS + 0.4, 5.0, 14, 44, -20, 32], [V_SATS + 1.0, 4.4, 34, 40, 10, 30], [V_SATS + 1.6, 4.8, 4, 46, -24, 34],
+  [V_SATS + 2.3, 4.2, 32, 44, 6, 32], [V_SATS + 3.0, 4.6, 18, 40, -14, 30], [V_SATS + 3.7, 4.0, 26, 46, -6, 34], [V_SATS + 9.0, 4.0, 30, 30, 5, 15]];
 SATS.forEach(([t0, dur, a0, e0, a1, e1], k) => {
   const A = dirOf(a0, e0), B = dirOf(a1, e1);
   sky.uniforms.uSatA.value[k].set(A.x, A.y, A.z, t0);
@@ -141,10 +144,11 @@ composer.addPass(finish);
 // 0:00 up the street and at the sky; the street ahead for the hit; up at the transformer (0:06.6); along the wires after
 // the sparks; the crossing, zoomed (0:12); your phone (0:17); the subway (0:21.5); the sky (0:26); the skyline down the
 // avenue, zoomed (0:28.6); the street and the torches; the sky as it flares (0:42).
-const PITCH = [[-2, 17], [3.8, 16], [4.8, 7], [6.4, 7], [7.2, 34], [8.1, 34], [9.0, 20], [11.2, 16], [12.0, -3.0], [16.6, -3.0], [17.4, 2], [21.3, 2], [21.9, -16], [25.4, -12], [26.2, 30], [28.4, 30], [29.1, 12], [31.4, 12], [32.4, 6], [41.2, 8], [42.6, 30], [50, 34]];
-const YAW = [[-2, 2], [4.8, 3], [6.4, 3], [7.2, 14], [8.1, 14], [9.0, 10], [11.2, 7], [12.0, 30], [16.6, 30], [17.4, 9], [21.3, 9], [21.9, -24], [25.4, -14], [26.2, 4], [28.4, 4], [29.1, 1.5], [31.4, 1.5], [32.4, 11], [37, 15], [41.2, 9], [42.6, 6], [50, 6]];
-const FOV = [[-2, 66], [4.8, 64], [6.4, 64], [7.2, 56], [8.1, 56], [9.0, 54], [11.2, 52], [12.0, 42], [16.6, 42], [17.4, 58], [21.3, 58], [21.9, 64], [25.4, 64], [26.2, 68], [28.4, 68], [29.1, 42], [31.4, 44], [32.4, 58], [41.2, 60], [42.6, 68], [50, 70]];
+const PITCH = [[-2, 17], [3.8, 16], [4.8, 7], [6.4, 7], [7.2, 34], [8.1, 34], [9.0, 20], [11.2, 16], [12.0, -3.0], [16.6, -3.0], [17.4, 2], [21.3, 2], [21.9, -14], [26.4, -14], [27.3, 28], [32.2, 28], [33.0, 6], [41.2, 8], [42.6, 30], [50, 34]];
+const YAW = [[-2, 2], [4.8, 3], [6.4, 3], [7.2, 14], [8.1, 14], [9.0, 10], [11.2, 7], [12.0, 30], [16.6, 30], [17.4, 9], [21.3, 9], [21.9, -20], [26.4, -20], [27.3, 8], [32.2, 8], [33.0, 11], [37, 15], [41.2, 9], [42.6, 6], [50, 6]];
+const FOV = [[-2, 66], [4.8, 64], [6.4, 64], [7.2, 56], [8.1, 56], [9.0, 54], [11.2, 52], [12.0, 42], [16.6, 42], [17.4, 58], [21.3, 58], [21.9, 60], [26.4, 60], [27.3, 70], [32.2, 70], [33.0, 58], [41.2, 60], [42.6, 68], [50, 70]];
 // (while the arcs run along the wires the eyes follow the lead one)
+const CROSS_NZ = EB_Z - 0.35;
 const TRACK = [[-2, 0], [8.4, 0], [9.0, 1], [10.8, 1], [11.6, 0], [50, 0]];
 function camAt(v) {
   const pos = new THREE.Vector3(CAM_X, EYE + 0.55 * keys([[-2, 0], [11.0, 0], [11.8, 1], [16.2, 1], [17.0, 0], [50, 0]], v), camZ(v));
@@ -156,10 +160,16 @@ function camAt(v) {
     yaw = lerp(yaw, Math.atan2(-dx, -dz), tx); pitch = lerp(pitch, Math.atan2(dy, Math.hypot(dx, dz)) - 4 * DEG, tx);
   }
   // the subway entrance just ahead on your right, as people come up out of the dark
-  const ts = keys([[-2, 0], [21.2, 0], [21.9, 1], [25.3, 1], [26.0, 0], [50, 0]], v);
+  const ts = keys([[-2, 0], [21.2, 0], [21.9, 1], [26.3, 1], [27.0, 0], [50, 0]], v);
   if (ts > 0) {
-    const dx = SUBWAY.x - pos.x, dy = 1.4 - pos.y, dz = SUBWAY.zc - pos.z;
-    yaw = lerp(yaw, Math.atan2(-dx, -dz) + 27 * DEG, ts); pitch = lerp(pitch, Math.atan2(dy, Math.hypot(dx, dz)) + 13 * DEG, ts);
+    const dx = SUBWAY.x - pos.x, dy = -3.0 - pos.y, dz = SUBWAY.z1 + 1.2 - pos.z;
+    yaw = lerp(yaw, Math.atan2(-dx, -dz) + 2 * DEG, ts); pitch = lerp(pitch, Math.atan2(dy, Math.hypot(dx, dz)) + 9 * DEG, ts);
+  }
+  // the crashed car in the crossing, people round it and candles in the windows above (0:35-0:40)
+  const tc = keys([[-2, 0], [34.9, 0], [35.8, 1], [39.6, 1], [40.6, 0], [50, 0]], v);
+  if (tc > 0) {
+    const dx = 2.6 - pos.x, dy = 2.0 - pos.y, dz = CROSS_NZ - pos.z;
+    yaw = lerp(yaw, Math.atan2(-dx, -dz), tc); pitch = lerp(pitch, Math.atan2(dy, Math.hypot(dx, dz)) + 7 * DEG, tc); fov = lerp(fov, 40, tc);
   }
   const tr = keys(TRACK, v);
   if (tr > 0) {
@@ -218,6 +228,7 @@ function update(v, cover = -1) {
   for (const U of [GU, CU]) { U.uTime.value = v; U.uSkyHi.value.copy(AUR_HI); U.uSkyLo.value.copy(AUR_LO); U.uAur.value = aur; }
   CU.uFront.value = s.front; CU.uFlick.value = s.flick;
   CU.uStreetK.value = s.front < 0 ? s.flick : 0;
+  CU.uCandle.value = smooth(V_CANDLE - 0.6, V_CANDLE + 3.5, v);
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
   sky.mesh.scale.setScalar(4000);
@@ -272,7 +283,7 @@ function update(v, cover = -1) {
   // the subway's globes and sign
   {
     const k = lit(SUB_DIE, v, s.flick);
-    for (const z of [SUBWAY.z0 + 0.45, SUBWAY.z1 - 0.45]) if (k > 0) glows.add(SUBWAY.x - 0.7, 2.5, z, 0.32, 0.4 * k, 3.0 * k, 0.9 * k);
+    for (const x of [SUBWAY.x - SUBWAY.w / 2 - 0.05, SUBWAY.x + SUBWAY.w / 2 + 0.05]) if (k > 0) glows.add(x, 2.45, SUBWAY.z0 + 0.1, 0.32, 0.4 * k, 3.0 * k, 0.9 * k);
     city.subMat.color.setScalar(0.06 + 1.5 * k);
   }
   // signs and screens: a little light thrown on the sidewalk below them while they're on
@@ -289,7 +300,18 @@ function update(v, cover = -1) {
   traffic.frame(v, glows, beams, camera.position);
   people.frame(v, glows, torches, camera.position);
   for (const b of beams) spots.push([b[0], b[1], b[2], 7, 0.33 * b[3], 0.32 * b[3], 0.29 * b[3], 0.22, b[4]]);
-  for (const t of torches) spots.push([t[0] + Math.sin(t[2]) * 0.3, t[1] + Math.cos(t[2]) * 0.3, t[2], 3.2, 0.55 * t[3], 0.55 * t[3], 0.5 * t[3], 0.4, t[4] * 0.6]);
+  // the climbers' faces, lit by their phones
+  {
+    const st = torches.filter((t) => t[6]).sort((a, b) => a[4] - b[4]);
+    phoneL.forEach((l, i) => { const t = st[i]; if (t) { l.position.set(t[0], t[5] + 0.05, t[1]); l.intensity = 1.2 * t[3]; } else l.intensity = 0; });
+  }
+  // the crashed car: its cabin light on, doors-open glow, people round it (and its radio, in the soundtrack)
+  {
+    const k = smooth(V_CANDLE - 1.5, V_CANDLE - 0.5, v);
+    const a = carAt(HERO_N, v);
+    if (k > 0 && a) { const n = nShove(v); glows.add(a.x + n.dx, 1.2, a.z, 0.9, 1.6 * k, 1.2 * k, 0.7 * k); glows.add(a.x + n.dx, 1.15, a.z, 0.3, 3.0 * k, 2.4 * k, 1.5 * k); spots.push([a.x + n.dx, a.z, 3.2, 0, 0.35 * k, 0.27 * k, 0.17 * k, 0, 0]); }
+  }
+  for (const t of torches) if (!t[6]) spots.push([t[0] + Math.sin(t[2]) * 0.3, t[1] + Math.cos(t[2]) * 0.3, t[2], 3.2, 0.55 * t[3], 0.55 * t[3], 0.5 * t[3], 0.4, t[4] * 0.6]);
   // the transformer: buzzing arcs before it blows, the blast, then the arcs running along the wires
   {
     const pre = v > V_XF - 0.9 && v < V_XF ? Math.max(0, Math.sin(v * 53) * Math.sin(v * 31)) * smooth(V_XF - 0.9, V_XF - 0.1, v) : 0;

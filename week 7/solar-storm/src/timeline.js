@@ -31,23 +31,23 @@ export const V_XF = 7.5;              // the transformer on the pole over you bl
 export const V_LINES = 8.2;           // sparks run along the wires
 export const V_BUMP = 14.2;           // two cars bump at the dead crossing
 export const V_PHONE = 18.0;          // your phone: no service
-export const V_SUBWAY = 22.0;         // people climb out of the dark subway
-export const V_SATS = 26.0;           // satellites burn up across the aurora
-export const V_SKYLINE = 28.8;        // the skyline down the avenue goes dark, block by block
-export const V_FULL = 31.4;           // the counter reaches its finish line
-export const V_TORCH = 32.0;          // phone torches come on
+export const V_SUBWAY = 22.0;         // people climb up the stairs out of the dark subway, toward you
+export const V_SATS = 28.0;           // satellites burn up across the aurora (big, slow, several at once)
+export const V_TORCH = 32.0;          // phone torches come on all along the street
+export const V_CANDLE = 36.0;         // candles in the windows; people gather round the crashed car's light and radio
+export const V_FULL = 40.0;           // the counter reaches its finish line
 export const V_FLARE = 42.0;          // the aurora flares
 export const V_WHITE = 46.2;          // full white
 export const T_SWITCH = V_WHITE + 0.2;  // the loop point, inside the white (a short flash: 0.7 s up, 0.2 s held, 0.6 s clearing)
 export const LOOP = 0.6;
 export const VIDEO_DURATION = T_SWITCH + LOOP;                     // 47.0 s
-export const BEATS = [V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_SKYLINE, V_FLARE];
+export const BEATS = [V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FLARE];
 
 // ---- the blackout front: how far from the middle of the street (ORIGIN) the power is gone (m) ----
-// 0:05 the near street dies in a wave running away from you (~140 m/s); the city beyond goes out slowly; at 0:29 the
-// skyline down the avenue goes block by block.
+// 0:05 the street dies in a wave running away from you (~200 m/s), then the towers down the avenue go out one after
+// another: the whole city is dark 1.6 s after the hit.
 export const ORIGIN = { x: 0, z: 4 };
-const FRONT = [[V_HIT, 0], [V_HIT + 1.3, 190], [10, 215], [16, 245], [22, 275], [V_SKYLINE + 0.4, 310], [V_SKYLINE + 1.1, 520], [V_SKYLINE + 1.8, 900], [V_FULL, 1800], [V_FULL + 1.5, 6000]];
+const FRONT = [[V_HIT, 0], [V_HIT + 0.6, 120], [V_HIT + 1.15, 600], [V_HIT + 1.6, 3000], [V_HIT + 2.0, 9000]];
 export function frontR(v) {
   if (v < V_HIT) return -1;
   for (let i = 0; i < FRONT.length - 1; i++) {
@@ -72,13 +72,13 @@ export function flick(v) {
 }
 // the aurora's brightness: already bright, brighter and lower to the hit, surging, then the last flare to white
 export function aurora(v) {
-  const base = keys([[-2, 1.0], [0, 1.0], [V_HIT - 0.3, 1.45], [V_HIT + 0.2, 1.75], [V_HIT + 2, 1.4], [20, 1.35], [V_SATS, 1.45], [V_FLARE - 1, 1.4], [V_FLARE + 2, 2.4], [V_WHITE - 0.6, 7], [V_WHITE + 1, 14]], v);
+  const base = keys([[-2, 1.0], [0, 1.0], [V_HIT - 0.3, 1.45], [V_HIT + 0.2, 1.75], [V_HIT + 2, 1.4], [20, 1.35], [V_SATS - 1.4, 1.35], [V_SATS - 0.2, 0.8], [V_SATS + 5.2, 0.8], [V_SATS + 6.6, 1.3], [V_FLARE - 1, 1.4], [V_FLARE + 2, 2.4], [V_WHITE - 0.6, 7], [V_WHITE + 1, 14]], v);
   return base;
 }
 export const auroraLow = (v) => keys([[-2, 0], [V_HIT, 1], [V_HIT + 3, 0.7], [V_FLARE, 0.7], [V_WHITE, 1.3]], v);
 
 // ---- the counter after the hit: people without power in the U.S. (Lloyd's 2013: 20-40 million; this runs to 40) ----
-const POWER_N = [[V_HIT, 0], [V_HIT + 0.6, 260000], [V_HIT + 1.4, 900000], [9, 1.9e6], [13, 4.1e6], [18, 7.6e6], [23, 11.8e6], [V_SKYLINE, 17.5e6], [V_SKYLINE + 1.0, 25e6], [V_FULL - 0.5, 36e6], [V_FULL, 40e6]];
+const POWER_N = [[V_HIT, 0], [V_HIT + 0.6, 300000], [V_HIT + 1.6, 1.4e6], [9, 3.0e6], [13, 5.6e6], [18, 9.4e6], [23, 14e6], [28, 19.5e6], [33, 26e6], [37, 33e6], [V_FULL - 0.8, 38.4e6], [V_FULL, 40e6]];
 export function powerN(v) {
   if (v <= V_HIT) return 0;
   if (v >= V_FULL) return 40e6;
@@ -96,8 +96,8 @@ export const POPS = [
   [V_XF + 0.05, 'A TRANSFORMER BLOWS'],
   [V_BUMP + 0.1, 'CARS COLLIDE'],
   [V_SUBWAY + 0.05, 'THE SUBWAY STOPS'],
-  [V_SATS + 0.3, 'SATELLITES BURN UP'],
-  [V_SKYLINE + 0.4, 'THE CITY GOES DARK'],
+  [V_SATS + 0.6, 'SATELLITES BURN UP'],
+  [V_CANDLE + 0.2, 'CANDLES COME OUT'],
 ];
 export function popupAt(v) {
   let b = null;
@@ -112,12 +112,11 @@ export const CAPTIONS = [
   [12.45, 14.15, 'Every traffic light is out.'],
   [16.0, 17.9, 'Cars still run. Planes still fly.'],
   [18.15, 21.0, 'Your phone: no service.'],
-  [23.85, 26.15, 'Everyone walks out of the tunnels.'],
-  [28.1, 29.1, 'Then the skyline...'],
-  [31.25, 33.9, 'It could stay off for months.'],
-  [34.15, 37.6, 'The giant transformers take a year or more to replace.'],
-  [37.9, 40.6, 'No heat. No fridge. Soon, no tap water.'],
-  [41.0, 44.2, 'And the storm isn’t over.'],
+  [23.85, 27.6, 'Everyone walks up out of the tunnels.'],
+  [30.5, 33.0, 'The storm drags them out of orbit.'],
+  [33.3, 35.8, 'It could stay off for months.'],
+  [38.1, 41.4, 'The giant transformers take a year or more to replace.'],
+  [41.7, 44.4, 'And the storm isn’t over.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;
