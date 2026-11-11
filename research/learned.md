@@ -625,3 +625,14 @@ Film "The Gardener at the End of the World | Animated Short Film" (6:00, posted 
      uneven steps that name what you are as small as, not 10x every 3 s.
   5. A marble-size black hole appears in front of you (that size weighs as much as the Earth): a black dot over a crowded square bending the street on
      frame 0, cars sliding in at 0:05, the Earth gone into something you could hold. Overlaps "black hole appears": space them apart.
+- Status Nov 10 (night): oceans-drain ("What if the oceans drained away?", 47.5 s, week 7) built from idea 1 above: a packed beach with the
+  sea racing out on frame 0, then you follow it down, one new thing every 3-5 s in true depth order (shipwreck with crabs and kelp, stranded
+  whales, the shelf edge as a gorge, a container ship, smoking vents, the Titanic's bow, a mountain rising from the sea, the Mariana Trench),
+  the counter stopping at -36,000 ft, the water coming back down the trench, white, loop. The walker in red or people beside you are in every
+  shot; no aerial or space view. Numbers and honest notes in CAPTIONS.md. Things learned: nine small scenes, one per shot, each at the
+  origin with only the current one drawn, beat one big world for a "journey" Short (each place framed on its own; `shots.js`); a fast
+  dash forward into a radial blur hides each cut and reads as the time-lapse skipping on; one seabed material wet where the sea just left
+  (dark, glossy, puddles) plus water built on the same grid (so it knows its depth: foam edge, clear shallows) carries every shot; the
+  true sea level only reads on frame 0 if the beach is shaped for it (the water's edge 15 m out at -3 ft, 1.5 km at -100 ft); a few long
+  sine waves look like a lattice from above (use drifting noise for swells); a walker who should stop ahead of a camera that runs to the
+  same edge must start further ahead and run faster, or the camera passes him. Not posted yet.
