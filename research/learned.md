@@ -496,6 +496,34 @@ Film "The Gardener at the End of the World | Animated Short Film" (6:00, posted 
   doesn't read at a glance and stays one brown-orange texture for the whole video. Rod (33K) is a counterexample: thing in the sky, but small on frame 0.
 - The film: the what-if subscribers who clicked left after ~45 s; YouTube has shown it to almost nobody else yet. Curve due ~Nov 12; no verdict from 114 views.
 
+## Nov 11 evening read (~9:15 PM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | Now | YouTube's "typical" for its age | Stayed | Avg watched | 0:30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| star picker | Nov 7, 1 PM | 2,276 | 8,256 | 20,262 | 58,448 | 117,222 | 195.3K | | | | 70% |
+| nuke | Nov 8, 11:23 AM | 3,143 | 6,745 | 12,468 | 29,626 | 37,459 | 47.1K | 59.1K | 68.0% | 0:36.7 (75.0%) | 65% |
+| world freezes | Nov 9, 7 AM | 1,658 | 5,060 | 11,308 | 20,878 | 28,395 | 43.5K (64 h) | 54.5K | 67.4% | 0:35.9 (73.4%) | 65% |
+| sand grain | Nov 9, 1 PM | 2,183 | 6,463 | 12,086 | 19,023 | 32,300 | 43.0K (58 h) | 63.2K | 68.6% | 0:36.6 (74.6%) | 67% |
+| volcano | Nov 10, 8:40 AM | 974 | 3,787 | 7,571 | 13,106 | 20,841 | 25.8K (38 h) | 55.7K | 67.1% | 0:33.9 (72.1%) | not out |
+| Sun black hole | Nov 10, 2 PM | 1,425 | 4,720 | 9,861 | 23,139 | 55,907 | 62.7K (33 h) | 56.1K | 60.5% | 0:40.2 (83.8%) | not out |
+| dinosaurs return | Nov 11, ~7:45 AM | 965 | 3,446 | 7,366 | 10,795 | | 12.0K (13.5 h) | 32.0K | 68.0% | 0:34.3 (73.1%) | not out |
+| oceans drain | Nov 11, 1 PM | 2,042 | 5,033 | 9,856 | | | 15.1K (8.3 h) | 20.2K | 60.7% | 0:39.7 (79.5%) | not out |
+New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): sand grain 133 / 98 / 83 / 67 / 58; world freezes 124 / 90 / 78 / 65 / 62.
+- Sun black hole is the first Short since star picker above YouTube's "typical" line, and the channel's #2 video of the last 48 h (62.8K, behind black
+  hole passed 85K, ahead of trillion years 51K). Same shape as star picker: slow first 12 h, then it more than doubled from 12 h to 24 h.
+- Sun black hole and oceans share a pattern the others don't: fewer people stay (60-61%) but those who do watch far longer (40 s, 80-84%). Curves will
+  show where; my guess of a dip at 0:11-0:15 in Sun black hole is still untested.
+- Sand grain and world freezes both lost 34-35 points from 0:03 to 0:10 (the weak group in the Nov 10 analysis is 34-44). Sand grain's near-white
+  middle lost 21 points from 0:13 to 0:30 (flat middles lose 11-14, antimatter lost 37): a mild bleed, so my first guess was half right and my
+  retraction from its average watch time was too quick. World freezes is nearly flat after 0:30 (65% -> 62% at 0:40).
+- Channel: daily views Nov 7 463K, Nov 8 410K, Nov 9 297K, Nov 10 248K; subs gained per day 475, 379, 283, 190 (26,554 subs). 548K views in the last
+  48 h. That is back at the Nov 2-4 level (247-276K): the Nov 5-8 bump was the first days of rogue planet, Moon explodes, space station, star picker and
+  tornado. The newer Shorts add 30-45K each in three days instead of 90-150K.
+- Dinosaurs is the slowest start of the group (10.8K at 12 h; volcano had 13.1K). No verdict before 24 h.
+- Film: 221 views at 37 h, 2,219 impressions, 3.2% clicked, average view 0:44 (12.5%), -2 subs. YouTube is not spreading it. Curve not out.
+- Ads: the Earn page shows 7M qualified Shorts views as of Nov 6 (it rounds, and runs days late). With daily views down, the 10M date is more
+  like Nov 22-25 than Nov 21.
+- Planet picker and solar storm are scheduled for Nov 12 (planet picker 5 days after star picker, not the week I suggested).
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
