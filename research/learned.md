@@ -671,3 +671,12 @@ New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): sand grain 13
   strip, but a sun patch on the floor only reads if the direct sun is turned down outside it; an additive light-shaft
   cylinder quickly washes the whole frame into haze (keep it very faint); creatures facing away read as black balls: turn
   the jaws to the lens.
+- Nov 11 fresh ideas (prompts given to the owner; none checked on YouTube). Picked after Sun black hole and oceans showed the longest watch times
+  with a hidden outcome (a countdown to something not yet seen, a walk to the bottom). My build order: 1, 2, 3.
+  1. Gravity turns off for 5 seconds: a busy street, everything already lifting on frame 0, "GRAVITY RETURNS IN 5.00" in slow motion; the air and
+     the sea spring upward; then it comes back and everything falls. The "X for 5 seconds" format with the outcome behind the countdown.
+  2. Everyone disappears but you: sequel in spirit to women-vanish (597K). A crowd gone at 0:02, driverless cars, then a time-lapse you walk through
+     (lights out, subway floods, animals, forest in the streets, towers fall) to a 10,000-year finish line; you grow old and the city outlives you.
+  3. You shrink to the size of an atom: grow-trillion (249K, 70% at 0:30) in reverse on a picnic blanket in a busy park; uneven named steps (cat,
+     ant, dust mite, hair, blood cell, virus, DNA, atom); below the size of light the world goes dark.
+  Spare: a marble-size black hole appears in front of you (weighs as much as the Earth); held back because its physics needs careful checking.
