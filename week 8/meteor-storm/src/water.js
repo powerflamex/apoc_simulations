@@ -111,7 +111,7 @@ export function makeWater(scene) {
           vec4 L = uL[i];
           if (L.w <= 0.0) continue;
           float ca = acos(clamp(dot(R, L.xyz), -1.0, 1.0));
-          col += vec3(0.9, 0.95, 1.0) * min(L.w, 4.0) * (exp(-pow(ca / 0.05, 2.0)) * 1.4 + 0.04 * exp(-ca / 0.25));
+          col += vec3(0.9, 0.95, 1.0) * min(L.w, 10.0) * (exp(-pow(ca / 0.05, 2.0)) * 1.4 + 0.04 * exp(-ca / 0.25));
         }
         if (uImp > 0.0) { float ca = acos(clamp(dot(R, uImpDir), -1.0, 1.0)); col += vec3(1.0, 0.92, 0.75) * uImp * (6.0 * exp(-ca / (0.08 + 0.5 * uImp)) + 0.6); }
         col = mix(col, vec3(0.75, 0.78, 0.8) * (0.25 + uLift * 2.0 + 0.4 * length(uLift)), clamp(foam, 0.0, 1.0));

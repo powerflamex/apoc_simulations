@@ -1,10 +1,11 @@
-// The biggest one's head: a camera-facing quad at its place in the sky with a burning rock drawn in the shader: a
-// white-hot core, a turbulent sheath of yellow and orange plasma streaming back along its path (uTail: that direction on
-// screen), and a wide orange glow. Added onto the frame; the skyline in front of it hides it.
+// The flames round the biggest one (the rock itself is rock.js, drawn in front of this): a camera-facing quad just
+// behind the rock with, drawn in the shader, a thin white-hot bow of compressed air hugging its leading side, a sheath
+// of fire torn into tongues streaming back along its path (uTail: that direction on screen), and chunks of flame
+// peeling off and falling back. No round halo: the edges stay crisp. Added onto the frame; the skyline hides it.
 import * as THREE from 'three';
 
 export function makeBigHead(scene) {
-  const uniforms = { uTime: { value: 0 }, uI: { value: 0 }, uTail: { value: new THREE.Vector2(0, 1) }, uLen: { value: 1 } };
+  const uniforms = { uTime: { value: 0 }, uI: { value: 0 }, uTail: { value: new THREE.Vector2(0, 1) }, uLen: { value: 1 }, uR: { value: 0.16 } };
   const mat = new THREE.ShaderMaterial({
     uniforms, transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
@@ -17,33 +18,44 @@ export function makeBigHead(scene) {
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform float uI; uniform vec2 uTail; uniform float uLen;
+      uniform float uTime; uniform float uI; uniform vec2 uTail; uniform float uLen; uniform float uR;
       varying vec2 vUv;
+      float h1(float x){ return fract(sin(x * 91.7) * 43758.5); }
       float h2(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
       float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
         return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
       float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * n2(p); p = p * 2.1 + 3.7; a *= 0.5; } return s; }
       void main() {
         vec2 uv = vUv;                                  // -1..1 across the quad
+        float R0 = uR;                                  // the rock's radius here
         float a = dot(uv, uTail), b = dot(uv, vec2(-uTail.y, uTail.x));
         float r = length(uv);
-        const float R0 = 0.09;                          // the white-hot core
-        float back = max(a, 0.0);
-        // the flames: a sheath streaming back along the path, widening, torn into tongues that rush backward
-        float w = R0 * (1.5 + 2.2 * back / uLen);
-        float n = fbm(vec2(a * 16.0 - uTime * 9.0, b * 22.0)) * 0.65 + fbm(vec2(a * 40.0 - uTime * 17.0, b * 50.0 + 4.0)) * 0.35;
-        float dens = exp(-b * b / (w * w)) * exp(-back / (0.42 * uLen)) * smoothstep(-R0 * 2.0, -R0 * 0.3, a);
-        // round the core (seen nearly head-on): a ragged ring of flame
-        float ang = atan(uv.y, uv.x);
-        float ring = exp(-pow((r - R0 * 1.25) / (R0 * (0.5 + 0.9 * fbm(vec2(ang * 3.0, uTime * 2.0)))), 2.0));
-        float f = clamp(max(dens, ring * 0.9) * (0.45 + 0.9 * n), 0.0, 1.5);
-        float flame = smoothstep(0.22, 0.75, f);
-        vec3 fc = mix(vec3(0.75, 0.12, 0.02), vec3(1.0, 0.45, 0.08), smoothstep(0.2, 0.6, f));
-        fc = mix(fc, vec3(1.0, 0.85, 0.5), smoothstep(0.7, 1.1, f));
-        float core = smoothstep(R0, R0 * 0.85, r);
-        float hot = exp(-r * r / (R0 * R0 * 3.0));
-        vec3 c = vec3(1.0, 0.98, 0.95) * core * 3.0 + vec3(1.0, 0.85, 0.6) * hot * 0.8 + fc * flame * 1.7;
-        float edge = 1.0 - smoothstep(0.8, 1.0, max(abs(uv.x), abs(uv.y)));
+        // the sheath: starts just ahead of the rock, widens and streams back, torn into tongues rushing backward
+        float back = max(a + R0 * 0.7, 0.0);
+        float L = 0.55 * uLen;
+        float w = R0 * (1.0 + 1.5 * back / L);
+        float n = fbm(vec2(back / R0 * 1.6 - uTime * 6.0, b / R0 * 2.4)) * 0.65 + fbm(vec2(back / R0 * 4.0 - uTime * 11.0, b / R0 * 6.0 + 4.0)) * 0.35;
+        float dens = exp(-pow(b / w, 2.0) * (1.3 - 0.9 * n)) * exp(-back / L) * smoothstep(-R0 * 1.2, -R0 * 0.75, a);
+        float f = dens * (0.45 + 0.95 * n);
+        float flame = smoothstep(0.26, 0.62, f);
+        vec3 fc = mix(vec3(0.85, 0.16, 0.02), vec3(1.0, 0.5, 0.1), smoothstep(0.3, 0.7, f));
+        fc = mix(fc, vec3(1.0, 0.86, 0.55), smoothstep(0.75, 1.1, f) * exp(-back / (0.5 * L)));
+        vec3 c = fc * flame * 1.7;
+        // the bow: a thin white-hot shell hugging the leading side
+        float lead = smoothstep(0.2, -0.9, a / max(r, 1e-4));
+        c += vec3(1.0, 0.92, 0.75) * exp(-pow((r - R0 * 1.08) / (R0 * 0.1), 2.0)) * lead * 2.2;
+        // chunks of flame peeling off and falling back
+        for (int i = 0; i < 9; i++) {
+          float fi = float(i);
+          float ph = fract(uTime * (0.55 + 0.25 * h1(fi)) + h1(fi + 7.0));
+          float pa = R0 * 0.6 + ph * L * 1.3;
+          float pb = (h1(fi + 3.0) - 0.5) * R0 * (1.6 + 2.5 * ph);
+          float rad = R0 * (0.2 + 0.12 * h1(fi + 5.0)) * (1.0 - 0.6 * ph);
+          float d = length(vec2(a - pa, b - pb));
+          float blob = smoothstep(rad, rad * 0.35, d) * (1.0 - ph);
+          c += mix(vec3(1.0, 0.75, 0.35), vec3(1.0, 0.3, 0.05), ph) * blob * 2.0;
+        }
+        float edge = 1.0 - smoothstep(0.85, 1.0, max(abs(uv.x), abs(uv.y)));
         gl_FragColor = vec4(c * uI * edge, 1.0);
       }`,
   });

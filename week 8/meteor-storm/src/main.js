@@ -14,6 +14,7 @@ import { makeFire } from './fire.js';
 import { makeSmoke } from './smoke.js';
 import { makeEffects } from './effects.js';
 import { makeBigHead } from './bighead.js';
+import { makeRock } from './rock.js';
 import { makeStreaks, drawMeteors, RAD, RS, IMPACT_DIR, SPLASHES, bigAt, BIG0 } from './meteors.js';
 import { makeOverlay } from './overlay.js';
 import { EYE, LAMPS, HIT_CAR, SPLASH, PIER, QZ } from './layout.js';
@@ -60,6 +61,7 @@ const smoke = makeSmoke(scene, 800);
 const spray = makeSmoke(scene, 1200);
 const effects = makeEffects(scene, ctx, fire, smoke, spray);
 const bigHead = makeBigHead(scene);
+const rock = makeRock(scene);
 
 // ---------- the light ----------
 // the night: a cool sky fill and the warm lamps along the quay; the fireballs: one shadow-casting light from the
@@ -137,7 +139,7 @@ const finish = new ShaderPass({
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.29) / 0.1, 2.0));
       col *= 1.0 - uCounter * 0.38 * exp(-pow((vUv.y - 0.79) / 0.06, 2.0)) * smoothstep(0.66, 0.1, vUv.x);
-      col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.175) / 0.04, 2.0));
+      col *= 1.0 - uCap * 0.68 * exp(-pow((vUv.y - 0.175) / 0.055, 2.0));
       col *= 1.0 - uPop * 0.45 * exp(-pow((vUv.y - 0.175) / 0.05, 2.0));
       col = mix(col, vec3(1.0), uWhite);
       gl_FragColor = vec4(col, 1.0);
@@ -156,19 +158,20 @@ const [splYaw, splPitch] = aimAt(SPLASH.x, 4, SPLASH.z);
 const impAz = Math.atan2(-IMPACT_DIR.x, -IMPACT_DIR.z) / DEG;
 // 0:00 the sky over the crowd and the skyline; 0:05 up after the first fireball; 0:09 down at the lit street and the
 // crowd's shadows; 0:12.6 right, the jetty's windows and the car alarms; 0:16.4 the harbour (zoomed); 0:20.8 the car;
-// 0:25.6 left, the crowd running for the pier; 0:30.4 up at the biggest one (zoomed 0:33-0:37); 0:41 down after it.
+// 0:25.6 left, the crowd running for the pier; 0:30.4 partway up at the biggest one (the crowd and the skyline stay in
+// the bottom third, the rock right of centre, clear of the counter); 0:41 down after it.
 const YAW = [[-2, 7], [4.6, 7], [5.6, 9], [8.6, 6], [12.4, 4], [13.0, -27], [16.0, -27], [16.8, splYaw + 1], [20.6, splYaw + 1], [21.3, carYaw + 1], [25.4, carYaw + 1], [26.4, 20], [29.6, 28], [30.6, radAz + 1], [37.5, radAz + 1], [41.0, radAz - 1], [44.5, impAz + 3], [50, impAz + 3]];
-const PITCH = [[-2, 16], [4.8, 16], [5.8, 22], [8.4, 16], [9.4, 3], [11.6, 3], [12.4, 9], [16.0, 9], [16.8, splPitch + 2], [20.6, splPitch + 4], [21.3, carPitch + 3], [25.4, carPitch + 3], [26.4, 6], [29.6, 8], [30.6, radEl - 3], [37.5, radEl - 3], [39.0, radEl - 8], [41.0, radEl - 10], [44.6, 11], [50, 11]];
-const FOV = [[-2, 62], [8.4, 62], [9.4, 64], [12.4, 62], [16.0, 62], [16.8, 40], [20.6, 40], [21.3, 32], [25.4, 32], [26.4, 64], [30.6, 62], [33.0, 62], [34.2, 40], [37.0, 40], [38.4, 62], [41, 64], [50, 66]];
+const PITCH = [[-2, 16], [4.8, 16], [5.8, 22], [8.4, 16], [9.4, 3], [11.6, 3], [12.4, 9], [16.0, 9], [16.8, splPitch + 2], [20.6, splPitch + 4], [21.3, carPitch + 3], [25.4, carPitch + 3], [26.4, 6], [29.6, 8], [30.6, 20], [38.0, 20], [41.0, 18], [44.6, 11], [50, 11]];
+const FOV = [[-2, 62], [8.4, 62], [9.4, 64], [12.4, 62], [16.0, 62], [16.8, 40], [20.6, 40], [21.3, 32], [25.4, 32], [26.4, 64], [30.6, 62], [41, 64], [50, 66]];
 function camAt(v) {
   const pos = new THREE.Vector3(0, CAM_Y, 0);
   let pitch = keys(PITCH, v) * DEG, fov = keys(FOV, v), yaw = keys(YAW, v) * DEG;
-  // while the biggest one is up, the eyes stay on it
+  // while the biggest one is up, the eyes turn to follow it (sideways only: the tilt stays partway up)
   const big = bigAt(v);
   const tb = keys([[-2, 0], [V_BIG + 3.5, 0], [V_BIG + 4.5, 0.85], [V_IMPACT, 0.85], [50, 0.85]], v);
   if (big && tb > 0) {
     const az = Math.atan2(-big.dir.x, -big.dir.z), el = Math.asin(big.dir.y);
-    yaw = lerp(yaw, az, tb); pitch = lerp(pitch, el - (v > V_DIVE ? 4 : 2) * DEG, tb);
+    yaw = lerp(yaw, az + 5 * DEG, tb);
   }
   let roll = wobble(v * 0.3, 7) * 0.6 * DEG;
   pos.y += wobble(v * 0.7, 5) * 0.015;
@@ -209,19 +212,30 @@ function update(v, cover = -1) {
   const { lights, big } = drawMeteors(v, camera, streaks, glows, pxPerRad);
   streaks.end();
   streaks.mat.uniforms.uTime.value = v;
-  // the biggest one's burning head
-  bigHead.mesh.visible = !!big;
+  // the biggest one: the rock (in front) and its flames (just behind it)
+  bigHead.mesh.visible = rock.mesh.visible = !!big;
   if (big) {
-    const hd = tmpV.copy(big.dir).multiplyScalar(RS * 0.98).add(camera.position);
+    const rockW = Math.tan(big.rockR * DEG) * RS * 0.97;
+    rock.mesh.position.copy(big.dir).multiplyScalar(RS * 0.97).add(camera.position);
+    rock.mesh.scale.setScalar(rockW);
+    rock.mesh.rotation.set(0.4 + v * 0.11, 1.1 + v * 0.07, 0.3 - v * 0.05);
+    rock.mesh.updateMatrixWorld();
+    rock.uniforms.uFront.value.copy(big.tan).negate().addScaledVector(big.dir, -0.25).normalize();
+    rock.uniforms.uHot.value = 0.7 + 0.3 * Math.min(big.I / 4, 1);
+    rock.uniforms.uTime.value = v;
+    rock.uniforms.uSky.value.setRGB(0.04 + 0.012 * big.I, 0.06 + 0.02 * big.I, 0.1 + 0.035 * big.I);
+    const hd = tmpV.copy(big.dir).multiplyScalar(RS * 0.985).add(camera.position);
     bigHead.mesh.position.copy(hd);
-    bigHead.mesh.scale.setScalar(big.size * DEG * RS * 3.4);
+    const S = rockW * 7.5;
+    bigHead.mesh.scale.setScalar(S);
     bigHead.mesh.updateMatrixWorld();
+    bigHead.uniforms.uR.value = rockW * 1.12 / S;
     const p1 = hd.clone().project(camera);
-    const p2 = big.dir.clone().lerp(BIG0, 0.3).normalize().multiplyScalar(RS).add(camera.position).project(camera);
+    const p2 = big.dir.clone().addScaledVector(big.tan, big.rockR * DEG * 3).normalize().multiplyScalar(RS).add(camera.position).project(camera);
     const tx = (p2.x - p1.x) * W, ty = (p2.y - p1.y) * H, tl = Math.hypot(tx, ty) || 1;
     bigHead.uniforms.uTail.value.set(tx / tl, ty / tl);
-    bigHead.uniforms.uLen.value = 1 + 1.6 * big.trail;
-    bigHead.uniforms.uI.value = clamp(big.I / 3, 0.12, 1.25);
+    bigHead.uniforms.uLen.value = 1.5;
+    bigHead.uniforms.uI.value = clamp(0.6 + big.I / 8, 0.3, 1.3);
     bigHead.uniforms.uTime.value = v;
   }
   const imp = smooth(V_IMPACT - 0.05, V_IMPACT + 0.3, v);
@@ -230,14 +244,14 @@ function update(v, cover = -1) {
   const top = lights.find((L) => L.dir.y > 0.03 && !L.pos);
   // the shadow-casting light: from the brightest fireball in the sky
   const I0 = top ? top.I : 0;
-  fbL.intensity = 1.25 * Math.pow(Math.min(I0, 8), 0.6);
+  fbL.intensity = 1.25 * Math.pow(Math.min(I0, 15), 0.62);
   if (top) {
     const look = tmpV.set(-Math.sin(cam.yaw), 0, -Math.cos(cam.yaw)).multiplyScalar(14).add(camera.position); look.y = 0;
     fbL.position.copy(top.dir).multiplyScalar(220).add(look);
     fbL.target.position.copy(look); fbL.target.updateMatrixWorld();
   }
   const liftK = Math.pow(total, 0.7);
-  lift.intensity = 0.22 * Math.min(liftK, 3.5) + 3 * imp;
+  lift.intensity = 0.22 * Math.min(liftK, 5) + 3 * imp;
   // a rock coming down close lights everything near it
   const rk = lights.find((L) => L.pos);
   if (rk) { rockL.position.copy(rk.pos); rockL.intensity = 400 * rk.I; } else rockL.intensity = 0;
@@ -285,7 +299,7 @@ function update(v, cover = -1) {
   smoke.mat.uniforms.uTime.value = v;
   const amb = 0.35 + 0.18 * liftK + 4 * imp;
   smoke.mat.uniforms.uLight.value.setRGB(amb * 0.95, amb, amb * 1.1);
-  spray.mat.uniforms.uLight.value.setRGB(1.2 + 0.5 * liftK, 1.3 + 0.55 * liftK, 1.45 + 0.6 * liftK);
+  spray.mat.uniforms.uLight.value.setRGB(1.65 + 0.5 * liftK, 1.75 + 0.55 * liftK, 1.9 + 0.6 * liftK);
   people.frame(v, glows, (x, z) => (big ? Math.atan2(big.dir.x, big.dir.z) : Math.PI));
   glows.end();
   spots.sort((a, b) => a[8] - b[8]);

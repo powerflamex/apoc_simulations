@@ -16,12 +16,12 @@ for (const s of SPLASHES) {
   const R = rng(Math.round(s.t1 * 100));
   const k = s.big ? 1 : 0.35 + s.size * 0.12;
   s.drops = [];
-  const n = s.big ? 90 : 22;
+  const n = s.big ? 170 : 26;
   for (let i = 0; i < n; i++) {
     const a = R() * Math.PI * 2, col = i % 3 === 0;
     // a third make the column (fast, straight up), the rest the crown (thrown out and up)
     const up = col ? (18 + R() * 16) * (s.big ? 1 : 0.6) : (6 + R() * 10) * (s.big ? 1 : 0.6), out = col ? R() * 1.2 : (3 + R() * 6) * k;
-    s.drops.push({ vx: Math.cos(a) * out, vz: Math.sin(a) * out, vy: up, r: (0.45 + R() * 0.8) * (s.big ? 1.3 : 0.9) * (0.6 + 0.5 * k), seed: R() });
+    s.drops.push({ vx: Math.cos(a) * out, vz: Math.sin(a) * out, vy: up, r: (0.45 + R() * 0.8) * (s.big ? 1.3 : 0.9) * (0.6 + 0.5 * k) * (col ? 0.8 : 0.42), seed: R() });
   }
   s.steam = Array.from({ length: s.big ? 16 : 5 }, () => ({ dx: (R() - 0.5) * 6 * k, dz: (R() - 0.5) * 6 * k, rise: 1.5 + R() * 2.5, r: (3 + R() * 4) * (s.big ? 1.2 : 0.7) * k, seed: R(), d: R() * 0.8 }));
 }
@@ -94,14 +94,14 @@ export function makeEffects(scene, ctx, fire, smoke, spray) {
         for (const d of s.drops) {
           const y = s.y + d.vy * dt - 0.5 * G * dt * dt;
           if (y < s.y - 0.5) continue;
-          const r = d.r * (1 + dt * 0.9);
-          const a = 0.75 * (1 - smooth(0.9, 3.0, dt)) * (y < s.y + 1 && d.vy * dt > 3 ? 0.4 : 1);
+          const r = d.r * (1 + dt * 0.45);
+          const a = 0.85 * (1 - smooth(0.7, 2.3, dt)) * (y < s.y + 1 && d.vy * dt > 3 ? 0.4 : 1);
           spray.puff(s.x + d.vx * dt, y, s.z + d.vz * dt, r, a, 1.0, 0.25 * Math.exp(-dt / 0.3), d.seed);
         }
         for (const st of s.steam) {
           const a = dt - st.d;
           if (a < 0) continue;
-          spray.puff(s.x + st.dx + a * 0.6, s.y + 2 + a * st.rise, s.z + st.dz, st.r * (1 + a * 0.35), 0.22 * smooth(0, 0.6, a) * (1 - smooth(3, 8, a)), 0.8, 0.4 * Math.exp(-a / 0.6), st.seed);
+          spray.puff(s.x + st.dx * 0.5 + a * 0.4, s.y + 2 + a * st.rise * 0.6, s.z + st.dz * 0.5, st.r * 0.42 * (1 + a * 0.3), 0.16 * smooth(0, 0.4, a) * (1 - smooth(0.9, 2.4, a)), 0.95, 0.4 * Math.exp(-a / 0.6), st.seed);
         }
         // the hiss of steam glowing off the hot rock for a moment
         if (dt < 0.6) glows.add(s.x, s.y + 1, s.z, (s.big ? 6 : 3) * (1 + dt * 3), 5 * (1 - dt / 0.6), 3 * (1 - dt / 0.6), 1.4 * (1 - dt / 0.6));

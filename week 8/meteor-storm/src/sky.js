@@ -45,7 +45,7 @@ export function makeSky() {
           if (L.w <= 0.0) continue;
           float ca = max(dot(d, L.xyz), -1.0);
           float ang = acos(clamp(ca, -1.0, 1.0));
-          c += vec3(0.9, 0.95, 1.0) * L.w * (0.04 * exp(-ang / 0.05) + 0.012 * exp(-ang / 0.3));
+          c += vec3(0.9, 0.95, 1.0) * L.w * (0.015 * exp(-ang / 0.03) + 0.008 * exp(-ang / 0.3));
           lift += vec3(0.07, 0.13, 0.27) * L.w * 0.07;
         }
         c += lift * (0.55 + 0.45 * smoothstep(-0.05, 0.5, y)) + lift * vec3(0.6, 0.4, 0.2) * exp(-el / 0.12) * 0.5;

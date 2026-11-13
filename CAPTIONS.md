@@ -1816,12 +1816,15 @@ a gasp, a boom; "From here on it's a what-if: the rocks get bigger." 0:09 three 
 lit promenade (THE STREET LIGHTS UP, "Each one brighter than the full Moon."). 0:13 a fireball low over the jetty, a double
 crack, everyone flinches, the restaurants' windows shiver, car alarms blink along the quay street (A SONIC BOOM, "Every window
 on the quay shakes."). 0:17.5 a piece comes down into the harbor ahead: a column of white water, steam, rings (ONE HITS THE
-HARBOR, "Now pieces are reaching the ground."). 0:22 the phone zooms on the quay street and a glowing rock crushes a parked
+HARBOR, "Now pieces are reaching the ground."; the steam stays small and clears by 0:20, the skyline stays visible). 0:22 the phone zooms on the quay street and a glowing rock crushes a parked
 car: sparks, glass, the owner's scream, then it burns (A CAR IS CRUSHED, "Rocks are falling all over the city.", splashes all
-over the harbor). 0:26.5 one as bright as the Sun; the crowd runs for the covered pier, the rest crouch, hands over heads
+over the harbor; the caption sits on a dark band so it reads over the fire). 0:26.5 one as bright as the Sun; the crowd runs for the covered pier, the rest crouch, hands over heads
 (EVERYONE RUNS, "That one was as bright as the Sun."). 0:31 the biggest one appears at the radiant (THE BIGGEST ONE), the
-counter reaches 330 FEET at 0:32; zoomed in on it, "Nearly 1,000 megatons: 19 times the biggest bomb ever."; it comes down
-the sky, a burning head with a flaming trail, the sky turns blue ("Night turns into day."), everyone shields their eyes; 0:41
+counter reaches 330 FEET at 0:32. The camera tilts only partway up, so the crowd's heads and phones and the skyline stay in
+the bottom third: a real rock (dark, lumpy, cratered, white-orange hot on the side facing its path, glowing cracks, chunks of
+flame peeling off) with a long trail of fire turning to smoke, growing ~23% every second and lighting the crowd and the
+harbor more and more; "Nearly 1,000 megatons: 19 times the biggest bomb ever."; the sky turns blue ("Night turns into
+day."), everyone shields their eyes; 0:41
 it dives toward the skyline ("And it's coming down just past the city."); 0:45.8 it hits beyond the city: white in 0.4 s,
 and the white clears onto frame 0 (the loop).
 
@@ -1839,7 +1842,7 @@ the end (real meteorites cool off in the last few km, "dark flight"); the bigges
 real one crosses the sky in a few seconds), and a rock that size coming down "just past the city" would kill everyone on the
 promenade with its flash: the video cuts to white there.
 
-Cover: `week 8/meteor-storm/out/meteor-storm_v4_cover.png` (`node render.mjs --cover 42.6`: the biggest rock, a burning head with a flaming trail, coming down over the skyline across the harbor, shooting stars all round it, the crowd filming below; "WHAT IF THE BIGGEST / meteor storm / hit tonight?")
+Cover: `week 8/meteor-storm/out/meteor-storm_v4_cover.png` (`node render.mjs --cover 41.2`, remade Nov 13 with the new rock: the dark cratered asteroid, white-orange hot on its leading side, a long trail of fire and smoke behind it, coming down over the skyline across the harbor, shooting stars all round, the crowd filming below; "WHAT IF THE BIGGEST / meteor storm / hit tonight?")
 
 **YouTube title (96 characters, emoji counted as 2)**
 ```
