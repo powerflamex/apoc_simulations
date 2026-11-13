@@ -716,3 +716,12 @@ New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): Sun black hol
   3. You shrink to the size of an atom: grow-trillion (249K, 70% at 0:30) in reverse on a picnic blanket in a busy park; uneven named steps (cat,
      ant, dust mite, hair, blood cell, virus, DNA, atom); below the size of light the world goes dark.
   Spare: a marble-size black hole appears in front of you (weighs as much as the Earth); held back because its physics needs careful checking.
+- Nov 12 (night) solar storm check, owner asked if it was flagged: nothing in Studio says so. No notice, no copyright claim, not made for kids, no age
+  restriction, subscribers notified, SD/HD/4K all processed, one upload only. Its views: 55.7% from the Shorts feed, 36.7% from channel pages (oceans: 89% /
+  5%); 176 in the first hour. The people who did see it stayed like on the other Shorts (60.2%). So the feed hardly tested it; why is unknown. YouTube
+  doesn't always say when it limits a video, so a silent limit can't be ruled out or proven.
+- Nov 12 (night) ideas, both sky topics after the sky-vs-ground finding (prompts given to the owner; none checked on YouTube):
+  1. A star comes toward Earth (real: Gliese 710 passes in ~1.3 million years): a second orange Sun over a packed beach, CLOSEST PASS countdown, two shadows,
+     its pull lifting the sea and dragging the Moon away, Earth flung off, the Sun shrinking, frozen lens to loop.
+  2. A black hole passes by the Sun: sequel to the 4M black-hole-passed Short. Invisible danger shown only by the Sun warping, a countdown, the Sun torn
+     into a glowing stream across the sky. Post at least a week after Sun black hole (Nov 10).
