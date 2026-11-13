@@ -206,6 +206,17 @@
       "env": {
         "PORT": "5263"
       }
+    },
+    {
+      "name": "earth-falls-new",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 8/earth-falls-new/server.mjs"
+      ],
+      "port": 5271,
+      "env": {
+        "PORT": "5271"
+      }
     }
   ]
 }
