@@ -1686,6 +1686,52 @@ whole country's count is shown racing in ~26 s; satellites dragged down by a sto
 mild storm in 2022), not in the same minute; the pole transformer blowing and the sparks at the signs stand in for the surges
 (1859's telegraph wires really sparked). Cars keep running, planes keep flying, nobody is hurt by the storm itself.
 
+## Next Short. What if a black hole passed by the Sun? — `week 8/bh-passes-sun/out/bh-passes-sun_v4_1080x1920_60fps_tiktok.mp4`
+
+47.6 s, loops. A made-up harbour-city avenue at midday, traffic stopped, the street packed with people looking up. Frame 0:
+the title, the counter racing (BLACK HOLE REACHES THE SUN IN 39:29, "TIME-LAPSE · THEN IT RIPS THE SUN" under it), and
+the Sun already bent into a curve beside an empty spot, with a small second image of it on the other side and a thin
+bright ring between: you can't see the black hole, only its lens. 0:05-0:07 the phone zooms in: the Sun stretches into a
+teardrop and is wrapped round the empty spot. 0:11.5 the daylight flickers. 0:13.6 the Sun is dragged across the sky.
+0:16.5 it is pulled into a ring round the spot (A RIVER OF FIRE). 0:21.5 a ring of fire lights up and outlines a black
+ball: NOW YOU CAN SEE IT ("oh my god"). 0:26.4 your eyes drop to the street: everyone has two shadows. 0:31 the counter
+hits zero, the scream, the Sun is torn open into a burning spiral round the black ball. 0:36.4 the counter becomes THE
+FLARE, racing from 1x to 300,000x brighter than the Sun; the sky goes white (0:42.2) and the white clears onto frame 0
+(the loop).
+
+**YouTube title (91 chars, emoji counted as 2)**
+What if a black hole passed by the Sun? It rips away almost a third of it ☀️ #whatif #space
+
+**YouTube description**
+A black hole 10 times heavier than the Sun, but only 37 miles wide, falls past the Sun.
+
+You can't see it. You only see what it does to the Sun: the sunlight bends around an empty spot in the sky.
+Its pull drags the Sun across the sky and stretches it into a teardrop.
+A ring of fire lights up around the black hole, and everyone in the street has two shadows.
+It skims past closer to the Sun than the Moon is to us, and rips away almost a third of the Sun.
+The gas falling in shines more than 300,000 times brighter than the Sun.
+And you'd see all of it 8 minutes late: that's how long sunlight takes to reach you.
+
+What would you do in those last 40 minutes? 👇
+
+#whatif #blackhole #space #science #simulation
+
+Cover: `week 8/bh-passes-sun/out/bh-passes-sun_v4_cover.png` (`node render.mjs --cover 35.5`: the Sun torn open into a golden teardrop with the black ball and its ring of fire on it, a burning arm of gas curling away across the sky, the crowd's raised arms below; "WHAT IF A / black hole / passed by the Sun?")
+
+What is drawn vs real (also in `src/timeline.js`): the black hole is 10 Suns (event horizon 59 km = 37 miles across). A
+Sun-like star starts losing gas inside about 2.2 Sun radii of a 10-Sun hole (tidal radius 2.15 R_sun); this pass is 1.3 R_sun
+from the centre, 130,000 miles above the surface (the Moon is 239,000 miles away). SPH runs of exactly this case (Perets et
+al. 2016) leave ~20% of the star bound to the hole and fling ~10% away: "almost a third". The fall is a real parabola round
+11 Suns (the counter is the real time to closest pass, shown in a time-lapse); the Sun is 10x lighter, so it is the Sun
+that moves: it really would slide several of its own widths across the sky in that hour. Gas pours off the Sun toward the
+hole from ~50 minutes before (it overflows its Roche lobe), so the stream and the ring of fire are there before the pass.
+The flare: the hole swallows far more gas than it can, so it shines at least at its Eddington limit, 330,000 Suns (models of
+these "micro tidal disruptions" go higher); the counter stops at 300,000. Light takes 8 min 20 s from the Sun to you.
+Drawn bigger than real: the Sun and everything round it about 10x its real size in the sky (a real Sun is a dot this size
+in a phone frame); the bending of light hundreds of times stronger (a 10-Sun hole near the Sun bends its image by tens of
+arcseconds, telescope-only); the "black ball" is the dark middle of that drawn lens (the real hole is 37 miles wide). The
+flicker and the second shadow (the ring of fire's light) are shown; the flare's light would also be mostly X-rays.
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
