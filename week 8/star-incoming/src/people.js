@@ -10,7 +10,7 @@
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
 import { landY, sandY, UMBRELLAS, LIFEGUARD, PALMS, CAM0, camFront, PIER } from './layout.js';
-import { T_SURGE, T_DASH1, T_DASH2, T_FLOOD, T_QUAKE, T_ZERO, CAM_END_X, seaYAt, frontX } from './timeline.js';
+import { T_SURGE, T_DASH1, T_DASH2, T_FLOOD, T_QUAKE, T_ZERO, CAM_END_X, seaYAt, frontX, PULSES, pulseReach, reachOf, T_TOP, TOP_H } from './timeline.js';
 
 const TOPS = [0xffffff, 0x222222, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4, 0x8e44ad, 0xd5d5d5, 0x16a085, 0xf2f2f2, 0xe8e2d0, 0xc0392b, 0x2e86c1];
 const PANTS = [0x1b2631, 0x2c3e50, 0x5d6d7e, 0xd5c4a1, 0x4a6fa5, 0x212121, 0x7f8c8d, 0xe8e2d0];
@@ -133,6 +133,27 @@ const SURGE_END = T_SURGE + 6;
   }
   // the ones whose run would end in the water (or right where you stand) don't run: they're gone after the first dash
   for (const p of PEOPLE) { if (p.set === 'beach' && p.stopX < 55) p.goneAt = T_DASH1; if (p.set === 'beach') p.gone2 = T_DASH2; }
+  // the waves after the surge: whoever the next one would reach steps back up the sand (backwards, watching it)
+  for (const p of PEOPLE) {
+    if (p.set !== 'beach') continue;
+    let x = p.stopX;
+    const r = p.seed;
+    p.steps = [];
+    PULSES.forEach(([t, h], i) => {
+      const reach = pulseReach(t, h);
+      if (x < reach + 2.5) {
+        const nx = reach + 3 + 3 * ((r * (7 + i * 5)) % 1);
+        p.steps.push([t + 0.25 + 0.5 * ((r * (3 + i)) % 1), x, nx, 0]);
+        x = nx;
+      }
+    });
+    // the one that tops the berm: they turn and run
+    const top = reachOf(seaYAt(T_TOP + 1.6));
+    if (x < top + 4) {
+      const nx = top + 6 + 16 * ((r * 13) % 1);
+      p.steps.push([T_TOP + 0.1 + 0.6 * ((r * 11) % 1), x, nx, 4.6 + 1.4 * ((r * 17) % 1)]);
+    }
+  }
 }
 
 // what they do with their arms: [armL, armR, phone]
@@ -188,6 +209,26 @@ export function personPose(p, v) {
   };
   if (v >= p.tRun2) { run(p.tRun2, p.stopX, p.lane, p.lane2, p.stopX2, p.ur2); }
   else if (v >= p.tRun) { run(p.tRun, p.rx, p.rz, p.lane, p.stopX, p.ur); }
+  // backing away from the waves (before the first dash)
+  if (v < T_DASH1 && p.steps && p.steps.length && v > p.steps[0][0]) {
+    for (const [ts, a, b, u] of p.steps) {
+      if (v <= ts) break;
+      if (u) {
+        // running: turn inland and go
+        const tr = v - ts, d = Math.min(b - a, Math.max(0, tr - 0.3) * u);
+        o.x = a + d;
+        const moving = d < b - a - 0.05;
+        let dy = Math.PI / 2 - o.yaw; dy -= 2 * Math.PI * Math.round(dy / (2 * Math.PI));
+        o.yaw += dy * smooth(0, 0.35, tr);
+        if (moving) { o.walk = p.ph + d / 1.15 * Math.PI; o.stride = 1.6 * clamp(tr / 0.7); o.pitch = 0.12; o.armL = p.g1 < 0.3 ? 1.45 : 0; o.armR = p.g3 < 0.2 ? 1.3 : 0; o.phone = 0; o.sit = 0; }
+        continue;
+      }
+      const dur = 0.4 + (b - a) / 2.4, k = smooth(ts, ts + dur, v);
+      o.x = a + (b - a) * k;
+      if (k > 0 && k < 1) { o.walk = p.ph + (o.x - a) / 0.9 * Math.PI; o.stride = 0.9; o.pitch = -0.05; o.armL = Math.max(o.armL, 0.5); o.armR = Math.max(o.armR, 0.4); o.phone = 0; }
+    }
+    o.y = landY(o.x, o.z) - (o.sit ? 0.45 * o.sit : 0);
+  }
   else {
     // ---- standing (or sitting) where they are, looking up ----
     o.y = landY(o.x, o.z);

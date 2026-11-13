@@ -1745,8 +1745,11 @@ the title, the counter racing (CLOSEST PASS IN · TIME-LAPSE, 4d 00h 00m; one li
 the owner's scream (once). By 0:03 the star has grown to 3x the Sun's width. 0:03 the honest note: "Gliese 710 will really
 pass us, about 1.3 million years from now, but much farther out." 0:04 the sea lifts and races up the sand (THE SEA RACES
 IN), everyone runs up the beach past you while you back away with them; 0:08 "Its pull on the sea is already 50 times the
-Moon's." 0:11.5 "It's 3.5 times wider than the Sun now, and 3 times as bright." 0:14.4 the Sun sinks into the sea ("The Sun
-sets. The star stays up.") and the beach stays lit orange (NO MORE NIGHT). 0:19.3 a time-lapse dash up to the walk: the phone
+Moon's." The sea doesn't stop (owner, Nov 13: "it js kinda stops"): at 0:09.7 and 0:13 bigger waves run up the sand
+and the people at the water's edge back away from each one, you with them. 0:11.5 "It's 3.5 times wider than the Sun now,
+and 3 times as bright." 0:14.4 the Sun sinks into the sea ("The Sun sets. The star stays up."); 0:16.2 the biggest wave
+tops the beach and races up the sand, everyone turns and runs past you again while you back away (NO MORE NIGHT, the
+beach lit orange with the Sun gone). 0:19.3 a time-lapse dash up to the walk: the phone
 zooms in on the Moon over the crowd, a crescent lit by the star, and it's pulled across the sky toward the giant orange star
 coming into frame on the right (THE MOON IS DRAGGED AWAY, "Its pull tears the Moon off its orbit."). 0:24 a rolling wall of
 white water (a foam crest, a dark sand-laden face, spray) races across the sand to the walk, people run past you, the beach

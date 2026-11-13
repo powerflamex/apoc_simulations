@@ -100,6 +100,30 @@ export function moonPos(v) {
 
 // ---- the beats ----
 export const T_SURGE = 3.9;              // the sea starts racing up the beach
+// after the first surge the sea keeps coming: bigger and bigger waves run up the sand (when, how much higher, m),
+// the people at the water's edge back away from each one, and you with them
+export const PULSES = [[9.7, 0.2], [13.0, 0.27]];
+export const T_TOP = 16.2;              // the last one tops the berm and races up the beach: everyone runs again
+export const TOP_H = 0.42;
+export function pulseAt(v) {
+  let y = 0;
+  for (const [t, h] of PULSES) { const dt = v - t; if (dt > -0.05 && dt < 3.4) y += h * smooth(0, 0.9, dt) * (1 - smooth(1.1, 3.2, dt)); }
+  if (v < T_DASH1) y += TOP_H * Math.pow(smooth(T_TOP, T_TOP + 1.6, v), 0.8);
+  return y;
+}
+export function pulseFoam(v) {
+  let f = 0;
+  for (const [t, h] of PULSES) { const dt = v - t; if (dt > -0.3 && dt < 3.4) f += (h / 0.27) * smooth(-0.3, 0.5, dt) * (1 - smooth(1.4, 3.0, dt)); }
+  f += smooth(T_TOP - 0.3, T_TOP + 0.5, v);
+  return Math.min(1, f);
+}
+const SEA_BASE = (v) => 0.18 + 1.6 * Math.pow(smooth(T_SURGE, T_SURGE + 4.4, v), 0.8) + 0.08 * smooth(T_SURGE + 5, T_DASH1, v) + 0.04 * smooth(8.5, T_DASH1, v);
+// where the water's edge gets to (m inland) on each wave
+export const pulseReach = (t, h) => reachOf(SEA_BASE(t + 0.9) + h);
+export function reachOf(y) {           // the water's edge (m inland) for a sea level y (layout.js sandY)
+  if (y <= 2.2) return 50 * Math.pow(Math.max(0, y) / 2.2, 1 / 0.9);
+  let d = 50; while (d < 165 && 2.2 + 0.8 * smooth(50, 165, d) < y) d += 0.25; return d;
+}
 export const T_FLOOD = 24.0;             // the beach goes under, up to the walk
 export const T_QUAKE = 28.0;             // the ground shakes
 export const T_FREEZE = 39.0;            // the sea starts to freeze
@@ -118,7 +142,7 @@ export function boreAt(v) { return v >= T_DASH1 && v < T_DASH2 ? smooth(T_FLOOD 
 export function seaYAt(v) {
   if (v >= T_DASH2) return lerp(0.55, 0.0, smooth(T_DASH2, T_DASH2 + 4, v));
   if (v >= T_DASH1) return 2.3 + 0.32 * smooth(T_DASH1, T_FLOOD - 0.6, v) + 0.73 * smooth(T_FLOOD + 3.6, T_FLOOD + 4.6, v) + 0.06 * smooth(T_FLOOD + 4.6, T_DASH2, v);
-  return 0.18 + 1.6 * Math.pow(smooth(T_SURGE, T_SURGE + 4.4, v), 0.8) + 0.08 * smooth(T_SURGE + 5, T_DASH1, v);
+  return SEA_BASE(v) + pulseAt(v);
 }
 
 // ---- text: popups name what happens (no numbers); captions sit in the gaps (never both at once) ----
@@ -193,7 +217,7 @@ export function state(v) {
   s.cold = v >= T_DASH2 ? smooth(T_DASH2 + 1, 44, v) : 0;
   s.nightL = v < T_DASH2 ? smooth(T_SUNSET[0] + 1.5, T_SUNSET[1] + 1.2, v) : smooth(41.5, 44.5, v);
   s.quake = v < T_DASH2 ? smooth(T_QUAKE - 0.2, T_QUAKE + 0.3, v) * (1 - 0.55 * smooth(T_ZERO - 0.5, T_ZERO + 1.5, v)) * (1 - smooth(T_DASH2 - 0.6, T_DASH2, v)) : 0;
-  s.surge = smooth(T_SURGE - 0.3, T_SURGE + 0.6, v) * (1 - smooth(T_SURGE + 4.6, T_SURGE + 6.5, v)) + (v < T_DASH2 ? smooth(T_FLOOD - 0.4, T_FLOOD + 0.6, v) * (1 - smooth(T_FLOOD + 3.6, T_FLOOD + 5.5, v)) : 0);
+  s.surge = (v < T_DASH1 ? Math.max(smooth(T_SURGE - 0.3, T_SURGE + 0.6, v) * (1 - 0.65 * smooth(T_SURGE + 4.6, T_SURGE + 6.5, v)), pulseFoam(v)) : 0) + (v < T_DASH2 ? smooth(T_FLOOD - 0.4, T_FLOOD + 0.6, v) * (1 - smooth(T_FLOOD + 3.6, T_FLOOD + 5.5, v)) : 0);
   s.flood = v >= T_DASH1 && v < T_DASH2 ? smooth(T_FLOOD - 0.8, T_FLOOD, v) : 0;
   s.ice = v >= T_DASH2 ? smooth(T_FREEZE - 0.5, T_LENS + 1.5, v) : 0;
   s.frost = v >= T_DASH2 ? smooth(T_FREEZE - 0.5, T_LENS + 1.0, v) : 0;

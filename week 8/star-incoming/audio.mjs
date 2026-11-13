@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, T_SWITCH, LOOP, POPUPS, T_SURGE, T_DASH1, T_DASH2, T_FLOOD, T_QUAKE, T_ZERO, T_SUNSET, T_LENS, T_SOLID, T_MOON } from './src/timeline.js';
+import { VIDEO_DURATION, T_SWITCH, LOOP, POPUPS, PULSES, T_TOP, T_SURGE, T_DASH1, T_DASH2, T_FLOOD, T_QUAKE, T_ZERO, T_SUNSET, T_LENS, T_SOLID, T_MOON } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -87,7 +87,7 @@ export function makeSoundtrack(outFile) {
     const vox = crowdF.run(white(), 700 + 300 * Math.sin(t * 3.1), 2.2).bp * 0.06 + crowdF2.run(white(), 1100 + 200 * Math.sin(t * 2.3), 2.5).bp * 0.04;
     let stir = 0;
     for (const [h, b] of HITS) { const dt = t - h; if (dt > 0 && dt < 4) stir += b * smooth(0.05, 0.4, dt) * Math.exp(-dt / 1.3); }
-    const panic = smooth(T_SURGE, T_SURGE + 1.5, t) * (1 - smooth(T_SURGE + 5, T_SURGE + 8, t)) + smooth(T_FLOOD, T_FLOOD + 1, t) * (1 - smooth(T_FLOOD + 4, T_ZERO, t));
+    const panic = Math.max(smooth(T_SURGE, T_SURGE + 1.5, t) * (1 - 0.6 * smooth(T_SURGE + 5, T_SURGE + 8, t)), smooth(T_TOP, T_TOP + 1, t)) * (1 - smooth(T_DASH1 - 0.5, T_DASH1, t)) + smooth(T_FLOOD, T_FLOOD + 1, t) * (1 - smooth(T_FLOOD + 4, T_ZERO, t));
     const crowdG = (0.75 + 0.8 * stir + 1.5 * panic) * fade * (1 - 0.7 * part2);
     const crowd = vox * (0.5 + 0.5 * Math.abs(Math.sin(t * 5.3 + Math.sin(t * 1.7)))) * crowdG;
     bL = clamp(bL + white() * 0.02, -1, 1) * 0.998;
@@ -117,7 +117,9 @@ export function makeSoundtrack(outFile) {
     }
     braam = braamF.run(braam, 850, 0.6).lp * 0.17 * fade;
     // --- the sea's roar: as it races up the sand, and when the beach goes under ---
-    const sea = Math.pow(smooth(T_SURGE - 0.3, T_SURGE + 1.2, t) * (1 - smooth(T_SURGE + 4.5, T_SURGE + 7.5, t)), 1.3) * 0.5
+    let waves = 0;
+    for (const [pt, ph2] of PULSES) { const dt = t - pt; if (dt > -0.4 && dt < 4) waves += (ph2 / 0.26) * smooth(-0.4, 0.5, dt) * Math.exp(-Math.max(0, dt - 0.5) / 1.1); }
+    const sea = Math.pow(smooth(T_SURGE - 0.3, T_SURGE + 1.2, t) * (1 - smooth(T_SURGE + 4.5, T_SURGE + 7.5, t)), 1.3) * 0.5 + 0.42 * Math.min(1, waves) + 0.5 * Math.pow(smooth(T_TOP - 0.4, T_TOP + 1.0, t) * (1 - smooth(T_DASH1 - 0.3, T_DASH1 + 0.3, t)), 1.3)
       + Math.pow(smooth(T_FLOOD - 0.4, T_FLOOD + 1.2, t) * (1 - smooth(T_FLOOD + 3.5, T_QUAKE + 1.5, t)), 1.3) * 0.6;
     const seaF = 300 + 300 * sea;
     const sl = seaLP.run(seaL.run(white(), seaF * (1 + 0.2 * Math.sin(t * 0.9)), 0.35).bp) * sea * 2.4;

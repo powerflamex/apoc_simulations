@@ -138,8 +138,10 @@ const ek = (list, t) => keys(list, t);
 // Part 2 (after the second dash): the same spot, evening, the Sun smaller, the light going cold, the lens freezing.
 const BK = [[-4, 0], [T_SURGE + 0.3, 0], [T_SURGE + 1.2, 3.0], [T_SURGE + 6.6, CAM_END_X - CAM0.x], [60, CAM_END_X - CAM0.x]];
 const B0 = [[-4, -0.6], [T_SURGE + 0.2, -0.8], [T_SURGE + 2.5, 1.2], [9.8, 1.4], [T_SUNSET[0], 0.6], [T_SUNSET[1] + 0.6, 0.2], [60, 0.2]];
-const P0 = [[-4, 4.0], [T_SURGE + 0.2, 4.0], [T_SURGE + 1.4, 1.6], [T_SURGE + 6.0, 1.6], [T_SURGE + 7.4, 3.6], [60, 3.6]];
-const F0 = [[-4, 21], [0, 20.5], [T_SURGE + 0.2, 19], [T_SURGE + 1.4, 50], [T_SURGE + 6.0, 50], [T_SURGE + 7.4, 28], [60, 28]];
+const P0 = [[-4, 4.0], [T_SURGE + 0.2, 4.0], [T_SURGE + 1.4, 1.6], [T_SURGE + 6.0, 1.6], [T_SURGE + 7.4, 2.2], [T_SUNSET[0], 2.4], [16.3, 2.6], [17.2, 1.4], [60, 1.4]];
+// you step back up the sand with the crowd as each wave comes in
+const BACK = [[0, 0], [9.95, 0], [10.9, 1.3], [13.25, 1.3], [14.2, 2.7], [16.4, 2.7], [18.2, 17], [19.4, 21], [60, 21]];
+const F0 = [[-4, 21], [0, 20.5], [T_SURGE + 0.2, 19], [T_SURGE + 1.4, 50], [T_SURGE + 6.0, 50], [T_SURGE + 7.4, 30], [16.3, 30], [17.2, 46], [60, 46]];
 // part 1: the phone zooms in on the Moon (it's pulled toward the star, whose edge is on the right), out again for the
 // flood, and at the closest pass in on the star, up and to the left of the Ferris wheel
 const B1 = [[0, 7.5], [T_MOON - 0.1, 7.5], [T_MOON + 1.0, 6.0], [T_MOON + 3.6, 7.8], [T_FLOOD + 0.6, 6], [T_QUAKE - 0.2, 7.5], [T_ZERO - 0.8, 11], [T_ZERO + 1.0, 15.2], [60, 15.2]];
@@ -180,7 +182,7 @@ function update(v, cover = -1) {
   // ---------- camera ----------
   let x, z, y, B, P, fov;
   if (s.part === 0) {
-    x = CAM0.x + spline(BK, v); z = CAM0.z;
+    x = CAM0.x + spline(BK, v) + ek(BACK, v); z = CAM0.z;
     y = landY(x, z) + 1.62;
     B = ek(B0, v); P = ek(P0, v); fov = fovK(F0, v);
   } else if (s.part === 1) {
@@ -193,7 +195,8 @@ function update(v, cover = -1) {
   let yaw = (90 - B) * DEG, pitch = P * DEG, roll = 0;
   // hand-held: a slow sway; running backwards (the surge) bobs it; the zoom steadies it
   const steady = s.part === 1 ? 1 - 0.85 * smooth(T_ZERO - 0.5, T_ZERO + 1, v) : 1;
-  const run = smooth(T_SURGE + 0.8, T_SURGE + 1.4, v) * (1 - smooth(T_SURGE + 6.0, T_SURGE + 6.8, v));
+  const run = s.part === 0 ? smooth(T_SURGE + 0.8, T_SURGE + 1.4, v) * (1 - smooth(T_SURGE + 6.0, T_SURGE + 6.8, v))
+    + [[9.95, 10.9, 0.45], [13.25, 14.2, 0.45], [16.4, 19.6, 1]].reduce((a, [t0, t1, w]) => a + w * smooth(t0, t0 + 0.3, v) * (1 - smooth(t1 - 0.2, t1, v)), 0) : 0;
   x += wobble(v * 0.5, 2) * 0.04 * steady; y += (wobble(v * 0.4, 3) * 0.03 + Math.abs(Math.sin(v * 8.0)) * 0.06 * run) * steady;
   yaw += (wobble(v * 0.35, 5) * 0.25 * steady + wobble(v * 3.1, 1) * 0.5 * run) * DEG; pitch += (wobble(v * 0.3, 7) * 0.2 * steady + wobble(v * 3.7, 4) * 0.6 * run) * DEG;
   roll += (wobble(v * 0.27, 9) * 0.3 * steady + Math.sin(v * 8.0) * 0.9 * run) * DEG;
