@@ -137,15 +137,18 @@ const ek = (list, t) => keys(list, t);
 // the sand up to your feet, the ground shakes, and at the closest pass you zoom in on the star over the Ferris wheel.
 // Part 2 (after the second dash): the same spot, evening, the Sun smaller, the light going cold, the lens freezing.
 const BK = [[-4, 0], [T_SURGE + 0.3, 0], [T_SURGE + 1.2, 3.0], [T_SURGE + 6.6, CAM_END_X - CAM0.x], [60, CAM_END_X - CAM0.x]];
-const B0 = [[-4, 2.2], [T_SURGE + 0.2, 2.4], [T_SURGE + 2.5, 1.2], [9.8, 1.6], [T_SUNSET[0], 1.2], [T_SUNSET[1] + 0.6, -0.8], [60, -0.8]];
-const P0 = [[-4, 6.3], [T_SURGE + 0.2, 6.3], [T_SURGE + 1.4, 1.6], [T_SURGE + 6.0, 1.6], [T_SURGE + 7.4, 4.6], [T_SUNSET[0], 4.4], [T_SUNSET[1], 3.6], [60, 3.6]];
-const F0 = [[-4, 37.5], [0, 36], [T_SURGE + 0.2, 31], [T_SURGE + 1.4, 50], [T_SURGE + 6.0, 50], [T_SURGE + 7.4, 38], [60, 38]];
-const B1 = [[0, 7.5], [T_MOON + 0.1, 8.0], [T_MOON + 4.0, 9.0], [T_FLOOD - 0.4, 8.5], [T_FLOOD + 0.6, 6], [T_QUAKE - 0.2, 7.5], [T_ZERO - 0.8, 11], [T_ZERO + 1.0, 16.2], [60, 16.2]];
-const P1 = [[0, 6.3], [T_MOON + 4.0, 6.0], [T_FLOOD - 0.4, 6.0], [T_FLOOD + 0.6, -5.5], [T_QUAKE - 0.3, -4.5], [T_QUAKE + 0.6, 3.5], [T_ZERO - 0.8, 4.0], [T_ZERO + 1.0, 4.35], [60, 4.35]];
-const F1 = [[0, 40], [T_MOON - 0.1, 40], [T_MOON + 0.9, 21], [T_MOON + 4.0, 21], [T_FLOOD - 0.4, 40], [T_FLOOD + 0.6, 52], [T_QUAKE + 0.6, 46], [T_ZERO - 0.8, 44], [T_ZERO + 1.3, 12.5], [60, 12.5]];
-const B2 = [[0, 0.5], [T_DASH2, 0.5], [48, -1.0]];
-const P2 = [[0, 7.5], [T_DASH2, 7.5], [T_LENS, 5.5], [48, 3.5]];
-const F2 = [[0, 46], [T_DASH2, 46], [48, 40]];
+const B0 = [[-4, -0.6], [T_SURGE + 0.2, -0.8], [T_SURGE + 2.5, 1.2], [9.8, 1.4], [T_SUNSET[0], 0.6], [T_SUNSET[1] + 0.6, 0.2], [60, 0.2]];
+const P0 = [[-4, 4.0], [T_SURGE + 0.2, 4.0], [T_SURGE + 1.4, 1.6], [T_SURGE + 6.0, 1.6], [T_SURGE + 7.4, 3.6], [60, 3.6]];
+const F0 = [[-4, 21], [0, 20.5], [T_SURGE + 0.2, 19], [T_SURGE + 1.4, 50], [T_SURGE + 6.0, 50], [T_SURGE + 7.4, 28], [60, 28]];
+// part 1: the phone zooms in on the Moon (it's pulled toward the star, whose edge is on the right), out again for the
+// flood, and at the closest pass in on the star, up and to the left of the Ferris wheel
+const B1 = [[0, 7.5], [T_MOON - 0.1, 7.5], [T_MOON + 1.0, 6.0], [T_MOON + 3.6, 7.8], [T_FLOOD + 0.6, 6], [T_QUAKE - 0.2, 7.5], [T_ZERO - 0.8, 11], [T_ZERO + 1.0, 15.2], [60, 15.2]];
+const P1 = [[0, 6.3], [T_MOON - 0.1, 5.0], [T_MOON + 1.0, 2.0], [T_MOON + 3.6, 2.4], [T_FLOOD + 0.6, -5.5], [T_FLOOD + 1.3, -5.0], [T_FLOOD + 2.3, 0.5], [T_QUAKE - 0.3, 1.0], [T_QUAKE + 0.6, 3.5], [T_ZERO - 0.8, 4.0], [T_ZERO + 1.0, 3.4], [60, 3.4]];
+const F1 = [[0, 40], [T_MOON - 0.1, 40], [T_MOON + 1.0, 9.5], [T_MOON + 3.6, 9.5], [T_FLOOD + 0.6, 52], [T_QUAKE + 0.6, 46], [T_ZERO - 0.8, 44], [T_ZERO + 1.3, 15], [60, 15]];
+// part 2: zoomed in on the Sun as it shrinks, then out to the beach freezing
+const B2 = [[0, -5], [38.4, -5], [40.4, 0.5], [48, -1.0]];
+const P2 = [[0, 2.9], [38.4, 2.5], [40.4, 7.5], [T_LENS, 5.5], [48, 3.5]];
+const F2 = [[0, 10], [38.4, 10], [40.4, 46], [48, 40]];
 // FOV keys in log space, so a zoom feels steady
 const fovK = (list, v) => Math.exp(keys(list.map(([t, f]) => [t, Math.log(f)]), v));
 
@@ -219,17 +222,19 @@ function update(v, cover = -1) {
   u.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / RH;
   u.uT.value = v;
   const coldK = s.part === 2 ? 1 : 0;
-  u.uSunCol.value.setRGB(...(coldK ? [1, 0.88, 0.72] : [1, 0.7, 0.32]));
-  u.uSunI.value = 4.2;
-  u.uSunG.value = (0.55 + 0.1 * s.dash) * (s.part === 2 ? 0.5 / Math.sqrt(s.dSun) + 0.2 : 1);
+  u.uSunCol.value.setRGB(...(coldK ? [1, 0.88, 0.72] : [1, 0.74, 0.4]));
+  u.uSunI.value = s.part === 2 ? 4.2 : 2.2;
+  u.uSunG.value = (s.part === 2 ? 0.55 : 0.4) * (1 + 0.2 * s.dash) * (s.part === 2 ? 0.5 / Math.sqrt(s.dSun) + 0.2 : 1);
   u.uSunGC.value.setRGB(...(coldK ? [1, 0.82, 0.62] : [1, 0.64, 0.32]));
   u.uStarCol.value.setRGB(1, 0.3, 0.045);
-  u.uStarI.value = 3.0 + 0.8 * smooth(1, 4, s.bright);
+  u.uStarI.value = 2.4 + 0.6 * smooth(1, 4, s.bright);
   u.uStarG.value = Math.min(0.85, 0.42 + 0.1 * s.bright);
   u.uStarGC.value.setRGB(1, 0.36, 0.08);
   u.uGran.value = 0.55 * smooth(1.4, 3.0, s.width);
-  u.uMoonI.value = s.moon.vis * (s.part === 0 ? 0.5 : 1.3);
-  u.uMoonL.value.copy(tmpV.set(-0.35, 0.25, 0).add(MOON_D.clone().multiplyScalar(-0.55)).normalize());
+  u.uMoonI.value = s.moon.vis * (s.part === 0 ? 0.5 : 1.0);
+  // the Moon is lit by the star behind it (nearly new: a thin crescent on the star's side, earthshine on the rest)
+  tmpV.copy(STAR_D).addScaledVector(MOON_D, -STAR_D.dot(MOON_D)).normalize();          // (across the sky, toward the star)
+  u.uMoonL.value.copy(MOON_D).multiplyScalar(0.42).addScaledVector(tmpV, 0.906);          // (a fat crescent: drawn wider than the true one so it reads)
   u.uTop.value.setRGB(...L.top); u.uLow.value.setRGB(...L.low); u.uNearS.value.setRGB(...L.nearS);
   const glowX = Math.min(1.3, 0.2 + 0.28 * s.bright) * (s.part === 2 ? 0.3 : 1);
   u.uNearX.value.setRGB(1.0 * glowX, 0.4 * glowX, 0.13 * glowX);
@@ -268,8 +273,10 @@ function update(v, cover = -1) {
   su.uAmbC.value.setRGB(...L.hemiSky).multiplyScalar(world.hemi.intensity);
   su.uBright.value = 0.8;
   su.uPx.value = u.uPx.value;
-  su.uSurge.value = s.surge;
+  su.uSurge.value = s.part === 0 ? s.surge : 0.2 * s.surge;      // (the flood has its own look: uFlood, bore.js)
   su.uIce.value = s.ice;
+  const bu = world.bore.u;
+  bu.uDirC.value.copy(su.uDirC.value); bu.uAmbC.value.copy(su.uAmbC.value); bu.uSunD.value.copy(STAR_D); bu.uSky.value.setRGB(...L.seaLo); bu.uPx.value = u.uPx.value;
   H.uFrost.value = 0.85 * s.frost;
   world.frame(v, s, camera);
 

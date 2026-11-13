@@ -5,7 +5,7 @@
 // beach under it: surf, voices, a little traffic; the sea's roar when it races up the sand and again when the beach
 // goes under; a deep rumble when the ground shakes; a whoosh at the two time-lapse dashes. After the pass the music
 // thins out to a cold high chord and wind; it fades away as the lens freezes.
-// The owner's scream (sfx/scream.mp3) in the first second and as the sea comes up the beach.
+// The owner's scream (sfx/scream.mp3) in the first second (once).
 // The loop: the whole track is made in one run that starts before frame 0, so the moments just before the first frame
 // exist; under the solid ice at the end the track fades over into them, and the last sample runs straight into the first.
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const SCREAMS = [[0.1, 1.0], [T_SURGE + 0.9, 0.8]];     // [when, how loud]: the two suns on frame 0; the sea racing in
+const SCREAMS = [[0.1, 1.0]];     // [when, how loud]: the two suns on frame 0 (once only: twice was too much)
 class OnePole { constructor(fc) { this.y = 0; this.set(fc); } set(fc) { this.a = 1 - Math.exp(-TAU * fc / SR); } run(x) { return (this.y += this.a * (x - this.y)); } }
 class SVF {
   constructor() { this.l = 0; this.b = 0; }

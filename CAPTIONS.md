@@ -1736,41 +1736,47 @@ flicker and the second shadow (the ring of fire's light) are shown; the flare's 
 
 48.2 s, loops. Built on planet-picker's Santa Monica beach engine (the pier and its Ferris wheel on the right), this time
 at golden hour with TWO suns and two lights, so everyone has two shadows. The star is the real Gliese 710 (0.6 Suns, 0.59
-the Sun's width, 9% of its light), on a made-up path that passes 22 million km (0.15 AU) from Earth. What you see, in
-order: 0:00 a packed beach at golden hour, people close to you with arms up and phones out, the Sun low over the sea on
-the left and an orange second sun beside it (already 1.5x the Sun's width), the title, the counter racing (CLOSEST PASS IN
-· TIME-LAPSE, 7d 00h 00m; one line: IT PASSES 22 MILLION KM FROM YOU), the owner's scream. The star grows every second.
-0:03 the honest note: "Gliese 710 will really pass us, about 1.3 million years from now, but much farther out." 0:04 the
-sea lifts and races up the sand (THE SEA RACES IN), everyone runs up the beach past you while you back away with them;
-0:08 "Its pull on the sea is already 20 times the Moon's." 0:11.5 "It's nearly 3 times wider than the Sun now, and twice
-as bright." 0:14.4 the Sun sinks into the sea ("The Sun sets. The star stays up.") and the beach stays lit orange (NO MORE
-NIGHT). 0:19.3 a time-lapse dash up to the walk: the Moon is pulled across the sky toward the star (THE MOON IS DRAGGED
-AWAY, "Its pull tears the Moon off its orbit."). 0:24 a wall of white water races across the sand to the walk, people run
-past you (THE BEACH GOES UNDER, "Tides 75 times the Moon's."). 0:28 the ground shakes (THE GROUND SHAKES). 0:30.5 the
-counter hits zero (CLOSEST PASS): the phone zooms in on the star sitting behind the Ferris wheel, filling a third of the
-screen, the crowd below ("22 million km away. 4 times wider than the Sun."). 0:34.6 a dash ahead: another evening, the
-counter now SINCE CLOSEST PASS with the line THE SUN: 1.4x / 2x / 3x SMALLER, the star a fading orange dot; "Its pull has
-flung Earth out of orbit. In 3 months, the Sun looks 3 times smaller." 0:39 the light goes cold and blue, frost spreads over the
-sand (EVERYTHING FREEZES, "Earth drifts away from the Sun, forever."), frost grows in from the lens edges and the lens is solid ice at
-0:47; the ice clears onto frame 0 (the loop).
+the Sun's width, 9% of its light), on a made-up path that passes 22 million km (0.15 AU) from Earth. Reworked Nov 13 after
+the owner's review (the star was a dot on frame 0, hidden behind the wheel at the climax, the Moon a speck, no picture of
+the Sun shrinking, the flood looked like a flat sheet, two screams). What you see, in order: 0:00 a packed beach at golden
+hour, people close to you with arms up and phones out, the phone zoomed a little on the sky: the Sun a small white disc
+low over the sea on the left, the star a big orange disc on the right (already 2.3x the Sun's width and 1.5x its light),
+the title, the counter racing (CLOSEST PASS IN · TIME-LAPSE, 4d 00h 00m; one line: IT PASSES 22 MILLION KM FROM YOU),
+the owner's scream (once). By 0:03 the star has grown to 3x the Sun's width. 0:03 the honest note: "Gliese 710 will really
+pass us, about 1.3 million years from now, but much farther out." 0:04 the sea lifts and races up the sand (THE SEA RACES
+IN), everyone runs up the beach past you while you back away with them; 0:08 "Its pull on the sea is already 50 times the
+Moon's." 0:11.5 "It's 3.5 times wider than the Sun now, and 3 times as bright." 0:14.4 the Sun sinks into the sea ("The Sun
+sets. The star stays up.") and the beach stays lit orange (NO MORE NIGHT). 0:19.3 a time-lapse dash up to the walk: the phone
+zooms in on the Moon over the crowd, a crescent lit by the star, and it's pulled across the sky toward the giant orange star
+coming into frame on the right (THE MOON IS DRAGGED AWAY, "Its pull tears the Moon off its orbit."). 0:24 a rolling wall of
+white water (a foam crest, a dark sand-laden face, spray) races across the sand to the walk, people run past you, the beach
+is left under muddy water (THE BEACH GOES UNDER, "Tides 80 times the Moon's."). 0:28 the ground shakes (THE GROUND SHAKES).
+0:30.5 the counter hits zero (CLOSEST PASS): the phone zooms in on the giant star, fully in view up and to the left of the lit
+Ferris wheel, the crowd below ("22 million km away. 4 times wider than the Sun."). 0:34.6 a dash ahead: the phone zoomed on
+the Sun low over the sea, and you watch it shrink as the counter races (SINCE CLOSEST PASS, THE SUN: 1.3x / 2x / 3x
+SMALLER); "Its pull has flung Earth out of orbit. In 3 months, the Sun looks 3 times smaller." 0:38.4 the phone pulls back
+to the beach, the light goes cold and blue, frost spreads over the sand (EVERYTHING FREEZES, "Earth drifts away from the
+Sun, forever."), frost grows in from the lens edges and the lens is solid ice at 0:47; the ice clears onto frame 0 (the loop).
 
 The physics (worked out before building; `week 8/star-incoming/physics.mjs` and `src/timeline.js`): Gliese 710 is ~0.6
 Suns, 0.59 the Sun's width, ~9% of its light (Gaia). Seen from Earth its width is 0.59 / distance (AU) times the Sun's
-(as big as the Sun at 0.59 AU, 3.9x at 0.15 AU), its light 0.092 / distance² (as bright as the Sun at 0.3 AU, 4x at
-0.15 AU), its pull on the seas 0.28 / distance³ times the Moon's (the Sun's is 0.46; 20x at 0.24 AU, 82x at closest).
-At closest its tidal pull on the Moon is about twice Earth's grip on it and its kick (~1.4 km/s) beats the Moon's orbital
-speed (1.0 km/s): the Moon is torn off its orbit. In thousands of simulated passes within 0.1-0.2 AU, Earth is flung out
-of the solar system ~70% of the time (captured by the star ~13%, kept by the Sun ~17%), so the video shows it flung out;
-in the run used Earth leaves at 20 km/s and is 2.9 AU from the Sun after 3 months (the Sun 3x smaller, 1/9 the warmth),
-6.8 AU after a year. Its heat at closest is 4x the Sun's for about two days: a fierce heat wave, but its pull is what is
-permanent (the video never claims a heat number). The real Gliese 710 passes in ~1.29 million years at ~10,000-13,000 AU
-from the Sun, about 80,000 times farther than this pass. Not to scale / simplified: the beach holds golden hour through the
-time-lapse (one evening after another, not every hour); the closest-pass shot is a phone zoom (true size in the sky is
-2 degrees, 4x the Sun's width; "a third of the sky" would need it 15x closer, where its light would be ~1,000x the
-Sun's); the flood is drawn as one bore of white water instead of a day of rising tide; the frost is shown within months (at 3-4 AU the
-surface would cool for months to a year before the sea froze over).
+(as big as the Sun at 0.59 AU, 2.3x at 0.25 AU four days out, 3.9x at 0.15 AU), its light 0.092 / distance² (as bright as
+the Sun at 0.3 AU, 1.5x four days out, 4x at 0.15 AU), its pull on the seas 0.28 / distance³ times the Moon's (the Sun's
+is 0.46; 50x at 0.17 AU, 82x at closest). On screen the star and the Sun are always drawn at their true sizes relative to
+each other (the zooms change both alike). At closest its tidal pull on the Moon is about twice Earth's grip on it and its
+kick (~1.4 km/s) beats the Moon's orbital speed (1.0 km/s): the Moon is torn off its orbit. In thousands of simulated
+passes within 0.1-0.2 AU, Earth is flung out of the solar system ~70% of the time (captured by the star ~13%, kept by the
+Sun ~17%), so the video shows it flung out; in the run used Earth leaves at 20 km/s and is 2.9 AU from the Sun after 3
+months (the Sun 3x smaller, 1/9 the warmth), 6.8 AU after a year. Its heat at closest is 4x the Sun's for about two days:
+a fierce heat wave, but its pull is what is permanent (the video never claims a heat number). The real Gliese 710 passes
+in ~1.29 million years at ~10,000-13,000 AU from the Sun, about 80,000 times farther than this pass. Not to scale /
+simplified: the beach holds golden hour through the time-lapse (one evening after another, not every hour); the zooms
+are a phone zoom (the star's true size in the sky at closest is 2 degrees); the Moon, nearly between us and the star,
+would really be a hairline crescent: it's drawn as a fatter crescent so it reads; the flood is drawn as one bore of white
+water instead of a day of rising tide; the frost is shown within months (at 3-4 AU the surface would cool for months to a
+year before the sea froze over).
 
-Cover: `week 8/star-incoming/out/star-incoming_v4_cover.png` (`node render.mjs --cover 32.8`: the phone zoomed in on the orange star at its closest pass, sitting right behind the lit Ferris wheel on the pier, the crowd small along the flooded beach below; "WHAT IF A STAR CAME / straight at Earth?")
+Cover: `week 8/star-incoming/out/star-incoming_v4_cover.png` (`node render.mjs --cover 32.6`: the phone zoomed in on the giant orange star at its closest pass, fully in view up and to the left of the lit Ferris wheel on the pier, the crowd small along the flooded beach below; "WHAT IF A STAR CAME / straight at Earth?")
 
 **YouTube title (88 characters, emoji counted as 2)**
 ```
@@ -1781,8 +1787,8 @@ What if a star came straight at Earth? It's not the heat that gets you 🌟 #wha
 ```
 A real star, Gliese 710, comes straight at us and passes 22 million km from Earth.
 
-A week out it's already bigger than the Sun in the sky.
-Its pull lifts the sea: tides 75 times stronger than the Moon's.
+Four days out it's already more than twice as wide as the Sun in the sky.
+Its pull lifts the sea: tides 80 times stronger than the Moon's.
 It drags the Moon off its orbit.
 At its closest it's 4 times wider than the Sun and 4 times brighter.
 Then it moves on, and its pull has flung Earth out of orbit: in 3 months the Sun looks 3 times smaller, and everything starts to freeze.

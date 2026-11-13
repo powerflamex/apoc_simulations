@@ -47,9 +47,9 @@ export const tideX = (d) => (STAR.mass * MOON_TIDE_SUN) / (d * d * d);   // x th
 export const T_DASH1 = 19.3;             // the time-lapse skips ahead: you're up on the walk
 export const T_ZERO = 30.5;              // closest pass
 export const T_DASH2 = 34.6;             // skips ahead 10 days: the star is going, the Sun shrinking
-const DAYS = [[-3, 8.9], [-1, 7.6], [0, 7.0], [1, 6.35], [2, 5.78], [3, 5.28], [4, 4.86], [5, 4.5], [6, 4.2], [7, 3.95], [8.5, 3.65], [10, 3.4],
-  [12, 3.05], [14.5, 2.62], [17, 2.22], [T_DASH1 - 0.05, 1.9], [T_DASH1 + 0.25, 1.45], [21, 1.26], [23, 1.0], [25, 0.73], [27, 0.46], [29, 0.2], [T_ZERO, 0],
-  [32, -0.18], [T_DASH2 - 0.05, -0.45], [T_DASH2 + 0.25, -10], [37, -40], [39.5, -90], [42, -160], [45, -260], [48.5, -365]];
+const DAYS = [[-3, 6.0], [-1, 4.7], [0, 4.0], [1, 3.4], [2, 2.95], [3, 2.6], [4, 2.35], [5, 2.15], [6.5, 1.95], [8.5, 1.75], [10, 1.6],
+  [12, 1.45], [14.5, 1.28], [17, 1.12], [T_DASH1 - 0.05, 1.0], [T_DASH1 + 0.25, 0.8], [21, 0.7], [23, 0.55], [25, 0.4], [27, 0.26], [29, 0.11], [T_ZERO, 0],
+  [32, -0.18], [T_DASH2 - 0.05, -0.45], [T_DASH2 + 0.25, -1.5], [35.5, -5], [36.5, -15], [37.5, -38], [38.4, -65], [39.2, -90], [42, -160], [45, -260], [48.5, -365]];
 // monotone cubic through the keys (no overshoot: the counter never runs backwards)
 const MC = (() => {
   const n = DAYS.length, x = DAYS.map((k) => k[0]), y = DAYS.map((k) => k[1]);
@@ -84,18 +84,18 @@ export function sunPos(v) {
   return { b: -5.0, el: lerp(3.4, 0.9, smooth(T_DASH2, 47.5, v)) };
 }
 // the star: over the sea a little to the right of the Sun, sinking toward the pier as it nears (at closest pass it
-// hangs over the Ferris wheel, seen from the walk); after the pass it climbs away to the north, shrinking
+// hangs up and to the left of the Ferris wheel, seen from the walk, clear of it); after the pass it climbs away to the north
 export function starPos(v) {
-  if (v < T_DASH1) return { b: lerp(4.0, 8.0, smooth(0, T_DASH1, v)), el: lerp(8.8, 7.0, smooth(0, T_DASH1, v)) };
-  if (v < T_DASH2) return { b: lerp(13.5, 16.2, smooth(T_DASH1, T_ZERO, v)), el: lerp(9.0, 4.1, smooth(T_DASH1 + 0.3, T_ZERO, v)) };
+  if (v < T_DASH1) return { b: lerp(3.5, 6.0, smooth(-3, T_DASH1, v)), el: lerp(6.0, 5.4, smooth(-3, T_DASH1, v)) };
+  if (v < T_DASH2) return { b: lerp(9.9, 12.6, smooth(T_DASH1, T_ZERO, v)), el: lerp(3.0, 4.6, smooth(T_FLOOD, T_ZERO, v)) };
   return { b: lerp(6.5, 8.0, smooth(T_DASH2, 47, v)), el: lerp(13.5, 16.5, smooth(T_DASH2, 47, v)) };
 }
 // the Moon: up in the evening sky to the left; at the Moon beat the star's pull drags it right across the sky toward
 // the star, and it's gone after the pass
 export const T_MOON = 19.7;
 export function moonPos(v) {
-  const k = smooth(T_MOON + 0.2, T_MOON + 4.0, v);
-  return { b: lerp(4.4, 11.6, k), el: lerp(7.4, 6.6, k) + 0.8 * Math.sin(Math.PI * k), vis: v > T_DASH1 && v < T_DASH2 ? 1 - smooth(T_FLOOD - 0.6, T_FLOOD, v) : 0 };
+  const k = smooth(T_MOON + 0.6, T_MOON + 3.6, v);
+  return { b: lerp(4.3, 8.6, k), el: lerp(1.8, 2.9, k) + 0.35 * Math.sin(Math.PI * k), vis: v > T_DASH1 && v < T_DASH2 ? 1 - smooth(T_FLOOD - 0.6, T_FLOOD, v) : 0 };
 }
 
 // ---- the beats ----
@@ -137,7 +137,7 @@ const dAt = (v) => starDist(daysAt(v));
 export const CAPTIONS = [
   { t0: 3.25, t1: 6.25, text: 'Gliese 710 will really pass us, about 1.3 million years from now, but much farther out.' },
   { t0: 8.3, t1: 11.3, text: `Its pull on the sea is already ${fmt1(tideX(dAt(8.3)))} times the Moon's.` },
-  { t0: 11.5, t1: 14.4, text: "It's nearly 3 times wider than the Sun now, and twice as bright." },
+  { t0: 11.5, t1: 14.4, text: `It's ${Math.round(widthX(dAt(11.5)) * 2) / 2} times wider than the Sun now, and ${Math.round(brightX(dAt(11.5)))} times as bright.` },
   { t0: 14.6, t1: 17.1, text: 'The Sun sets. The star stays up.' },
   { t0: T_MOON + POP + 0.15, t1: T_FLOOD - 0.15, text: 'Its pull tears the Moon off its orbit.' },
   { t0: T_FLOOD + POP + 0.15, t1: T_QUAKE - 0.15, text: `Tides ${fmt1(tideX(dAt(T_FLOOD + 2)))} times the Moon's.` },
@@ -167,7 +167,7 @@ export function counterAt(v) {
   const D = daysAt(v);
   if (D > 0.0005 || v < T_ZERO) return { label: 'CLOSEST PASS IN · TIME-LAPSE', value: fmtClock(Math.max(0, D)), line: 'IT PASSES 22 MILLION KM FROM YOU' };
   const sx = sunDist(D);
-  return { label: 'SINCE CLOSEST PASS · TIME-LAPSE', value: fmtClock(D), line: sx < 1.04 ? 'EARTH IS KNOCKED OFF COURSE' : `THE SUN: ${sx < 1.95 ? sx.toFixed(1) : Math.round(sx)}× SMALLER` };
+  return { label: 'SINCE CLOSEST PASS · TIME-LAPSE', value: fmtClock(D), line: sx < 1.1 ? 'EARTH IS KNOCKED OFF COURSE' : `THE SUN: ${sx < 1.95 ? sx.toFixed(1) : Math.round(sx)}× SMALLER` };
 }
 
 // ---- state ----
@@ -194,6 +194,7 @@ export function state(v) {
   s.nightL = v < T_DASH2 ? smooth(T_SUNSET[0] + 1.5, T_SUNSET[1] + 1.2, v) : smooth(41.5, 44.5, v);
   s.quake = v < T_DASH2 ? smooth(T_QUAKE - 0.2, T_QUAKE + 0.3, v) * (1 - 0.55 * smooth(T_ZERO - 0.5, T_ZERO + 1.5, v)) * (1 - smooth(T_DASH2 - 0.6, T_DASH2, v)) : 0;
   s.surge = smooth(T_SURGE - 0.3, T_SURGE + 0.6, v) * (1 - smooth(T_SURGE + 4.6, T_SURGE + 6.5, v)) + (v < T_DASH2 ? smooth(T_FLOOD - 0.4, T_FLOOD + 0.6, v) * (1 - smooth(T_FLOOD + 3.6, T_FLOOD + 5.5, v)) : 0);
+  s.flood = v >= T_DASH1 && v < T_DASH2 ? smooth(T_FLOOD - 0.8, T_FLOOD, v) : 0;
   s.ice = v >= T_DASH2 ? smooth(T_FREEZE - 0.5, T_LENS + 1.5, v) : 0;
   s.frost = v >= T_DASH2 ? smooth(T_FREEZE - 0.5, T_LENS + 1.0, v) : 0;
   s.lens = v >= T_DASH2 ? smooth(T_LENS, T_SOLID, v) : 0;

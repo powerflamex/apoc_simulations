@@ -77,7 +77,7 @@ const SURGE_END = T_SURGE + 6;
   // the walk: people along it around where you'll stand (seen only once you're up there)
   const nW0 = PEOPLE.length;
   // a few close to you, at the walk's seaward edge, either side of the view
-  [[5.0, -4], [6.6, 0.8], [4.4, 27], [7.4, 30.5], [9.2, -8.5], [5.8, -13], [8.4, 25], [11, 3.5], [10.4, -2]].map(([d, b]) => [CAMW.x - d * Math.cos(b * Math.PI / 180), CAMW.z - d * Math.sin(b * Math.PI / 180)]).forEach(([x, z]) => {
+  [[16, -6.2], [6.6, 0.8], [4.4, 27], [7.4, 30.5], [9.2, -8.5], [5.8, -13], [8.4, 25], [11, 3.5], [10.4, 1.6]].map(([d, b]) => [CAMW.x - d * Math.cos(b * Math.PI / 180), CAMW.z - d * Math.sin(b * Math.PI / 180)]).forEach(([x, z]) => {
     const p = place(x, z, 0.8, { set: 'walk', near: true });
     if (p) p.yaw = FACE + (z > CAMW.z ? 0.15 : -0.15);
   });

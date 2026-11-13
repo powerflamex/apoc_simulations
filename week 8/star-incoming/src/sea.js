@@ -14,7 +14,7 @@ const SHELF_GLSL = SHELF.map(([a, h], i) => (i === 0 ? '' : `if (o <= ${f1(a)}) 
 
 const COMMON = /* glsl */ `
 uniform float uTime; uniform float uWaveT; uniform float uSeaY;
-uniform float uBulge; uniform vec2 uDome; uniform float uWallX; uniform float uWallH; uniform float uSurge; uniform float uIce;
+uniform float uBulge; uniform vec2 uDome; uniform float uWallX; uniform float uWallH; uniform float uSurge; uniform float uIce; uniform float uFlood;
 float h2(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
@@ -164,10 +164,10 @@ void main() {
     col = mix(col, white * 0.85, k * clamp(caps * 0.6 + streak * 0.3, 0.0, 1.0));
   }
   // ---- the wall ----
-  if (uWallH > 0.5) {
+  if (uWallH > 0.5 && uFlood < 0.5) {      // (the flood's front is drawn by bore.js)
     float d = wallD(p), wf = wallW();
     float hgt = wallY(d);
-    float on = smoothstep(0.5, 6.0, uWallH);
+    float on = smoothstep(0.2, 0.8, uWallH);
     float faceK = smoothstep(0.0, 0.1 * wf, d) * (1.0 - smoothstep(0.85 * wf, 1.15 * wf, d));
     float crestK = smoothstep(0.5 * wf, 0.9 * wf, d) * (1.0 - smoothstep(wf + 3.0, wf + 14.0, d));
     float footK = smoothstep(-12.0, -2.0, d) * (1.0 - smoothstep(0.0, 0.2 * wf, d));
@@ -184,7 +184,19 @@ void main() {
     col = mix(col, wcol, faceK * on);
     col = mix(col, white * 1.05, clamp(foam, 0.0, 1.0) * on);
     // behind the crest: churned white water
-    col = mix(col, white * 0.85, smoothstep(wf, wf + 6.0, d) * (1.0 - smoothstep(30.0, 90.0, d)) * on * (0.45 + 0.4 * n2(p * 0.12 + uTime)));
+    col = mix(col, white * 0.9, smoothstep(wf, wf + 6.0, d) * (1.0 - smoothstep(30.0, 90.0, d)) * on * 0.6 * smoothstep(0.55, 0.75, n2(vec2(p.x * 0.25 - uTime * 2.5, p.y * 0.1)) * 0.7 + 0.3 * n2(p * 0.6 + uTime)));
+  }
+  // the flood over the sand: muddy, churned water streaming inland, foam streaks on it (not a mirror)
+  if (uFlood > 0.0) {
+    float land = smoothstep(30.0, 60.0, p.x) * smoothstep(-0.02, 0.05, depth);
+    float sx = n2(vec2(p.x * 0.22 - uTime * 3.0, p.y * 0.06)) * 0.6 + n2(vec2(p.x * 0.7 - uTime * 4.5, p.y * 0.2 + 7.0)) * 0.4;
+    float streak = smoothstep(0.55, 0.78, sx);
+    streak = max(streak, smoothstep(0.6, 0.82, n2(vec2(p.x * 1.3 - uTime * 5.0, p.y * 0.45 + 2.0))) * 0.7);
+    vec3 mud = vec3(0.16, 0.12, 0.08) * (uAmbC * 0.45 + uDirC * 0.05) * (0.6 + 0.5 * n2(p * 0.4 - uTime) + 0.3 * n2(p * 2.1 - uTime * 3.0));
+    // muddy water that still mirrors the sky (that's what makes it read as water)
+    vec3 fl = mix(mud, col, clamp(0.25 + F * 1.2, 0.0, 0.85));
+    fl = mix(fl, white * 0.95, streak * 0.55);
+    col = mix(col, fl, land * uFlood);
   }
   if (uIce > 0.0) {
     float cr = smoothstep(0.47, 0.5, n2(p * 0.08)) * (1.0 - smoothstep(0.5, 0.53, n2(p * 0.08)));
@@ -204,7 +216,7 @@ export function makeSea(scene) {
     uTime: { value: 0 }, uWaveT: { value: 0 }, uSeaY: { value: 0 }, uSun: { value: new THREE.Vector3(0, 0.2, -1) }, uSunR: { value: 0.0047 }, uSunI: { value: 3 },
     uSunCol: C(), uSkyHi: { value: new THREE.Color(0.3, 0.5, 0.8) }, uSkyLo: { value: new THREE.Color(0.75, 0.8, 0.88) },
     uPx: { value: 0.0006 }, uDirC: C(), uAmbC: C(), uBright: { value: 1 },
-    uSun2: { value: new THREE.Vector3(0, 0.2, -1) }, uSunR2: { value: 0.006 }, uSunI2: { value: 1 }, uSunCol2: C(), uIce: { value: 0 }, uSurge: { value: 0 },
+    uSun2: { value: new THREE.Vector3(0, 0.2, -1) }, uSunR2: { value: 0.006 }, uSunI2: { value: 1 }, uSunCol2: C(), uIce: { value: 0 }, uSurge: { value: 0 }, uFlood: { value: 0 },
     uBulge: { value: 0 }, uDome: { value: new THREE.Vector2(-15000, -2600) }, uWallX: { value: 1e6 }, uWallH: { value: 0 },
   };
   // the grid: rings from 0.5 m to 80 km around the camera's start

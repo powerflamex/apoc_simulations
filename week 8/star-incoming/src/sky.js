@@ -85,8 +85,9 @@ void main() {
   // ---------- the glares ----------
   float oS = max(acos(clamp(dot(v, uSun), -1.0, 1.0)) - uSunA, 0.0);
   float oX = max(acos(clamp(dot(v, uStar), -1.0, 1.0)) - uStarA, 0.0);
-  c += uSunGC * (exp(-oS / (0.006 + 0.03 * uSunG)) * uSunG * 1.2 + exp(-oS / 0.0025) * 1.4 * min(uSunG + 0.3, 1.0) + exp(-oS / (0.17 * uSunG + 0.02)) * uSunG * 0.16);
-  c += uStarGC * (exp(-oX / (0.006 + 0.03 * uStarG)) * uStarG * 0.85 + exp(-oX / 0.0025) * 0.5 * min(uStarG + 0.3, 1.0) + exp(-oX / (0.2 * uStarG + 0.02)) * uStarG * 0.3);
+  // (kept tight: a wide glare pushes the sky over the bloom threshold and reads as a huge white disc)
+  c += uSunGC * uSunG * (exp(-oS / 0.0022) * 1.1 + exp(-oS / 0.012) * 0.22 + exp(-oS / 0.08) * 0.05);
+  c += uStarGC * uStarG * (exp(-oX / 0.003) * 0.7 + exp(-oX / 0.014) * 0.38 + exp(-oX / 0.1) * 0.08);
   // ---------- the Moon ----------
   if (uMoonI > 0.0) {
     vec4 m = disc(v, uMoon, 0.0045);
@@ -95,10 +96,12 @@ void main() {
       float z = sqrt(max(0.0, 1.0 - dot(q, q)));
       vec3 e1 = normalize(cross(uMoon, vec3(0.0, 1.0, 0.0))), e2 = cross(e1, uMoon);
       vec3 n = normalize(e1 * q.x + e2 * q.y - uMoon * z);          // the Moon's surface normal, toward you
-      float lit = smoothstep(-0.05, 0.12, dot(n, uMoonL));
+      // lit from behind by the star (a crescent on its side) plus earthshine on the rest
+      float lit = smoothstep(-0.02, 0.1, dot(n, uMoonL));
       float maria = smoothstep(0.45, 0.7, fbm4(vec3(q * 3.0, 1.0)));
       vec3 mc = vec3(0.92, 0.92, 0.9) * (1.0 - 0.3 * maria) * (0.5 + 0.5 * z);
-      c = mix(c, c * 0.92 + mc * uMoonI * lit, m.x);
+      vec3 lc = mc * vec3(1.0, 0.72, 0.5) * lit * 1.4 + mc * vec3(0.55, 0.6, 0.72) * 0.16 * (1.0 - lit);
+      c = mix(c, c * 0.35 + lc * uMoonI, m.x);
     }
   }
   // ---------- the star ----------

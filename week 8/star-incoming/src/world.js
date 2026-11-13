@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { makeGround, GU } from './ground.js';
 import { makeSea } from './sea.js';
+import { makeBore } from './bore.js';
 import { makeBuildings, BU } from './buildings.js';
 import { makeProps } from './props.js';
 import { makeTraffic } from './traffic.js';
@@ -38,6 +39,7 @@ export function makeWorld(scene) {
 
   const ground = makeGround(scene);
   const sea = makeSea(scene);
+  const bore = makeBore(scene);
   const towers = makeBuildings(scene);
   const glows = makeGlows(scene, 3000);
   const props = makeProps(scene, ctx);
@@ -49,12 +51,14 @@ export function makeWorld(scene) {
   const still = { nightL: 0, pierFire: 0, pierFall: 0, pierOut: 0, drop: 0, vapor: 0 };   // (what props.js asks for)
 
   return {
-    sun, star, hemi, crowd, smoke, fire, sea, ground, towers, props, glows,
+    sun, star, hemi, crowd, smoke, fire, sea, bore, ground, towers, props, glows,
     frame(v, s, cam) {
       fire.begin(); smoke.begin(); glows.begin();
       GU.uTime.value = v; GU.uSeaY.value = s.seaY; GU.uGlass.value = 0;
       BU.uTime.value = v; BU.uWin.value = 0; BU.uFire.value = 0; BU.uMelt.value = 0; BU.uLights.value = 0.4 + 0.6 * s.nightL; BU.uNight.value = s.nightL;
       sea.u.uSeaY.value = s.seaY; sea.u.uBulge.value = 0; sea.u.uWallX.value = s.bore > 0 ? -s.frontX : 1e6; sea.u.uWallH.value = 1.0 * s.bore;
+      sea.u.uFlood.value = s.flood;
+      bore.u.uFront.value = s.frontX; bore.u.uL.value = s.seaY + 1.0 * s.bore; bore.u.uTime.value = v; bore.u.uOn.value = s.bore; bore.frame(s.bore);
       still.nightL = s.nightL;
       props.frame(v, still, fire, smoke, glows, cam);
       traffic.frame(v);
