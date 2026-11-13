@@ -8,6 +8,8 @@
 import * as THREE from 'three';
 import { procMat } from './mats.js';
 import { rng, smooth, lerp } from './util.js';
+import { T_REVEAL } from './timeline.js';
+const T_REVEAL0 = T_REVEAL[0];
 
 const ELEM = { P: [1.0, 0.5, 0.08, 0.13], O: [0.92, 0.12, 0.12, 0.1], C: [0.62, 0.64, 0.68, 0.1], N: [0.25, 0.42, 1.0, 0.1] };   // colour, radius (nm)
 const BASEC = { A: [0.3, 0.85, 0.35], T: [1.0, 0.42, 0.62], G: [1.0, 0.82, 0.18], C: [0.25, 0.62, 1.0] };
@@ -68,13 +70,15 @@ export function makeTiny(scene) {
     dnaG.add(rungs);
     root.userData.rungs = rungs; root.userData.rungM = rungM;
   }
-  const atomM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.0, transparent: true, opacity: 1, emissive: 0x111111 });
+  const atomM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.0, transparent: false, opacity: 1, emissive: 0x111111 });
   atomM.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.22;'); };
   const inst = new THREE.InstancedMesh(sphere, atomM, atoms.length);
   const m4 = new THREE.Matrix4(), col = new THREE.Color();
+  const ballR = [];
   atoms.forEach((A_, i) => {
     const E = ELEM[A_.e];
     const r = E[3];
+    ballR.push(r);
     m4.makeScale(r, r, r).setPosition(A_.p);
     inst.setMatrixAt(i, m4);
     col.setRGB(...(A_.tint ? A_.tint.map((c, j) => c * 0.75 + E[j] * 0.25) : E.slice(0, 3)));
@@ -220,9 +224,54 @@ export function makeTiny(scene) {
   }
   stad.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 6; } });
 
+  // ---------- every other atom becomes its own cloud with a bright nucleus (seen as the atoms swell) ----------
+  const others = atoms.filter((A_) => A_ !== chosen && A_.p.distanceTo(chosen.p) < 3.2);
+  const cloudU = { uI: { value: 0 } };
+  const clouds = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 28, 18), new THREE.ShaderMaterial({
+    uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vC; varying float vNear; void main(){ vC = vec3(0.45, 0.4, 1.0);
+      vec3 cen = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz; float rad = length((modelMatrix * instanceMatrix * vec4(1.0, 0.0, 0.0, 0.0)).xyz);
+      vNear = smoothstep(1.6, 4.5, distance(cen, cameraPosition) / rad);
+      #ifdef USE_INSTANCING_COLOR
+      vC = instanceColor;
+      #endif
+      vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal); vV = normalize(cameraPosition - w.xyz); gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform float uI; varying vec3 vN; varying vec3 vV; varying vec3 vC; varying float vNear; void main(){ float k = max(dot(normalize(vN), normalize(vV)), 0.0); float g = pow(k, 1.6) * 0.8 + pow(k, 10.0) * 0.9 + pow(k, 80.0) * 2.0; gl_FragColor = vec4(vC * g * uI * vNear, 1.0); }`,
+  }), others.length);
+  const CLOUDC = { C: [0.25, 0.85, 1.0], O: [1.0, 0.35, 0.6], N: [0.45, 0.45, 1.0], P: [1.0, 0.65, 0.2] };
+  others.forEach((A_, i) => { m4.makeScale(0.15, 0.15, 0.15).setPosition(A_.p); clouds.setMatrixAt(i, m4); clouds.setColorAt(i, col.setRGB(...CLOUDC[A_.e])); });
+  clouds.frustumCulled = false;
+  clouds.renderOrder = 4;
+  dnaG.add(clouds);
+  const dots = new THREE.Points(new THREE.BufferGeometry().setFromPoints(others.map((A_) => A_.p)),
+    new THREE.PointsMaterial({ color: 0xffd8a0, size: 5, sizeAttenuation: false, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  dots.frustumCulled = false;
+  dnaG.add(dots);
+  // ---------- electrons in the big atom: flickering sparkles, dense near the middle, a wider shell further out (pm) ----------
+  const NE = 7000, ep = new Float32Array(NE * 3), eph = new Float32Array(NE);
+  for (let i = 0; i < NE; i++) {
+    const shell = R() < 0.35;
+    let r = shell ? -Math.log(1 - R()) * 9 : 35 + Math.abs((R() + R() + R() - 1.5)) * 45;
+    r = Math.min(r, 76);
+    const u = R() * 2 - 1, a = R() * 6.283;
+    ep.set([Math.sqrt(1 - u * u) * Math.cos(a) * r, u * r, Math.sqrt(1 - u * u) * Math.sin(a) * r], i * 3);
+    eph[i] = R();
+  }
+  const eg = new THREE.BufferGeometry();
+  eg.setAttribute('position', new THREE.BufferAttribute(ep, 3));
+  eg.setAttribute('aPh', new THREE.BufferAttribute(eph, 1));
+  const eU = { uT: { value: 0 }, uI: { value: 0 } };
+  const electrons = new THREE.Points(eg, new THREE.ShaderMaterial({
+    uniforms: eU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute float aPh; uniform float uT; varying float vA; void main(){ float f = fract(uT * (2.0 + 3.0 * aPh) + aPh * 17.0); vA = smoothstep(0.0, 0.05, f) * (1.0 - smoothstep(0.12, 0.25, f)); vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = 6.5; }`,
+    fragmentShader: `uniform float uI; varying float vA; void main(){ vec2 d = gl_PointCoord - 0.5; float k = 1.0 - smoothstep(0.1, 0.5, length(d)); gl_FragColor = vec4(vec3(0.75, 0.85, 1.0) * k * vA * uI, 1.0); }`,
+  }));
+  electrons.frustumCulled = false;
+  root.add(electrons);
+
   const chosenP = chosen.p.clone();
   return {
-    group: root, dnaG, inst, atomM, haze, hazeU, nucG, glow, nucLight, stad, pitchM, lineM, standM, water, chosenP,
+    group: root, dnaG, inst, atomM, clouds, cloudU, dots, electrons, eU, haze, hazeU, nucG, glow, nucLight, stad, pitchM, lineM, standM, water, chosenP,
     // P: where the atom's centre is (your metres); S: how many times smaller you are
     frame(v, S, P) {
       const uN = S * 1e-9, uP = S * 1e-12;
@@ -233,11 +282,26 @@ export function makeTiny(scene) {
       const t = v - 33.2;
       for (const w of water) { w.g.position.copy(w.p).addScaledVector(w.w, t * 0.25); w.g.rotation.x += 0; w.g.rotation.y = t * 0.4 + w.p.x; }
       // the atom swells: the ball fades into the cloud; the rest of the DNA fades away
-      const swell = smooth(36.9, 38.3, v);
-      atomM.opacity = 1 - smooth(36.8, 37.45, v);
-      this.group.userData.rungM.transparent = true; this.group.userData.rungM.opacity = atomM.opacity;
-      dnaG.visible = atomM.opacity > 0.01;
-      water.forEach((w) => w.g.children.forEach((m) => { m.material.opacity = atomM.opacity; }));
+      const swell = smooth(36.2, 37.8, v);
+      const keep = 1 - smooth(35.9, 36.8, v);
+      if (keep !== this._keep) {
+        this._keep = keep;
+        atoms.forEach((A_, i) => { const r = ballR[i] * keep; m4.makeScale(r, r, r).setPosition(A_.p); inst.setMatrixAt(i, m4); });
+        inst.instanceMatrix.needsUpdate = true;
+        water.forEach((w) => w.g.scale.setScalar(keep));
+      }
+      inst.visible = keep > 0.01; this.group.userData.rungs.visible = keep > 0.45;
+      water.forEach((w) => { w.g.visible = keep > 0.01; });
+      // the other atoms: clouds and nuclei
+      const ck = smooth(35.9, 36.9, v);
+      cloudU.uI.value = (0.8 + 1.4 * smooth(36.8, 37.8, v)) * ck * (1 - 0.4 * smooth(T_REVEAL0 + 0.3, T_REVEAL0 + 1.5, v));
+      clouds.visible = ck > 0.001;
+      dots.material.opacity = ck; dots.visible = ck > 0.001;
+      dots.material.size = 4 + 4 * ck;
+      // the electrons in the big atom
+      electrons.position.copy(P); electrons.scale.setScalar(uP);
+      eU.uT.value = v; eU.uI.value = smooth(36.8, 38.0, v) * 2.2;
+      electrons.visible = v > 36.7;
       const Ratom = 77 * uP;               // 77 pm
       haze.position.copy(P); haze.scale.setScalar(Ratom);
       hazeU.uC.value.copy(P); hazeU.uR.value = Ratom; hazeU.uT.value = v;
@@ -245,7 +309,7 @@ export function makeTiny(scene) {
       haze.visible = swell > 0.001;
       // the nucleus (2.7 fm radius; protons and neutrons ~0.85 fm)
       nucG.position.copy(P); nucG.scale.setScalar(0.00105 * uP);
-      nucG.visible = v > 37.5;
+      nucG.visible = v > 37.0;
       return { swell, Ratom };
     },
   };

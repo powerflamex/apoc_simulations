@@ -32,8 +32,7 @@ export function makePark(scene) {
           c = mix(c, c * vec3(1.15, 1.05, 0.6), smoothstep(0.62, 0.8, fbm3(vOP * 0.25)) * 0.5);`,
     height: 'n3(vOP * 400.0) + 0.5 * n3(vOP * 900.0)', bump: 0.002 });
   const lawn = new THREE.Mesh(new THREE.CircleGeometry(400, 96).rotateX(-Math.PI / 2).translate(0, -0.004, 0), lawnMat);
-  lawn.receiveShadow = true;
-  G.add(lawn);
+  lawn.receiveShadow = true;   // (not added: the zoom ground, ground.js, is the lawn now)
 
   // grass blades round the blanket (it lies on the lawn; the blades nearest the camera stay short)
   {
@@ -62,11 +61,12 @@ export function makePark(scene) {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
     let k = 0;
     for (let tries = 0; tries < 80000 && k < n; tries++) {
-      const r = Math.pow(R(), 1.7) * 2.6, a = R() * Math.PI * 2;
-      const x = 0.1 + Math.cos(a) * (1.02 + r), z = Math.sin(a) * (1.02 + r);
-      if (x > -0.92 && x < 1.12 && z > -1.02 && z < 1.02) continue;
+      const r = Math.pow(R(), 1.2) * 2.4, a = R() * Math.PI * 2;
+      const x = Math.cos(a) * (0.08 + r), z = Math.sin(a) * (0.08 + r);
+      if (x > -0.92 && x < 1.12 && z > 0.03 && z < 2.07) continue;
+      if (Math.hypot(x, z) < 0.1 || (z < 0.02 && Math.hypot(x, z) < 0.22)) continue;                   // the lawn right round you is the small world's (grass.js)
       // keep the strip the camera crosses at the start low
-      const camStrip = z < -1.0 && z > -1.45 && Math.abs(x + 0.2) < 0.45;
+      const camStrip = z < -0.1 && z > -1.6 && Math.abs(x - 0.2) < 0.55;
       const hgt = (camStrip ? 0.035 : 0.06) + R() * (camStrip ? 0.03 : 0.07);
       e.set((R() - 0.5) * 0.5, R() * Math.PI * 2, (R() - 0.5) * 0.5);
       q.setFromEuler(e);
@@ -101,9 +101,9 @@ export function makePark(scene) {
       const x = p.getX(i), z = p.getZ(i);
       // soft folds, flat where you stand
       const near = smooth(0.15, 0.6, Math.hypot(x, z));
-      p.setY(i, near * 0.006 * (Math.sin(x * 7.0 + 1.0) * Math.sin(z * 5.0) + 0.5 * Math.sin(x * 13 + z * 4)) + 0.002 * (Math.abs(x) > 0.95 || Math.abs(z) > 0.95 ? 1 : 0));
+      p.setY(i, 0.003 + near * 0.006 * (Math.sin(x * 7.0 + 1.0) * Math.sin(z * 5.0) + 0.5 * Math.sin(x * 13 + z * 4)) + 0.002 * (Math.abs(x) > 0.95 || Math.abs(z) > 0.95 ? 1 : 0));
     }
-    g.translate(0.1, 0, 0);
+    g.translate(0.1, 0, 1.05);
     g.computeVertexNormals();
     const b = new THREE.Mesh(g, blanketMat);
     b.receiveShadow = true;
@@ -115,18 +115,18 @@ export function makePark(scene) {
     const apple = new THREE.Mesh(new THREE.SphereGeometry(0.04, 32, 24).scale(1, 0.92, 1), procMat({ color: 0xc8161c, rough: 0.35,
       col: `c = mix(c, vec3(0.95, 0.75, 0.2), smoothstep(0.55, 0.9, fbm3(vOP * vec3(60.0, 15.0, 60.0))) * 0.6); c *= 0.85 + 0.25 * n3(vOP * vec3(300.0, 40.0, 300.0));`,
       height: 'n3(vOP * 2000.0)', bump: 0.00002 }));
-    apple.position.set(-0.42, 0.037, -0.32);
+    apple.position.set(-0.42, 0.037, 0.73);
     const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.0018, 0.0025, 0.022, 8).translate(0, 0.044, 0).rotateZ(0.2), procMat({ color: 0x5a3a1a }));
     apple.add(stem);
     const can = new THREE.Mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.122, 40), procMat({ color: 0xd31b22, rough: 0.25, metal: 0.6,
       col: `float a = atan(vOP.z, vOP.x); c = mix(c, vec3(0.97), smoothstep(0.02, 0.025, abs(vOP.y - 0.01 * sin(a * 2.0)) ) < 0.5 ? 1.0 : 0.0);
             c = mix(c, vec3(0.97), step(0.75, fract(a * 0.477)) * step(abs(vOP.y), 0.03));` }));
-    can.position.set(0.72, 0.061, -0.42);
+    can.position.set(0.72, 0.061, 0.63);
     const top = new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.033, 0.006, 40), procMat({ color: 0xcfcfd4, rough: 0.3, metal: 0.9 }));
     top.position.y = 0.064; can.add(top);
     // a sandwich on a paper plate
     const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.006, 48), procMat({ color: 0xf6f3ec, rough: 0.8 }));
-    plate.position.set(-0.5, 0.003, 0.35);
+    plate.position.set(-0.5, 0.003, 1.4);
     const breadM = procMat({ color: 0xe9c48a, rough: 0.9, col: `c *= 0.82 + 0.3 * fbm3(vOP * 300.0);`, height: 'fbm3(vOP * 600.0)', bump: 0.0003 });
     const crustM = procMat({ color: 0xa8662b, rough: 0.9 });
     const sw = new THREE.Group();
@@ -138,7 +138,7 @@ export function makePark(scene) {
     lettuce.position.y = 0.02; sw.add(lettuce);
     const cheese = new THREE.Mesh(new THREE.BoxGeometry(0.104, 0.003, 0.104).rotateY(0.4), procMat({ color: 0xf4c430, rough: 0.5 }));
     cheese.position.y = 0.0235; sw.add(cheese);
-    sw.position.set(-0.5, 0.006, 0.35); sw.rotation.y = 0.3;
+    sw.position.set(-0.5, 0.006, 1.4); sw.rotation.y = 0.3;
     for (const m of [apple, can, plate, sw]) { m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); G.add(m); }
   }
 

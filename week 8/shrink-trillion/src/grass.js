@@ -10,7 +10,7 @@ import { rng, smooth, lerp, clamp, keys } from './util.js';
 // the ant's trail (mm) and how far along it the ant is (video s)
 const TRAIL = new THREE.CatmullRomCurve3([-50, -38, -26, -16, -8, -2, 4, 12, 22, 34, 48].map((x) => new THREE.Vector3(x, 0, 13.5 - 4.5 * Math.exp(-Math.pow((x + 1) / 9, 2)) + 0.04 * x)));
 const TLEN = TRAIL.getLength();
-export const ANT_D = [[4.5, 6], [7.0, 26], [8.9, 44], [9.6, 46.0], [10.3, 47.5], [12.6, 64], [14, 74]];
+export const ANT_D = [[3.5, 6], [6.8, 40], [7.4, 45.5], [8.3, 47.5], [9.8, 62], [11.5, 80]];
 export const antDist = (v) => keys(ANT_D, v);
 function frameAt(d) {
   const u = clamp(d / TLEN, 0, 1);
@@ -30,25 +30,6 @@ export function makeGrass(scene) {
   scene.add(G);
   const R = rng(5);
 
-  // ---------- the soil ----------
-  const soilM = procMat({ color: 0xa47a4c, rough: 0.97,
-    col: `float f = fbm3(vOP * 0.35); c *= 0.62 + 0.6 * f; c = mix(c, vec3(0.42, 0.3, 0.2), smoothstep(0.55, 0.8, fbm3(vOP * 0.12 + 3.0)) * 0.5);
-          c *= 0.85 + 0.3 * n3(vOP * 3.0);`,
-    height: 'fbm3(vOP * 1.4) + 0.4 * n3(vOP * 6.0)', bump: 0.35 });
-  {
-    const g = new THREE.PlaneGeometry(320, 320, 240, 240).rotateX(-Math.PI / 2).translate(0, 0, 40);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), z = p.getZ(i);
-      const flat = smooth(1.5, 7, Math.min(segDist(x, z) * 0.6 + 2, Math.hypot(x, z)));
-      const hgt = (Math.sin(x * 0.21 + 1) * Math.sin(z * 0.17) * 0.5 + Math.sin(x * 0.53 + z * 0.41) * 0.3 + Math.sin(x * 1.3 - z * 1.1) * 0.12) * 0.45 * flat;
-      p.setY(i, hgt - 0.03);
-    }
-    g.computeVertexNormals();
-    const m = new THREE.Mesh(g, soilM);
-    m.receiveShadow = true;
-    G.add(m);
-  }
   // sand grains and soil crumbs
   {
     const g = new THREE.IcosahedronGeometry(1, 1);
@@ -66,8 +47,8 @@ export function makeGrass(scene) {
     for (let t = 0; t < 30000 && k < n; t++) {
       const r = Math.pow(R(), 1.8) * 90, a = R() * Math.PI * 2;
       const x = Math.cos(a) * r, z = Math.sin(a) * r + 20;
-      if (Math.hypot(x, z) < 1.8) continue;
-      if (z < 3 && x > -6 && x < 9) continue;
+      if (Math.hypot(x, z) < 1.8 || z > 46) continue;
+      if (z < 4 && Math.hypot(x, z) < 40) continue;
       const sd = segDist(x, z), dn = Math.hypot(x, z);
       const s = (0.08 + Math.pow(R(), 2.5) * (dn < 25 ? 0.3 : 1.0)) * (sd < 4 ? 0.5 : 1);
       e.set(R() * 6, R() * 6, R() * 6); q.setFromEuler(e);
@@ -130,8 +111,8 @@ export function makeGrass(scene) {
       const x = -90 + R() * 180, z = -25 + R() * 150;
       const d = Math.hypot(x, z - 15);
       if (R() > 0.25 + 0.75 * Math.exp(-d / 45)) continue;
-      if (Math.hypot(x, z) < 12) continue;
-      if (z < 4 && Math.hypot(x, z) < 22) continue;            // where the camera is
+      if (Math.hypot(x, z) < 16 || z > 46) continue;
+      if (z < 6 && Math.hypot(x, z) < 50) continue;            // where the camera is
       const sd = segDist(x, z);
       if (sd < 7) continue;                                     // the trail
       if (z < 26 && z > 4 && Math.abs(x) < 30 && R() < 0.8) continue;    // a clearing along the trail
@@ -144,8 +125,23 @@ export function makeGrass(scene) {
     inst.castShadow = true; inst.receiveShadow = true;
     G.add(inst);
     // the tall blade right beside you (the camera looks up it at the end)
-    const hero = new THREE.Mesh(g, m);
-    hero.position.set(3.6, -0.2, 3.4); hero.scale.set(4.6, 115, 115); hero.rotation.set(-0.06, 2.6, 0.04);
+    // the blade arching over you: up from the soil, over, and down, its tip a few mm above you (the dew drop hangs there)
+    const curve = new THREE.CatmullRomCurve3([[-5, -0.3, 15], [-5.4, 12, 12.5], [-4.6, 17.5, 8], [-3.2, 14, 4.6], [-2.2, 8.5, 3.4], [-2.0, 5.2, 3.0]].map((q) => new THREE.Vector3(...q)));
+    const NS = 80, HP = [], HI = [];
+    const tg = new THREE.Vector3(), sd = new THREE.Vector3(), nm = new THREE.Vector3();
+    for (let i = 0; i <= NS; i++) {
+      const t = i / NS, c = curve.getPointAt(t);
+      curve.getTangentAt(t, tg);
+      sd.set(1, 0, 0).addScaledVector(tg, -tg.x).normalize();
+      nm.crossVectors(tg, sd).normalize();
+      const w = 2.3 * (1 - Math.pow(t, 3)) + 0.12;
+      for (const [k, f] of [[-1, 0], [0, -0.25], [1, 0]]) { const q = c.clone().addScaledVector(sd, k * w).addScaledVector(nm, f * w); HP.push(q.x, q.y, q.z); }
+    }
+    for (let i = 0; i < NS; i++) { const a = i * 3; HI.push(a, a + 1, a + 3, a + 1, a + 4, a + 3, a + 1, a + 2, a + 4, a + 2, a + 5, a + 4); }
+    const hg = new THREE.BufferGeometry(); hg.setAttribute("position", new THREE.Float32BufferAttribute(HP, 3)); hg.setIndex(HI); hg.computeVertexNormals();
+    const heroM = procMat({ color: 0x5aa82e, rough: 0.45, side: THREE.DoubleSide, col: `c *= 0.82 + 0.14 * sin(vOP.x * 9.0 + vOP.z * 2.0) + 0.1 * n3(vOP * vec3(2.0, 0.2, 2.0));`,
+      height: 'sin(vOP.x * 9.0 + vOP.z * 2.0)', bump: 0.05, emis: `e += diffuseColor.rgb * 0.7;` });
+    const hero = new THREE.Mesh(hg, heroM);
     hero.castShadow = true; hero.receiveShadow = true;
     G.add(hero);
     G.userData.hero = hero;

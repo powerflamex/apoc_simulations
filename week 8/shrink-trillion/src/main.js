@@ -124,11 +124,8 @@ const tmpV = new THREE.Vector3();
 function update(v, cover = -1) {
   const s = state(v);
   if (cover >= 0) { s.flash = Math.max(s.flash, cover); s.title *= 1 - smooth(0.55, 1, cover); }
-  const W_ = worlds.get(s.world.k);
-  for (const w of worlds.all) w.group.visible = w === W_;
-
-  // ---------- the world, you, the camera (the world decides the shot) ----------
-  const shot = W_.frame(v, s);
+  // ---------- the world, you, the camera (one continuous world decides the shot) ----------
+  const shot = worlds.frame(v, s);
   you.root.scale.setScalar(YS);
   you.root.rotation.set(0, shot.yaw ?? Math.PI, 0);
   // (the figure's right sole is its origin: put the middle of your feet at your spot)
