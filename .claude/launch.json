@@ -195,6 +195,17 @@
       "env": {
         "PORT": "5241"
       }
+    },
+    {
+      "name": "meteor-storm",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 8/meteor-storm/server.mjs"
+      ],
+      "port": 5263,
+      "env": {
+        "PORT": "5263"
+      }
     }
   ]
 }

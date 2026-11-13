@@ -1800,6 +1800,67 @@ Would you stay on the beach to watch it? 👇
 #whatif #space #stars #science #simulation
 ```
 
+## Next Short. What if the biggest meteor storm ever hit tonight? — `week 8/meteor-storm/out/meteor-storm_v4_1080x1920_60fps_tiktok.mp4`
+
+47.1 s, loops. A new waterfront at night (shared blocks: crowd, cars, the night facade shader from solar-storm): you
+stand on a bench at the back of a packed stone promenade, the crowd between you and the railing, a covered pier on the
+left, a jetty with a quay street, parked cars and lit restaurants on the right, the downtown skyline across the harbor.
+What you see, in order: 0:00 the sky already full of shooting stars streaming from one point (the radiant), green trains
+lingering, everyone filming with their phones up (the screens glow), the title, the counter racing (METEORS PER HOUR
+15 -> 1,000 -> 100,000; one line: IN 1833: 100,000). 0:03 "This really happened in 1833." 0:05 the counter switches to
+SIZE OF THE ROCKS (8 inches; one line: WHAT IF · UP TO 330 FT) and the first fireball crosses, throwing the crowd's shadows,
+a gasp, a boom; "From here on it's a what-if: the rocks get bigger." 0:09 three fireballs at once, the camera drops to the
+lit promenade (THE STREET LIGHTS UP, "Each one brighter than the full Moon."). 0:13 a fireball low over the jetty, a double
+crack, everyone flinches, the restaurants' windows shiver, car alarms blink along the quay street (A SONIC BOOM, "Every window
+on the quay shakes."). 0:17.5 a piece comes down into the harbor ahead: a column of white water, steam, rings (ONE HITS THE
+HARBOR, "Now pieces are reaching the ground."). 0:22 the phone zooms on the quay street and a glowing rock crushes a parked
+car: sparks, glass, the owner's scream, then it burns (A CAR IS CRUSHED, "Rocks are falling all over the city.", splashes all
+over the harbor). 0:26.5 one as bright as the Sun; the crowd runs for the covered pier, the rest crouch, hands over heads
+(EVERYONE RUNS, "That one was as bright as the Sun."). 0:31 the biggest one appears at the radiant (THE BIGGEST ONE), the
+counter reaches 330 FEET at 0:32; zoomed in on it, "Nearly 1,000 megatons: 19 times the biggest bomb ever."; it comes down
+the sky, a burning head with a flaming trail, the sky turns blue ("Night turns into day."), everyone shields their eyes; 0:41
+it dives toward the skyline ("And it's coming down just past the city."); 0:45.8 it hits beyond the city: white in 0.4 s,
+and the white clears onto frame 0 (the loop).
+
+The numbers (checked Nov 13, 2026; details in `src/timeline.js`): a normal Leonid peak is ~10-15 an hour (IMO ZHR 15); the
+1833 storm peaked at "over one hundred thousand an hour" (the usual estimate; others 72,000-240,000 over the night) and
+people thought the world was ending. The 1966 storm may have peaked higher (~144,000 an hour for under an hour), so the video
+never calls 1833 the record. Leonids hit the air at ~71 km/s; most are 1 mm - 1 cm grains (a 1 cm one weighs ~0.5 g; a 2 cm
+one is as bright as Venus). Ten times wider is ~1,000 times the mass and ~7.5 magnitudes brighter: 8 inches ~ the full Moon
+(enough for shadows), 2 ft brighter than the full Moon, 65 ft about the Sun (Chelyabinsk, ~20 m, was brighter than the Sun).
+Meter-size rocks make sonic booms heard on the ground. The last rock: 100 m of stone (3,000 kg/m3) at 71 km/s = 3.96e18 J =
+946 megatons ("nearly 1,000"), 19x the Tsar Bomba's 50 Mt. Not to scale / simplified: everything after 0:05 is made up (real
+Leonids are fragile comet dust and never drop meteorites); the shower is drawn denser than 100,000 an hour would look in this
+patch of sky; booms come a second or two after each fireball (really a minute or more); rocks that land are drawn glowing to
+the end (real meteorites cool off in the last few km, "dark flight"); the biggest one's approach is stretched over ~15 s (a
+real one crosses the sky in a few seconds), and a rock that size coming down "just past the city" would kill everyone on the
+promenade with its flash: the video cuts to white there.
+
+Cover: `week 8/meteor-storm/out/meteor-storm_v4_cover.png` (`node render.mjs --cover 42.6`: the biggest rock, a burning head with a flaming trail, coming down over the skyline across the harbor, shooting stars all round it, the crowd filming below; "WHAT IF THE BIGGEST / meteor storm / hit tonight?")
+
+**YouTube title (96 characters, emoji counted as 2)**
+```
+What if the biggest meteor storm ever hit tonight? The last rock is 330 ft wide ☄️ #whatif #space
+```
+
+**YouTube description**
+```
+In November 1833 the sky rained shooting stars: about 100,000 an hour. People thought the world was ending.
+A normal night of this shower brings about 15.
+
+Now imagine the rocks get bigger.
+8 inches: a fireball bright enough to throw shadows.
+6 feet: a sonic boom that shakes every window.
+20 feet: one hits the harbor. 40 feet: one crushes a parked car.
+The last one is 330 feet wide: nearly 1,000 megatons, 19 times the biggest bomb ever.
+
+The 1833 storm was real. Everything after it is a what-if: real shooting stars are grains of dust that burn up high above you.
+
+Would you stay on the waterfront to film it? 👇
+
+#whatif #space #meteor #science #simulation
+```
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

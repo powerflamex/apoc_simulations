@@ -8,7 +8,7 @@ the week they were posted (the owner's layout, Oct 18):
 `week 4/`: `punch-10x/`, `black-hole-appears/`, `antimatter-rain/`, `time-stop/`.
 `week 5/`: `fall-through-earth/`, `star-picker/`, `rogue-planet/`, `moon-explodes/`, `metal-rod/`.
 `week 6/`: `biggest-nuke/`, `sand-grain/`, `volcano-fall/`, `world-freezes/`. `week 7/`: `sun-black-hole/`, `dinosaurs-return/`, `planet-picker/`, `oceans-drain/`, `solar-storm/`.
-`week 8/`: `bh-passes-sun/`, `star-incoming/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
+`week 8/`: `bh-passes-sun/`, `star-incoming/`, `meteor-storm/`. New projects go in the current week's folder. `render-v4.sh` takes bare names and finds the
 folder itself. See README.md for how each project is built.
 
 ## The owner wants to be hands-off
