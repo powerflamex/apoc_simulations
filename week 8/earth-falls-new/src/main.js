@@ -142,11 +142,11 @@ composer.addPass(finish);
 // ---------- the camera: you stand in the plaza in the crowd, phone up. Into the Sun down the avenue; a turn to the sign as
 // everyone runs; a cut to the other way (south, the Sun behind you) as Venus sweeps over; back north to the fountain, the
 // trees, the cars on the left, the sign again; then up and up into the Sun ----------
-const C1 = 7.344, C1b = 7.346, C2 = 10.59, C2b = 10.592, C3 = 24.29, C3b = 24.292;     // the cuts (between frames)
+const C1 = 7.344, C1b = 7.346, C2 = 10.59, C2b = 10.592, C3 = 26.04, C3b = 26.042;     // the cuts (between frames)
 export const P2 = { x: -0.3, z: 0.5 };                          // (10.6-24.3: a few steps from the fountain)
-const PITCH = [[-2, 13], [5.0, 13.5], [6.3, 15], [C1, 15], [C1b, 13], [C2, 14], [C2b, -3], [14.9, -2.5], [16.2, 12], [19.4, 12.5], [20.6, -1], [C3, -1], [C3b, 16], [28.4, 16], [29.4, 13], [31, 15], [34, 18], [37, 24], [40, 30], [42, 33], [44.5, 40], [47.5, 44]];
-const YAW = [[-2, -3], [5.0, -3], [6.3, -26], [C1, -27], [C1b, 180], [C2, 182], [C2b, -13], [14.9, -12], [16.2, 2], [19.4, 1], [20.6, 42], [C3, 44], [C3b, -24], [28.4, -26], [29.4, -5], [47.5, -6]];
-const FOV = [[-2, 60], [0, 60], [5.0, 51], [6.3, 50], [C1, 50], [C1b, 54], [C2, 52], [C2b, 48], [14.9, 45], [16.2, 62], [19.4, 60], [20.6, 60], [C3, 56], [C3b, 52], [28.4, 50], [29.4, 62], [36, 66], [42, 66], [44.5, 50], [47.5, 38]];
+const PITCH = [[-2, 13], [5.0, 13.5], [6.3, 15], [C1, 15], [C1b, 26], [C2, 26.5], [C2b, -3], [14.9, -2.5], [16.2, 12], [19.4, 12.5], [20.6, -1], [C3, -1], [C3b, 16], [29.0, 16], [29.9, 13], [31, 15], [34, 18], [37, 24], [40, 30], [42, 33], [44.5, 40], [47.5, 44]];
+const YAW = [[-2, -3], [5.0, -3], [6.3, -26], [C1, -27], [C1b, 180], [C2, 182], [C2b, -13], [14.9, -12], [16.2, 2], [19.4, 1], [20.6, 42], [C3, 44], [C3b, -24], [29.0, -26], [29.9, -5], [47.5, -6]];
+const FOV = [[-2, 60], [0, 60], [5.0, 51], [6.3, 50], [C1, 50], [C1b, 66], [C2, 64], [C2b, 48], [14.9, 45], [16.2, 62], [19.4, 60], [20.6, 60], [C3, 56], [C3b, 52], [29.0, 50], [29.9, 62], [36, 66], [42, 66], [44.5, 50], [47.5, 38]];
 function camAt(v) {
   const at2 = v > C2b && v < C3b;
   const pos = new THREE.Vector3(at2 ? P2.x : CAM0.x, EYE, at2 ? P2.z : CAM0.z);
@@ -170,7 +170,8 @@ const ROADSMOKE = Array.from({ length: 60 }, () => ({ x: (R0() < 0.5 ? -1 : 1) *
 const V_POWER = V_SAG + 1.8;     // the power fails (screens, the sign, the fountain's pumps)
 
 const tmpC = new THREE.Color(), tmpS = new THREE.Vector3(), venD = new THREE.Vector3();
-const VEN_C = dirAE(180, 30), VEN_T = new THREE.Vector3(-1, 0, 0);
+// (Venus crosses high in the south sky behind you, ~97° from the Sun: about half lit, a clear phase)
+const VEN_C = dirAE(176, 52), VEN_T = new THREE.Vector3().crossVectors(VEN_C, new THREE.Vector3(0, 1, 0)).normalize();
 function update(v, cover = -1) {
   const s = state(v);
   const white = Math.max(s.flash, cover);
@@ -216,7 +217,7 @@ function update(v, cover = -1) {
   GU.uTime.value = v; CU.uTime.value = v;
   GU.uMirage.value = s.shimmer * (1 - 0.7 * s.glow);
   GU.uTar.value = smooth(110, 170, s.F);
-  GU.uSteam.value = s.steam; GU.uBoil.value = smooth(V_BOIL - 0.5, V_BOIL + 3, v) * 0.8 + 0.2 * smooth(V_SAG, V_GLOW, v);
+  GU.uSteam.value = s.steam; GU.uBoil.value = smooth(V_BOIL - 0.5, V_BOIL + 3, v) * 0.5 + 0.2 * smooth(V_SAG, V_GLOW, v);
   GU.uEnd.value = s.melt;
   CU.uCrack.value = s.crack; CU.uPower.value = power;
   city.SU.uOn.value = power;
@@ -225,7 +226,7 @@ function update(v, cover = -1) {
   sky.mesh.position.copy(camera.position);
   u.uT.value = v * 0.5 + 6 * smooth(V_FILL, V_HIT, v);
   u.uSun.value.copy(SUN); u.uSunA.value = sunA;
-  u.uWhite.value = 1 - smooth(3.0, 9, s.sunDeg);
+  u.uWhite.value = 1 - smooth(0.8, 1.3, s.sunTrue);      // (white-hot while it's still far: the first ~2 weeks of the video)
   u.uSunI.value = lerp(1.0, 1.15, smooth(10, 60, s.sunDeg));
   u.uProm.value = smooth(9, 22, s.sunDeg);
   u.uGlowK.value = 1 - 0.75 * smooth(20, 80, s.sunDeg);
@@ -265,7 +266,8 @@ function update(v, cover = -1) {
     if (st > 0.01) for (let i = 0; i < 26; i++) {
       const T = 2.6, age = ((v * (1 + s.boil * 0.6) + i * 0.37) % T + T) % T;
       const a = i * 2.39, rr = (FOUNT.r - 0.6) * Math.sqrt((i * 0.618) % 1);
-      smoke.puff(FOUNT.x + Math.cos(a) * rr + 0.4 * age, 0.7 + (1.3 + 1.2 * s.boil) * age, FOUNT.z + Math.sin(a) * rr, 0.4 + (0.7 + 0.5 * s.boil) * age, (0.2 + 0.35 * s.boil) * st * Math.sin(Math.PI * age / T), 1.0, 0, (i * 0.17) % 1);
+      // (kept low over the basin, so the street around it stays clear)
+      smoke.puff(FOUNT.x + Math.cos(a) * rr + 0.2 * age, 0.65 + 0.75 * age, FOUNT.z + Math.sin(a) * rr, 0.3 + 0.42 * age, (0.16 + 0.2 * s.boil) * st * Math.sin(Math.PI * age / T) * (1 - 0.4 * age / T), 1.0, 0, (i * 0.17) % 1);
     }
   }
   // steam over the bay
@@ -273,7 +275,7 @@ function update(v, cover = -1) {
     const st = smooth(V_STEAM, V_BOIL + 3, v) * (1 - 0.5 * s.melt);
     if (st > 0.01) for (const b of STEAM_BAY) {
       const T = 9, age = ((v + b.ph) % T + T) % T;
-      smoke.puff(b.x + 6 * age, SEA_Y + 4 + 9 * age * (0.6 + 0.6 * st), b.z, b.r * (0.6 + 0.12 * age), 0.32 * st * Math.sin(Math.PI * age / T), 1.0, 0, (b.ph * 0.1) % 1);
+      smoke.puff(b.x + 6 * age, SEA_Y + 4 + 9 * age * (0.6 + 0.6 * st), b.z, b.r * (0.6 + 0.12 * age), 0.15 * st * Math.sin(Math.PI * age / T), 1.0, 0, (b.ph * 0.1) % 1);
     }
   }
   // the trees: flames in the crowns, then embers; dark smoke

@@ -1872,18 +1872,19 @@ Would you stay on the waterfront to film it? 👇
 48.1 s, loops. Same story as week 1/earth-falls (Oct 5: 77% still watching at 0:30, posted before the channel had an
 audience), rebuilt to today's rules in a new scene: a packed palm-lined plaza down the middle of a harbour avenue at noon
 (on world-freezes' street engine, but with palms, a south half to the avenue, no landmark tower, and everything heating
-instead of freezing). The time-lapse shows each day's noon, so the Sun stands still over the end of the avenue while the
+instead of freezing). Reworked Nov 13 after the owner's review (the Sun only a bit too big on frame 0, temperature captions
+late against the counter, Venus looked like the Moon, the fountain's steam washed the frame). The time-lapse shows each day's noon, so the Sun stands still over the end of the avenue while the
 days race. What you see, in order: 0:00 the crowd right in front of you, hands up shielding their eyes, the Sun already
-huge and white-hot over the bay, the title, the counter racing (DAYS UNTIL WE HIT THE SUN 64.56, the temperature on the one
+huge and white-hot over the bay with a harsh starburst glare (it grows visibly by 0:03), the title, the counter racing (DAYS UNTIL WE HIT THE SUN 64.56, the temperature on the one
 line under it), the owner's scream; a slow zoom in, the clouds burn off. 0:03 "You can't feel it, but we're falling into the
 Sun." 0:05 everyone runs for shade (EVERYONE RUNS FOR SHADE): people run past you, the camera turns to the plaza's
 time-and-temperature sign: 12:00, 150°F at 0:07; the traffic stops. 0:07.3 cut to the other way down the avenue (the Sun
-behind you): Venus sweeps across the sky over the crowd (VENUS FLIES PAST), "We just crossed Venus's orbit." 0:10.6 cut to
-a few steps from the fountain: it steams, then boils at 212°F (THE FOUNTAIN BOILS, "212°F: water boils on its own."), the
-bay steaming behind. 0:16 the palms brown and droop, then burst into flames at 0:19 (TREES BURST INTO FLAMES, "Eight times
-today's sunlight."). 0:20.6 the stopped cars on the left: car alarms, then they catch fire one after another at 451°F
-(CARS CATCH FIRE, "451°F: hot enough to set paper alight."). 0:24.3 back to the sign: it reads 621°F and sags in the heat
-(METAL STARTS TO SAG, "621°F: hot enough to melt lead."), the lamp arms droop, the power fails, the street is empty (everyone
+behind you): Venus, pale yellow cloud tops, half lit, sweeps high across the sky over the crowd (VENUS FLIES PAST), "We just crossed Venus's orbit." 0:10.6 cut to
+a few steps from the fountain: it steams, then boils; "212°F: water boils on its own." comes up the moment the counter
+reads 212°F (it lingers there), then THE FOUNTAIN BOILS; the steam stays low over the basin, the bay steaming behind. 0:16 the palms brown and droop, then burst into flames at 0:19 (TREES BURST INTO FLAMES, "Eight times
+today's sunlight."). 0:20.6 the stopped cars on the left: car alarms, then "451°F: hot enough to set paper alight." as the counter
+reads 451°F and they catch fire one after another (CARS CATCH FIRE). 0:26 back to the sign: "621°F: hot enough to melt lead."
+as it reads 621°F, and it sags in the heat (METAL STARTS TO SAG), the lamp arms droop, the power fails, the street is empty (everyone
 is indoors or gone past you by 0:26). 0:29 the camera lifts to the Sun: the street glows red through cracks (THE STREET GLOWS
 RED), windows crack out, shop fronts burn, sunspots and prominences on the Sun; at one day out the counter turns into a clock
 (WE HIT THE SUN IN 23:59:59) and slows; 0:37.6 THE SUN FILLS THE SKY, 0:39.5 "You're falling at 1 million mph." 0:42 its
@@ -1901,9 +1902,10 @@ day 64 (64° wide 20 min out, 106° at 5 min; old: "Day 64, the Sun fills the sk
 20 minutes before impact, 1.38 million mph at the surface. A surface in full sun runs hotter than the air (σT⁴ = σT_air⁴ +
 half the absorbed sunlight): dry leaves and wood in the sun reach ~550 K (~530°F) on day 56, enough to light, so the palms
 burn at 0:19 (day 56.4); paper/upholstery light at 451°F (day 58.9: the cars). Sunlight: 8x today's at 0:21 (day 57.9).
-What is drawn vs real: the Sun is drawn ~9x wider than true at the start (its true size, 0.53°, is a 20-pixel dot on a phone),
+What is drawn vs real: the Sun is drawn ~16x wider than true at the start (its true size, 0.53°, is a 20-pixel dot on a phone),
 growing in steps you can see, and at its true size from ~20 minutes out; Venus passes 1 million km away (a lucky line-up; it
-would barely nudge our fall) and is drawn 7x; the time-lapse shows each day's noon; aluminium lamp arms and the sign's panel
+would barely nudge our fall) and is drawn 8.5x, high in the south sky behind you, ~97° from the Sun, so it shows a half
+phase; the time-lapse shows each day's noon; aluminium lamp arms and the sign's panel
 sagging at ~600°F is softening, not melting (aluminium melts at 1,221°F on day 63.7); everyone gets indoors or away; nobody
 is shown hurt. Before the impact the real Earth would already be molten and starting to be torn apart by the Sun's tides
 (not shown, not claimed).

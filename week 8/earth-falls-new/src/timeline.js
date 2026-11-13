@@ -11,9 +11,9 @@
 //     in the sun char and catch fire around day 56 (~550 K), and sunlit stone starts to glow dull red around day 62;
 //   - the fall speed v = sqrt(2 GM (1/r - 1/AU)): 1 million mph 20 minutes before impact, 1.38 million mph at the surface;
 //   - the Sun's width: 2 asin(R_sun / r). It fills 64° of sky 20 min before impact, 106° at 5 min.
-// What is drawn vs real (also in CAPTIONS.md): the Sun is drawn ~9x wider than true at the start (true size is a 20-pixel
+// What is drawn vs real (also in CAPTIONS.md): the Sun is drawn ~16x wider than true at the start (true size is a 20-pixel
 // dot; drawnSunDeg below), growing in steps you can see, and at true size for the last ~20 minutes; Venus passes 1 million
-// km away (a lucky line-up) and is drawn 7x; the time-lapse shows each day's noon.
+// km away (a lucky line-up) and is drawn 8.5x; the time-lapse shows each day's noon.
 import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
@@ -41,7 +41,7 @@ export const sunlightX = (r) => 1 / (r * r);
 // drawn width (degrees): art-directed while the true Sun is a dot (it would be ~20 pixels on a phone), so it reads as too
 // big on frame 0 and grows in steps you can see; never smaller than true, and true for the last ~20 minutes. A smooth
 // maximum (in log space) of the two, so it never shrinks.
-const ART = [[-1, 4.6], [0, 4.6], [7, 6.0], [15, 7.6], [22, 10], [27, 13], [30, 16], [33, 21], [36, 30], [38, 44], [39.5, 62], [41, 80]];
+const ART = [[-1, 8.5], [0, 8.5], [3, 10.5], [7, 11.5], [15, 13], [22, 15], [27, 18], [30, 21], [33, 26], [36, 33], [38, 46], [39.5, 63], [41, 80]];
 const artDeg = (v) => {   // straight lines in log space between the keys (no easing: no pauses)
   if (v <= ART[0][0]) return ART[0][1];
   for (let i = 0; i < ART.length - 1; i++) if (v <= ART[i + 1][0]) { const k = (v - ART[i][0]) / (ART[i + 1][0] - ART[i][0]); return Math.exp(lerp(Math.log(ART[i][1]), Math.log(ART[i + 1][1]), k)); }
@@ -50,10 +50,11 @@ const artDeg = (v) => {   // straight lines in log space between the keys (no ea
 export const drawnSunDeg = (x, v) => { const a = artDeg(v), p = 6; return Math.min(180, Math.pow(Math.pow(x, p) + Math.pow(a, p), 1 / p)); };
 
 // ---- the clock: days left until we hit, against video time (monotone cubic through the keys, in log space) ----
+// (the clock dwells at 212°F, 451°F and 621°F for the captions that name them, then races on)
 const LEFT = [
   [0, 64.56], [1, 56.2], [2, 48.3], [3, 40.9], [4, 34.4], [5, 29.3], [6, 25.6], [7, 23.40], [8, 23.34], [8.8, 23.30], [9.6, 23.25],
-  [10.5, 22.75], [12, 20.2], [13.5, 17.7], [14.5, 16.06], [16, 13.7], [17.5, 11.0], [19, 8.2], [20.5, 6.9], [22.6, 5.60], [24.5, 4.4],
-  [26.6, 3.24], [28.5, 2.45], [30.5, 1.55], [32, 1.0], [33.5, 0.55], [35, 0.27], [36.5, 0.12], [38, 0.042], [39.5, 0.0145],
+  [10.5, 22.75], [12, 20.2], [13.5, 17.7], [14.5, 16.06], [16.2, 15.8], [17.5, 11.0], [19, 8.2], [20.5, 6.9], [22.6, 5.65], [24.2, 5.48],
+  [26.6, 3.25], [28.2, 3.17], [30.5, 1.55], [32, 1.0], [33.5, 0.55], [35, 0.27], [36.5, 0.12], [38, 0.042], [39.5, 0.0145],
   [41, 0.0055], [42.5, 0.0019], [44, 0.00062], [45.5, 0.00016], [46.8, 0],
 ];
 const EPS = 1e-4;
@@ -101,7 +102,7 @@ export const HITS = [V_SHADE, V_150, V_VENUS, V_BOIL, V_TREES, V_CARS, V_SAG, V_
 export const SUN_AZ = -3, SUN_EL = 31;
 // Venus: comes over the rooftops on the right, sweeps right to left under the Sun and drops behind the left side's roofs.
 // Its true distance d(t) = sqrt(b^2 + (v_rel t)^2), b = 1 million km, v_rel = 44 km/s; its angle along the path atan(v t / b).
-const VEN_B = 1.0e6, VEN_V = 44, VEN_R = 6052, VEN_E = 7.0;
+const VEN_B = 1.0e6, VEN_V = 44, VEN_R = 6052, VEN_E = 8.5;
 export function venusAt(v) {
   const dt = (dayAt(v) - dayAt(V_VENUS)) * DAYS;               // s from closest approach
   const phi = Math.atan2(VEN_V * dt, VEN_B);                  // -90° .. 90°
@@ -114,10 +115,10 @@ export const POP = 1.7;
 export const POPS = [
   [6.5, 'EVERYONE RUNS FOR SHADE'],
   [8.4, 'VENUS FLIES PAST'],
-  [V_BOIL + 0.1, 'THE FOUNTAIN BOILS'],
+  [V_BOIL + 1.75, 'THE FOUNTAIN BOILS'],
   [V_TREES + 0.1, 'TREES BURST INTO FLAMES'],
-  [V_CARS + 0.05, 'CARS CATCH FIRE'],
-  [V_SAG + 0.05, 'METAL STARTS TO SAG'],
+  [V_CARS + 1.7, 'CARS CATCH FIRE'],
+  [V_SAG + 1.7, 'METAL STARTS TO SAG'],
   [V_GLOW, 'THE STREET GLOWS RED'],
   [V_FILL, 'THE SUN FILLS THE SKY'],
 ];
@@ -125,10 +126,11 @@ const sunX = (v) => Math.round(sunlightX(rAt(dayAt(v))));
 export const CAPTIONS = [
   [3.3, 6.25, "You can't feel it, but we're falling into the Sun."],
   [10.75, 12.9, "We just crossed Venus's orbit."],
-  [16.4, 18.85, '212°F: water boils on its own.'],
+  // (each temperature caption comes up the moment the counter passes it; the popup naming the event follows)
+  [V_BOIL, V_BOIL + 1.65, '212°F: water boils on its own.'],
   [20.9, 22.5, `${['', '', '', '', '', 'Five', 'Six', 'Seven', 'Eight'][sunX(20.9)] || sunX(20.9)} times today's sunlight.`],
-  [24.45, 26.5, '451°F: hot enough to set paper alight.'],
-  [28.45, 30.65, '621°F: hot enough to melt lead.'],
+  [V_CARS, V_CARS + 1.62, '451°F: hot enough to set paper alight.'],
+  [V_SAG, V_SAG + 1.62, '621°F: hot enough to melt lead.'],
   [39.5, 42.3, "You're falling at 1 million mph."],
 ];
 export function popupAt(v) {

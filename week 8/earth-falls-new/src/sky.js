@@ -82,17 +82,31 @@ void main() {
   float sAng = 2.0 * asin(clamp(length(v - uSun) * 0.5, 0.0, 1.0));
   float o = max(sAng - uSunA, 0.0);
   vec3 gc = mix(vec3(1.0, 0.75, 0.45), vec3(1.0, 0.95, 0.85), uWhite);
-  c += gc * uGlowK * (exp(-o / (0.003 + 0.12 * uSunA)) * 0.9 + exp(-o / (0.03 + 0.5 * uSunA)) * 0.22);
+  c += gc * uGlowK * (exp(-o / (0.003 + 0.12 * uSunA)) * (0.9 + 0.5 * uWhite) + exp(-o / (0.03 + 0.5 * uSunA)) * 0.22);
+  // harsh glare while it's white-hot: a starburst of rays round the disc
+  if (uWhite > 0.0 && o > 0.0) {
+    vec3 r1 = normalize(cross(uSun, vec3(0.0, 1.0, 0.0))), r2 = cross(r1, uSun);
+    vec3 rp = v - uSun * dot(v, uSun);
+    float phi = atan(dot(rp, r2), dot(rp, r1));
+    float rays = pow(abs(cos(phi * 3.0 + 0.3)), 70.0) + 0.55 * pow(abs(cos(phi * 3.0 + 0.82)), 110.0);
+    c += vec3(1.0, 0.97, 0.9) * uWhite * rays * exp(-o / (0.02 + 1.4 * uSunA)) * 0.75;
+  }
   // ---------- Venus ----------
   if (uVenVis > 0.0) {
     vec3 n; float a;
     float k = ball(v, uVen, uVenA, n, a);
     if (k > 0.0) {
-      float lit = smoothstep(-0.04, 0.12, dot(n, uSun));
+      // a planet, not the Moon: pale yellow cloud tops in soft bands and chevrons, lit from the Sun's side (a phase), the
+      // night side darker than the daytime sky round it so the whole ball shows
+      float ndl = dot(n, uSun);
+      float lit = smoothstep(-0.03, 0.18, ndl) * (0.55 + 0.45 * smoothstep(0.0, 0.7, ndl));
       float mu = max(dot(n, -v), 0.0);
-      float bands = fbm3(vec3(n.x * 3.0, n.y * 9.0, n.z * 3.0));
-      vec3 vc = vec3(1.0, 0.93, 0.78) * (0.62 + 0.5 * bands) * (0.5 + 0.5 * pow(mu, 0.5)) * 1.05;
-      c = mix(c, c * 0.72 + vc * lit, k * uVenVis);
+      float lat = n.y;
+      float bands = fbm3(vec3(n.x * 2.0 + abs(lat) * 5.0, lat * 11.0, n.z * 2.0)) * 0.7 + 0.3 * fbm3(n * 7.0 + 2.0);
+      vec3 cloud = mix(vec3(0.8, 0.6, 0.27), vec3(1.0, 0.9, 0.58), smoothstep(0.3, 0.75, bands));
+      vec3 vc = cloud * (0.55 + 0.45 * pow(mu, 0.4)) * 0.95;
+      vec3 night = c * 0.55;
+      c = mix(c, mix(night, vc, lit), k * uVenVis);
     }
   }
   // ---------- the Sun ----------
