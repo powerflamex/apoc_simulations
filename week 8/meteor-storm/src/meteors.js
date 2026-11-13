@@ -47,7 +47,7 @@ export const SHOWER = [];
 // t0, dur, d0, phi, L (deg), peak light, head size (deg), colour, train (s), boom (s after t0, 0: none)
 const FB = (t0, dur, d0, phi, L, I, size, train, boom = 0, breakUp = 0) => ({ t0, dur, d0, phi, L, I, size, train, boom, breakUp });
 export const FIREBALLS = [
-  FB(V_FB1 - 0.05, 1.55, 6, -38, 44, 1.0, 0.9, 7, 1.7, 0.35),
+  FB(V_FB1 - 0.05, 1.55, 6, -10, 34, 1.0, 1.0, 7, 1.7, 0.9),     // (aimed down at the skyline so it bursts in frame, over the harbor, ~0:06.2)
   FB(V_DAY - 0.25, 1.5, 9, 30, 46, 1.6, 1.3, 6, 0, 0.3),
   FB(V_DAY + 0.15, 1.7, 4, -12, 40, 1.8, 1.4, 6, 0, 0.4),
   FB(V_DAY + 0.65, 1.4, 14, 62, 40, 1.6, 1.2, 5, 0, 0.3),
@@ -89,7 +89,12 @@ export function rockAt(r, v, out = new THREE.Vector3()) {
 
 // ---------- the biggest one ----------
 // where it is in the sky: starts just off the radiant, creeps toward the skyline, then races down behind it
-export const BIG0 = fromRadiant(2.5, -40);
+// (it starts 2.5 deg from the radiant on the great circle through the impact point, so like every other meteor it moves
+// straight away from the radiant and its trail points back at it, parallel to the shower's streaks)
+export const BIG0 = (() => {
+  const t = IMPACT_DIR.clone().addScaledVector(RAD, -IMPACT_DIR.dot(RAD)).normalize();
+  return RAD.clone().multiplyScalar(Math.cos(2.5 * DEG)).addScaledVector(t, Math.sin(2.5 * DEG)).normalize();
+})();
 export function bigAt(v) {
   if (v < V_BIG - 0.2) return null;
   // (steadily down the sky at first, faster and faster once it dives)
