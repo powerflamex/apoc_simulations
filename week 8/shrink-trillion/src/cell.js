@@ -7,7 +7,9 @@ import { rng, smooth } from './util.js';
 
 const PAL = [0xff7a6b, 0xffc14d, 0x7bd389, 0x69b7ff, 0xc38bff, 0xff8fd0, 0x4fd6c8, 0xf2f2f2];
 // the strand in front of you: vertical, through (AX, *, AZ) nm, with a gap where the detailed ladder is
-export const AXIS = new THREE.Vector3(0.28, 0, 1.7);
+// (= the detailed DNA's axis: 2.22 x P nm from where you sink in, plus the 1.05 nm from the atom you hold to the axis)
+export const AXIS = new THREE.Vector3(0.622, 0, 3.16);
+const GAP = new THREE.Vector3(AXIS.x, 5.3, AXIS.z), GAP_R = 16;
 
 export function makeCell(scene, keepOut) {
   const G = new THREE.Group();
@@ -65,14 +67,14 @@ export function makeCell(scene, keepOut) {
       const p1 = c.clone().addScaledVector(side, Math.cos(a) * 0.95).addScaledVector(nrm, Math.sin(a) * 0.95);
       const p2 = c.clone().addScaledVector(side, Math.cos(a + 2.4) * 0.95).addScaledVector(nrm, Math.sin(a + 2.4) * 0.95);
       pts[0].push(p1); pts[1].push(p2);
-      if (!gapAt || c.distanceTo(gapAt) > 7.5) rungs.push([p1, p2, i]);
+      if (!gapAt || c.distanceTo(gapAt) > GAP_R) rungs.push([p1, p2, i]);
     }
     const tubeOf = (arr) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arr), arr.length * 2, 0.3, 6);
     for (const arr of pts) {
       // split the backbone round the gap
       let seg = [];
       const flush = () => { if (seg.length > 3) { const m = new THREE.Mesh(tubeOf(seg), bbM); m.castShadow = true; G.add(m); } seg = []; };
-      arr.forEach((p, i) => { const c = path.getPointAt(i / n); if (gapAt && c.distanceTo(gapAt) < 7.5) flush(); else seg.push(p); });
+      arr.forEach((p, i) => { const c = path.getPointAt(i / n); if (gapAt && c.distanceTo(gapAt) < GAP_R) flush(); else seg.push(p); });
       flush();
     }
     const bar = new THREE.CylinderGeometry(0.16, 0.16, 1, 6);
@@ -82,7 +84,7 @@ export function makeCell(scene, keepOut) {
     G.add(inst);
   }
   const C = (arr) => new THREE.CatmullRomCurve3(arr.map((p) => new THREE.Vector3(...p)));
-  strand(C([[AXIS.x + 30, -140, AXIS.z + 40], [AXIS.x + 6, -60, AXIS.z + 4], [AXIS.x, -20, AXIS.z], [AXIS.x, 20, AXIS.z], [AXIS.x - 8, 60, AXIS.z + 6], [AXIS.x - 40, 130, AXIS.z + 60], [AXIS.x - 120, 160, AXIS.z + 130]]), new THREE.Vector3(AXIS.x, 0, AXIS.z));
+  strand(C([[AXIS.x + 30, -140, AXIS.z + 40], [AXIS.x + 6, -60, AXIS.z + 4], [AXIS.x, -26, AXIS.z], [AXIS.x, 36, AXIS.z], [AXIS.x - 8, 70, AXIS.z + 6], [AXIS.x - 40, 130, AXIS.z + 60], [AXIS.x - 120, 160, AXIS.z + 130]]), GAP);
   strand(C([[-200, -60, 160], [-90, -30, 90], [-30, 20, 70], [40, 40, 110], [140, 10, 170], [220, -80, 140]]));
   strand(C([[160, -150, 40], [90, -80, 60], [60, 10, 120], [70, 90, 200], [10, 160, 260]]));
   strand(C([[-160, 120, 30], [-80, 70, 60], [-60, -40, 120], [-110, -130, 210]]));
@@ -90,12 +92,14 @@ export function makeCell(scene, keepOut) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pp = new THREE.Vector3();
   return {
     group: G,
-    frame(v, fade = 1) {
+    frame(v, fade = 1, guard = null) {
+      G.updateMatrixWorld(true);
+      const inv = G.matrixWorld.clone().invert(), gv = new THREE.Vector3(), us = G.scale.x;
       const t = v - 26;
       G.traverse((o) => { if (o.isMesh && o.material) { o.material.transparent = fade < 1; o.material.opacity = fade; o.material.depthWrite = fade > 0.5; } });
-      P.forEach((o, i) => { pp.copy(o.p).addScaledVector(o.w, t * 0.25); e.set(o.a + t * 0.4, o.a, o.a * 2); q.setFromEuler(e); m4.compose(pp, q, sc.setScalar(o.s)); prot.setMatrixAt(i, m4); });
+      P.forEach((o, i) => { pp.copy(o.p).addScaledVector(o.w, t * 0.25); if (guard) { gv.copy(pp).applyMatrix4(G.matrixWorld); if (guard(gv, o.s * us)) pp.copy(gv.applyMatrix4(inv)); } e.set(o.a + t * 0.4, o.a, o.a * 2); q.setFromEuler(e); m4.compose(pp, q, sc.setScalar(o.s)); prot.setMatrixAt(i, m4); });
       prot.instanceMatrix.needsUpdate = true;
-      for (const r of RB) { r.g.position.copy(r.p).addScaledVector(r.w, t * 2); r.g.rotation.x += 0.0; }
+      for (const r of RB) { r.g.position.copy(r.p).addScaledVector(r.w, t * 2); if (guard) { gv.copy(r.g.position).applyMatrix4(G.matrixWorld); if (guard(gv, 15 * us)) r.g.position.copy(gv.applyMatrix4(inv)); } }
     },
   };
 }

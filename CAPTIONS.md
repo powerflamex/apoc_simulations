@@ -1939,19 +1939,25 @@ Cover: `week 8/earth-falls-new/out/earth-falls-new_v4_cover.png` (`node render.m
 48.3 s, loops. Reworked Nov 13 (owner's review): ONE continuous shrink, no cuts or fades. You (1.7 m, yellow hoodie) stay the
 same size on screen and the camera stays with you the whole time while the world grows round you; every new world sits inside
 the one before it, right at your feet. The sound is an endless falling pitch (a Shepard-Risset glissando) that slides faster as
-you shrink faster, with a soft hit on each named step. What you see, in order: 0:00 a sunny park, you knee-high (3.2x) on the
+you shrink faster, with a soft hit on each named step (no scream: taken out on the owner's second review). Nothing passes
+through you or through anything else: drifting things steer round you and the camera, the bacterium's wall opens a hole
+where you go in, and you climb the DNA like a ladder instead of floating through it. What you see, in order: 0:00 a sunny park, you knee-high (3.2x) on the
 lawn at the edge of a red-and-white picnic blanket, a friend in a pink hoodie standing right over you filming you, their giant
 sneakers beside you, a golden retriever's face beside you; the title, the counter racing (YOU ARE 3.2x SMALLER; one line:
-1,000,000,000,000x: INSIDE AN ATOM), the owner's scream. 0:03 "You're as small as a kitten." as the dog's nose comes down to
+1,000,000,000,000x: INSIDE AN ATOM). 0:03 "You're as small as a kitten." as the dog's nose comes down to
 sniff you; the camera sinks with you into the grass. 0:07 a red wood ant walks right past you: "An ant is as big as a bus."
-(1,000x); a dew drop hangs from the tip of a blade arching over you. 0:09 "A dew drop is as big as a house." It falls and lands
-over you (0:10.6): you are inside it, its surface a silvery dome overhead, caustics on the ground, algae and grit drifting.
+(1,000x); a dew drop hangs from the tip of a blade arching over you, wobbling, its shadow and a bright spot of focused
+sunlight on the ground round you. 0:09 "A dew drop as big as a house falls on you." It stretches, lets go and falls (the
+camera pulls back so you and the drop are both in view; you throw your arms up); 0:10.6 it lands on you: a crown of
+splashing droplets, the camera shakes, it squashes and wobbles, and you're inside it among rising air bubbles, its surface
+a silvery dome overhead, caustics on the ground.
 0:14 a paramecium swims past, its fringe of hairs beating: "A one-celled creature as big as a whale." (100,000x). 0:18
 bacteria swim past trailing their whips, one lies beside you: "Bacteria swim past, as big as buses." (6 million x). 0:21 a
 virus (a bacteriophage: a 20-sided head, a striped tail, six legs) comes down and lands on the bacterium beside you: "A virus
-as tall as a giraffe lands on one." (25 million x). 0:24.4 you sink through its wall: "You sink inside the bacterium." It is
-packed with colourful proteins and ribosomes, strands of DNA looping through. 0:30 "Its DNA: a twisted ladder as thick as you."
-(1 billion x), every atom a ball. 0:33.7 "Each atom is as big as a beach ball." (3 billion x). 0:36 the atoms swell into
+as tall as a giraffe lands on one." (25 million x). 0:24.4 its wall opens a round hole in front of you and you sink through it: "You sink inside the bacterium." It is
+packed with colourful proteins and ribosomes, strands of DNA looping through. 0:28.5 you grab a strand of DNA and climb it hand over hand, its rungs
+like a ladder's steps, the strand turning past you like a spiral staircase. 0:30 "Its DNA: a twisted ladder as thick as you."
+(1 billion x), every atom a ball. 0:33.7 "Each atom is as big as a beach ball." (3 billion x). 0:36 the atom you're holding and its neighbours swell into
 glowing clouds round you, each with a bright speck at its centre, electrons sparkling in the one you're in: "Every atom is a
 cloud, almost all empty." The counter lands on 1,000,000,000,000x at 0:41.4; 0:40 the camera pulls back: the glowing cloud
 fills a ghost outline of a football stadium, "YOU" marking a speck in the middle: "This whole stadium is one atom." 0:43 back
@@ -1974,18 +1980,18 @@ What if you shrank 1 trillion times smaller? One atom ends up the size of a stad
 You start knee-high on a picnic blanket and keep shrinking, without stopping.
 
 1,000x smaller: an ant is as big as a bus.
-A dew drop is as big as a house, and it lands on you.
+A dew drop as big as a house falls on you.
 100,000x: a one-celled creature as big as a whale.
 6 million x: bacteria swim past, as big as buses.
 25 million x: a virus as tall as a giraffe lands on one, and you sink inside.
-1 billion x: its DNA is a twisted ladder as thick as you.
+1 billion x: its DNA is a twisted ladder as thick as you, and you climb it.
 1 trillion x: you're inside one atom, as big as a stadium, and it's almost all empty.
 
 Which size would you stop at? 👇
 
 #whatif #science #shrinking #atom #microscopic #physics #simulation
 
-Cover: `week 8/shrink-trillion/out/shrink-trillion_v4_cover.png` (`node render.mjs --cover 7.1`: you, small in a yellow hoodie on the soil, the red wood ant towering beside you, its head and eye in view, the dew drop hanging over you from a blade tip; "WHAT IF YOU SHRANK / 1 trillion / times smaller?")
+Cover: `week 8/shrink-trillion/out/shrink-trillion_v4_cover.png` (`node render.mjs --cover 7.1`, remade after the second review: you, small in a yellow hoodie on the soil, the red wood ant towering beside you, its head and eye in view, the dew drop hanging over you from a blade tip; "WHAT IF YOU SHRANK / 1 trillion / times smaller?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

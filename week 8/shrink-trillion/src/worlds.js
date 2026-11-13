@@ -22,10 +22,13 @@ const kf = (list, t) => keys(list, t);
 // ---- the anchor path (real metres) ----
 const WALK = V3(-0.08e-6, 0, 0.05e-6);            // you walk up to the bacterium's wall
 export const X_IN = V3(-0.39e-6, 0.045e-6, 0.3e-6);   // just inside its wall
-export const P = V3(0.28, 1.5, 0.95);             // where the atom's nucleus ends up, in your metres (in front of your chest)
-export const N_R = X_IN.clone().addScaledVector(P, 1e-9);   // the nucleus (real): at 1 billion x it sits at P
+export const P = V3(0.28, 1.5, 0.95);             // where the atom you hold ends up, in your metres (in front of your chest)
+const S_GRAB = 4.5e8;                             // the size at which you take hold of the DNA
+export const N_R = X_IN.clone().addScaledVector(P, 1 / S_GRAB);   // that atom (real)
+// how far (nm) you still have to climb up the DNA to that atom
+export const climbAt = (v) => 4.0 * (1 - smooth(29.4, 35.4, v));
 function anchorAt(v, S, out = new THREE.Vector3()) {
-  const a = smooth(19.0, 24.0, v), c = smooth(T_SINK[0], T_SINK[1], v), d = smooth(29.6, 32.4, v);
+  const a = smooth(19.0, 24.0, v), c = smooth(T_SINK[0], T_SINK[1], v), d = smooth(27.2, 29.6, v);
   out.set(0, 0, 0).lerp(WALK, a).lerp(X_IN, c);
   const D = N_R.clone().addScaledVector(P, -1 / S);
   return out.lerp(D, d);
@@ -107,14 +110,35 @@ export function makeWorlds(scene) {
   const PTGT = [[-3, [-0.3, 2.6, 1.5]], [0, [-0.3, 2.65, 1.5]], [3.0, [-0.1, 3.0, 1.2]], [4.8, [0.0, 4.4, 3.2]]];
   // the over-the-shoulder settings along the way
   const OTS = {
-    back: [[4.6, 3.6], [8.4, 4.3], [10.4, 4.6], [12, 4.4], [17, 4.6], [20.4, 5.6], [23.4, 6.0], [24.4, 4.6], [27.6, 4.4], [30.5, 5.0], [34, 4.4], [36.4, 3.6], [38.5, 2.8]],
+    back: [[4.6, 3.6], [8.0, 4.3], [9.0, 6.2], [10.6, 6.6], [11.6, 4.8], [12.4, 4.4], [17, 4.6], [20.4, 5.6], [23.4, 6.0], [24.4, 4.6], [27.6, 4.4], [30.5, 5.0], [34, 4.4], [36.4, 3.6], [38.5, 2.8]],
     side: [[4.6, 0.9], [8.4, 1.1], [12, 1.4], [20.4, 1.6], [24.4, 1.0], [27.6, -1.2], [30.5, -1.6], [36.4, -1.0], [38.5, -0.6]],
-    up: [[4.6, 1.3], [8.4, 1.1], [10.4, 0.9], [12, 1.4], [20.4, 1.2], [24.4, 1.5], [27.6, 1.7], [30.5, 1.9], [38.5, 1.6]],
-    w: [[4.6, 0.7], [8.4, 0.55], [10.4, 0.5], [12, 0.5], [20.4, 0.5], [24.4, 0.5], [30.5, 0.45], [36.4, 0.6]],
-    tgtY: [[4.6, 2.6], [7.6, 3.4], [8.6, 5.0], [10.0, 4.0], [11.2, 3.0], [12, 2.6], [17, 2.4], [20.4, 3.6], [22.5, 4.2], [24.4, 2.2], [27.6, 2.0], [30.5, 2.0], [36.4, 1.6]],
-    fov: [[4.6, 64], [6.5, 58], [8.4, 60], [10.4, 62], [12, 58], [20.4, 58], [24.4, 60], [27.6, 58], [30.5, 58], [36.5, 56], [38.5, 52]],
+    up: [[4.6, 1.3], [8.0, 1.1], [9.0, 0.6], [10.6, 0.7], [12, 1.4], [20.4, 1.2], [24.4, 1.5], [27.6, 1.7], [30.5, 1.9], [38.5, 1.6]],
+    w: [[4.6, 0.7], [8.0, 0.55], [9.0, 0.6], [10.6, 0.6], [12, 0.5], [20.4, 0.5], [24.4, 0.5], [30.5, 0.45], [36.4, 0.6]],
+    tgtY: [[4.6, 2.6], [7.6, 3.4], [8.6, 4.6], [9.6, 4.2], [10.4, 2.6], [11.2, 2.6], [12, 2.6], [17, 2.4], [20.4, 3.6], [22.5, 4.2], [24.4, 2.2], [27.6, 2.0], [30.5, 2.0], [36.4, 1.6]],
+    fov: [[4.6, 64], [6.5, 58], [8.4, 62], [10.6, 64], [12, 58], [20.4, 58], [24.4, 60], [27.6, 58], [30.5, 58], [36.5, 56], [38.5, 52]],
   };
   const otsAt = (v) => Object.fromEntries(Object.entries(OTS).map(([k, l]) => [k, kf(l, v)]));
+
+  // the bacterium's wall opens round you where you go through it: where your path crosses its surface (µm)
+  const HOLE = (() => {
+    const A = WALK.clone().multiplyScalar(1e6), B = X_IN.clone().multiplyScalar(1e6);
+    let best = A;
+    for (let i = 0; i <= 200; i++) { const p = A.clone().lerp(B, i / 200); if (Math.hypot(p.x - BAC_C.x, p.y - BAC_C.y) < 0.4) { best = p; break; } }
+    return best;
+  })();
+  const camPos = new THREE.Vector3();
+  // steer anything drifting off you (a capsule round your body) and off the camera (scene metres)
+  const guard = (p, r) => {
+    let moved = false;
+    const d = Math.hypot(p.x, p.z), need = r + 0.55;
+    if (p.y > -0.4 - r && p.y < 2.2 + r && d < need) {
+      if (d > 1e-6) { p.x *= need / d; p.z *= need / d; } else p.x = need;
+      moved = true;
+    }
+    const dc = p.distanceTo(camPos), needC = r + 0.9;
+    if (dc < needC) { const dir = p.clone().sub(camPos); if (dir.lengthSq() < 1e-9) dir.set(0, 1, 0); p.copy(camPos).addScaledVector(dir.normalize(), needC); moved = true; }
+    return moved;
+  };
 
   return {
     tiny,
@@ -122,6 +146,7 @@ export function makeWorlds(scene) {
       const S = s.S, lS = s.lS;
       curS = S;
       anchorAt(v, S, Pr);
+      const climb = climbAt(v);
       // ---------- place every level ----------
       place(park.group, ORIGIN, 1);
       place(lawn.group, ORIGIN, 1e-3);
@@ -135,40 +160,36 @@ export function makeWorlds(scene) {
       drop.water.visible = lS < 7.7;
       bact.group.visible = lS > 4.4 && lS < 8.85;
       cell.group.visible = lS > 6.8 && lS < 9.92;
-      park.group.updateMatrixWorld(true);
+      for (const g of [park.group, lawn.group, drop.group, bact.group, cell.group]) g.updateMatrixWorld(true);
+      // the levels whose motion the camera follows
       if (park.group.visible) park.frame(v, s);
       if (lawn.group.visible) lawn.frame(v, s);
-      const D = drop.frame(v, S);
-      if (bact.group.visible) bact.frame(v);
       phages.frame(v);
-      if (cell.group.visible) cell.frame(v, 1 - smooth(9.45, 9.9, lS));
       const Pn = sceneOf(N_R);
-      tiny.group.visible = lS > 7.6;
-      tiny.frame(v, S, Pn);
-      // the ground: real ground level, under you until you sink into the bacterium
-      ground.mesh.visible = lS < 8.7;
-      ground.frame(v, S, -Pr.y * S, 0.55 * D.inside * (1 - smooth(T_SINK[0], T_SINK[1], v)), 0.6 * D.inside);
 
       // ---------- what the camera looks at (scene positions), blended ----------
       const antMid = lawn.antMid ? sceneOf(lawn.antMid.clone().multiplyScalar(1e-3)) : V3(0, 1, 8);
       const dropC = sceneOf(dropAt(v).multiplyScalar(1e-6));
       const para = sceneOf(drop.paraAt(v).multiplyScalar(1e-6));
-      const bacC = sceneOf(BAC_C.clone().multiplyScalar(1e-6));
       const ph0 = phages.list[0];
       const phHead = sceneOf(ph0.sp.p.clone().multiplyScalar(1e-6).addScaledVector(ph0.sp.n, 90e-9));
+      const hole = sceneOf(HOLE.clone().multiplyScalar(1e-6));
       const inside = sceneOf(X_IN).add(V3(0.6, 1.0, 4));
-      const strand = sceneOf(X_IN.clone().add(V3(AXIS.x, 3, AXIS.z).multiplyScalar(1e-9)));
+      const strand = Pn.clone().add(V3(0, 0.6, 0.6));
       const dnaLook = Pn.clone().multiplyScalar(1.7);
+      // the drop: frame you and the falling drop together
+      const dropLook = dropC.clone().lerp(V3(0, 1.4, 0), 0.35);
       const SUBJ = [
-        [4.0, 8.4, antMid],
-        [8.4, 10.5, dropC],
-        [10.5, 12.3, V3(0.4, 2.5, 6)],
+        [4.0, 8.2, antMid],
+        [8.2, 10.9, dropLook],
+        [10.9, 12.3, V3(0.4, 2.5, 6)],
         [12.3, 17.0, para],
         [17.0, 20.3, V3(0.5, 2.2, 12)],
-        [20.3, 25.0, phHead],
-        [25.0, 27.6, inside],
-        [27.6, 30.2, strand],
-        [30.2, 99, dnaLook],
+        [20.3, 24.4, phHead],
+        [24.4, 26.2, hole.clone().lerp(inside, 0.3)],
+        [26.2, 28.4, inside],
+        [28.4, 30.4, strand],
+        [30.4, 99, dnaLook],
       ];
       let wsum = 0;
       const look = V3(0, 0, 0);
@@ -180,22 +201,24 @@ export function makeWorlds(scene) {
       const O = otsAt(v);
       const o = ots(look, O);
       let pos = o.pos, tgt = o.tgt, fov = O.fov;
-      // frame 0: the park camera, easing into the over-the-shoulder one
       const pk = smooth(4.4, 6.4, v);
       if (pk < 1) { pos = kv(PCAM, v).lerp(pos, pk); tgt = kv(PTGT, v).lerp(tgt, pk); fov = lerp(kf([[0, 62], [3, 64], [4.8, 66]], v), fov, pk); }
-      // the end: closer as the atom swells, the pull-back (the stadium), the dive to the nucleus
-      s.dv = 0;
+      // the drop hitting you: the camera shakes
+      const hit = v - T_DROP[1];
+      const shake = hit > 0 ? 2.6 * Math.exp(-hit / 0.4) : 0;
+      // the end: the pull-back (the stadium), the dive to the nucleus
+      let out = 0, dv = 0;
       if (v > 36) {
         const far = Pn.clone().add(V3(-60, 300, -350));
         const pb = smooth(T_REVEAL[0] - 0.2, T_REVEAL[0] + 1.5, v), back = smooth(T_DIVE, T_DIVE + 1.6, v);
-        const out = pb * (1 - back);
+        out = pb * (1 - back);
         if (out > 0) {
           const e = (Math.pow(110, out) - 1) / 109;
           pos = pos.clone().lerp(far, e);
           tgt = tgt.clone().lerp(Pn.clone().add(V3(0, -25, 0)), Math.min(1, out * out * 1.6));
           fov = lerp(fov, 50, out);
         }
-        const dv = smooth(T_DIVE + 1.2, T_WHITE - 0.75, v);
+        dv = smooth(T_DIVE + 1.2, T_WHITE - 0.75, v);
         if (dv > 0) {
           const a = o.pos.clone().add(V3(1.6, 0.4, 0.4));
           const end = Pn.clone().add(V3(0.05, 0.02, -0.07));
@@ -205,7 +228,20 @@ export function makeWorlds(scene) {
           tgt = Pn.clone().lerp(V3(0, 1.4, 0), 0.35 * (1 - k));
           fov = lerp(52, 40, dv);
         }
-        s.dv = dv;
+      }
+      s.dv = dv;
+      camPos.copy(pos);
+
+      // ---------- the drifting things (steered off you and the camera) ----------
+      const D = drop.frame(v, S, guard);
+      if (bact.group.visible) bact.frame(v, guard, HOLE, smooth(T_SINK[0], T_SINK[0] + 1.2, v));
+      if (cell.group.visible) cell.frame(v, 1 - smooth(9.45, 9.9, lS), guard);
+      tiny.group.visible = lS > 7.6;
+      tiny.frame(v, S, Pn, climb, guard);
+      ground.mesh.visible = lS < 8.7;
+      ground.frame(v, S, -Pr.y * S, 0.55 * D.inside * (1 - smooth(T_SINK[0], T_SINK[1], v)), 0.6 * D.inside,
+        [dropC.x, dropC.z, 1.6e-3 * S, (1 - D.inside) * smooth(T_DROP[0] - 1.5, T_DROP[0], v)]);
+      if (v > 36) {
         tiny.hazeU.uI.value *= 1 + 2.2 * out;
         const dist = pos.distanceTo(Pn), sw = s.swell;
         tiny.glow.position.copy(Pn);
@@ -223,18 +259,37 @@ export function makeWorlds(scene) {
       const yawPark = Math.PI + kf([[0, 0.5], [3, 0.35], [4.8, 0.2]], v);
       let yaw = o.yaw;
       { let d = yaw - yawPark; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw = yawPark + d * pk; }
+      // (on the DNA you face the strand you're climbing)
+      const cw = smooth(28.9, 29.7, v) * (1 - smooth(35.7, 36.5, v));
+      { const yd = Math.atan2(Pn.x, Pn.z); let d = yd - yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw += d * smooth(28.4, 29.4, v); }
       const fl = smooth(T_DROP[1] + 0.2, T_DROP[1] + 1.6, v);
       const elev = Math.atan2(look.y - 1.5, Math.hypot(look.x, look.z));
       const headP = lerp(kf([[0, -0.45], [3, -0.6], [4.8, -0.75]], v), clamp(-elev * 0.9, -0.9, 0.3), pk);
-      const reach = 0.5 * smooth(30.5, 32, v) * (1 - smooth(36, 37, v));
-      const pose = { head: [headP, lerp(kf([[0, -0.5], [3, -0.3], [4.8, -0.1]], v), 0.1, pk)], armsOut: 0.3 + 0.06 * Math.sin(v * 3) * (1 - fl), float: fl,
-        reach, reachDir: new THREE.Vector3(0.1, 0.25, 1).normalize(), curl: 0.3 };
-      const youPos = V3(0, 0.12 * fl + 0.05 * fl * Math.sin(v * 0.9), 0);
+      // the drop coming down: you look up and throw your arms up
+      const duck = smooth(T_DROP[0] + 0.6, T_DROP[1] - 0.2, v) * (1 - smooth(T_DROP[1] + 0.4, T_DROP[1] + 1.4, v));
+      const pose = { head: [lerp(lerp(headP, -0.8, duck), -0.35, cw), lerp(kf([[0, -0.5], [3, -0.3], [4.8, -0.1]], v), 0.1, pk)],
+        armsOut: 0.3 + 0.06 * Math.sin(v * 3) * (1 - fl) + 0.9 * duck, float: fl, curl: 0.3 };
+      // climbing: hands and feet on the rungs one after the other (a rung every 0.34 nm)
+      const ph = (4.0 - climb) / 0.34 * Math.PI;
+      const after = cw > 0 ? (you) => {
+        you.arms.forEach((A, i) => {
+          const up = 0.5 + 0.5 * Math.sin(ph + i * Math.PI);
+          A.sh.rotation.set(lerp(A.sh.rotation.x, -2.25 - 0.6 * up, cw), 0, lerp(A.sh.rotation.z, (i ? 1 : -1) * 0.3, cw));
+          A.el.rotation.set(lerp(A.el.rotation.x, -0.2 - 0.5 * (1 - up), cw), 0, 0);
+          A.fingers.forEach((f) => f.forEach((sg) => { sg.rotation.z = lerp(sg.rotation.z, 0.9, cw); }));
+        });
+        you.legs.forEach((Lg, i) => {
+          const st = 0.5 + 0.5 * Math.sin(ph + i * Math.PI + Math.PI);
+          Lg.hip.rotation.x = lerp(Lg.hip.rotation.x, -0.35 - 0.9 * st, cw);
+          Lg.knee.rotation.x = lerp(Lg.knee.rotation.x, 0.3 + 1.2 * st, cw);
+        });
+      } : null;
+      const youPos = V3(0, 0.12 * fl + 0.05 * fl * Math.sin(v * 0.9) * (1 - cw), 0);
       const L = lookAt(v, S);
       L.shadowAt = V3(0, 0, 0);
       return {
-        yaw, pose, youPos,
-        cam: { pos, tgt, fov, near: s.dv > 0.6 ? 0.002 : 0.06, far: 30000 },
+        yaw, pose, youPos, after,
+        cam: { pos, tgt, fov, near: s.dv > 0.6 ? 0.002 : 0.06, far: 30000, shake },
         look: L,
       };
     },

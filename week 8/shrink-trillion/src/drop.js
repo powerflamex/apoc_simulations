@@ -10,7 +10,7 @@ import { T_DROP } from './timeline.js';
 
 export const DROP_R = 1600;
 // the drop's centre (µm): on the blade, sliding down it, falling, landed (it spreads a little and wobbles)
-const DROP_K = [[0, [-2000, 3450, 3000]], [T_DROP[0], [-2000, 3450, 3000]], [T_DROP[0] + 0.8, [-1850, 3150, 2700]], [T_DROP[1], [-250, 950, 650]], [99, [-250, 950, 650]]];
+const DROP_K = [[0, [-2000, 3450, 3000]], [T_DROP[0], [-2000, 3450, 3000]], [T_DROP[0] + 0.8, [-1950, 3150, 2850]], [T_DROP[1], [-250, 950, 650]], [99, [-250, 950, 650]]];
 export function dropAt(v, out = new THREE.Vector3()) {
   const k = [0, 1, 2].map((i) => {
     const list = DROP_K.map(([t, p]) => [t, p[i]]);
@@ -42,8 +42,9 @@ export function makeDrop(scene) {
         float spec = pow(max(dot(R, uSun), 0.0), 300.0) * 6.0 + pow(max(dot(R, uSun), 0.0), 20.0) * 0.4;
         vec3 col; float a;
         if (gl_FrontFacing) {   // from outside: a clear lens of water, bright rim, the Sun's glint
-          col = sky * fr + vec3(0.85, 0.95, 1.0) * 0.12 + vec3(1.0) * spec;
-          a = clamp(0.18 + fr * 0.8 + spec, 0.0, 1.0);
+          float rim = smoothstep(0.55, 0.95, 1.0 - c);
+          col = mix(vec3(0.55, 0.82, 0.95), sky, fr) * (0.85 + 0.5 * rim) + vec3(1.0) * spec + vec3(0.9, 1.0, 1.0) * rim * 0.35;
+          a = clamp(0.38 + 0.55 * rim + fr * 0.4 + spec, 0.0, 1.0);
         } else {                // from inside: the underside of the surface, bright toward the rim (total reflection)
           float tir = smoothstep(0.55, 0.85, 1.0 - c);
           float rip = 0.5 + 0.5 * sin(dot(vW, vec3(0.7, 0.2, 0.5)) * 0.002 + uT * 1.5);
@@ -105,6 +106,23 @@ export function makeDrop(scene) {
   for (let i = 0; i < 45; i++) { let p; do { p = new THREE.Vector3((R() - 0.5) * 300, 4 + R() * 90, -20 + R() * 320); } while (p.z < 30 && Math.abs(p.x) < 40); A.push({ p, r: 2.5 + R() * 3.5, w: new THREE.Vector3(R() - 0.5, (R() - 0.5) * 0.4, R() - 0.5) }); }
   for (let i = 0; i < 260; i++) { let p; do { p = new THREE.Vector3((R() - 0.5) * 30, 0.2 + R() * 12, -3 + R() * 30); } while (p.z < 2 && Math.abs(p.x) < 3); Gr.push({ p, r: 0.12 + Math.pow(R(), 2) * 0.6, w: new THREE.Vector3(R() - 0.5, (R() - 0.5) * 0.3, R() - 0.5), a: R() * 6 }); }
   G.add(alg, grit);
+  // the splash when it lands: a crown of droplets thrown out round the rim; then air bubbles rising round you
+  const splashM = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vW = w.xyz; vN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `varying vec3 vN; varying vec3 vW; void main(){ vec3 V = normalize(cameraPosition - vW); float c = abs(dot(normalize(vN), V)); float rim = pow(1.0 - c, 2.0);
+      gl_FragColor = vec4(mix(vec3(0.6, 0.85, 1.0), vec3(1.0), rim) * (1.1 + rim), 0.35 + 0.6 * rim); }`,
+  });
+  const NSP = 70, NBU = 60;
+  const splash = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 16, 12), splashM, NSP);
+  const bubbles = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), splashM, NBU);
+  splash.frustumCulled = bubbles.frustumCulled = false;
+  splash.renderOrder = bubbles.renderOrder = 5;
+  G.add(splash, bubbles);
+  const SP = [], BU = [];
+  for (let i = 0; i < NSP; i++) { const a = (i / NSP) * Math.PI * 2 + R() * 0.2; SP.push({ a, sp: 1500 + R() * 2200, up: 1800 + R() * 2600, r: 60 + R() * 170 }); }
+  for (let i = 0; i < NBU; i++) { const a = R() * Math.PI * 2, d = 25 + Math.pow(R(), 0.7) * 700; BU.push({ x: Math.cos(a) * d, z: Math.sin(a) * d + 120, y0: 5 + R() * 60, r: 8 + Math.pow(R(), 2) * 90, rise: 120 + R() * 380, ph: R() * 6, t0: R() * 0.8 }); }
+  const gV = new THREE.Vector3(), gInv = new THREE.Matrix4();
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pp = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   return {
     group: G, water, para, wU,
@@ -112,15 +130,52 @@ export function makeDrop(scene) {
       const k = clamp((v - 11.5) / 6.5);
       return out.set(lerp(-330, 260, k), 50 + 8 * Math.sin(v * 0.8), lerp(300, 200, k));
     },
-    frame(v, S) {
+    frame(v, S, guard = null) {
       const t = v - 11;
-      // the drop: falls, lands, wobbles, settles
+      G.updateMatrixWorld(true);
+      gInv.copy(G.matrixWorld).invert();
+      // keep a drifting thing (µm, radius r µm) off you and the camera
+      const keep = (p, r) => { if (!guard) return; gV.copy(p).applyMatrix4(G.matrixWorld); if (guard(gV, r * S * 1e-6)) p.copy(gV.applyMatrix4(gInv)); };
+      // the drop: wobbles on the blade tip, stretches, lets go, falls onto you, splashes flat and wobbles, settles
       const c = dropAt(v);
       const land = v - T_DROP[1];
-      const wob = land > 0 ? Math.exp(-land / 0.5) * Math.sin(land * 14) * 0.12 : 0;
+      let sx = 1, sy = 1;
+      if (v < T_DROP[0] + 0.8) {
+        const hang = Math.sin(v * 7.0) * 0.05 * smooth(T_DROP[0] - 2.0, T_DROP[0] - 0.5, v);
+        const stretch = smooth(T_DROP[0] - 0.2, T_DROP[0] + 0.8, v) * 0.22;
+        sy = 1 + hang + stretch; sx = 1 - hang * 0.5 - stretch * 0.4;
+      } else if (land < 0) { sy = 1.12; sx = 0.94; }
+      else { const sq = Math.exp(-land / 0.45); sy = 1 - 0.42 * sq * Math.cos(land * 11); sx = 1 + 0.22 * sq * Math.cos(land * 11); }
       water.position.copy(c);
-      water.scale.set(DROP_R * (1 + wob * 0.5), DROP_R * (1 - wob), DROP_R * (1 + wob * 0.5));
+      water.scale.set(DROP_R * sx, DROP_R * sy, DROP_R * sx);
       wU.uT.value = v;
+      // the crown of droplets
+      const sp = land;
+      splash.visible = sp > 0 && sp < 1.4;
+      if (splash.visible) {
+        SP.forEach((o, i) => {
+          const k = Math.min(sp, 1.4);
+          const rr = 1250 + o.sp * k;
+          pp.set(c.x + Math.cos(o.a) * rr, Math.max(0, 80 + o.up * k - 4200 * k * k), c.z + Math.sin(o.a) * rr);
+          keep(pp, o.r);
+          m4.compose(pp, q.identity(), sc.setScalar(o.r * (1 - smooth(0.9, 1.4, k))));
+          splash.setMatrixAt(i, m4);
+        });
+        splash.instanceMatrix.needsUpdate = true;
+      }
+      // bubbles of trapped air rising round you
+      const bt = land;
+      bubbles.visible = bt > 0 && S < 3e5;
+      if (bubbles.visible) {
+        BU.forEach((o, i) => {
+          const tt = Math.max(0, bt - o.t0);
+          pp.set(o.x + 10 * Math.sin(tt * 3 + o.ph), o.y0 + o.rise * tt, o.z + 10 * Math.cos(tt * 2.6 + o.ph));
+          keep(pp, o.r);
+          m4.compose(pp, q.identity(), sc.setScalar(tt > 0 ? o.r : 0));
+          bubbles.setMatrixAt(i, m4);
+        });
+        bubbles.instanceMatrix.needsUpdate = true;
+      }
       // the paramecium swims past, its hairs beating in waves
       const pc = this.paraAt(v);
       para.position.copy(pc);
@@ -137,9 +192,9 @@ export function makeDrop(scene) {
         });
         cil.instanceMatrix.needsUpdate = true;
       }
-      A.forEach((a, i) => { pp.copy(a.p).addScaledVector(a.w, t * 2.5); m4.compose(pp, q.identity(), sc.setScalar(a.r)); alg.setMatrixAt(i, m4); });
+      A.forEach((a, i) => { pp.copy(a.p).addScaledVector(a.w, t * 2.5); keep(pp, a.r); m4.compose(pp, q.identity(), sc.setScalar(a.r)); alg.setMatrixAt(i, m4); });
       alg.instanceMatrix.needsUpdate = true;
-      Gr.forEach((a, i) => { pp.copy(a.p).addScaledVector(a.w, t * 0.5); e.set(a.a + t, a.a * 2, 0); q.setFromEuler(e); m4.compose(pp, q, sc.setScalar(a.r)); grit.setMatrixAt(i, m4); });
+      Gr.forEach((a, i) => { pp.copy(a.p).addScaledVector(a.w, t * 0.5); keep(pp, a.r); e.set(a.a + t, a.a * 2, 0); q.setFromEuler(e); m4.compose(pp, q, sc.setScalar(a.r)); grit.setMatrixAt(i, m4); });
       grit.instanceMatrix.needsUpdate = true;
       const wet = smooth(T_DROP[1] - 0.1, T_DROP[1] + 0.2, v);
       alg.visible = grit.visible = wet > 0.5;

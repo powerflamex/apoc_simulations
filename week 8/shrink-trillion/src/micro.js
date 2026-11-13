@@ -17,11 +17,14 @@ export function makeBact(scene) {
   const G = new THREE.Group();
   scene.add(G);
   const R = rng(31);
-  const skin = (alpha) => procMat({ color: 0x35b07a, rough: 0.4, transparent: alpha < 1, opacity: alpha, side: THREE.DoubleSide,
+  // (uHole: a round opening in the wall, in the rod's own coordinates; its lips glow)
+  const holeU = { uHole: { value: new THREE.Vector4(0, 0, 0, 0) } };
+  const skin = (alpha, U = null) => procMat({ color: 0x35b07a, rough: 0.4, transparent: alpha < 1, opacity: alpha, side: THREE.DoubleSide, uniforms: U || { uHole: { value: new THREE.Vector4(0, 0, 0, 0) } },
     physical: { clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.6, sheenColor: new THREE.Color(0.6, 1, 0.8) },
     col: `float r = h13(floor(vIP * 3.0)); c = mix(c, vec3(0.2, 0.62, 0.78), step(0.6, r)); c = mix(c, vec3(0.62, 0.78, 0.22), step(0.88, r));
           c *= 0.78 + 0.3 * n3(vOP * 3.0 + vIP); c *= 0.9 + 0.15 * n3(vOP * 30.0);
-          if (!gl_FrontFacing) { c = mix(c, vec3(0.95, 0.75, 0.55), 0.6); diffuseColor.a *= 0.3; }`,
+          if (!gl_FrontFacing) { c = mix(c, vec3(0.95, 0.75, 0.55), 0.6); diffuseColor.a *= 0.3; }
+          if (uHole.w > 0.0) { float hd = distance(vOP, uHole.xyz); if (hd < uHole.w) discard; c = mix(c, vec3(0.75, 1.0, 0.85), (1.0 - smoothstep(uHole.w, uHole.w * 1.35, hd)) * 0.7); }`,
     height: 'n3(vOP * 6.0 + vIP) + 0.5 * n3(vOP * 14.0) + 0.3 * n3(vOP * 60.0)', bump: 0.02, emis: `e += diffuseColor.rgb * 0.2;` });
   const bacG = new THREE.CapsuleGeometry(BAC_R, BAC_L - 2 * BAC_R, 16, 40).rotateZ(Math.PI / 2);
   const flagM = procMat({ color: 0xbfe8d0, rough: 0.5, emis: `e += diffuseColor.rgb * 0.25;` });
@@ -38,10 +41,10 @@ export function makeBact(scene) {
     B.push({ grp, body, fl, p: p.clone(), yaw, swim, ph: R() * 6, seed: R() });
     return B[B.length - 1];
   };
-  const target = add(BAC_C.clone(), Math.PI / 2, 0, skin(0.97));
+  const target = add(BAC_C.clone(), Math.PI / 2, 0, skin(0.97, holeU));
   // the inner membrane (seen as you pass through the wall), slightly smaller
-  const innerM = procMat({ color: 0xf2c79a, rough: 0.5, transparent: true, opacity: 0.22, side: THREE.BackSide, emis: `e += diffuseColor.rgb * 0.35;`,
-    col: `c *= 0.8 + 0.3 * n3(vOP * 40.0);` });
+  const innerM = procMat({ color: 0xf2c79a, rough: 0.5, transparent: true, opacity: 0.22, side: THREE.BackSide, emis: `e += diffuseColor.rgb * 0.35;`, uniforms: holeU,
+    col: `c *= 0.8 + 0.3 * n3(vOP * 40.0); if (uHole.w > 0.0 && distance(vOP * vec3(1.0, 1.0 / 0.93, 1.0 / 0.93), uHole.xyz) < uHole.w) discard;` });
   const inner = new THREE.Mesh(new THREE.CapsuleGeometry(BAC_R * 0.93, BAC_L - 2 * BAC_R, 16, 40).rotateZ(Math.PI / 2), innerM);
   target.grp.add(inner);
   const swimM = skin(1);
@@ -52,16 +55,20 @@ export function makeBact(scene) {
   }
   return {
     group: G, target, inner,
-    frame(v) {
-      // as you sink in, the wall turns to clear jelly (so passing through it is soft, not a pop)
-      const jelly = smooth(24.9, 26.1, v);
-      target.body.material.opacity = 0.97 - 0.72 * jelly;
-      target.body.material.depthWrite = jelly < 0.5;
+    // guard: keeps swimmers off you and the camera; hole: where you go in (µm), holeK: how far it has opened
+    frame(v, guard = null, hole = null, holeK = 0) {
+      if (hole) {
+        const h = hole.clone().sub(BAC_C).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+        holeU.uHole.value.set(h.x, h.y, h.z, 0.17 * holeK);
+      }
+      G.updateMatrixWorld(true);
+      const inv = G.matrixWorld.clone().invert(), gv = new THREE.Vector3();
       const t = v - 15;
       for (const b of B) {
         if (b.swim) {
           const d = b.swim * t;
           b.grp.position.set(b.p.x + Math.cos(b.yaw) * d, b.p.y + 0.1 * Math.sin(t + b.ph), b.p.z - Math.sin(b.yaw) * d);
+          if (guard) { gv.copy(b.grp.position).applyMatrix4(G.matrixWorld); if (guard(gv, 1.1 * G.scale.x)) b.grp.position.copy(gv.applyMatrix4(inv)); }
           b.body.rotation.x = 2.5 * t + b.ph;
         }
         b.fl.forEach((m, k) => {

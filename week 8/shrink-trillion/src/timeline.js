@@ -67,7 +67,7 @@ export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 export const CAPTIONS = [
   { t0: 3.15, t1: 5.5, step: 3.0, text: "You're as small as a kitten." },
   { t0: 7.0, t1: 9.0, step: 7.0, text: 'An ant is as big as a bus.' },
-  { t0: 9.15, t1: 11.4, step: 9.15, text: 'A dew drop is as big as a house.' },
+  { t0: 9.15, t1: 11.4, step: 9.15, text: 'A dew drop as big as a house falls on you.' },
   { t0: 13.9, t1: 16.5, step: 14.5, text: 'A one-celled creature as big as a whale.' },
   { t0: 18.3, t1: 20.6, step: 18.7, text: 'Bacteria swim past, as big as buses.' },
   { t0: 22.5, t1: 24.9, step: 22.6, text: 'A virus as tall as a giraffe lands on one.' },

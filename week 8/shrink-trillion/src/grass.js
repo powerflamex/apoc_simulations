@@ -65,7 +65,7 @@ export function makeGrass(scene) {
     for (let i = 0; i < 50; i++) {
       const r = 6 + R() * 70, a = R() * Math.PI * 2;
       const x = Math.cos(a) * r, z = Math.sin(a) * r + 20;
-      if (segDist(x, z) < 6) continue;
+      if (segDist(x, z) < 6 || Math.hypot(x, z) < 26) continue;
       const len = 6 + R() * 18, w = 1.5 + R() * 3;
       const g = new THREE.PlaneGeometry(len, w, 8, 2).rotateX(-Math.PI / 2);
       const pp = g.attributes.position;
@@ -139,8 +139,8 @@ export function makeGrass(scene) {
     }
     for (let i = 0; i < NS; i++) { const a = i * 3; HI.push(a, a + 1, a + 3, a + 1, a + 4, a + 3, a + 1, a + 2, a + 4, a + 2, a + 5, a + 4); }
     const hg = new THREE.BufferGeometry(); hg.setAttribute("position", new THREE.Float32BufferAttribute(HP, 3)); hg.setIndex(HI); hg.computeVertexNormals();
-    const heroM = procMat({ color: 0x5aa82e, rough: 0.45, side: THREE.DoubleSide, col: `c *= 0.82 + 0.14 * sin(vOP.x * 9.0 + vOP.z * 2.0) + 0.1 * n3(vOP * vec3(2.0, 0.2, 2.0));`,
-      height: 'sin(vOP.x * 9.0 + vOP.z * 2.0)', bump: 0.05, emis: `e += diffuseColor.rgb * 0.7;` });
+    const heroM = procMat({ color: 0x7cc23e, rough: 0.45, side: THREE.DoubleSide, col: `c *= 0.82 + 0.14 * sin(vOP.x * 9.0 + vOP.z * 2.0) + 0.1 * n3(vOP * vec3(2.0, 0.2, 2.0));`,
+      height: "sin(vOP.x * 9.0 + vOP.z * 2.0)", bump: 0.05, emis: `e += diffuseColor.rgb * 1.3;` });
     const hero = new THREE.Mesh(hg, heroM);
     hero.castShadow = true; hero.receiveShadow = true;
     G.add(hero);

@@ -17,7 +17,7 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const SCREAMS = [[0.08, 1.0]];
+const SCREAMS = [];      // (no scream in this one: the owner asked for it out, Nov 13)
 class OnePole { constructor(fc) { this.y = 0; this.set(fc); } set(fc) { this.a = 1 - Math.exp(-TAU * fc / SR); } run(x) { return (this.y += this.a * (x - this.y)); } }
 class SVF {
   constructor() { this.l = 0; this.b = 0; }

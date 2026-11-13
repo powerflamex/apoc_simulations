@@ -10,7 +10,7 @@ export function makeGround(scene) {
   const U = {
     uK: { value: new Float32Array(8) },     // per octave: 1 / (wavelength x S) in scene units
     uFoot: { value: 1 },                    // real metres per scene metre per radian (= 1/S) x pixel angle
-    uCaus: { value: 0 }, uCausK: { value: 1 }, uT: { value: 0 }, uWet: { value: 0 },
+    uCaus: { value: 0 }, uCausK: { value: 1 }, uT: { value: 0 }, uWet: { value: 0 }, uShade: { value: new THREE.Vector4(0, 0, 1, 0) },
   };
   const LAM = [0.6, 0.04, 0.004, 4e-4, 4e-5, 4e-6, 4e-7, 4e-8];
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
@@ -19,7 +19,7 @@ export function makeGround(scene) {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n vW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-      varying vec3 vW; uniform float uK[8]; uniform float uFoot, uCaus, uCausK, uT, uWet;
+      varying vec3 vW; uniform float uK[8]; uniform float uFoot, uCaus, uCausK, uT, uWet; uniform vec4 uShade;
       ${NOISE}
       float vis(int i, float d){ float lam = 1.0 / uK[i]; float px = d * 0.0006; return smoothstep(2.5, 9.0, lam / max(px, 1e-9)); }
       vec3 mineral(float r){ return r < 0.38 ? vec3(0.9, 0.86, 0.78) : r < 0.55 ? vec3(0.97, 0.96, 0.93) : r < 0.7 ? vec3(0.86, 0.62, 0.52) : r < 0.82 ? vec3(0.5, 0.48, 0.47) : r < 0.92 ? vec3(0.78, 0.45, 0.25) : vec3(0.3, 0.27, 0.25); }
@@ -68,6 +68,12 @@ export function makeGround(scene) {
             c += vec3(0.75, 0.95, 1.0) * cs * uCaus;
           }
           c = mix(c, c * vec3(0.8, 0.95, 1.0), uWet);
+          // the falling drop's shadow on the ground, with the bright spot where it focuses the sunlight
+          if (uShade.w > 0.0) {
+            float dd = length(vW.xz - uShade.xy) / uShade.z;
+            c *= 1.0 - 0.5 * uShade.w * (1.0 - smoothstep(0.75, 1.0, dd));
+            c += vec3(1.0, 0.98, 0.85) * uShade.w * 1.6 * exp(-pow(dd / 0.16, 2.0));
+          }
           diffuseColor.rgb = c; }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         { normal = bumpN(-vViewPosition, normal, vec2(dFdx(Hg), dFdy(Hg)) * 0.25); }`);
@@ -81,7 +87,8 @@ export function makeGround(scene) {
   return {
     mesh, U,
     // S: how many times smaller you are; y: where real ground level is in your metres
-    frame(v, S, y, caus = 0, wet = 0) {
+    frame(v, S, y, caus = 0, wet = 0, shade = null) {
+      if (shade) U.uShade.value.set(...shade); else U.uShade.value.w = 0;
       mesh.position.set(0, y, 0);
       mesh.scale.setScalar(25000);
       for (let i = 0; i < 8; i++) U.uK.value[i] = 1 / (LAM[i] * S);

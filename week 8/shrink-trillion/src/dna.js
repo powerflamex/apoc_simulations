@@ -18,30 +18,32 @@ const PAIR = { A: 'T', T: 'A', G: 'C', C: 'G' };
 export function makeTiny(scene) {
   const root = new THREE.Group();
   scene.add(root);
-  // ---------- DNA ----------
+  // ---------- DNA: dnaG (at the helix axis, scaled to nm) -> spin (turns and slides as you climb) -> body (the model) ----------
   const dnaG = new THREE.Group();
   root.add(dnaG);
+  const spin = new THREE.Group(); dnaG.add(spin);
+  const body = new THREE.Group(); spin.add(body);
   const atoms = [];
   const R = rng(3);
-  const seq = 'GATTACACGTCAGGTACCATGCAATGCGTTAGCAGTCCATGA';
-  const NB = seq.length, RISE = 0.34, TW = 34.3 * Math.PI / 180;
+  const seq = 'GATTACACGTCAGGTACCATGCAATGCGTTAGCAGTCCATGACTGATCGGATCCATTAGCATGCAATGC';
+  const NB = seq.length, RISE = 0.34, TW = 34.3 * Math.PI / 180, I0 = 30;
   // (angle a, radius r, height y) -> x, y, z ; strand 1's sugar carbon at bp 0 faces -z (you)
   const at = (a, r, y) => new THREE.Vector3(r * Math.cos(a), y, r * Math.sin(a));
   let chosen = null;
   for (let i = 0; i < NB; i++) {
-    const y = (i - 14) * RISE;
+    const y = (i - I0) * RISE;
     const a1 = i * TW - Math.PI / 2, a2 = a1 + 2.4;
     for (const [a, base, sgn] of [[a1, seq[i], 1], [a2, PAIR[seq[i]], -1]]) {
       // backbone: phosphate (P + 2 O), sugar ring (4 C + O)
       atoms.push({ e: 'P', p: at(a + 0.18 * sgn, 0.92, y + 0.12 * sgn) });
       atoms.push({ e: 'O', p: at(a + 0.3 * sgn, 1.05, y + 0.2 * sgn) });
+      if (i === I0 && sgn === 1) chosen = atoms[atoms.length - 1];     // an outermost atom: nothing of the DNA sticks out past it toward you
       atoms.push({ e: 'O', p: at(a + 0.08 * sgn, 1.06, y + 0.02 * sgn) });
       for (let k = 0; k < 5; k++) {
         const aa = a - 0.1 * sgn + 0.16 * Math.cos(k * 1.2566) / 0.75, rr = 0.72 + 0.11 * Math.sin(k * 1.2566);
         const el = k === 2 ? 'O' : 'C';
         const A_ = { e: el, p: at(aa, rr, y - 0.06 * sgn + 0.08 * Math.sin(k * 1.2566 + 1)) };
         atoms.push(A_);
-        if (i === 14 && sgn === 1 && k === 0) chosen = A_;
       }
       // the base: a flat ring reaching toward the middle, tinted by kind
       const n = base === 'A' || base === 'G' ? 9 : 6;
@@ -58,17 +60,18 @@ export function makeTiny(scene) {
     const bar = new THREE.CylinderGeometry(0.075, 0.075, 1, 10);
     const rungs = new THREE.InstancedMesh(bar, rungM, NB * 2 + NB * 2);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color(); let k = 0;
-    const put = (a, b, col) => { const d = b.clone().sub(a); q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); m.compose(a.clone().lerp(b, 0.5), q, new THREE.Vector3(1, d.length(), 1)); rungs.setMatrixAt(k, m); rungs.setColorAt(k++, c.setRGB(...col)); };
+    const RS = [];
+    const put = (a, b, col) => { const d = b.clone().sub(a); q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); const mid = a.clone().lerp(b, 0.5); RS.push([mid, q.clone(), d.length()]); m.compose(mid, q, new THREE.Vector3(1, d.length(), 1)); rungs.setMatrixAt(k, m); rungs.setColorAt(k++, c.setRGB(...col)); };
     for (let i = 0; i < NB; i++) {
-      const y = (i - 14) * RISE, a1 = i * TW - Math.PI / 2, a2 = a1 + 2.4;
+      const y = (i - I0) * RISE, a1 = i * TW - Math.PI / 2, a2 = a1 + 2.4;
       const p1 = at(a1, 0.62, y), p2 = at(a2, 0.62, y), mid = p1.clone().lerp(p2, 0.5);
       put(p1, mid, BASEC[seq[i]]); put(mid, p2, BASEC[PAIR[seq[i]]]);
       // the backbones: a bar to the next step on each strand
       if (i < NB - 1) for (const [a, da] of [[a1, 0], [a2, 0]]) put(at(a + 0.12, 0.9, y), at(a + TW + 0.12, 0.9, y + RISE), [1.0, 0.62, 0.2]);
     }
     rungs.count = k;
-    dnaG.add(rungs);
-    root.userData.rungs = rungs; root.userData.rungM = rungM;
+    body.add(rungs);
+    root.userData.rungs = rungs; root.userData.rungM = rungM; root.userData.RS = RS;
   }
   const atomM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.0, transparent: false, opacity: 1, emissive: 0x111111 });
   atomM.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.22;'); };
@@ -86,7 +89,7 @@ export function makeTiny(scene) {
     inst.setColorAt(i, col);
   });
   inst.castShadow = true; inst.receiveShadow = true;
-  dnaG.add(inst);
+  body.add(inst);
   // water molecules floating round it (O red + 2 H white), ~0.28 nm
   const water = [];
   {
@@ -99,7 +102,7 @@ export function makeTiny(scene) {
       let p;
       do { p = new THREE.Vector3((R() - 0.5) * 9, (R() - 0.5) * 12, (R() - 0.5) * 9); } while (Math.hypot(p.x, p.z) < 1.5 || (p.z < -1.5 && Math.abs(p.x) < 2.2 && Math.abs(p.y) < 2.5));
       g.position.copy(p); g.rotation.set(R() * 6, R() * 6, R() * 6);
-      dnaG.add(g);
+      body.add(g);
       water.push({ g, p, w: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5) });
     }
   }
@@ -225,13 +228,14 @@ export function makeTiny(scene) {
   stad.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 6; } });
 
   // ---------- every other atom becomes its own cloud with a bright nucleus (seen as the atoms swell) ----------
-  const others = atoms.filter((A_) => A_ !== chosen && A_.p.distanceTo(chosen.p) < 3.2);
+  // the dozen atoms nearest the one you hold (more would pile up into a white fog)
+  const others = atoms.filter((A_) => A_ !== chosen).sort((x, y) => x.p.distanceTo(chosen.p) - y.p.distanceTo(chosen.p)).slice(0, 14);
   const cloudU = { uI: { value: 0 } };
   const clouds = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 28, 18), new THREE.ShaderMaterial({
     uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vC; varying float vNear; void main(){ vC = vec3(0.45, 0.4, 1.0);
       vec3 cen = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz; float rad = length((modelMatrix * instanceMatrix * vec4(1.0, 0.0, 0.0, 0.0)).xyz);
-      vNear = smoothstep(1.6, 4.5, distance(cen, cameraPosition) / rad);
+      vNear = smoothstep(2.5, 6.5, distance(cen, cameraPosition) / rad);
       #ifdef USE_INSTANCING_COLOR
       vC = instanceColor;
       #endif
@@ -242,11 +246,11 @@ export function makeTiny(scene) {
   others.forEach((A_, i) => { m4.makeScale(0.15, 0.15, 0.15).setPosition(A_.p); clouds.setMatrixAt(i, m4); clouds.setColorAt(i, col.setRGB(...CLOUDC[A_.e])); });
   clouds.frustumCulled = false;
   clouds.renderOrder = 4;
-  dnaG.add(clouds);
+  body.add(clouds);
   const dots = new THREE.Points(new THREE.BufferGeometry().setFromPoints(others.map((A_) => A_.p)),
     new THREE.PointsMaterial({ color: 0xffd8a0, size: 5, sizeAttenuation: false, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   dots.frustumCulled = false;
-  dnaG.add(dots);
+  body.add(dots);
   // ---------- electrons in the big atom: flickering sparkles, dense near the middle, a wider shell further out (pm) ----------
   const NE = 7000, ep = new Float32Array(NE * 3), eph = new Float32Array(NE);
   for (let i = 0; i < NE; i++) {
@@ -269,18 +273,32 @@ export function makeTiny(scene) {
   electrons.frustumCulled = false;
   root.add(electrons);
 
+  // turn the model so the chosen atom faces you (-z), centred on its own height
   const chosenP = chosen.p.clone();
+  const RC = Math.hypot(chosenP.x, chosenP.z);
+  body.rotation.y = Math.atan2(chosenP.z, chosenP.x) + Math.PI / 2;
+  body.position.y = -chosenP.y;
+  const tmpW = new THREE.Vector3(), invM = new THREE.Matrix4();
   return {
-    group: root, dnaG, inst, atomM, clouds, cloudU, dots, electrons, eU, haze, hazeU, nucG, glow, nucLight, stad, pitchM, lineM, standM, water, chosenP,
-    // P: where the atom's centre is (your metres); S: how many times smaller you are
-    frame(v, S, P) {
+    group: root, dnaG, spin, body, inst, atomM, clouds, cloudU, dots, electrons, eU, haze, hazeU, nucG, glow, nucLight, stad, pitchM, lineM, standM, water, chosenP, RC, RISE, TW,
+    // P: where the chosen atom ends up (your metres); S: how many times smaller you are; c: how far (nm) you still have to
+    // climb to it (the DNA slides down and turns past you as you climb, so the strand you hold stays in front of you);
+    // guard(v3 scene, r): pushes a drifting thing off you and the camera
+    frame(v, S, P, c = 0, guard = null) {
       const uN = S * 1e-9, uP = S * 1e-12;
       dnaG.scale.setScalar(uN);
-      dnaG.position.copy(P).addScaledVector(chosenP, -uN);
-      dnaG.rotation.set(0, 0, 0);
-      // the DNA turns slowly about its own axis (round the chosen atom, so the atom stays put)
-      const t = v - 33.2;
-      for (const w of water) { w.g.position.copy(w.p).addScaledVector(w.w, t * 0.25); w.g.rotation.x += 0; w.g.rotation.y = t * 0.4 + w.p.x; }
+      dnaG.position.copy(P); dnaG.position.z += RC * uN;      // the helix axis, behind the chosen atom
+      spin.rotation.y = -c * TW / RISE;
+      spin.position.y = c;
+      // water molecules drift, steering clear of you and the camera
+      const t = v - 26;
+      dnaG.updateMatrixWorld(true);
+      invM.copy(body.matrixWorld).invert();
+      for (const w of water) {
+        w.g.position.copy(w.p).addScaledVector(w.w, t * 0.25);
+        if (guard) { tmpW.copy(w.g.position).applyMatrix4(body.matrixWorld); if (guard(tmpW, 0.2 * uN)) w.g.position.copy(tmpW.applyMatrix4(invM)); }
+        w.g.rotation.y = t * 0.4 + w.p.x;
+      }
       // the atom swells: the ball fades into the cloud; the rest of the DNA fades away
       const swell = smooth(36.2, 37.8, v);
       const keep = 1 - smooth(35.9, 36.8, v);
@@ -289,12 +307,15 @@ export function makeTiny(scene) {
         atoms.forEach((A_, i) => { const r = ballR[i] * keep; m4.makeScale(r, r, r).setPosition(A_.p); inst.setMatrixAt(i, m4); });
         inst.instanceMatrix.needsUpdate = true;
         water.forEach((w) => w.g.scale.setScalar(keep));
+        const rg = this.group.userData.rungs, sv = new THREE.Vector3();
+        this.group.userData.RS.forEach(([mid, qq, len], i) => { m4.compose(mid, qq, sv.set(keep, len, keep)); rg.setMatrixAt(i, m4); });
+        rg.instanceMatrix.needsUpdate = true;
       }
-      inst.visible = keep > 0.01; this.group.userData.rungs.visible = keep > 0.45;
+      inst.visible = keep > 0.01; this.group.userData.rungs.visible = keep > 0.01;
       water.forEach((w) => { w.g.visible = keep > 0.01; });
       // the other atoms: clouds and nuclei
       const ck = smooth(35.9, 36.9, v);
-      cloudU.uI.value = (0.8 + 1.4 * smooth(36.8, 37.8, v)) * ck * (1 - 0.4 * smooth(T_REVEAL0 + 0.3, T_REVEAL0 + 1.5, v));
+      cloudU.uI.value = (0.6 + 0.6 * smooth(36.8, 37.8, v)) * ck * (1 - 0.4 * smooth(T_REVEAL0 + 0.3, T_REVEAL0 + 1.5, v));
       clouds.visible = ck > 0.001;
       dots.material.opacity = ck; dots.visible = ck > 0.001;
       dots.material.size = 4 + 4 * ck;
