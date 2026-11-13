@@ -524,6 +524,42 @@ New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): sand grain 13
   like Nov 22-25 than Nov 21.
 - Planet picker and solar storm are scheduled for Nov 12 (planet picker 5 days after star picker, not the week I suggested).
 
+## Nov 12 night read (~11:30 PM ET; exact views from each video's page, new Studio layout)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 36 h | 48 h | Now | YouTube's "typical" range | Stayed | 0:30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| star picker | Nov 7, 1 PM | 2,276 | 8,256 | 20,262 | 58,448 | 117,222 | | | 218.8K | | | 70% |
+| volcano | Nov 10, 8:40 AM | 974 | 3,787 | 7,571 | 13,106 | 20,827 | 25,680 | 28,051 | 30.3K (63 h) | 43.8K-73.8K | 67.0% | **59%** (new) |
+| Sun black hole | Nov 10, 2 PM | 1,425 | 4,720 | 9,861 | 23,139 | 55,842 | 65,747 | 71,696 | 76.3K (58 h) | 55.9K-81.6K | 59.5% | **77%** (new) |
+| dinosaurs return | Nov 11, 7:46 AM | 961 | 3,429 | 7,340 | 10,748 | 17,581 | 24,650 | | 25.6K (40 h) | 50.6K-73.2K | 67.1% | not out |
+| oceans drain | Nov 11, 1 PM | 2,046 | 5,017 | 9,796 | 29,104 | 42,034 | | | 45.2K (35 h) | 38.7K-71.1K | 62.9% | not out |
+| solar storm | Nov 12, 7:00 AM | 176 | 772 | 1,285 | 2,186 | | | | 3.0K (17 h) | 31.5K-41.0K | 60.2% | not out |
+| planet picker | Nov 12, 1 PM | 1,454 | 6,150 | 13,199 | | | | | 35.8K (10.6 h) | 20.5K-29.9K | 65.2% | not out |
+Older now: nuke 49.4K, world freezes 50.1K, sand grain 46.9K, tornado 92.7K, rod 48.2K, space station 98.8K, fall through 98.8K, Moon explodes 120.8K,
+rogue planet 157.8K. Channel: 26,842 subs, 576K views in the last 48 h.
+New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): Sun black hole 120 / 98 / 92 / 77 / 68; volcano 122 / 88 / 82 / 59 / 51.
+- Sun black hole's 77% at 0:30 is the best of every 45-50 s Short (star picker was the best at 70%) and equals the channel's best (Earth falls). It loses 22
+  points from 0:03 to 0:10 (the hits lose 20-29) and there is no dip at 0:11-0:15: my guess from the frames was wrong. It opens on the Sun collapsing, cuts to
+  the beach at 0:02.5 and races a countdown to 0:09: the "outcome hidden behind a countdown" opening already in CLAUDE.md (black hole passed, Sun vanishes).
+- But its views are ordinary for the channel (76K at 58 h, inside YouTube's typical range; star picker had about twice that at the same age). So the
+  "72%+ at 0:30 = hit zone, every Short there has 148K+" line no longer holds unless it keeps climbing. Same as the Nov 10 finding: among the 45-50 s Shorts the
+  curve does not decide the size.
+- Volcano 59% at 0:30, losing 26 points from 0:13 to 0:30 (a flat middle loses 11-14). Fits what the frames showed (dark frame 0, one brown-orange look for the
+  whole video, the person tiny). Nothing new.
+- **Sky topics get about twice the first day of ground topics** (tested on all 38 Shorts with hourly data, Oct 11+; "sky" = the subject is the Sun, the Moon, a
+  planet, stars, a black hole or the universe; my own sorting). 24 h views since Oct 21: sky median 49K (10 Shorts, lowest 31K), ground median 22K (18 Shorts);
+  5 of 10 sky Shorts passed 50K in a day, 1 of 18 ground ones (tornado). In November: sky 4 of 5 over 50K (median 62K), ground 1 of 11 (median 32K). A sky
+  Short beats a ground Short 88% of the time since Oct 21. Limits: I chose the groups after seeing the numbers; grow trillion is counted as sky, gravity
+  doubles and Earth stops as ground. Solar storm (sky) is so far a counterexample, see below.
+- Solar storm: 176 views in its first hour, the lowest first hour on record for the channel (previous lowest 445, gojo), then a flat ~150 an hour. No
+  restriction or notice on it. I don't know why; hardly anyone has been shown it, so nothing can be read from it about the video.
+- Planet picker (star picker's sequel, 5 days later) is above YouTube's typical range and running at about two thirds of star picker's pace. The week's gap I
+  suggested was not needed.
+- Morning vs afternoon: the 1 PM Short beat the 7 AM Short on 4 of 5 days, but on 3 of those days the afternoon one was the sky topic or the morning one the
+  ground topic. The two days with two ground topics both went to the afternoon (28K vs 32K, 18K vs 42K). Two days is not evidence.
+- Film: curve out. 307 views at 62 h, 3.0K impressions, 3.5% clicked, average view 0:49 (13%). 29% still watching at 0:36, about 13% through the middle,
+  about 10% reach the end. YouTube is not spreading it.
+- Studio changed its analytics pages on Nov 12 (new "insights" layout): the old data requests are gone. How to read it now is in the memory note studio-exact-data.
+
 ## Posting
 - One Short a day on YouTube, around 10 AM ET. The owner stopped TikTok on 2026-10-12: no TikTok captions.
 - YouTube title max 100 characters (count emoji as 2), plus a short description.
