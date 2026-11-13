@@ -228,8 +228,8 @@ function update(v, cover = -1) {
   u.uSun.value.copy(SUN); u.uSunA.value = sunA;
   u.uWhite.value = 1 - smooth(0.8, 1.3, s.sunTrue);      // (white-hot while it's still far: the first ~2 weeks of the video)
   u.uSunI.value = lerp(1.0, 1.15, smooth(10, 60, s.sunDeg));
-  u.uProm.value = smooth(9, 22, s.sunDeg);
-  u.uGlowK.value = 1 - 0.75 * smooth(20, 80, s.sunDeg);
+  u.uProm.value = smooth(10, 18, s.sunDeg);
+  u.uGlowK.value = 1 - 0.8 * smooth(10, 28, s.sunDeg);
   u.uPx.value = (cam.fov * DEG) / H_PX;
   u.uCloud.value = 1 - smooth(1.0, 4.0, v);
   u.uHeat.value = heatK; u.uSmoke.value = smk; u.uEnd.value = s.melt;

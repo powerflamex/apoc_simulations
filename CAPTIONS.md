@@ -1867,13 +1867,16 @@ Would you stay on the waterfront to film it? 👇
 #whatif #space #meteor #science #simulation
 ```
 
-## Next Short. What if Earth stopped orbiting the Sun? (new version of Day 1's earth-falls) — `week 8/earth-falls-new/out/earth-falls-new_v4_1080x1920_60fps_tiktok.mp4`
+## Next Short. What if Earth fell into the Sun? (new version of Day 1's earth-falls) — `week 8/earth-falls-new/out/earth-falls-new_v4_1080x1920_60fps_tiktok.mp4`
 
 48.1 s, loops. Same story as week 1/earth-falls (Oct 5: 77% still watching at 0:30, posted before the channel had an
 audience), rebuilt to today's rules in a new scene: a packed palm-lined plaza down the middle of a harbour avenue at noon
 (on world-freezes' street engine, but with palms, a south half to the avenue, no landmark tower, and everything heating
 instead of freezing). Reworked Nov 13 after the owner's review (the Sun only a bit too big on frame 0, temperature captions
-late against the counter, Venus looked like the Moon, the fountain's steam washed the frame). The time-lapse shows each day's noon, so the Sun stands still over the end of the avenue while the
+late against the counter, Venus looked like the Moon, the fountain's steam washed the frame); then a second round: the title
+shortened to "What if Earth fell into the Sun?", the Sun from 0:18 to 0:40 redrawn as boiling orange plasma with bright
+filaments, small spots in hot rings and flames (prominences) round its rim instead of a flat ball with black spots, and
+the opening scream about 7 dB quieter. The time-lapse shows each day's noon, so the Sun stands still over the end of the avenue while the
 days race. What you see, in order: 0:00 the crowd right in front of you, hands up shielding their eyes, the Sun already
 huge and white-hot over the bay with a harsh starburst glare (it grows visibly by 0:03), the title, the counter racing (DAYS UNTIL WE HIT THE SUN 64.56, the temperature on the one
 line under it), the owner's scream; a slow zoom in, the clouds burn off. 0:03 "You can't feel it, but we're falling into the
@@ -1910,8 +1913,8 @@ sagging at ~600°F is softening, not melting (aluminium melts at 1,221°F on day
 is shown hurt. Before the impact the real Earth would already be molten and starting to be torn apart by the Sun's tides
 (not shown, not claimed).
 
-**YouTube title (81 chars)**
-What if Earth stopped orbiting the Sun? We'd hit it in 65 days ☀️ #whatif #space
+**YouTube title (74 chars)**
+What if Earth fell into the Sun? We'd hit it in 65 days ☀️ #whatif #space
 
 **YouTube description**
 If Earth suddenly stopped in its orbit, you wouldn't feel a thing. But nothing would hold us up anymore, and we'd fall straight into the Sun in about 65 days.
@@ -1929,7 +1932,7 @@ A physics-based simulation: free fall from Earth's orbit, temperatures from our 
 
 #whatif #space #sun #earth #science #physics #simulation
 
-Cover: `week 8/earth-falls-new/out/earth-falls-new_v4_cover.png` (`node render.mjs --cover 36.6`: the giant spotted Sun hanging over the avenue, the palms and shop fronts burning below, the bay steaming; "WHAT IF EARTH / stopped / orbiting the Sun?")
+Cover: `week 8/earth-falls-new/out/earth-falls-new_v4_cover.png` (`node render.mjs --cover 36.6`: the giant spotted Sun hanging over the avenue, the palms and shop fronts burning below, the bay steaming; "WHAT IF EARTH / fell / into the Sun?")
 
 ## Next Short. What if you shrank 1 trillion times smaller? — `week 8/shrink-trillion/out/shrink-trillion_v4_1080x1920_60fps_tiktok.mp4`
 

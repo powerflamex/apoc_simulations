@@ -125,44 +125,66 @@ void main() {
       // fine grain inside the cells once you're close
       float gk2 = 1.0 - smoothstep(0.35, 0.9, fp * 7.0);
       if (gk2 > 0.0) cell *= 1.0 - 0.28 * gk2 * noise3(p * 7.0 + uT * 0.3);
-      // supergranules and the brightness pattern at large scale
-      float sg = fbm3(n * 24.0 + uT * 0.02);
-      float big = fbm3(n * 5.0 + 3.0);
-      // sunspots: dark umbrae in lighter, streaky penumbrae, on the face toward you
+      // boiling plasma at every scale you can see: big turbulent cells, bright twisting filaments, fine churn (each faded
+      // out once it gets smaller than a couple of pixels, so it never shimmers)
+      vec3 fl = vec3(0.0, uT * 0.12, uT * 0.07);
+      float f1 = fbm3(n * 13.0 + fl);
+      float r1 = 1.0 - abs(2.0 * fbm3(n * 34.0 + fl * 1.6 + 5.0) - 1.0);
+      r1 = r1 * r1 * r1;
+      float k3 = 1.0 - smoothstep(0.25, 0.8, length(fwidth(n * 110.0)));
+      float f3 = k3 > 0.0 ? fbm3(n * 110.0 + fl * 2.5 + 9.0) : 0.5;
+      float heat = -0.08 + 0.62 * f1 + 0.5 * r1 + 0.3 * (f3 - 0.5) * k3 + 0.32 * (cell - 0.62) * gk;
+      // active regions: a few small spots, each in a bright, hot ring of plage and magnetic loops (not flat black holes)
       vec3 f0 = -uSun;
       vec3 e1 = normalize(cross(f0, vec3(0.0, 1.0, 0.0))), e2 = cross(e1, f0);
-      float spot = 0.0, pen = 0.0;
+      float spot = 0.0, pen = 0.0, plage = 0.0;
       for (int i = 0; i < 4; i++) {
         vec2 off = i == 0 ? vec2(-0.34, 0.22) : i == 1 ? vec2(-0.27, 0.29) : i == 2 ? vec2(0.41, -0.18) : vec2(0.12, 0.47);
-        float rr = i == 0 ? 0.05 : i == 1 ? 0.03 : i == 2 ? 0.045 : 0.025;
-        vec3 sc = normalize(f0 + e1 * off.x + e2 * off.y);
-        float dd = length(n - sc);
-        float fil = noise3(vec3(atan(dot(n - sc, e2), dot(n - sc, e1)) * 9.0, dd * 60.0, float(i)));
-        spot = max(spot, 1.0 - smoothstep(rr * 0.85, rr, dd));
-        pen = max(pen, (1.0 - smoothstep(rr * 1.8, rr * 2.2, dd)) * (0.75 + 0.25 * fil));
+        float rr = (i == 0 ? 0.05 : i == 1 ? 0.03 : i == 2 ? 0.045 : 0.025) * 0.55;
+        vec3 sc0 = normalize(f0 + e1 * off.x + e2 * off.y);
+        vec3 dv = n - sc0;
+        float dd = length(dv);
+        float ang = atan(dot(dv, e2), dot(dv, e1));
+        float fil = noise3(vec3(ang * 9.0, dd * 60.0, float(i)));
+        spot = max(spot, 1.0 - smoothstep(rr * 0.8, rr, dd));
+        pen = max(pen, (1.0 - smoothstep(rr * 1.7, rr * 2.1, dd)) * (0.7 + 0.3 * fil));
+        float ring = exp(-pow((dd - rr * 3.2) / (rr * 1.8), 2.0)) * (0.5 + 0.5 * noise3(vec3(ang * 5.0, dd * 30.0, 7.0 + float(i))));
+        plage = max(plage, ring);
       }
-      float I = 0.38 + 0.62 * pow(mu, 0.55);
-      vec3 lane = vec3(0.62, 0.14, 0.01), hot = vec3(1.0, 0.62, 0.16);
-      vec3 sc = mix(lane, hot, cell) * (0.8 + 0.3 * sg + 0.12 * big) * 1.3;
-      sc = mix(sc, vec3(0.7, 0.18, 0.02), pen * 0.5);
-      sc = mix(sc, vec3(0.16, 0.03, 0.005), spot * 0.9);
-      sc *= I;
-      sc = mix(sc, sc * vec3(1.0, 0.55, 0.3), (1.0 - mu) * 0.7);   // the redder rim
+      heat += 0.22 * plage;
+      // limb darkening: the rim is cooler and redder
+      heat *= 0.62 + 0.38 * pow(mu, 0.45);
+      heat = clamp(heat, 0.0, 1.15);
+      // a fire ramp: dark red, red-orange, orange, yellow, near-white at the hottest
+      vec3 fire = mix(vec3(0.42, 0.04, 0.0), vec3(0.95, 0.24, 0.02), smoothstep(0.0, 0.35, heat));
+      fire = mix(fire, vec3(1.0, 0.52, 0.07), smoothstep(0.3, 0.6, heat));
+      fire = mix(fire, vec3(1.05, 0.8, 0.3), smoothstep(0.55, 0.85, heat));
+      fire = mix(fire, vec3(1.2, 1.05, 0.72), smoothstep(0.85, 1.1, heat));
+      vec3 sc = fire * 0.98;
+      sc = mix(sc, vec3(0.55, 0.12, 0.01), pen * 0.55);
+      sc = mix(sc, vec3(0.22, 0.04, 0.0), spot * 0.85);
+      // the glowing rim
+      sc += vec3(1.0, 0.38, 0.05) * pow(1.0 - mu, 4.0) * 0.55;
       // white-hot while it's small (the glare of a too-big Sun at noon)
       vec3 wh = vec3(1.55, 1.5, 1.4) * (0.82 + 0.18 * pow(mu, 0.4));
       sc = mix(sc, wh, uWhite);
       c = mix(c, sc * uSunI, k);
     } else if (uProm > 0.0) {
-      // prominences: loops and tongues of glowing gas above the rim
+      // outside the rim: a fringe of spicules, prominences (loops and tongues of glowing gas, flowing), and the corona's
+      // streamers
       vec3 e1 = normalize(cross(uSun, vec3(0.0, 1.0, 0.0))), e2 = cross(e1, uSun);
       vec3 vp = v - uSun * dot(v, uSun);
       float phi = atan(dot(vp, e2), dot(vp, e1));
       float hgt = (a - uSunA) / uSunA;
-      float sh = fbm3(vec3(cos(phi) * 7.0, sin(phi) * 7.0, uT * 0.05));
-      float tall = 0.02 + 0.13 * smoothstep(0.5, 0.8, sh);
-      float lick = fbm3(vec3(cos(phi) * 30.0, sin(phi) * 30.0, hgt * 25.0 - uT * 0.4));
-      float pr = (1.0 - smoothstep(tall * 0.4, tall, hgt)) * smoothstep(0.35, 0.6, lick) * smoothstep(0.0, 0.004, hgt);
-      c += vec3(1.0, 0.32, 0.06) * pr * uProm * 1.6;
+      vec2 cp = vec2(cos(phi), sin(phi));
+      float fringe = (1.0 - smoothstep(0.0, 0.025, hgt)) * (0.55 + 0.45 * fbm3(vec3(cp * 60.0, uT * 0.3)));
+      float sh = fbm3(vec3(cp * 6.0, uT * 0.04));
+      float tall = 0.04 + 0.34 * smoothstep(0.42, 0.78, sh);
+      float lick = fbm3(vec3(cp * 26.0, hgt * 14.0 - uT * 0.5));
+      float pr = (1.0 - smoothstep(tall * 0.35, tall, hgt)) * smoothstep(0.32, 0.58, lick) * smoothstep(0.0, 0.003, hgt);
+      float streak = (0.35 + 0.65 * pow(fbm3(vec3(cp * 9.0, 3.0)), 2.0)) * exp(-hgt / 0.3);
+      c = mix(c, c * 0.55, uProm * 0.6 * exp(-hgt / 0.6));   // (the sky right round it darkened by the smoke, so the flames show)
+      c += (vec3(1.0, 0.45, 0.06) * fringe * 1.8 + vec3(1.0, 0.26, 0.03) * pr * 3.2 + vec3(1.0, 0.55, 0.2) * streak * 0.4) * uProm;
     }
   }
   // below the horizon (hidden by the sea and the ground anyway)

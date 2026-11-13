@@ -21,7 +21,7 @@ import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const SCREAM_AT = 0.12, SCREAM_VOL = 0.9;
+const SCREAM_AT = 0.12, SCREAM_VOL = 0.4;     // (owner, Nov 13: quieter; was 0.9, about 7 dB louder)
 const V_POWER = V_SAG + 1.8;
 
 class OnePole {
