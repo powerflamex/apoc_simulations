@@ -1926,6 +1926,63 @@ A physics-based simulation: free fall from Earth's orbit, temperatures from our 
 
 Cover: `week 8/earth-falls-new/out/earth-falls-new_v4_cover.png` (`node render.mjs --cover 36.6`: the giant spotted Sun hanging over the avenue, the palms and shop fronts burning below, the bay steaming; "WHAT IF EARTH / stopped / orbiting the Sun?")
 
+## Next Short. What if you shrank 1 trillion times smaller? — `week 8/shrink-trillion/out/shrink-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+48.3 s, loops. grow-trillion in reverse: you (1.7 m, yellow hoodie) are always in the shot, drawn at your own size while the
+world grows round you (every world is built at its real size and scaled up by how many times smaller you are). What you see,
+in order: 0:00 a sunny park, you knee-high (3.2x) on a red-and-white picnic blanket, a friend in a pink hoodie standing right
+over you filming you, their giant white sneakers beside you, a golden retriever's face beside you, people and trees round the
+lawn; the title, the counter racing (YOU ARE 3.2x SMALLER; one line: 1,000,000,000,000x: INSIDE AN ATOM), the owner's scream.
+0:03 "You're as small as a kitten." (10x) as the dog's nose comes down to sniff you until it fills the sky. 0:05.6 a jump into
+the lawn: blades of grass like towers, sand grains like boulders, a red wood ant walking up the trail toward you; 0:07 "An ant
+is as big as a bus." (1,000x); it stops over you, antennae reaching for you, then walks on; 0:10 the camera looks up a blade
+beside you: "Blades of grass are skyscrapers." 0:12.4 into the blanket's weave: red and white yarns like giant ropes, loose
+fibres, yellow pollen; a dust mite crawls up to you: "A dust mite is as big as a rhino." (10,000x); 0:16.6 a human hair lies
+along the yarns beside you: "One human hair is a fallen tree." 0:19.3 inside a blood vessel: red cells drifting by, one
+standing on its rim beside you, a white blood cell rolling along the wall: "A red blood cell is as big as a car tyre."
+(100,000x). 0:23.6 bacteria with whipping tails, one lying beside you: "Bacteria are as big as you." (1 million x). 0:27.4
+spiky viruses landing round you on a bacterium's skin: "A virus comes up to your waist." (10 million x). 0:30.4 everything
+goes dim, grey and soft while glowing waves of light (red, green, blue) rise past you: "A wave of light is now 10 times bigger
+than you." 0:33.2 DNA's twisted ladder (every atom a ball, the rungs coloured) beside you: "DNA: a twisted ladder as thick as
+you." (1 billion x). 0:36.8 one of its atoms swells round you; the counter slows and lands on 1,000,000,000,000x at 0:41.4;
+0:40 the camera pulls back: a glowing cloud filling a ghost outline of a football stadium, "YOU" marking a speck in the middle:
+"This whole stadium is one atom." 0:43 back in, past you to the nucleus, a glowing grain: "It's almost all empty. Its centre:
+a grain of rice." Its glow swells to white at 0:47.2; the white clears onto frame 0 (the loop).
+
+The sizes (checked before building, from a 1.7 m person; also at the top of `src/timeline.js`): 3.2x = 53 cm (knee-high);
+10x = 17 cm (a kitten); 1,000x = 1.7 mm: a carpenter/wood ant (~12 mm) = 12 m (a bus), a grass blade (~10 cm) = 100 m;
+10,000x = 0.17 mm: a house dust mite (0.3-0.4 mm) = 3-4 m (a rhino; the brief's "elephant" was too big), a hair (~80 µm)
+= 0.8 m thick (a fallen tree), a blanket yarn (~0.5 mm) = 5 m; 100,000x = 17 µm: a red blood cell (7.8 µm) = 0.78 m (a car
+tyre; it only reaches paddling-pool size, ~2-3 m, at ~300,000-400,000x, so the caption says tyre); 1 million x = 1.7 µm: E.
+coli (~2 µm long) = as long as you; 10 million x = 170 nm: a ~100 nm virus = 1 m (waist high); visible light is 400-700 nm, so
+you are smaller than a light wave from ~3 million x on, and at ~33 million x (when the caption shows) green light (550 nm) is
+~10x your height; 1 billion x = 1.7 nm: DNA is 2 nm thick, its rungs 0.34 nm apart (34 cm, a ladder's step); 1 trillion x =
+1.7 pm: a carbon atom (~0.15 nm) = ~150 m (a stadium), its nucleus (~5 fm) = ~5 mm (a grain of rice; the brief's "grain of
+sand" is too small). Not to scale / drawn: colours below 10,000x are drawn so you can see them (bacteria and viruses are
+really almost colourless, and below ~3 million x there is no light to see by at all); the atom is drawn as a glowing cloud
+with a ghost stadium outline round it, and the nucleus glows so it can be seen; the ant, mite and cells move faster than
+they really would relative to how fast you shrink.
+
+**YouTube title (91 chars)**
+What if you shrank 1 trillion times smaller? One atom ends up the size of a stadium #whatif
+
+**YouTube description**
+You start knee-high on a picnic blanket and keep shrinking.
+
+1,000x smaller: an ant is as big as a bus.
+10,000x: a dust mite is as big as a rhino, one hair is a fallen tree.
+100,000x: a red blood cell is as big as a car tyre.
+1 million x: bacteria are as big as you.
+10 million x: a virus comes up to your waist, and light waves are bigger than you.
+1 billion x: DNA is a twisted ladder as thick as you.
+1 trillion x: you're inside one atom, as big as a stadium, and it's almost all empty.
+
+Which size would you stop at? 👇
+
+#whatif #science #shrinking #atom #microscopic #physics #simulation
+
+Cover: `week 8/shrink-trillion/out/shrink-trillion_v4_cover.png` (`node render.mjs --cover 9.6`: you, small in a yellow hoodie on the soil, with the red wood ant towering over you between the grass blades; "WHAT IF YOU SHRANK / 1 trillion / times smaller?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

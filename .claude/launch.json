@@ -217,6 +217,17 @@
       "env": {
         "PORT": "5271"
       }
+    },
+    {
+      "name": "shrink-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 8/shrink-trillion/server.mjs"
+      ],
+      "port": 5251,
+      "env": {
+        "PORT": "5251"
+      }
     }
   ]
 }
