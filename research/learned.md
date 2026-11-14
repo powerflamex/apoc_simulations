@@ -725,3 +725,35 @@ New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): Sun black hol
      its pull lifting the sea and dragging the Moon away, Earth flung off, the Sun shrinking, frozen lens to loop.
   2. A black hole passes by the Sun: sequel to the 4M black-hole-passed Short. Invisible danger shown only by the Sun warping, a countdown, the Sun torn
      into a glowing stream across the sky. Post at least a week after Sun black hole (Nov 10).
+
+## Nov 14 morning read (~8:45 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:03 / 0:10 / 0:15 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| shrink trillion | Nov 13 | 4,729 | 13,927 | 31,855 | 81,850 | | | 104.6K (20 h) | 34.0K-49.1K | 66.6% | not out |
+| star incoming | Nov 13 | 1,720 | 6,610 | 10,371 | 20,904 | 30,129 | | 30.1K (24 h) | 36.0K-61.9K | 65.2% | not out |
+| earth falls (new) | Nov 14, 7 AM | 2,466 | | | | | | 6.2K (1.7 h) | 3.2K-4.3K | 66.4% | not out |
+| planet picker | Nov 12, 1 PM | 1,400 | 6,050 | 13,094 | 40,885 | 82,431 | 145,422 | 145.4K (44 h) | 40.3K-74.5K | 66.1% | 128 / 102 / 94 / **84** / 69 |
+| solar storm | Nov 12, 7 AM | 172 | 761 | 1,280 | 2,183 | 3,943 | 7,363 | 7.7K (50 h) | 41.5K-78.1K | 53.9% | 127 / 96 / 80 / 64 / 58 |
+| oceans drain | Nov 11, 1 PM | 2,046 | 5,017 | 9,796 | 29,104 | 42,041 | 53,973 | 67.0K (68 h) | 44.0K-84.7K | 61.5% | 122 / 92 / 85 / 73 / 68 |
+| dinosaurs | Nov 11, 7:46 AM | 961 | 3,429 | 7,340 | 10,748 | 17,579 | 27,640 | 32.9K (73 h) | 57.8K-87.2K | 64.9% | 124 / 88 / 71 / 56 / 52 |
+| Sun black hole | Nov 10, 2 PM | 1,425 | 4,720 | 9,861 | 23,139 | 55,842 | 71,699 | 109.5K (91 h) | 60.9K-94.1K | 58.2% | 120 / 97 / 91 / 74 / 65 |
+| volcano | Nov 10, 8:40 AM | 974 | 3,787 | 7,571 | 13,106 | 20,827 | 28,051 | 34.9K (96 h) | 50.5K-88.8K | 65.3% | 122 / 88 / 81 / 58 / 50 |
+- Shrink trillion is the fastest start since star picker: 81.9K at 12 h (star picker 58.4K) and above YouTube's typical range already at 20 h. It's the
+  no-cuts rework with the endless falling sound. Owner's "trillion is the selling point" call held up.
+- Planet picker 84% still watching at 0:30, the best curve on the channel so far (Sun black hole 74-77%, Earth falls 77%). 82K at 24 h, 145K at 44 h.
+- Sun black hole got a second push: 72K at 48 h -> 110K at 91 h (its 0:30 now reads 74%). So the "72%+ at 0:30 = 148K+" line may still hold for it.
+- Star incoming (sky) 30K at 24 h, under typical; solar storm (sky) 3.9K at 24 h. The "sky beats ground" finding has two misses in three days. Sky is
+  not enough on its own.
+- Dinosaurs 56% and volcano 58% at 0:30: both lose ~17 points from 0:10 to 0:15. Those two lost viewers because of the video, not only the topic.
+- Solar storm: 172 views in hour one, the feed never tested it; its watch curve is ordinary (64% at 0:30). The one weak Short worth re-uploading.
+- **Follow-ups of the channel's big hits did best** (lead, my sorting after seeing the numbers; overlaps with "sky"): every Short since Oct 21 that follows
+  up a 250K+ hit (grow trillion of trillion years; black hole appears, black hole fall and Sun black hole of black hole passed / Sun vanishes; Sun explodes
+  of Sun vanishes; Moon explodes of Moon falls; planet picker of star picker; shrink of grow trillion) is at 95K+ lifetime: 8 of 8. The other 24 Shorts in
+  that time: 7 at 95K+ (median 53K). Not clean: older videos have had more time, jump doubles (Oct 20, of gravity doubles) did 72K, and star incoming
+  (30K) could be called a follow-up of rogue planet. The hit list to follow up: black hole passed 4.1M, trillion years
+  2.2M, speed doubles 2.0M, asteroid 1.15M, women vanish 696K, Sun vanishes 465K, Moon falls 370K, Earth spins 314K, grow trillion 268K, star picker 251K,
+  gravity doubles 242K. Not followed up yet: speed doubles, asteroid, women vanish, Earth spins (Earth stops 162K is close).
+- Redo question (owner, Nov 14): early remakes worked (asteroid 66K -> 1.15M, black hole 324K -> 4.1M, both kept public), but those fixed a missing
+  title/counter on frame 0 of a hit topic. Advice: re-upload solar storm once (new first second, plainer title, old one private); don't remake the
+  others from the lows (dinosaurs, volcano, antimatter, quake, time stop, gojo, oxygen): make follow-ups of hits instead.
+- Nov 14 ideas (prompts given): the dinosaur-killer asteroid hits today (follow-up of asteroid 1.15M); every man disappears (twin of women vanish 696K).
