@@ -72,6 +72,8 @@ export function makeSoundtrack(outFile) {
   const talkF = Array.from({ length: 8 }, () => new SVF()), talkE = Array.from({ length: 8 }, () => new OnePole(3));
   const sweepF = new SVF(), jetF = [new SVF(), new SVF()], jetLP = new OnePole(90), humF = new SVF(), windF = [new SVF(), new SVF()], hissF = [new SVF(), new SVF()];
   const whooshF = new SVF(), riserF = new SVF(), braamLP = new SVF(), subLP = new OnePole(80), droneLP = [new OnePole(400), new OnePole(400)], beatLP = new OnePole(120);
+  const boomF = new SVF(), boomLP = new OnePole(70), crackF = new SVF();
+  let crackE = 0;
   const revL = new Reverb(21), revR = new Reverb(22);
   const ph = new Float64Array(64);
   let brownL = 0, brownR = 0;
@@ -167,6 +169,21 @@ export function makeSoundtrack(outFile) {
         ph[31] += (2100 + 300 * near) / SR;
         const jv = (jetF[0].run(w, 380 + 500 * near, 0.6).bp * 0.5 + jetLP.run(white()) * 1.6 + Math.sin(TAU * ph[31]) * 0.02) * 0.95 * k * near;
         dl += jv * (1 - pan * 0.5); dr += jv * (1 + pan * 0.5); wet += jv * 0.4;
+      }
+    }
+    // --- the jet's explosion, on the fireball: a deep thump, a roaring blast, a rolling rumble with crackle ---
+    {
+      const dt = v - V_BOOM;
+      if (dt > -0.02 && dt < 6) {
+        ph[35] += (62 * Math.exp(-Math.max(dt, 0) * 2.2) + 24) / SR;
+        const thump = Math.sin(TAU * ph[35]) * env(dt + 0.02, 0.015, 1.1) * 1.3;
+        const blast = boomF.run(white(), 1800 * Math.exp(-Math.max(dt, 0) * 3) + 140, 0.8).lp * env(dt + 0.02, 0.02, 0.9) * 2.2;
+        const rumble = boomLP.run(white()) * env(dt + 0.02, 0.3, 2.2) * 5.0;
+        const crk = (R0() < 0.004 * Math.exp(-dt * 0.8) ? 1 : 0);
+        crackE = Math.max(crackE * 0.995, crk);
+        const crackle = crackF.run(white(), 2400, 0.5).bp * crackE * 0.25 * smooth(0.2, 0.6, dt);
+        const ev = thump + blast + rumble + crackle;
+        dl += ev; dr += ev * 0.97; wet += (blast + rumble) * 0.8;
       }
     }
     // --- the grid's hum: buzzing, flickering, dying with the lights ---

@@ -138,3 +138,50 @@ export const HYDRANT = { x: -AV - 0.7, z: CAM0.z + 3.2 };
 export const BENCH = { x: FX - 0.75, z: CZ + CR + 4.2, yaw: -Math.PI / 2 };
 export const MOTHER = { x: AV + 2.6, z: CZ + CR + 2.4, yaw: 0.5 };
 export const BIN = { x: -AV - 0.75, z: CAM0.z + 6.5 };
+
+// ---- street detail (props.js): kind, x, z, yaw ----
+export const PROPS = [];
+{
+  const R = rng(303);
+  // newspaper boxes at the corners; a mailbox; a hot-dog cart up the avenue from the north-east corner
+  for (const [x, z, yaw] of [[10.6, CZ + CR + 0.55, Math.PI], [11.2, CZ + CR + 0.55, Math.PI], [11.8, CZ + CR + 0.55, Math.PI], [9.8, CZ - CR - 0.55, 0], [10.4, CZ - CR - 0.55, 0], [-12.3, CZ - CR - 0.55, 0], [-11.7, CZ - CR - 0.55, 0]]) PROPS.push({ kind: 'news', x, z, yaw });
+  PROPS.push({ kind: 'mailbox', x: 12.9, z: CZ - CR - 0.8, yaw: 0 });
+  PROPS.push({ kind: 'cart', x: 12.2, z: CZ - CR - 9.5, yaw: Math.PI / 2 });
+  // bollards at the corners, by the crosswalks
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const d of [0.6, 1.6]) PROPS.push({ kind: 'bollard', x: sx * (AV + d), z: CZ + sz * (CR + 0.35), yaw: 0 });
+  // parking meters along the avenue's curbs (not by the lamps or trees)
+  for (const sx of [-1, 1]) for (let z = 60; z > -120; z -= 6.5) {
+    if (Math.abs(z - CZ) < FZ + 2) continue;
+    const x = sx * (AV + 0.45);
+    if (LAMPS.some((l) => Math.abs(l.x - sx * (AV + 0.7)) < 0.5 && Math.abs(l.z - z) < 1.5) || TREES.some((t) => Math.abs(t.x - sx * (AV + 1.3)) < 0.5 && Math.abs(t.z - z) < 1.5)) continue;
+    if (Math.hypot(x - CAM0.x, z - CAM0.z) < 3) continue;
+    PROPS.push({ kind: 'meter', x, z, yaw: sx > 0 ? -Math.PI / 2 : Math.PI / 2 });
+  }
+  // planters along the cross street's sidewalks, east and west
+  for (const sx of [-1, 1]) for (let x = FX + 9; x < 90; x += 16 + R() * 6) for (const sz of [-1, 1]) PROPS.push({ kind: 'planter', x: sx * x, z: CZ + sz * (FZ - 1.2), yaw: 0 });
+}
+// striped awnings over shop doors (avenue and cross street, near you); yaw points them out over the sidewalk
+export const AWNINGS = [];
+{
+  const R = rng(304);
+  const AW = [0xc8302a, 0x2a6a4a, 0x2a3a7a, 0xe0a020, 0x6a2a5a, 0x1d1d1d];
+  for (const side of [-1, 1]) for (let z = 40; z > -140; z -= 6 + R() * 8) {
+    if (Math.abs(z - CZ) < FZ + 3 || R() < 0.35) continue;
+    if (side < 0 && z < SITE.z1 && z > SITE.z0) continue;
+    AWNINGS.push({ x: side * (FX - 0.02), z, w: 2.8 + R() * 2, yaw: side > 0 ? Math.PI : 0, col: AW[Math.floor(R() * AW.length)] });
+  }
+  for (const side of [-1, 1]) for (const zs of [-1, 1]) for (let x = FX + 4; x < 120; x += 7 + R() * 8) {
+    if (R() < 0.4) continue;
+    AWNINGS.push({ x: side * x, z: CZ + zs * (FZ - 0.02), w: 2.8 + R() * 2, yaw: zs > 0 ? Math.PI / 2 : -Math.PI / 2, col: AW[Math.floor(R() * AW.length)] });
+  }
+}
+// water towers and air-conditioning units on the roofs near the corner
+export const ROOFTOP = [];
+{
+  const R = rng(305);
+  for (const b of BLD) {
+    if (Math.hypot(b.x, b.z - CZ) > 260 || b.kind === 1 || b.kind === 4 || b.w < 14 || b.d < 14) continue;
+    if (R() < 0.35) ROOFTOP.push({ kind: 'tank', x: b.x + (R() - 0.5) * b.w * 0.5, y: b.y + b.h, z: b.z + (R() - 0.5) * b.d * 0.5, yaw: R() * 6 });
+    for (let k = 0; k < 2; k++) if (R() < 0.6) ROOFTOP.push({ kind: 'ac', x: b.x + (R() - 0.5) * b.w * 0.6, y: b.y + b.h, z: b.z + (R() - 0.5) * b.d * 0.6, yaw: R() < 0.5 ? 0 : Math.PI / 2 });
+  }
+}

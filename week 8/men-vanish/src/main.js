@@ -7,11 +7,12 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky, skyColors } from './sky.js';
 import { makeGround, GU } from './ground.js';
 import { makeCity, CU, hazed, LAMP_HEADS, SIG_LAMPS } from './city.js';
-import { makeTraffic, CRASHES, CARS, carAt } from './traffic.js';
+import { makeTraffic, CRASHES, CARS, carAt, JACK } from './traffic.js';
 import { makeFolk } from './folk.js';
 import { makePlane, planeAt, IMPACT } from './plane.js';
 import { makeCrane } from './crane.js';
 import { makeLab } from './lab.js';
+import { makeProps } from './props.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makeFire } from './fire.js';
@@ -54,6 +55,7 @@ makeGround(scene);
 const city = makeCity(scene, ctx);
 const traffic = makeTraffic(scene, ctx);
 const crane = makeCrane(scene, ctx);
+makeProps(scene, ctx);
 const folk = makeFolk(scene, ctx, crane);
 const plane = makePlane(scene, ctx);
 const glows = makeGlows(scene, 6000);
@@ -125,7 +127,8 @@ function camAt(v, s) {
     // the corner at rush hour: across the crosswalk into the intersection; a small push in as the cars crash
     yaw = keys([[-1, -40], [2.0, -40], [3.2, -36]], v) * DEG; pitch = keys([[-1, 1.5], [2.0, 1.0], [3.2, 0.5]], v) * DEG; fov = keys([[-1, 62], [2.0, 62], [3.4, 56]], v);
   } else if (v < V_MORN) {
-    yaw = -36 * DEG; pitch = 0.5 * DEG; fov = 56; shake = 0;                     // (locked: the night goes by)
+    // the first night, locked, from a first-floor window over the corner: the wrecks, the clothes, nobody left
+    pos = [-15.5, 9.5, 5.5]; const t = look(pos, [-1, 0, -17]); yaw = t.yaw; pitch = t.pitch; fov = 58; shake = 0;
   } else if (v < V_CRANE) {
     // the next morning: up to the jet, follow it down; then the smoke
     pos = [...PM];
@@ -148,7 +151,8 @@ function camAt(v, s) {
     pos = [9.2, EYE, 3.5]; yaw = 9 * DEG; pitch = 4 * DEG; fov = 56; shake = 0;
   } else if (v < V_LAPSE) {
     // days 3-6, locked: the highway, nothing moving on it
-    pos = [27, HWY.y + 1.62, HWY.z + 0.4]; yaw = 87 * DEG; pitch = 2.5 * DEG; fov = 54; shake = 0;
+    const jx = JACK ? JACK.xEnd : -30;
+    pos = [jx - 23, HWY.y + 1.62, HWY.z + 0.2]; yaw = -88 * DEG; pitch = -4 * DEG; fov = 58; shake = 0;   // (behind the spill, looking east at the jack-knifed truck)
   } else if (v < V_LAB) {
     // days 6-14, locked: the shop fronts along the avenue
     pos = [10.2, EYE, 8.0]; yaw = -5 * DEG; pitch = 1.5 * DEG; fov = 54; shake = 0;
@@ -172,6 +176,24 @@ function camAt(v, s) {
   return { pos, yaw, pitch, roll, fov };
 }
 
+// the crane beat: from the street, up past the hanging load and in through the cab's front glass to the empty seat;
+// then a look down through the floor glass at the load over the street
+const sm = (a, b, x) => smooth(a, b, x);
+function craneCam(v) {
+  const t = v - V_CRANE;
+  const S0 = new THREE.Vector3(-3.0, 1.7, -9.5);
+  const P1 = crane.cabPoint(9, -0.4, 0.2), P2 = crane.cabPoint(3.3, 0.3, 0.1);
+  const C = new THREE.Vector3(S0.x * 0.4 + P1.x * 0.6 + 6, P1.y * 0.55, S0.z * 0.4 + P1.z * 0.6 + 4);
+  const u = sm(0.5, 2.4, t), w = sm(2.3, 3.0, t);
+  const a = S0.clone().multiplyScalar((1 - u) * (1 - u)).add(C.clone().multiplyScalar(2 * u * (1 - u))).add(P1.clone().multiplyScalar(u * u));
+  const pos = a.lerp(P2, w);
+  const lp = crane.loadPos();
+  const T1 = new THREE.Vector3(lp.x, lp.y + 8, lp.z), T2 = crane.cabPoint(0, -0.2, 0), T3 = crane.cabPoint(-0.25, -0.75, 0.05), T4 = new THREE.Vector3(lp.x, lp.y - 4, lp.z);
+  const tgt = T1.clone().lerp(T2, sm(1.4, 2.4, t)).lerp(T3, sm(2.7, 3.3, t)).lerp(T4, sm(3.6, 4.3, t));
+  const fov = lerp(lerp(lerp(64, 50, sm(0.5, 2.3, t)), 52, sm(2.6, 3.2, t)), 70, sm(3.6, 4.3, t));
+  return { pos, tgt, fov };
+}
+
 // ---------- update ----------
 const tmpC = new THREE.Color(), tv = new THREE.Vector3();
 const C = (a) => tmpC.setRGB(a[0], a[1], a[2]);
@@ -188,8 +210,8 @@ function update(v, cover = -1) {
   if (s.scene === 'lab') {
     lab.frame(v);
     renderPass.scene = lab.scene; renderPass.camera = lab.camera;
-    renderer.toneMappingExposure = 1.0;
-    bloom.strength = 0.25;
+    renderer.toneMappingExposure = 0.85;
+    bloom.strength = 0.08;
   } else {
     renderPass.scene = scene; renderPass.camera = camera;
     const cam = camAt(v, s);
@@ -197,6 +219,11 @@ function update(v, cover = -1) {
     camera.position.set(cam.pos[0], cam.pos[1], cam.pos[2]);
     camera.rotation.set(cam.pitch + wobble(v * 43, 3) * sh - s.kick * 0.3 * DEG, cam.yaw + wobble(v * 47, 4) * sh, cam.roll);
     camera.fov = cam.fov * (1 - 0.02 * s.kick);
+    if (s.scene === 'crane') {
+      const c = craneCam(v);
+      camera.position.copy(c.pos); camera.lookAt(c.tgt); camera.fov = c.fov;
+      camera.near = 0.08;
+    } else camera.near = 0.3;
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
 

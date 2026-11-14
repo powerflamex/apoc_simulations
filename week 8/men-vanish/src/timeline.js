@@ -24,9 +24,9 @@ export const V_EVENT = 1.0;              // every man vanishes
 export const V_NIGHT1 = 3.7;             // the first night passes (time-lapse)
 export const V_MORN = 5.4;               // the next morning, real time: the jet
 export const V_BOOM = 9.35;              // it comes down beyond the skyline
-export const V_CRANE = 10.7;             // day 1, time-lapse: the crane's load hangs stuck all day
-export const V_DUSK = 15.0;              // day 2 evening, time-lapse: the lights flicker and fail
-export const V_TRUCK = 19.6;             // days 3-6 on the highway
+export const V_CRANE = 10.7;             // day 1 morning: we fly up into the crane's empty cab
+export const V_DUSK = 15.0;              // day 2, 8:30 PM, real time: the lights flicker and fail
+export const V_TRUCK = 19.6;             // day 3, real time: up on the dead highway
 export const V_LAPSE = 24.0;             // days 6-14: the shops empty
 export const V_LAB = 30.0;               // day 14: the sperm bank
 export const V_PREG = 35.2;              // days 14-270: the bench, the seasons
@@ -48,10 +48,10 @@ export function dayAt(v) {
   if (v < V_NIGHT1) return (v - V_EVENT) * S;                                        // real time
   if (v < V_MORN) return lerp((V_NIGHT1 - V_EVENT) * S, 0.62, smooth(V_NIGHT1, V_MORN, v)); // through the night
   if (v < V_CRANE) return 0.62 + (v - V_MORN) * S;                                   // real time: the jet
-  if (v < V_DUSK) return seg(v, V_CRANE, V_DUSK, 0.63, 0.99);                        // day 1, 9 AM -> 6 PM
-  if (v < V_TRUCK) return seg(v, V_DUSK, V_TRUCK, 2.06, 2.2);                        // day 2, 6:30 PM -> 9:45 PM
-  if (v < V_LAPSE) return seg(v, V_TRUCK, V_LAPSE, 2.7, 6.0);                        // sampled 11 AM
-  if (v < V_LAB) return seg(v, V_LAPSE, V_LAB, 6.0, 13.6, 1.1);                      // sampled 3 PM
+  if (v < V_DUSK) return seg(v, V_CRANE, V_DUSK, 0.63, 0.665);                       // day 1 morning: up into the crane's cab
+  if (v < V_TRUCK) return 2.105 + (v - V_DUSK) * S;                                  // day 2, 8:30 PM, real time: the lights fail
+  if (v < V_LAPSE) return 3.75 + (v - V_TRUCK) * S;                                  // day 3, 11 AM, real time: the highway
+  if (v < V_LAB) return seg(v, V_LAPSE, V_LAB, 4.0, 13.6, 1.1);                      // sampled 3 PM: the shops empty
   if (v < V_PREG) return 14.0 + (v - V_LAB) * S;                                     // real time: the lab
   if (v < V_BABY) return seg(v, V_PREG, V_BABY - 0.3, 14.7, 272.7, 1.15);            // sampled 10 AM
   return Math.min(BABY_DAY, 272.7 + 7.3 * smooth(V_BABY - 0.3, V_BABY + 1.4, v));     // 6 PM, landing on 280
@@ -59,8 +59,7 @@ export function dayAt(v) {
 // the hour shown
 export function hourAt(v) {
   if (v < V_EVENT) return H0 + (v - V_EVENT) / 3600;
-  if (v < V_TRUCK) return (H0 + dayAt(v) * 24) % 24;
-  if (v < V_LAPSE) return 11;
+  if (v < V_LAPSE) return (H0 + dayAt(v) * 24) % 24;
   if (v < V_LAB) return 15;
   if (v < V_BABY) return 10;
   return 19.75;                                          // (early July: the Sun is as low at 7:45 PM as it was at 6:15)
@@ -86,12 +85,12 @@ export function powerAt(v) {
   if (v < V_DUSK) return { p: 1, f: 1 };
   if (v >= V_PREG) return { p: smooth(V_PREG + 1.0, V_PREG + 3.0, v), f: 1 };
   if (v >= V_TRUCK) return { p: 0.03, f: 1 };
-  const t = v - (V_DUSK + 1.4);                          // (dark enough for the lights by then)
+  const t = v - (V_DUSK + 0.9);                          // (real time: a second of normal evening, then it goes)
   if (t < 0) return { p: 1, f: 1 };
   const n = 0.5 + 0.5 * Math.sin(t * 21.0) * Math.sin(t * 8.3 + 1.3);
-  const thr = smooth(0.0, 2.6, t);
+  const thr = smooth(0.0, 2.4, t);
   const f = n > thr * 0.95 ? 1 : 0.1;
-  return { p: lerp(1, 0.035, smooth(0.6, 3.0, t)), f };
+  return { p: lerp(1, 0.035, smooth(0.5, 2.8, t)), f };
 }
 
 // ---- text: captions (never more than one; none while the title is up) ----
@@ -141,7 +140,7 @@ export function state(v) {
   s.era = v < V_PREG ? 0 : v < V_BABY ? 1 : 2;           // 0: the first two weeks, 1: the months after, 2: day 280
   s.season = seasonAt(v);
   s.decay = v >= V_LAPSE && v < V_PREG ? smooth(V_LAPSE + 0.3, V_LAB - 0.8, v) : v >= V_PREG && v < V_BABY ? 1 - smooth(V_PREG, V_PREG + 3, v) : 0;
-  s.lapse = ['night1', 'crane', 'dusk', 'highway', 'shops', 'preg'].includes(s.scene);
+  s.lapse = ['night1', 'shops', 'preg'].includes(s.scene);
   s.flash = Math.max(
     smooth(V_EVENT - 0.05, V_EVENT, v) * (1 - smooth(V_EVENT, V_EVENT + 0.4, v)) * 0.5,
     smooth(T_SWITCH - 1.1, T_SWITCH - 0.05, v),

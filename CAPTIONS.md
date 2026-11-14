@@ -2103,17 +2103,20 @@ a later day and a bigger step. What you see, in order: 0:00 a packed downtown co
 people right round you, crowds on the crosswalks, the cross street's traffic flowing, a crane mid-lift over the corner; the title.
 0:01 every man and boy vanishes mid-step (a soft white blink, a scream): his clothes drop and crumple into a heap with his
 shoes, phones and bags fall, half the crowd is gone; cars with nobody at the wheel roll on and slam into the cars ahead in the
-intersection (0:02.2-0:03); "4 billion men and boys just vanished." 0:03.7 the first night races past (a locked time-lapse,
-the wrecks' lights on). 0:05.4 the next morning, out on the crosswalk among the clothes: a jet comes in low over the towers,
-rolls and dives at the far end of the avenue; 0:09.35 it hits beyond the last buildings, a fireball between the towers, then
-smoke; "About 19 in 20 airline pilots were men." 0:10.7 day 1 time-lapse: the crane's load still hangs where it stopped
-over the street as the light sweeps round; "Almost every crane operator was a man." 0:15 day 2, the avenue at dusk: the
-windows and street lamps come on, flicker and go out block by block, the plane's fire still glowing under its smoke;
-"96 in 100 power-line workers were men." 0:19.6 days 3-6, up on the elevated highway: trucks and cars stopped dead in every
-lane, a jack-knifed truck, a few women walking between them; "9 in 10 truck drivers were men. Food stops moving." 0:24
-days 6-14: the shop fronts going dark and shuttered, the wrecks gathering dust; "Within a week, the shops are empty."
-0:30 day 14, a sperm bank's storage room: a technician lifts a canister of frozen samples out of a liquid-nitrogen tank in a
-spill of white vapour; "But humanity doesn't end." "One sperm bank in China alone stored 119,558 frozen samples." 0:35 the
+intersection (0:02.2-0:03); "4 billion men and boys just vanished." 0:03.7 cut to a first-floor window over the corner: the
+first night races past (locked time-lapse, the wrecks' lights on, the clothes still lying there, nobody left). 0:05.4 the next morning, out on the crosswalk among the clothes: a jet comes in low over the towers,
+rolls and dives at the far end of the avenue; 0:09.35 it hits beyond the last buildings: a fireball between the towers and a
+big explosion sound, then smoke; "About 19 in 20 airline pilots were men." 0:10.7 day 1: from the street we fly up past the
+crane's load, still hanging where it stopped, to the operator's glass cab: the empty seat with his hi-vis vest on it, his
+jeans and boots on the floor, his hard hat; then down over the street far below; "Almost every crane operator was a man."
+0:15 day 2, 7:30 PM, real time, the avenue: windows and street lamps lit, then they flicker and go out block by block, the
+plane's fire still glowing under its smoke, women on the sidewalks holding up their phones; "96 in 100 power-line workers
+were men." 0:19.6 day 3, up on the elevated highway: trucks and cars stopped dead in every lane, a jack-knifed truck split
+open, its crates and oranges spilled across the lanes, women crouching to gather the food, others walking along the
+shoulders with bags; "9 in 10 truck drivers were men. Food stops moving." 0:24 days 4-14: the shop fronts going dark and
+shuttered, the wrecks gathering dust, women walking past; "Within a week, the shops are empty." 0:30 day 14, a sperm bank's
+storage room: a technician lifts a cane of frozen samples out of a liquid-nitrogen tank in a spill of white vapour, and we
+close in on its two cups packed with straws, each capped in a donor's colour; "But humanity doesn't end." "One sperm bank in China alone stored 119,558 frozen samples." 0:35 the
 months after, a locked time-lapse: a woman on the bench by the corner every morning, her belly growing, the street trees
 dropping their leaves, bare all winter, green again by summer, the lights back on; "Within two weeks, women are getting
 pregnant." 0:41 day 280, the same corner at golden hour, busy again: the first new baby in its mother's arms, women round her;

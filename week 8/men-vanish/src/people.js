@@ -13,8 +13,8 @@
 //   BABY (day 280): the first new baby in its mother's arms on the corner, women round her; the street busy again.
 import { rng, clamp, smooth } from './util.js';
 import { V_EVENT, V_NIGHT1, V_MORN, V_BOOM, V_CRANE, V_DUSK, V_TRUCK, V_LAPSE, V_LAB, V_PREG, V_BABY, T_SWITCH, sceneAt } from './timeline.js';
-import { CAM0, AV, FX, CZ, CR, FZ, XWALK_S, XWALK_N, HYDRANT, BIN, SIGNALS, LAMPS, TREES, BENCH, MOTHER, HWY } from './layout.js';
-import { CARS, carAt } from './traffic.js';
+import { CAM0, AV, FX, CZ, CR, FZ, XWALK_S, XWALK_N, HYDRANT, BIN, SIGNALS, LAMPS, TREES, BENCH, MOTHER, HWY, PROPS } from './layout.js';
+import { CARS, carAt, JACK } from './traffic.js';
 
 const GAP = 0.72;
 const STOP = 0.7;                  // seconds from walking to standing (the women, when it happens)
@@ -70,6 +70,7 @@ function dress(p, R) {
 // the fixed things people stand clear of
 const FIXED = [
   { x: HYDRANT.x, z: HYDRANT.z, r: 0.5 }, { x: BIN.x, z: BIN.z, r: 0.6 },
+  ...PROPS.map((o) => ({ x: o.x, z: o.z, r: o.kind === 'cart' ? 1.3 : o.kind === 'planter' ? 1.0 : o.kind === 'meter' || o.kind === 'bollard' ? 0.35 : 0.5 })),
   { x: BENCH.x - 0.1, z: BENCH.z - 0.7, r: 0.55 }, { x: BENCH.x - 0.1, z: BENCH.z + 0.7, r: 0.55 }, { x: BENCH.x - 0.1, z: BENCH.z, r: 0.55 },
   ...SIGNALS.map((s) => ({ x: s.x, z: s.z, r: 0.45 })),
   ...LAMPS.filter((l) => Math.abs(l.z - CZ) < 60 && Math.abs(l.x) < 60).map((l) => ({ x: l.x, z: l.z, r: 0.4 })),
@@ -219,7 +220,8 @@ function clearOf(p, gap) {
   const [w0, w1] = p.tA !== undefined ? [p.tA, p.tB] : WIN[p.scene], others = PLACED[p.scene] || (PLACED[p.scene] = []);
   for (let v = w0; v <= w1 + 0.01; v += 0.2) {
     const q = personAt(p, v);
-    const cp = p.scene === 'morning' ? { x: 3.4, z: -28.6 } : p.scene === 'baby' ? { x: MOTHER.x - 0.6, z: MOTHER.z + 3.1 } : p.scene === 'preg' ? { x: 11.6, z: -2.0 } : CAM0;
+    const cp = p.scene === 'morning' ? { x: 3.4, z: -28.6 } : p.scene === 'baby' ? { x: MOTHER.x - 0.6, z: MOTHER.z + 3.1 } : p.scene === 'preg' ? { x: 11.6, z: -2.0 }
+      : p.scene === 'dusk' ? { x: 9.2, z: 3.5 } : p.scene === 'shops' ? { x: 10.2, z: 8.0 } : CAM0;
     if (Math.hypot(q.x - cp.x, q.z - cp.z) < 1.8) return false;
     // (nobody between you and the mother, or between you and the bench)
     const tgt = p.scene === 'baby' && !p.mother ? MOTHER : p.scene === 'preg' && !p.bench ? BENCH : null;
@@ -230,7 +232,7 @@ function clearOf(p, gap) {
     const onAv = Math.abs(q.x) < AV + 0.3, onCr = Math.abs(q.z - CZ) < CR + 0.3;
     const inXw = (q.z > XWALK_S[0] - 0.2 && q.z < XWALK_S[1] + 0.2) || (q.z > XWALK_N[0] - 0.2 && q.z < XWALK_N[1] + 0.2);
     if (onAv && !inXw) return false;
-    if (onCr && !onAv && !(Math.abs(q.x) > AV + 0.6 && Math.abs(q.x) < AV + 5.4)) return false;
+    if (onCr) return false;   // (the cross street's traffic runs on: nobody stands or crosses in its lanes)
     if (Math.abs(q.x) > FX - 0.4 && Math.abs(q.z - CZ) > FZ - 0.4) return false;
     if (FIXED.some((o) => (q.x - o.x) ** 2 + (q.z - o.z) ** 2 < o.r * o.r)) return false;
     for (const o of others) {
@@ -284,18 +286,33 @@ function scatter(scene, n, seed, area, opts = {}) {
     }
   }
   // the time-lapses: passers-by, each there for a moment (on one of the days)
-  for (const [sc, sd, n, ph, up] of [['crane', 41, 40, 0.2, 0.6], ['dusk', 42, 34, 0.6, 0], ['shops', 44, 40, 0.2, 0]]) {
-    scatter(sc, Math.round(n * 0.55), sd, ESIDE, { walk: 0.7, brief: [0.15, 0.45], gap: 0.9, phones: ph, lookUp: up });
-    scatter(sc, Math.round(n * 0.45), sd + 100, WSIDE, { walk: 0.7, brief: [0.15, 0.45], gap: 0.9, phones: ph, lookUp: up });
-  }
-  // on the highway deck: women walking between the dead trucks (each there for a moment, on one of the days)
+  // (no one pops in or out: everyone in a scene is there all through it, standing or walking at a normal pace)
+  scatter('crane', 26, 41, { x0: -FX + 0.5, x1: FX - 0.5, z0: CZ - CR - 9, z1: CZ + CR + 9 }, { gap: 1.2, phones: 0.3, lookUp: 0.75 });
+  scatter('dusk', 16, 42, { x0: AV + 0.5, x1: FX - 0.5, z0: -60, z1: 0 }, { walk: 0.35, gap: 1.3, phones: 0.7 });
+  scatter('dusk', 12, 142, { x0: -FX + 0.5, x1: -AV - 0.5, z0: -70, z1: -2 }, { walk: 0.35, gap: 1.3, phones: 0.6 });
+  scatter('shops', 18, 44, { x0: AV + 0.5, x1: FX - 0.5, z0: -70, z1: 2 }, { walk: 0.85, gap: 1.1, phones: 0.1 });
+  scatter('shops', 10, 144, { x0: -FX + 0.5, x1: -AV - 0.5, z0: -70, z1: 2 }, { walk: 0.85, gap: 1.1 });
+  // on the highway deck: women walking between the dead trucks, in single file along the gaps (one way per gap, the
+  // same pace, so nobody walks through anybody), carrying bags; a few stopped by the jack-knifed truck's spilled crates
   {
     const R = rng(51);
-    for (let i = 0; i < 16; i++) {
-      const lanes = [HWY.z, HWY.z + 7.5, HWY.z - 7.5], z = lanes[i % 3] + (R() - 0.5) * 0.4, x = 16 - R() * 70, dir = R() < 0.5 ? 1 : -1;
-      const p = { scene: 'highway', kind: 'walk', x, z, ax: x - dir * 200, az: z, dx: dir, dz: 0, len: 400, u0: 200, speed: 1.2 + R() * 0.3, man: false, y0: HWY.y };
-      p.tA = V_TRUCK + R() * 4.0; p.tB = p.tA + 0.2 + R() * 0.35; p.t0 = p.tA;
-      dress(p, R); p.callPhone = R() < 0.2; keepIn(p);
+    const jx = JACK ? JACK.xEnd : -30;
+    const BANDS = [[HWY.z + 7.55, -1, 1.25], [HWY.z - 7.55, 1, 1.3]];   // (the shoulders: the median is where you stand)
+    BANDS.forEach(([z, dir, sp], b) => {
+      let x = dir < 0 ? 18 : -60;
+      for (let k = 0; k < 5; k++) {
+        x += dir < 0 ? -(6 + R() * 9) : 6 + R() * 9;
+        if (b === 2 && x < jx + 13) continue;              // (the median gap is blocked by the jack-knifed trailer)
+        const p = { scene: 'highway', kind: 'walk', x, z: z + (R() - 0.5) * 0.15, ax: x - dir * 200, az: z, dx: dir, dz: 0, len: 400, u0: 200, t0: V_TRUCK, speed: sp, man: false, y0: HWY.y };
+        p.az = p.z;
+        dress(p, R); p.bag = BAG[Math.floor(R() * BAG.length)]; p.carry = true; keepIn(p);
+      }
+    });
+    const sx = jx + 5.75 - 1.7 - 13.4 * Math.cos(0.45), sz = (JACK ? JACK.z : HWY.z) - 13.4 * Math.sin(0.45);
+    for (const [dx, dz, yaw] of [[-2.2, 0.9, 1.2], [-4.2, -1.6, -2.4], [-1.0, 2.1, 2.6], [-6.0, 0.4, 0.4]]) {
+      const x = sx + dx, z = sz + dz;
+      const p = { scene: 'highway', kind: 'wait', x, z, ax: x, az: z, dx: 0, dz: 1, len: 1, u0: 0, t0: V_TRUCK, speed: 0, yaw, man: false, y0: HWY.y, crouchAt: true };
+      dress(p, R); keepIn(p);
     }
   }
   // the woman on the bench by you, every morning for nine months; her belly grows
@@ -305,8 +322,8 @@ function scatter(scene, n, seed, area, opts = {}) {
     dress(p, R); p.longHair = true; p.skirt = 0; p.hair = 0x2e2018; p.skin = 0xe0ac86; p.h = 0.95;
     keepIn(p);
   }
-  scatter('preg', 26, 45, ESIDE, { walk: 0.8, brief: [0.12, 0.35], gap: 0.9 });
-  scatter('preg', 20, 46, WSIDE, { walk: 0.8, brief: [0.12, 0.35], gap: 0.9 });
+  scatter('preg', 10, 45, { x0: -FX + 0.5, x1: -AV - 0.5, z0: -80, z1: -30 }, { walk: 0.9, gap: 1.2 });
+  scatter('preg', 6, 46, { x0: AV + 0.5, x1: AV + 2.2, z0: -80, z1: -14 }, { walk: 1, gap: 1.2 });
   // day 280: the first baby, in its mother's arms on the corner, women round her; the street busy again
   {
     const R = rng(48);

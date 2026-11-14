@@ -21,6 +21,9 @@ export function makeFolk(scene, ctx, crane) {
   const longHair = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8).scale(0.13, 0.26, 0.085).translate(0, SHOULDER + 0.1, -0.08), ctx.plainMat(0xffffff, 0.75), W.length);
   const skirt = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.17, 0.28, 0.52, 12, 1, true).translate(0, HIP - 0.17, 0), ctx.plainMat(0xffffff, 0.85, { side: THREE.DoubleSide }), W.length);
   const bump = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 12, 10).scale(1, 1.05, 0.95).translate(0, HIP + 0.2, 0.1), ctx.plainMat(0xffffff, 0.85), W.length);
+  // handbags and shoulder bags (on their strap, at the hip)
+  const bagMesh = new THREE.InstancedMesh(mergeGeometries([new THREE.BoxGeometry(0.3, 0.23, 0.1).translate(0.27, HIP - 0.02, 0.02), new THREE.BoxGeometry(0.03, 0.55, 0.03).rotateZ(0.32).translate(0.19, HIP + 0.35, 0.02)].map((g) => g.toNonIndexed())), ctx.plainMat(0xffffff, 0.55), W.length);
+  W.forEach((p, k) => bagMesh.setColorAt(k, tmpC.set(p.bag || 0)));
   W.forEach((p, k) => { longHair.setColorAt(k, tmpC.set(p.hair)); skirt.setColorAt(k, tmpC.set(p.skirt || 0)); bump.setColorAt(k, tmpC.set(p.shirt)); });
   // prams: a deep body, a hood, a handle, four wheels
   const pramGeo = mergeGeometries([
@@ -59,7 +62,7 @@ export function makeFolk(scene, ctx, crane) {
   const baby = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 14, 10).scale(0.11, 0.1, 0.21), ctx.plainMat(0xf4c8d4, 0.9), 1);
   const babyHead = new THREE.InstancedMesh(new THREE.SphereGeometry(0.068, 12, 10), ctx.plainMat(0xf0c0a0, 0.7), 1);
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
-  for (const m of [longHair, skirt, bump, pram, shirtH, pantsH, shoes, baby, babyHead, ...itemMesh.filter(Boolean)]) {
+  for (const m of [longHair, skirt, bump, pram, shirtH, pantsH, shoes, baby, babyHead, bagMesh, ...itemMesh.filter(Boolean)]) {
     m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; scene.add(m);
     for (let i = 0; i < m.count; i++) m.setMatrixAt(i, zero);
   }
@@ -91,7 +94,7 @@ export function makeFolk(scene, ctx, crane) {
         if (p.tA !== undefined) show = show && v >= p.tA && v < p.tB;
         if (!show) {
           crowd.pose(i, { x: 0, y: 0, z: 0, visible: false });
-          if (wk >= 0) { longHair.setMatrixAt(wk, zero); skirt.setMatrixAt(wk, zero); bump.setMatrixAt(wk, zero); }
+          if (wk >= 0) { longHair.setMatrixAt(wk, zero); skirt.setMatrixAt(wk, zero); bump.setMatrixAt(wk, zero); bagMesh.setMatrixAt(wk, zero); }
           if (pIdx[i] >= 0) pram.setMatrixAt(pIdx[i], zero);
           continue;
         }
@@ -139,6 +142,7 @@ export function makeFolk(scene, ctx, crane) {
           look = -0.3; armL = p.ph % 1 < 0.4 ? 0.3 : 0; armR = p.ph % 1 > 0.7 ? 1.25 : 0.15;
         }
         if (p.pram) { armL = 0.72; armR = 0.72; }
+        if (p.crouchAt) { sit = 0.7; look = -0.7; pitch = 0.25; armR = 0.55 + 0.15 * Math.sin(v * 2 + p.ph); armL = 0.4; }
         const o = { x: at.x, y, z: at.z, yaw, s: p.h, walk, stride: at.moving ? 1 : 0, sit, pitch, armL, armR, look };
         crowd.pose(i, o);
         if (wk >= 0) {
@@ -146,6 +150,7 @@ export function makeFolk(scene, ctx, crane) {
           if (p.longHair) { e.set(-look * 0.55, 0, 0, 'XYZ'); loc.makeTranslation(0, SHOULDER, 0).multiply(m4.makeRotationFromEuler(e)).multiply(m5.makeTranslation(0, -SHOULDER, 0)); longHair.setMatrixAt(wk, m4.multiplyMatrices(base, loc)); }
           else longHair.setMatrixAt(wk, zero);
           skirt.setMatrixAt(wk, p.skirt ? base : zero);
+          bagMesh.setMatrixAt(wk, p.bag && !p.pram && !p.mother && !p.bench && sit < 0.3 ? base : zero);
           if (preg > 0.01) { m5.makeTranslation(0, HIP + 0.16, 0.05 + 0.08 * preg).multiply(m4.makeScale(0.6 + 0.75 * preg, 0.6 + 0.7 * preg, 0.25 + 1.75 * preg)).multiply(loc.makeTranslation(0, -(HIP + 0.2), -0.1)); bump.setMatrixAt(wk, m4.multiplyMatrices(base, m5)); }
           else bump.setMatrixAt(wk, zero);
           if (p.mother) {
@@ -193,7 +198,7 @@ export function makeFolk(scene, ctx, crane) {
         m.setMatrixAt(k, m4.compose(vv.set(a.x, a.y + (it.kind === 3 ? 0.045 * a.tilt : 0), a.z), q, sc.setScalar(1)));
       });
       crowd.commit();
-      for (const m of [longHair, skirt, bump, pram, shirtH, pantsH, shoes, baby, babyHead, ...itemMesh.filter(Boolean)]) m.instanceMatrix.needsUpdate = true;
+      for (const m of [longHair, skirt, bump, pram, shirtH, pantsH, shoes, baby, babyHead, bagMesh, ...itemMesh.filter(Boolean)]) m.instanceMatrix.needsUpdate = true;
     },
   };
 }

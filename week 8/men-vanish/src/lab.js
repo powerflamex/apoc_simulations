@@ -7,7 +7,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeCrowd } from './crowd.js';
 import { makeSmoke } from './smoke.js';
 import { V_LAB } from './timeline.js';
-import { smooth, keys } from './util.js';
+import { smooth, keys, lerp } from './util.js';
 
 export function makeLab() {
   const scene = new THREE.Scene();
@@ -63,18 +63,29 @@ export function makeLab() {
   });
   for (const m of [tanks, frost, lids]) { m.castShadow = true; m.receiveShadow = true; scene.add(m); }
   // the canister: a rack of coloured straws on a long handle
+  // the cane of samples: a flat aluminium strip with two cups on it, each packed with frozen straws (coloured plugs on
+  // top, one colour per donor), frost on everything
   const can = new THREE.Group();
   {
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 14, 1, true).translate(0, 0.21, 0), mat(0xc8ccd0, 0.45, { metalness: 0.35, side: THREE.DoubleSide }));
-    can.add(tube);
-    const COLS = [0xe84a4a, 0x4a8ae8, 0xf0d040, 0x4ac870, 0xe88ad0];
-    for (let k = 0; k < 10; k++) {
-      const a = k * 0.63, s = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.38, 6).translate(0, 0.21, 0), mat(COLS[k % 5], 0.4));
-      s.position.set(Math.cos(a) * 0.025, 0, Math.sin(a) * 0.025);
-      can.add(s);
+    const alu = mat(0xb8bcc2, 0.45, { metalness: 0.3 });
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.62, 0.008).translate(0, 0.31, -0.038), alu);
+    can.add(strip);
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.006, 6, 14, Math.PI), alu); hook.position.set(0, 0.62, -0.038); can.add(hook);
+    const COLS = [0xff3030, 0x2a7aff, 0xffd020, 0x20d060, 0xff60c0, 0xff8a10, 0x9a50ff, 0xffffff];
+    for (const cy0 of [0.0, 0.3]) {
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.04, 0.16, 18, 1, true).translate(0, cy0 + 0.08, 0), mat(0xd0d4d8, 0.5, { metalness: 0.3, side: THREE.DoubleSide }));
+      const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.01, 18).translate(0, cy0, 0), alu);
+      can.add(cup, bottom);
+      let k = 0;
+      for (let r = 0; r < 3; r++) for (let a = 0; a < [1, 6, 11][r]; a++) {
+        const rr = r * 0.0135, ang = a / [1, 6, 11][r] * Math.PI * 2 + r;
+        const x = Math.cos(ang) * rr, z = Math.sin(ang) * rr;
+        const straw = new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 0.2, 8).translate(0, cy0 + 0.1, 0), mat(0xb8c4cc, 0.35, { transparent: true, opacity: 0.85 }));
+        const plug = new THREE.Mesh(new THREE.CylinderGeometry(0.0062, 0.0062, 0.022, 8).translate(0, cy0 + 0.205 + (k % 3) * 0.004, 0), mat(COLS[(k * 5 + r) % COLS.length], 0.35));
+        straw.position.set(x, 0, z); plug.position.set(x, 0, z);
+        can.add(straw, plug); k++;
+      }
     }
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.26, 6).translate(0, 0.55, 0), mat(0xb0b4b8, 0.5, { metalness: 0.3 }));
-    can.add(handle);
     can.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   }
   scene.add(can);
@@ -118,9 +129,13 @@ export function makeLab() {
     frame(v) {
       const t = v - V_LAB;
       // the camera eases in and down toward the open tank
-      camera.position.set(keys([[0, 2.0], [5, 1.6]], t), keys([[0, 1.55], [5, 1.45]], t), keys([[0, 3.9], [5, 3.1]], t));
-      camera.lookAt(T.x - 0.1, 1.15, T.z - 0.25);
-      camera.fov = keys([[0, 44], [5, 40]], t);
+      // (the room and her lifting it out; then in close on the cane of straws she holds up)
+      const lift0 = smooth(0.4, 2.4, t), cy0 = 0.6 + 0.6 * lift0;
+      const close = smooth(2.3, 3.6, t);
+      const cpos = new THREE.Vector3(T.x - 0.38, cy0 + 0.82, T.z + 0.5);
+      camera.position.set(keys([[0, 2.0], [2.3, 1.75]], t), keys([[0, 1.55], [2.3, 1.5]], t), keys([[0, 3.9], [2.3, 3.4]], t)).lerp(cpos, close);
+      camera.lookAt(new THREE.Vector3(T.x - 0.1, 1.15, T.z - 0.25).lerp(new THREE.Vector3(T.x, cy0 + 0.38, T.z), close));
+      camera.fov = lerp(44, 40, close);
       camera.updateProjectionMatrix();
       // the canister rises out of the tank (she lifts it by the handle), held up to look at, vapour pouring off it
       const lift = smooth(0.4, 2.4, t);

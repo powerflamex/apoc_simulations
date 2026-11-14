@@ -8,6 +8,7 @@
 // drawn too: flowing at frame 0; from the dusk scene on, stopped where it ended up (a jack-knifed truck among them).
 // The same lanes run again without the vanishing for the scenes a year later and in 2046 (normal traffic).
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeFleet } from './cars.js';
 import { rng, smooth, clamp } from './util.js';
 import { V_EVENT, V_NIGHT1, V_MORN, V_LAPSE, V_LAB, V_PREG, V_BABY } from './timeline.js';
@@ -154,27 +155,46 @@ export function carAt(c, v, normal = false) {
 
 // ---- the highway: trucks and cars ----
 export const HWYV = [];
+export let JACK = null;
+export const SPILL = [];
 {
   const R = rng(818);
   HWY_LANES.forEach((z, li) => {
     const dir = li < 2 ? -1 : 1;
     for (let x = -700; x < 700; x += 26 + R() * 40) {
       const truck = R() < 0.5;
-      HWYV.push({ z, dir, x0: x, truck, len: truck ? 16.5 : 4.5, kind: Math.floor(R() * 4), col: PAINT[Math.floor(R() * PAINT.length)], box: [0xf0f0f0, 0xe8e2d0, 0xc02a2a, 0x2a5ab0, 0xd0d4d8, 0x3a6a3a][Math.floor(R() * 6)],
+      HWYV.push({ z, dir, x0: x, truck, len: truck ? 19 : 4.5, kind: Math.floor(R() * 4), col: PAINT[Math.floor(R() * PAINT.length)], box: [0xf0f0f0, 0xe8e2d0, 0xc02a2a, 0x2a5ab0, 0xd0d4d8, 0x3a6a3a][Math.floor(R() * 6)],
         driverless: truck ? R() < 0.92 : R() < 0.5, ph: R() * 10 });
     }
   });
-  // where they end up (for the scenes from dusk on): coasted to a stop (nobody at the wheel: ~400 m; a woman driving
-  // brakes: ~50 m), bunched nose to tail where they caught up, a truck jack-knifed across two lanes
-  // (in view: from just west of where you stand on the deck, a jam of stopped vehicles in every lane)
+  // where they end up (from the first night on): a jam of stopped vehicles in every lane, nose to tail; in the outer
+  // east-bound lane a truck jack-knifed, its trailer swung across into the next lane and split open, crates of food and
+  // oranges spilled over the road
   const RJ = rng(919);
   for (const z of HWY_LANES) {
     const lane = HWYV.filter((h) => h.z === z);
-    let x = 18 - RJ() * 10;
-    for (const h of lane) { h.xEnd = x - h.len / 2; x -= h.len + 1.5 + RJ() * (h.truck ? 9 : 14); }
+    let x = 16 - RJ() * 8;
+    for (const h of lane) { h.xEnd = x - h.len / 2; x -= h.len + 1.2 + RJ() * (h.truck ? 6 : 9); }
   }
-  const jk = HWYV.filter((h) => h.truck && h.z === HWY_LANES[2] && h.xEnd < -10)[0];
-  if (jk) jk.jack = 0.5;
+  const jk = HWYV.filter((h) => h.truck && h.z === HWY_LANES[3] && h.xEnd < -14)[0];
+  if (jk) {
+    jk.jack = -0.45;
+    // (nothing stopped where its trailer swung)
+    for (const h of HWYV) if (h.z === HWY_LANES[2] && h.xEnd + h.len / 2 > jk.xEnd - 26 && h.xEnd - h.len / 2 < jk.xEnd + 6) h.xEnd = 1e4;
+  }
+  JACK = jk || null;
+  // the spill: crates and oranges behind the split trailer
+  if (jk) {
+    const R2 = rng(77), bx = jk.xEnd + 5.75 - 1.7 - 13.4 * Math.cos(0.45) - 1.0, bz = jk.z - 13.4 * Math.sin(0.45);
+    for (let i = 0; i < 46; i++) {
+      const a = R2() * Math.PI * 1.2 + 1.3, r = Math.pow(R2(), 0.7) * 7;
+      SPILL.push({ crate: true, x: bx + Math.cos(a) * r, z: bz + Math.sin(a) * r * 0.55, yaw: R2() * 6.28, tip: R2() < 0.3 ? (R2() - 0.5) * 1.4 : 0, s: 0.8 + R2() * 0.4, c: R2() });
+    }
+    for (let i = 0; i < 320; i++) {
+      const a = R2() * Math.PI * 2, r = Math.pow(R2(), 0.6) * 9;
+      SPILL.push({ crate: false, x: bx + Math.cos(a) * r - 1.5, z: bz + Math.sin(a) * r * 0.5, c: R2() });
+    }
+  }
 }
 export function hwyAt(h, v, normal = false) {
   if (!normal && v >= V_NIGHT1) return { x: h.xEnd, yaw: h.jack || 0 };
@@ -190,14 +210,69 @@ export function makeTraffic(scene, ctx) {
   CARS.forEach((c) => fleet.color(c.i, c.col, c.kind));
   const hCars = HWYV.filter((h) => !h.truck);
   hCars.forEach((h, k) => { h.fi = CARS.length + k; fleet.color(h.fi, h.col, h.kind % 4); });
-  // trucks: a cab and a box trailer (instanced boxes), wheels
+  // trucks: a detailed cab (hood, grille, bumper, windscreen and side windows, mirrors, sleeper, exhaust stacks, fuel
+  // tanks) and a box trailer (a coloured band, a dark under-rail, rear doors, two axles); front = -z like the cars
   const trucks = HWYV.filter((h) => h.truck);
-  const cabM = new THREE.InstancedMesh(new THREE.BoxGeometry(2.5, 3.2, 2.4).translate(0, 1.9, 0), ctx.plainMat(0xffffff, 0.45, { metalness: 0.2 }), trucks.length);
-  const winM = new THREE.InstancedMesh(new THREE.BoxGeometry(2.3, 1.0, 0.1).translate(0, 2.6, -1.22), ctx.plainMat(0x10141a, 0.15), trucks.length);
-  const boxM = new THREE.InstancedMesh(new THREE.BoxGeometry(2.55, 2.9, 13.4).translate(0, 2.55, 0), ctx.plainMat(0xffffff, 0.7), trucks.length);
-  const whM = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 1.0, 11).translate(0, 0.5, 0), ctx.plainMat(0x151515, 0.9), trucks.length);
-  trucks.forEach((h, k) => { cabM.setColorAt(k, new THREE.Color(h.col)); boxM.setColorAt(k, new THREE.Color(h.box)); });
-  for (const m of [cabM, winM, boxM, whM]) { ctx.shadowy(m); scene.add(m); }
+  const G = (geos) => mergeGeometries(geos.map((g) => g.toNonIndexed()));
+  const cylZ = (r, l, x, y, z) => new THREE.CylinderGeometry(r, r, l, 12).rotateZ(Math.PI / 2).translate(x, y, z);
+  const cabPaintG = G([
+    new THREE.BoxGeometry(2.45, 2.0, 2.2).translate(0, 2.3, -1.1),            // cab
+    new THREE.BoxGeometry(2.3, 1.15, 1.6).translate(0, 1.6, -2.9),            // hood
+    new THREE.BoxGeometry(2.45, 2.6, 1.5).translate(0, 2.6, 0.75),            // sleeper
+    new THREE.BoxGeometry(2.4, 0.5, 0.9).translate(0, 3.65, -0.9),            // roof fairing
+  ]);
+  const cabDarkG = G([
+    new THREE.BoxGeometry(1.5, 1.0, 0.08).translate(0, 1.65, -3.72),           // grille
+    new THREE.BoxGeometry(2.55, 0.35, 0.3).translate(0, 0.75, -3.75),          // bumper
+    ...[-1, 1].map((sx) => new THREE.CylinderGeometry(0.32, 0.32, 1.3, 14).rotateX(Math.PI / 2).translate(sx * 1.05, 0.95, -0.6)),   // fuel tanks
+    ...[-1, 1].map((sx) => new THREE.CylinderGeometry(0.07, 0.07, 2.6, 8).translate(sx * 1.3, 3.0, 0.05)),                            // stacks
+    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.06, 0.45, 0.22).translate(sx * 1.55, 2.6, -2.15)),                                 // mirrors
+    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.35, 0.05, 0.05).translate(sx * 1.38, 2.6, -2.15)),
+    ...[[-1, -2.9], [1, -2.9], [-1, 0.6], [1, 0.6], [-1, 1.9], [1, 1.9]].map(([sx, z]) => cylZ(0.5, 0.35, sx * 1.05, 0.5, z)),       // wheels
+  ]);
+  const cabGlassG = G([
+    new THREE.BoxGeometry(2.2, 0.95, 0.06).translate(0, 2.75, -2.22).rotateX(0),  // windscreen
+    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.06, 0.8, 1.2).translate(sx * 1.24, 2.75, -1.35)),
+  ]);
+  const trailG = G([new THREE.BoxGeometry(2.55, 2.9, 13.4).translate(0, 2.55, 0)]);
+  const trailBandG = G([...[-1, 1].map((sx) => new THREE.BoxGeometry(0.03, 0.55, 12.6).translate(sx * 1.29, 2.4, 0))]);
+  const trailDarkG = G([
+    new THREE.BoxGeometry(2.6, 0.25, 13.4).translate(0, 1.0, 0),
+    new THREE.BoxGeometry(0.06, 2.7, 0.04).translate(0, 2.55, 6.72),           // the rear doors' seam
+    new THREE.BoxGeometry(2.4, 0.06, 0.04).translate(0, 3.85, 6.72),
+    ...[[-1, 4.2], [1, 4.2], [-1, 5.5], [1, 5.5]].map(([sx, z]) => cylZ(0.5, 0.55, sx * 0.95, 0.5, z)),
+    new THREE.BoxGeometry(2.0, 0.6, 0.15).translate(0, 0.75, 6.65),            // under-ride bar
+  ]);
+  const mk = (g, mat) => { const m = new THREE.InstancedMesh(g, mat, trucks.length); ctx.shadowy(m); scene.add(m); return m; };
+  const cabM = mk(cabPaintG, ctx.plainMat(0xffffff, 0.4, { metalness: 0.25 }));
+  const cabD = mk(cabDarkG, ctx.plainMat(0x1c1d20, 0.6, { metalness: 0.3 }));
+  const cabW = mk(cabGlassG, ctx.plainMat(0x0e141c, 0.12, { metalness: 0.5 }));
+  const boxM = mk(trailG, ctx.plainMat(0xffffff, 0.7));
+  const bandM = mk(trailBandG, ctx.plainMat(0xffffff, 0.6));
+  const trD = mk(trailDarkG, ctx.plainMat(0x18191b, 0.8));
+  const BANDC = [0xc02a2a, 0x2a5ab0, 0x2a8a4a, 0xf0a020, 0x1d1d1d, 0x7a2a8a];
+  trucks.forEach((h, k) => {
+    cabM.setColorAt(k, new THREE.Color(h.col)); boxM.setColorAt(k, new THREE.Color(h.box));
+    bandM.setColorAt(k, new THREE.Color(BANDC[k % BANDC.length]));
+  });
+  // the spill: cardboard crates and oranges
+  const crates = new THREE.InstancedMesh(new THREE.BoxGeometry(0.6, 0.4, 0.42).translate(0, 0.2, 0), ctx.plainMat(0xffffff, 0.85), Math.max(1, SPILL.filter((c) => c.crate).length));
+  const fruit = new THREE.InstancedMesh(new THREE.SphereGeometry(0.045, 8, 6).translate(0, 0.045, 0), ctx.plainMat(0xffffff, 0.6), Math.max(1, SPILL.filter((c) => !c.crate).length));
+  {
+    const mm = new THREE.Matrix4(), qq = new THREE.Quaternion(), ee = new THREE.Euler(), pp = new THREE.Vector3(), ss = new THREE.Vector3(), cc = new THREE.Color();
+    let ci = 0, fi = 0;
+    for (const s of SPILL) {
+      if (s.crate) {
+        ee.set(s.tip, s.yaw, 0); qq.setFromEuler(ee);
+        crates.setMatrixAt(ci, mm.compose(pp.set(s.x, HWY.y, s.z), qq, ss.setScalar(s.s)));
+        crates.setColorAt(ci++, cc.set(s.c < 0.6 ? 0xb08a5a : s.c < 0.85 ? 0xc8a070 : 0x8a6a40));
+      } else {
+        fruit.setMatrixAt(fi, mm.makeTranslation(s.x, HWY.y, s.z));
+        fruit.setColorAt(fi++, cc.set(s.c < 0.7 ? 0xf08a18 : s.c < 0.85 ? 0xd83020 : 0xe8c830));
+      }
+    }
+    for (const m of [crates, fruit]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; scene.add(m); }
+  }
   const m4 = new THREE.Matrix4(), m5 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), p = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   const dusty = new THREE.Color(0.32, 0.3, 0.27), tc = new THREE.Color();
@@ -247,25 +322,24 @@ export function makeTraffic(scene, ctx) {
       });
       trucks.forEach((h, k) => {
         const a = hwyAt(h, era === 2 ? vv : era === 1 ? -1 : v, era > 0);
+        if (Math.abs(a.x) > 900) { for (const m of [cabM, cabD, cabW, boxM, bandM, trD]) m.setMatrixAt(k, zero); return; }
         e.set(0, (h.dir > 0 ? -Math.PI / 2 : Math.PI / 2), 0); q.setFromEuler(e);
         const fx = h.dir;
         // cab at the front, trailer behind (jack-knifed: the trailer swung round its hitch)
-        const cabX = a.x + fx * 6.6;
+        const cabX = a.x + fx * 5.75;
         m4.compose(p.set(cabX, HWY.y, h.z), q, one);
-        cabM.setMatrixAt(k, m4);
-        winM.setMatrixAt(k, m4);
+        cabM.setMatrixAt(k, m4); cabD.setMatrixAt(k, m4); cabW.setMatrixAt(k, m4);
         const jy = a.yaw;
         e.set(0, (h.dir > 0 ? -Math.PI / 2 : Math.PI / 2) + jy, 0); q.setFromEuler(e);
-        const hx = cabX - fx * 1.0, bx = hx - fx * Math.cos(jy) * 6.9, bz = h.z + Math.sin(jy) * 6.9 * (h.dir > 0 ? 1 : -1);
+        const hx = cabX - fx * 1.7, bx = hx - fx * Math.cos(jy) * 6.7, bz = h.z + Math.sin(jy) * 6.7 * (h.dir > 0 ? 1 : -1);
         m5.compose(p.set(bx, HWY.y, bz), q, one);
-        boxM.setMatrixAt(k, m5); whM.setMatrixAt(k, m5);
+        boxM.setMatrixAt(k, m5); bandM.setMatrixAt(k, m5); trD.setMatrixAt(k, m5);
         if (lightsOn) {
-          glows.add(cabX + fx * 1.3, HWY.y + 1.0, h.z, 0.5, 2.2, 2.0, 1.6);
-          // amber marker lights along the trailer's top edge
+          for (const sd of [-0.85, 0.85]) glows.add(cabX - fx * 3.8, HWY.y + 1.15, h.z + sd, 0.45, 2.2, 2.0, 1.6);
           for (let j = -2; j <= 2; j++) glows.add(bx + fx * j * 3.1 * Math.cos(jy), HWY.y + 4.05, bz + j * 3.1 * Math.sin(jy) * (h.dir > 0 ? 1 : -1), 0.22, 2.4, 1.0, 0.1);
         }
       });
-      for (const m of [cabM, winM, boxM, whM]) m.instanceMatrix.needsUpdate = true;
+      for (const m of [cabM, cabD, cabW, boxM, bandM, trD]) m.instanceMatrix.needsUpdate = true;
       fleet.commit();
     },
   };
