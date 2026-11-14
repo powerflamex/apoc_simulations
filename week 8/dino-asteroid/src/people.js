@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CAM0, FX, PROM, ROAD_X, TREES, BENCHES, STREETCAR, groundY } from './layout.js';
 import { rng, clamp, smooth, wobble, lerp } from './util.js';
-import { V_RUN, V_FLASH, V_QUAKE, V_HIT, V_FLAME } from './timeline.js';
+import { V_RUN, V_FLASH, V_QUAKE, V_HIT, V_FLAME, V_WALL } from './timeline.js';
 import { CARS } from './traffic.js';
 
 const SHIRTS = [0xe8e2d6, 0xd05030, 0x3a6ab0, 0xf0c060, 0xffffff, 0x60a0d0, 0x2a8a5a, 0xe86a8a, 0x1d2230, 0xc8d4e8, 0x8a5a8a, 0xf4a040, 0x24384a, 0xb8b0a0, 0x7a2a2a, 0x40b0b0];
@@ -151,6 +151,8 @@ export function posAt(p, v) {
       { const dx = p.x - CAM0.x, dz = CAM0.z - p.z; if (dz > 2 && dz < 45 && Math.abs(dx) < 0.45 + dz * 0.03) continue; }
       // (a few on the sidewalks near you hide in the doorways)
       p.hide = Math.abs(x) > PROM && z > CAM0.z - 30 && z < CAM0.z + 4 && R() < 0.45;
+      // (about half the crowd on the neutral ground ahead of you stays: a crowd to the end)
+      p.stay = !p.hide && !walk && Math.abs(x) < PROM && z < CAM0.z - 3 && z > CAM0.z - 48 && R() < 0.55;
       if (add(p, false)) placed++;
     }
   }
@@ -212,9 +214,26 @@ export function makePeople(scene) {
           armL = p.cover ? 1.5 : 0.1;
         } else if (p.stay) {
           // they turn to each other, hold on, heads down, backs to it
-          const q = PEOPLE[p.partner] || p, w = smooth(p.tRun, p.tRun + 0.8, v);
-          yaw = lerp(p.yaw0, Math.atan2(q.x - a.x, q.z - a.z) + 0.3, w);
-          armL = armR = lerp(0.4, 0.72, w); look = lerp(0.3, -0.35, w); pitch = 0.12 * w;
+          const w = smooth(p.tRun, p.tRun + 0.8, v);
+          if (p.partner !== undefined) {
+            const q = PEOPLE[p.partner] || p;
+            yaw = lerp(p.yaw0, Math.atan2(q.x - a.x, q.z - a.z) + 0.3, w);
+            armL = armR = lerp(0.4, 0.72, w); look = lerp(0.3, -0.35, w); pitch = 0.12 * w;
+          } else {
+            // backs to the heat, an arm over the head
+            yaw = p.yaw0 + Math.PI * 0.85 * w; armL = lerp(0.3, 1.5, w); armR = lerp(0.3, 0.5, w); look = lerp(0.3, -0.2, w);
+          }
+          // the wall: they turn to watch it come; some point at it, some hold their heads
+          const ww = smooth(V_WALL + 0.5 + p.ph * 0.25, V_WALL + 1.6 + p.ph * 0.25, v);
+          if (ww > 0) {
+            let dy = p.yaw0 - yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+            yaw += dy * ww;
+            const act = p.ph < 3.5 ? 'point' : p.ph < 7 ? 'head' : 'cover';
+            if (act === 'point') { armL = lerp(armL, 1.35, ww); armR = lerp(armR, 0.2, ww); }
+            else if (act === 'head') { armL = armR = lerp(armL, 1.65, ww); }
+            else { armL = armR = lerp(armL, 0.8, ww); }
+            look = lerp(look, 0.45, ww); pitch = lerp(pitch, 0, ww);
+          }
         } else {
           // in a doorway: back to the street, turned to look out at it now and then, arms in
           yaw = Math.atan2(-Math.sign(a.x), 0.4) + wobble(v * 0.3, p.ph) * 0.3; look = 0.1; armL = 0.6; armR = 0.6;

@@ -76,8 +76,8 @@ export function makeRock(scene) {
         col += vec3(1.0, 0.45, 0.12) * rim * smoothstep(0.4, -0.6, facing) * 0.9 * uHot;
         col += stone * vec3(1.0, 0.6, 0.3) * 0.9 * smoothstep(-0.6, 0.4, facing) * uHot;
         float boil = n3(vObj * 9.0 + vec3(0.0, uTime * 1.5, 0.0));
-        float heat = smoothstep(-0.05, 0.75, facing + 0.25 * (boil - 0.5)) * uHot;
-        vec3 hot = mix(vec3(1.6, 0.42, 0.08), vec3(3.2, 2.5, 1.6), smoothstep(0.55, 1.0, heat));
+        float heat = smoothstep(-0.35, 0.6, facing + 0.25 * (boil - 0.5)) * uHot;
+        vec3 hot = mix(vec3(1.5, 0.38, 0.06), vec3(2.6, 1.6, 0.5), smoothstep(0.55, 1.0, heat));
         col = mix(col, hot, heat * heat);
         float cr = abs(n3(vObj * 5.0 + 4.0) - 0.5) * 2.0;
         float crack = (1.0 - smoothstep(0.0, 0.06, cr)) * smoothstep(-0.7, 0.1, facing) * (1.0 - heat);

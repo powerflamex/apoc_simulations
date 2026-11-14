@@ -34,7 +34,9 @@ export const BLAST_KMS = D_KM / T_BLAST;  // the front's mean speed (the calcula
 // slows down again for the last seconds of the blast (monotone cubic through the keys)
 const TK = [
   [-3, -8.3], [0, -5.3], [5.3, 0], [6.3, 1.0], [7.3, 3.0], [8.3, 7.0], [9.6, 17], [11, 38], [13, 95], [15.8, T_QUAKE],
-  [18, 300], [20.2, T_EJECTA], [22.4, 640], [24.4, 930], [26.4, 1600], [28.2, 2803], [33.0, 2869.7], [37.0, 2884.9],
+  // (from 0:26 the wall closes in by the same share every second: 60 km at 0:26, 20 km at 0:30, 3 km at 0:37)
+  [18, 300], [20.2, T_EJECTA], [22.4, 640], [24.4, 930], [26, 2711.6], [27, 2755.1], [28, 2788.2], [29, 2813.4], [30, 2832.6],
+  [31, 2847.3], [32, 2858.4], [33, 2866.9], [34, 2873.4], [35, 2878.3], [36, 2882.0], [37.0, 2884.9],
   [46.1, T_BLAST], [48, T_BLAST + 1.9],
 ];
 const MC = (() => {
@@ -75,7 +77,8 @@ export function rockSky(T) {
     // its direction of travel on the sky (degrees per second)
     del: (el2 - el) / 0.05 * ART_EL, daz: -(left2 - left) / 0.05 * ART_AZ,
     // into the air: the flames grow from 100 km down
-    hot: smooth(T_ENTRY + 0.25, T_ENTRY + 2.0, T),
+    // (a 6-mile rock 5 s from impact is deep in the air: ablaze from frame 0)
+    hot: smooth(T_ENTRY - 1.8, T_ENTRY - 0.4, T),
   };
 }
 
@@ -104,7 +107,7 @@ export const V_QUAKE = 15.8;          // the quake arrives (3:10)
 export const V_EJECTA = 20.2;         // the rocks arrive (8:00)
 export const V_RED = 24.2;            // the sky is red-hot
 export const V_CARS = 26.2;           // the cars catch fire
-export const V_WALL = 28.2;           // the dust wall shows on the horizon (30 km off); it grows every second from here
+export const V_WALL = 26.0;           // the dust wall shows on the horizon (60 km off); it grows every second from here
 export const V_REAL = 37.0;           // from here on real time: the front is 3 km off, crossing the far bank
 export const V_FALL = 40.0;           // it flattens the far bank's city
 export const V_RIVER = 43.9;          // it reaches the river (728 m off)
@@ -136,7 +139,7 @@ export function popupAt(v) {
 export const CAPTIONS = [
   [3.42, 5.32, `You’re in New Orleans, ${D_MI} miles away.`],
   [9.5, 12.85, 'Its heat: 30 times stronger than sunlight.'],
-  [17.95, 20.25, 'Magnitude 9.8: the biggest quake ever.'],
+  [17.95, 20.25, 'Magnitude 9.8: bigger than any quake ever recorded.'],
   [21.95, 24.25, 'Thrown out of Mexico 8 minutes ago.'],
   [28.5, 32.6, 'The blast takes 48 minutes to get here.'],
   [34.6, 38.9, 'The wind behind it: 400 mph.'],

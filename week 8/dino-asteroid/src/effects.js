@@ -68,12 +68,13 @@ export function makeEffects(scene, smoke, fire, city) {
         float up = h - mix(bil((P + vec3(0.0, 4.0 / s0, 0.0)) * s0 + 37.0 * mod(L0, 7.0)), bil((P + vec3(0.0, 8.0 / s0, 0.0)) * s0 * 0.5 + 37.0 * mod(L0 + 1.0, 7.0)), fr);
         float top = 0.72 + 0.5 * (h - 0.42);
         float a = smoothstep(top, top - 0.02, t);
-        // dark in the folds, dust-brown on the lumps; the red sky behind it lights its ragged top
-        vec3 dust = mix(vec3(0.02, 0.015, 0.012), vec3(0.17, 0.11, 0.07), smoothstep(0.2, 0.65, h));
-        dust *= 0.6 + 4.0 * clamp(up + 0.05, 0.0, 0.25);
-        dust += uLight * smoothstep(top - 0.06, top, t) * 0.55 * (0.3 + h);
-        dust = mix(dust, vec3(0.05, 0.035, 0.03) * (0.6 + 1.5 * h), smoothstep(0.16, 0.0, t));
-        dust = mix(dust, uHaze, (1.0 - exp(-dist / 20000.0)) * 0.4);
+        // billows of brown dust: shadowed folds, lit lumps; the red sky behind lights its ragged top, the fires in front of
+        // it light its foot; torn-up ground and debris churning at the base
+        vec3 dust = mix(vec3(0.06, 0.042, 0.03), vec3(0.3, 0.2, 0.12), smoothstep(0.2, 0.7, h));
+        dust *= 0.7 + 3.0 * clamp(up + 0.05, 0.0, 0.25);
+        dust += uLight * smoothstep(top - 0.07, top, t) * 0.6 * (0.3 + h);
+        dust += vec3(0.55, 0.2, 0.05) * smoothstep(0.32, 0.0, t) * (0.25 + 0.5 * h) * smoothstep(9000.0, 800.0, uD);
+        dust = mix(dust, uHaze, (1.0 - exp(-dist / 30000.0)) * 0.35);
         gl_FragColor = vec4(dust, a);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -85,14 +86,20 @@ export function makeEffects(scene, smoke, fire, city) {
 
   // what the wall carries: chunks, sheets, signs, turning over as they come
   const R = rng(7070);
-  const N_BITS = 260;
-  const bits = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0x3a332e, roughness: 0.85 }), N_BITS);
+  const N_BITS = 160;
+  const bits = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }), N_BITS);
   bits.frustumCulled = false; bits.visible = false;
   scene.add(bits);
-  const BITS = Array.from({ length: N_BITS }, (_, i) => ({
-    x: (R() - 0.5) * 900, lead: -10 - R() * 60, hgt: Math.pow(R(), 1.5), s: [0.6 + R() * 4, 0.15 + R() * 1.2, 0.5 + R() * 3],
-    rot: [R() * 6, R() * 6, R() * 6], spin: [(R() - 0.5) * 9, (R() - 0.5) * 9, (R() - 0.5) * 9], lens: i < 5,
-  }));
+  const BCOL = [0x4a4038, 0x6a5a4a, 0x8a7a66, 0x3a3430, 0x9a3a2a, 0x5a6a7a, 0x7a6a50];
+  const BITS = Array.from({ length: N_BITS }, (_, i) => {
+    const big = R() < 0.08;
+    return {
+      x: (R() - 0.5) * 2, lead: 5 + R() * 90, hgt: Math.pow(R(), 1.3), ph: R(),
+      s: big ? [0.7 + R() * 1.0, 0.06 + R() * 0.15, 0.5 + R() * 0.8] : [0.12 + R() * 0.4, 0.04 + R() * 0.1, 0.1 + R() * 0.3],
+      rot: [R() * 6, R() * 6, R() * 6], spin: [(R() - 0.5) * 14, (R() - 0.5) * 14, (R() - 0.5) * 14], lens: i < 6,
+    };
+  });
+  { const c = new THREE.Color(); BITS.forEach((b, i) => bits.setColorAt(i, c.set(BCOL[i % BCOL.length]))); bits.instanceColor.needsUpdate = true; }
   const m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), e4 = new THREE.Euler(), p4 = new THREE.Vector3(), s4 = new THREE.Vector3();
   const vA = new THREE.Vector3(), vB = new THREE.Vector3();
 
@@ -141,7 +148,7 @@ export function makeEffects(scene, smoke, fire, city) {
       wall.visible = on;
       if (on) {
         const W = Math.max(2400, d * 3.2);
-        const Hw = lerp(2600, 1100, smooth(30000, 1500, d));
+        const Hw = 5200;                                  // (art: tall enough to see from 37 miles; CAPTIONS.md)
         wall.position.set(C.x, SEA_Y - 2, CAM0.z - d);
         wall.scale.set(W, Hw * (0.4 + 0.6 * s.wall), 1);
         WU.uD.value = d;
@@ -161,21 +168,25 @@ export function makeEffects(scene, smoke, fire, city) {
       }
       city.mesh.instanceMatrix.needsUpdate = true;
       // the debris in its face, in the last ~1.5 km; the last few pieces come straight at you
-      const show = on && d < 1500;
+      const show = on && d < 700;
       bits.visible = show;
       if (show) {
         BITS.forEach((b, i) => {
           let x, y, z;
           if (b.lens) {
-            // flung at the lens over the last 0.4 s
-            const k = smooth(V_HIT - 0.45, V_HIT + 0.02, v);
-            const z0 = CAM0.z - d - 20;
-            x = C.x + (i - 2) * 2.2 * (1 - k) + (i - 2) * 0.25; y = C.y + 6 * (1 - k) - 0.3 * i + 0.6;
-            z = lerp(z0, C.z - 1.2 - i * 0.4, k);
+            // small pieces whipping past the lens (to the sides, never filling the frame) in the last 0.5 s
+            const k = smooth(V_HIT - 0.5, V_HIT + 0.05, v);
+            const sd = i % 2 ? 1 : -1;
+            x = C.x + sd * (1.4 + 0.5 * i) * (0.4 + 0.6 * k); y = C.y + 1.5 - 0.5 * i + 2.5 * (1 - k);
+            z = lerp(CAM0.z - d - 30, C.z + 2, k);
           } else {
-            x = C.x + b.x * smooth(0, 1500, d) + b.x * 0.05;
-            z = CAM0.z - d - b.lead * (d > 200 ? 1 : 0.4);
-            y = (z < QUAY ? SEA_Y : groundY(z)) + 1 + b.hgt * 140 * smooth(0, 600, d) + b.hgt * 25;
+            // in the wind ahead of the front, spread across what you see of it, tumbling toward you
+            const span = Math.max(40, d * 0.7);
+            const lead = b.lead * Math.min(1, d / 300 + 0.15);
+            x = C.x + b.x * span;
+            z = CAM0.z - d + lead;
+            const gy = z < QUAY && z > FAR_BANK ? SEA_Y : groundY(Math.min(z, CAM0.z));
+            y = gy + 2 + b.hgt * Math.min(600, 40 + d * 0.25) * (0.7 + 0.3 * Math.sin(v * 3 + b.ph * 6));
           }
           e4.set(b.rot[0] + v * b.spin[0], b.rot[1] + v * b.spin[1], b.rot[2] + v * b.spin[2]);
           m4.compose(p4.set(x, y, z), q4.setFromEuler(e4), s4.set(b.s[0], b.s[1], b.s[2]));

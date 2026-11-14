@@ -67,11 +67,11 @@ void main() {
     float d = segDist(P, uEntry, uRock, u);
     // the column of shocked air: thin and white-hot right behind the rock, wider, redder and smokier where it is older
     float age = uTrailAge * (1.0 - u) + 0.05;
-    float w = uRockR * (0.3 + 0.3 * u) + 0.6 * age;
+    float w = uRockR * (0.38 + 0.3 * u) + 0.5 * age;
     float tn = fbm(vec3(P * 0.45, uT * 0.4)) - 0.5;
     float core = exp(-pow(d / (w * (0.55 + 0.4 * tn)), 2.0));
-    float T = min(0.78, uHot * (0.75 * exp(-age / 1.2) + 0.2) + 0.25 * tn);
-    vec3 tc = mix(vec3(0.32, 0.22, 0.15), ramp(T) * 0.65, smoothstep(0.2, 0.45, T));
+    float T = min(0.7, uHot * (0.7 * exp(-age / 2.4) + 0.22) + 0.25 * tn);
+    vec3 tc = mix(vec3(0.32, 0.22, 0.15), ramp(T) * 0.5, smoothstep(0.2, 0.45, T));
     c = mix(c, tc, core * uTrail * smoothstep(-0.5, 0.6, el) * 0.85);
   }
   if (uHot > 0.0) {
@@ -79,14 +79,14 @@ void main() {
     vec2 m = normalize(uRockM);
     vec2 dp = (P - uRock) / uRockR;
     float bx = dot(dp, -m), by = dot(dp, vec2(-m.y, m.x));
-    float len = 1.5 + 6.0 * uHot;
+    float len = 1.5 + 9.0 * uHot;
     float wid = 0.95 + 0.22 * max(bx, 0.0);
     float tong = fbm(vec3(bx * 1.3 - uT * 7.0, by * 2.2, uT * 0.8));
     float body = exp(-pow(by / (wid * (0.75 + 0.5 * tong)), 2.0)) * smoothstep(-1.12, -0.8, bx) * exp(-max(bx, 0.0) / len);
     float glare = exp(-length(dp) / 1.0) * 0.4;
-    float T = 0.95 - 0.1 * max(bx, 0.0) + 0.35 * (tong - 0.5) - 0.25 * abs(by) / wid;
-    c = mix(c, ramp(T) * 0.75, clamp(body * 1.3, 0.0, 1.0) * uHot);
-    c += vec3(1.0, 0.6, 0.25) * glare * 0.5 * uHot;
+    float T = min(0.8, 0.82 - 0.05 * max(bx, 0.0) + 0.3 * (tong - 0.5) - 0.25 * abs(by) / wid);
+    c = mix(c, ramp(T) * 0.62, clamp(body * 1.4, 0.0, 1.0) * uHot);
+    c += vec3(1.0, 0.5, 0.15) * (glare * 0.35 + exp(-length(dp) / 2.6) * 0.12) * uHot;
   }
   // ---------- the glow behind the horizon, then the flash ----------
   {

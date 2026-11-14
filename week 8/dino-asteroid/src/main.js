@@ -109,13 +109,13 @@ const finish = new ShaderPass({
   uniforms: {
     tDiffuse: { value: null }, uTime: { value: 0 }, uVig: { value: 0.2 }, uTitle: { value: 0 }, uCounter: { value: 0 },
     uAb: { value: 0 }, uCap: { value: 0 }, uPop: { value: 0 }, uBlur: { value: 0 }, uShim: { value: 0 }, uHor: { value: 0.3 }, uWhite: { value: 0 },
-    uCenter: { value: new THREE.Vector2(0.5, 0.5) },
+    uCenter: { value: new THREE.Vector2(0.5, 0.5) }, uFill: { value: 0 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse; uniform float uTime; uniform float uVig; uniform float uTitle; uniform float uCounter;
     uniform float uAb; uniform float uCap; uniform float uPop; uniform float uBlur; uniform float uShim; uniform float uHor; uniform float uWhite;
-    uniform vec2 uCenter;
+    uniform vec2 uCenter; uniform float uFill;
     varying vec2 vUv;
     float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     float lh(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -144,6 +144,13 @@ const finish = new ShaderPass({
       col *= 1.0 - uCounter * 0.4 * exp(-pow((vUv.y - 0.5) / 0.07, 2.0)) * smoothstep(0.75, 0.1, vUv.x);
       col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.175) / 0.04, 2.0));
       col *= 1.0 - uPop * 0.45 * exp(-pow((vUv.y - 0.175) / 0.05, 2.0));
+      if (uFill > 0.0) {
+        vec2 q2 = vec2(vUv.x * 3.0 + uTime * 0.8, vUv.y * 5.0 + uTime * 2.6);
+        float n = ln(q2) * 0.55 + ln(q2 * 2.3 + 7.0) * 0.3 + ln(q2 * 5.1 + 3.0) * 0.15;
+        vec3 dc = mix(vec3(0.14, 0.09, 0.05), vec3(0.62, 0.38, 0.18), smoothstep(0.3, 0.75, n));
+        float k = clamp(uFill * (0.75 + 0.5 * n) * (0.6 + 0.4 * smoothstep(1.0, 0.2, vUv.y)), 0.0, 1.0);
+        col = mix(col, dc, k);
+      }
       col = mix(col, vec3(1.0, 0.985, 0.96), uWhite);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -153,9 +160,9 @@ composer.addPass(finish);
 // ---------- the camera: your phone, held up over the crowd, looking down Canal Street to the river ----------
 // It follows the rock down to the horizon, zooms in on the fireball as it climbs over the horizon, pulls back out to the
 // street as the palms catch fire, tilts up into the falling rocks, then holds on the street and the river as the wall comes.
-const PITCH = [[-2, 10], [0, 10], [1.4, 4.5], [3, 3.6], [5.3, 3.4], [7, 3.2], [10, 4.5], [12, 5.5], [15, 6], [19.5, 7], [21.5, 12], [24.5, 13], [27.5, 8], [29, 3.6], [37, 4.2], [42, 5.5], [44.5, 7], [46.5, 9]];
-const YAW = [[-2, -4.5], [0, -4.5], [1.4, -2.5], [4, -0.6], [7, 0], [10, 0], [12.5, 3], [14.5, 4], [19.5, 1], [24, -2], [27.5, 0], [46.5, 0]];
-const FOV = [[-2, 60], [0, 60], [1.4, 60], [5.1, 58], [6.3, 58], [8.0, 40], [9.6, 40], [11.5, 60], [19.5, 60], [21.5, 63], [27.5, 62], [29, 54], [33, 54], [37.5, 58], [42, 63], [46.5, 66]];
+const PITCH = [[-2, 10], [0, 10], [1.4, 4.5], [3, 3.6], [5.3, 3.4], [7, 3.2], [10, 4.5], [12, 5.5], [15, 6], [19.5, 7], [21.5, 12], [24.2, 11], [26.2, 4.0], [33, 5.0], [37, 6.5], [42, 9], [44.5, 12], [46.5, 14]];
+const YAW = [[-2, -4.5], [0, -4.5], [1.4, -2.5], [4, -0.6], [7, 0], [10, 0], [12.5, 3], [14.5, 4], [19.5, 1], [24, -2], [26.2, 0], [46.5, 0]];
+const FOV = [[-2, 60], [0, 60], [1.4, 60], [5.1, 58], [6.3, 58], [8.0, 40], [9.6, 40], [11.5, 60], [19.5, 60], [21.5, 63], [24.2, 62], [26.2, 47], [33, 52], [37.5, 58], [42, 64], [46.5, 68]];
 function camAt(v) {
   const pos = new THREE.Vector3(CAM0.x, EYE, CAM0.z);
   let pitch = keys(PITCH, v) * DEG, fov = keys(FOV, v), yaw = -keys(YAW, v) * DEG;     // (YAW keys are azimuths: + right)
@@ -267,15 +274,16 @@ function update(v, cover = -1) {
   u.uRock.value.set(r.az, r.el); u.uRockR.value = r.deg * 0.5;
   u.uRockM.value.set(r.daz, r.del);
   u.uHot.value = r.hot * (1 - smooth(V_SINK + 0.4, V_SINK + 1.0, v));
-  const e = rockSky(T_ENTRY - 0.3);
+  // (the trail starts high, off the top of the frame: the air glows round a 6-mile rock from ~150 km down)
+  const e = rockSky(-9.0);
   u.uEntry.value.set(e.az, e.el);
   u.uTrail.value = r.hot * (1 - smooth(V_IMPACT + 1, V_IMPACT + 5, v));
-  u.uTrailAge.value = Math.max(0, s.T - T_ENTRY);
+  u.uTrailAge.value = Math.max(0, s.T + 9.0);
   u.uUnder.value = s.under; u.uUnderAz.value = lerp(-6, 0, smooth(V_SINK, V_IMPACT, v));
   u.uFbR.value = s.fbKm; u.uFbHeat.value = s.fbHeat; u.uFbI.value = s.fbI; u.uDrop.value = DROP_KM; u.uDist.value = D_KM;
   u.uFlash.value = s.flash;
   u.uRed.value = s.red; u.uSmoke.value = s.smoke;
-  u.uDust.value = 0.45 * s.wall * smooth(40000, 3000, s.frontM);
+  u.uDust.value = 0.25 * s.wall * smooth(40000, 3000, s.frontM);
 
   // ---------- the rock ----------
   {
@@ -405,7 +413,7 @@ function update(v, cover = -1) {
   smoke.mat.uniforms.uSun.value.copy(SUN);
 
   // ---------- post ----------
-  bloom.strength = 0.26 + 0.25 * s.kick + 0.3 * s.flash + 0.15 * r.hot * (v < V_SINK + 0.6 ? 1 : 0);
+  bloom.strength = 0.26 + 0.25 * s.kick + 0.3 * s.flash;
   finish.uniforms.uTime.value = v;
   finish.uniforms.uAb.value = s.kick * 0.6 + s.quake * 0.5;
   finish.uniforms.uBlur.value = window.__cover ? 0 : s.kick * 0.02;
@@ -416,6 +424,7 @@ function update(v, cover = -1) {
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 1 - smooth(0.6, 1, white);
   finish.uniforms.uVig.value = 0.2;
+  finish.uniforms.uFill.value = window.__cover ? 0 : s.wall * smooth(260, 8, s.frontM);
 
   s.hide = smooth(0.6, 1.0, white);
   overlay(v, s);

@@ -2039,22 +2039,25 @@ Cover: `week 8/shrink-trillion/out/shrink-trillion_v4_cover.png` (`node render.m
 
 47.4 s, loops. The same rock (about 6 miles wide, 45,000 mph, from the northeast at ~60°) lands where it did 66 million years
 ago, at Chicxulub on Mexico's Yucatán coast. You're on Canal Street in New Orleans, at the river, 592 miles due north.
+Reworked Nov 14 (owner's review): a burning fireball from frame 0, the dust wall in sight from 0:26 and closing in every
+second, a crowd that stays to the end, a dust-and-debris arrival instead of dark blocks, and the quake caption fixed.
 What you see, in order: 0:00 a packed street of palms on a summer evening, people close to you pointing up and filming;
-the rock already in the sky down the street, huge, lit by the low Sun on one side; the title; the counter racing (IMPACT IN
-5.30 s; one line: 45,000 MPH). 0:00.5-0:02 it hits the air and bursts into flame, diving to the horizon (it sinks out of sight at
-0:01.4, the true moment), leaving a burning trail across the sky; the horizon glows; 0:03.4 "You're in New Orleans, 592 miles
+the rock already deep in the air down the street: a huge fireball, its head glowing, a long flaming trail back up the sky;
+the title; the counter racing (IMPACT IN 5.30 s; one line: 45,000 MPH). 0:00-0:02 it dives to the horizon (it sinks out of
+sight at 0:01.4, the true moment), leaving the burning trail across the sky; the horizon glows; 0:03.4 "You're in New Orleans, 592 miles
 away." 0:05.3 the flash: everyone throws an arm over their eyes, "IT HITS MEXICO"; the counter becomes THE BLAST REACHES
 YOU IN 48:14 (a time-lapse, racing down to the end; the line under it: how many miles off the blast is). 0:07.6 the phone
 zooms in as the fireball climbs over the horizon behind the far bank, "TALLER THAN ANY MOUNTAIN". 0:09.5 "Its heat: 30 times
-stronger than sunlight." The palms smoke, everyone runs for cover (a family in front of you stays, holding on to each
-other). 0:12.8 the palms burst into flame, "THE TREES CATCH FIRE". 0:15.8 the quake (3 min 10 s after): the camera shakes,
-cars and the streetcar rock, car alarms, "THE GROUND SHAKES", then "Magnitude 9.8: the biggest quake ever." 0:20.2 glowing
+stronger than sunlight." The palms smoke, about half the crowd runs for cover; the rest stay, backs to the heat (a family in front of you holds on to
+each other). 0:12.8 the palms burst into flame, "THE TREES CATCH FIRE". 0:15.8 the quake (3 min 10 s after): the camera shakes,
+cars and the streetcar rock, car alarms, "THE GROUND SHAKES", then "Magnitude 9.8: bigger than any quake ever recorded." 0:20.2 glowing
 rocks streak down out of the sky and land on the river and the street (8 min after), "ROCKS RAIN FROM THE SKY", "Thrown out
-of Mexico 8 minutes ago." 0:24.2 the whole sky glows red-hot, "THE SKY TURNS RED-HOT"; 0:26.2 the cars and the streetcar go
-up, "CARS CATCH FIRE". 0:28.2 a dark wall of dust shows on the horizon, 19 miles off, and grows every second: "The blast
-takes 48 minutes to get here." 0:34.6 "The wind behind it: 400 mph." From 0:37 real time: it crosses the far bank's city,
-"IT FLATTENS EVERYTHING" (0:40), crosses the river (0:43.9) with debris in its face, and reaches you at 0:46.1: pieces fly at
-the lens, white. The white clears onto frame 0.
+of Mexico 8 minutes ago." 0:24.2 the whole sky glows red-hot, "THE SKY TURNS RED-HOT". 0:26 a dark wall of dust shows on the horizon, 37 miles
+off; the crowd turns to watch it. It closes in by the same share every second, matching the miles on the counter (22 miles
+at 0:28, 12 at 0:30, towering over the far bank's skyline; 5 at 0:33); 0:26.2 the cars and the streetcar go up, "CARS
+CATCH FIRE". 0:28.5 "The blast takes 48 minutes to get here." 0:34.6 "The wind behind it: 400 mph." From 0:37 real time: it crosses the far bank's city,
+"IT FLATTENS EVERYTHING" (0:40), crosses the river (0:43.9) with debris in its face, and reaches you at 0:46.1: a roaring wall of
+billowing dust and flying debris swallows the street, then white. The white clears onto frame 0.
 
 The numbers (`week 8/dino-asteroid/physics.mjs` and the top of `src/timeline.js`): New Orleans to the Chicxulub crater 952 km
 = 592 miles. Everything after the impact is from the Imperial College "Impact: Earth!" calculator (Collins, Melosh & Marcus)
@@ -2069,7 +2072,8 @@ horizon). The energy is usually quoted as ~100 million megatons; the calculator 
 Drawn, not to scale: the rock would really look as small as the Sun (0.6°) from 592 miles; it's drawn ~20x wider and its path
 12x higher in the sky so that it reaches the horizon at the true moment. The fireball and the red sky are at their real size,
 the fireball drawn a little cooler than its real white glare so its shape shows. The time-lapse runs from the impact to 0:37
-(the counter shows it racing). The dust wall is much taller than the real blast would raise (so you can see it from 19 miles).
+(the counter shows it racing). The dust wall is drawn ~5 km tall, far taller than the real blast would raise, so you can see it from 37 miles.
+The people who stay out in the heat would really be badly burned; nobody is shown hurt.
 New Orleans is flat: the street is drawn falling to the river so you can see over the crowd. The streetcar, the palms and the
 crowd are drawn, not a real map of Canal Street.
 
@@ -2081,7 +2085,7 @@ The same rock that wiped out the dinosaurs: 6 miles wide, 45,000 mph. It lands w
 
 A fireball taller than any mountain rises over the horizon.
 Its heat is 30 times stronger than sunlight: the trees and cars catch fire.
-3 minutes later: a magnitude 9.8 quake, the biggest ever.
+3 minutes later: a magnitude 9.8 quake, bigger than any ever recorded.
 8 minutes: rocks blasted out of the crater rain from the sky.
 48 minutes: the blast arrives, with 400 mph winds.
 
