@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CAM_X, camZ, CURB, FX, CROSS, SUBWAY, POLES, SIGNALS } from './layout.js';
 import { rng, clamp, smooth, wobble, lerp } from './util.js';
-import { V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_TORCH, V_FLARE, ORIGIN } from './timeline.js';
+import { dieAt, V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_TORCH, V_FLARE, ORIGIN } from './timeline.js';
 import { XF } from './power.js';
 
 const SHIRTS = [0x1d2230, 0xe8e2d6, 0x3a3328, 0x6b5a44, 0xc8d4e8, 0x7a2a2a, 0x24384a, 0xf0c060, 0x2f3d2c, 0xb8b0a0, 0x15151a, 0x8a5a8a, 0xd05030, 0x3a4a6a, 0xffffff, 0x60a0d0, 0xe86a8a, 0x40b0b0];
@@ -140,7 +140,7 @@ export const PEOPLE = [];
     p.sleeves = R() < 0.35;
     p.s = R() < 0.06 ? 0.72 : 0.92 + R() * 0.16;
     p.ph = R() * 10;
-    p.tHit = V_HIT + Math.hypot(p.pts[0][0] - ORIGIN.x, p.pts[0][1] - ORIGIN.z) / 140 + 0.12 + R() * 0.25;
+    p.tHit = dieAt(Math.hypot(p.pts[0][0] - ORIGIN.x, p.pts[0][1] - ORIGIN.z)) + 0.12 + R() * 0.25;
     p.torch = R() < 0.55 || p.sub || p.gather;
     p.torchTurn = (R() - 0.5) * 2 * Math.PI;
     p.tTorch = p.sub ? p.t0 - 0.5 : p.gather ? p.t0 + 0.5 : V_TORCH + R() * 5;

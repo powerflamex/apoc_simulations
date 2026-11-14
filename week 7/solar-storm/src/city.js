@@ -8,7 +8,7 @@ import { BLD, SCREENS, SIGNS, BLADES, LAMPS, SIGNALS, SUBWAY, CURB, CROSS, groun
 import { ORIGIN, dieAt } from './timeline.js';
 
 export const CU = {
-  uTime: { value: 0 }, uFront: { value: -1 }, uOrigin: { value: new THREE.Vector2(ORIGIN.x, ORIGIN.z) }, uFlick: { value: 1 },
+  uTime: { value: 0 }, uFront: { value: 1e9 }, uOrigin: { value: new THREE.Vector2(ORIGIN.x, ORIGIN.z) }, uFlick: { value: 1 },
   uSkyHi: { value: new THREE.Color(0.5, 0.08, 0.12) }, uSkyLo: { value: new THREE.Color(0.1, 0.6, 0.25) }, uAur: { value: 1 },
   uHaze: { value: new THREE.Color(0.03, 0.06, 0.05) }, uHazeD: { value: 2600 }, uStreetK: { value: 1 }, uCandle: { value: 0 },
 };
@@ -52,7 +52,7 @@ const LOOK = /* glsl */ `
     // the blackout: this building's power goes when the front reaches it (and stays out)
     float rr = length(vIC - uOrigin);
     float seedR = h21(vec2(seed, 5.0));
-    float power = step(uFront, rr + 30.0 * seedR) * mix(1.0, uFlick, smoothstep(160.0, 40.0, rr));
+    float power = step(rr + 30.0 * seedR, uFront) * mix(1.0, uFlick, smoothstep(160.0, 40.0, rr));
     if (abs(vON.y) < 0.5) {
       float r = h21(id + vec2(seed * 0.173, face * 1.37));
       vec3 N = normalize(vWN);

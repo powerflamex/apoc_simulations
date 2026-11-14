@@ -141,10 +141,10 @@ const finish = new ShaderPass({
 composer.addPass(finish);
 
 // ---------- the camera: you walk up the east sidewalk with the crowd, filming; only your eyes and your zoom change ----------
-// 0:00 up the street and at the sky; the street ahead for the hit; up at the transformer (0:06.6); along the wires after
+// 0:00 up the street as the dark rushes at you; up at the sky (0:02-0:04); the street ahead; up at the transformer (0:06.6); along the wires after
 // the sparks; the crossing, zoomed (0:12); your phone (0:17); the subway (0:21.5); the sky (0:26); the skyline down the
 // avenue, zoomed (0:28.6); the street and the torches; the sky as it flares (0:42).
-const PITCH = [[-2, 17], [3.8, 16], [4.8, 7], [6.4, 7], [7.2, 34], [8.1, 34], [9.0, 20], [11.2, 16], [12.0, -3.0], [16.6, -3.0], [17.4, 2], [21.3, 2], [21.9, -14], [26.4, -14], [27.3, 28], [32.2, 28], [33.0, 6], [41.2, 8], [42.6, 30], [50, 34]];
+const PITCH = [[-2, 12], [1.4, 12], [3.3, 19], [4.1, 19], [5.0, 7], [6.4, 7], [7.2, 34], [8.1, 34], [9.0, 20], [11.2, 16], [12.0, -3.0], [16.6, -3.0], [17.4, 2], [21.3, 2], [21.9, -14], [26.4, -14], [27.3, 28], [32.2, 28], [33.0, 6], [41.2, 8], [42.6, 30], [50, 34]];
 const YAW = [[-2, 2], [4.8, 3], [6.4, 3], [7.2, 14], [8.1, 14], [9.0, 10], [11.2, 7], [12.0, 30], [16.6, 30], [17.4, 9], [21.3, 9], [21.9, -20], [26.4, -20], [27.3, 8], [32.2, 8], [33.0, 11], [37, 15], [41.2, 9], [42.6, 6], [50, 6]];
 const FOV = [[-2, 66], [4.8, 64], [6.4, 64], [7.2, 56], [8.1, 56], [9.0, 54], [11.2, 52], [12.0, 42], [16.6, 42], [17.4, 58], [21.3, 58], [21.9, 60], [26.4, 60], [27.3, 70], [32.2, 70], [33.0, 58], [41.2, 60], [42.6, 68], [50, 70]];
 // (while the arcs run along the wires the eyes follow the lead one)
@@ -224,10 +224,10 @@ function update(v, cover = -1) {
 
   // ---------- the sky and the light ----------
   const aur = s.aur;
-  const near = s.front < 0 ? 1 : 0;                         // the street's own power (near you)
+  const near = s.front > 12 ? 1 : 0;                        // the street's own power (near you)
   for (const U of [GU, CU]) { U.uTime.value = v; U.uSkyHi.value.copy(AUR_HI); U.uSkyLo.value.copy(AUR_LO); U.uAur.value = aur; }
   CU.uFront.value = s.front; CU.uFlick.value = s.flick;
-  CU.uStreetK.value = s.front < 0 ? s.flick : 0;
+  CU.uStreetK.value = near * s.flick;
   CU.uCandle.value = smooth(V_CANDLE - 0.6, V_CANDLE + 3.5, v);
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);

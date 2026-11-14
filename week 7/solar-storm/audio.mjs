@@ -1,9 +1,9 @@
-// Procedural soundtrack for "What if the biggest solar storm ever hit tonight?", synced to src/timeline.js (video clock).
+// Procedural soundtrack for "What if the Sun knocked out all power tonight?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
 // What you hear: a busy street at night (traffic, a crowd talking, the electric hum of every sign and lamp) under an
-// eerie music bed for the aurora (a dark minor drone and a high shimmer that rises with it). A whine climbs to the hit;
-// the lights flicker (the hum stutters, 0:02.7). 0:05 the hit: a deep hit, a zap for every sign and lamp as it dies,
-// and then the hum is simply gone; the owner's scream. The transformer buzzes louder and louder and bangs (0:07.5),
+// eerie music bed for the aurora (a dark minor drone and a high shimmer that rises with it). Frame 0: a loud electric
+// crack (a snap, a boom, an arc's buzz), a whine rushing in with the dark, the owner's scream, a zap for every sign and
+// lamp as it dies, then the deep hit as it reaches you (0:01.15) and the hum is simply gone. The transformer buzzes louder and louder and bangs (0:07.5),
 // sizzles, and arcs crackle away along the wires; the owner's gasp. The crash at the dead crossing (0:14.2): a crunch,
 // glass, then horns. The phone's no-service tone (0:18). Footsteps and voices out of the subway (0:22). A low rumble
 // as the satellites come down (0:26). The skyline goes dark (0:29): a deep power-down groan and the owner's "oh my god".
@@ -13,15 +13,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_FLICK, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FULL, V_FLARE, V_WHITE, aurora } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, BEATS, V_FLICK, V_CRACK, V_HIT, V_XF, V_LINES, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FULL, V_FLARE, V_WHITE, aurora } from './src/timeline.js';
 import { FLASHES, RUNNERS } from './src/power.js';
 import { CAM_X } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
-const TARGET_OPENING_DB = -25;
-const SCREAM_AT = V_HIT + 0.02, SCREAM_LEN = 1.7, SCREAM_DB = -14.5, GASP_AT = V_XF + 0.25, GASP_DB = -15, OMG_AT = V_SATS + 1.3, OMG_DB = -17;
+// the master gain: fixed at what the first version's -25 dB opening second gave (the crack now in the opening second
+// would otherwise turn the whole mix down)
+const MASTER = 2.3;
+const SCREAM_AT = 0.4, SCREAM_LEN = 1.7, SCREAM_DB = -14.5, GASP_AT = V_XF + 0.25, GASP_DB = -15, OMG_AT = V_SATS + 1.3, OMG_DB = -17;
 
 class OnePole {
   constructor(fc) { this.y = 0; this.set(fc); }
@@ -103,6 +105,7 @@ export function makeSoundtrack(outFile) {
   for (let k = 0; k < 90; k++) STEPS.push({ t: V_SUBWAY - 0.6 + k * 0.11 + R0() * 0.05, g: 0.05 + R0() * 0.05, pan: 0.45 + R0() * 0.3, f: new SVF(), fr: 700 + R0() * 500 });
   const HITS = BEATS.map((t, n) => ({ t, k: [0.42, 0.3, 0.4, 0.3, 0.35, 0.4, 0.28, 0.55][n] ?? 0.4, root: [41, 46, 49, 52, 49, 46, 39, 44][n] ?? 46 }));
 
+  const crackF = [new SVF(), new SVF()], crackBuzzF = new OnePole(2200), crackE = new OnePole(90);
   const trafLP = new OnePole(160), crowdF = [new SVF(), new SVF(), new SVF()], crowdE = [new OnePole(1.5), new OnePole(2.2), new OnePole(1.1)];
   const radF = new SVF(), crE = new OnePole(70), humF = new OnePole(900), whineF = new SVF(), xfBuzzF = new OnePole(1500), sizF = [new SVF(), new SVF()], arcF = new SVF(), rumbleF = new OnePole(90), satF = new SVF();
   const braamLP = new SVF(), subLP = new OnePole(80), droneLP = [new OnePole(380), new OnePole(380)], riserF = new SVF(), shimLP = new OnePole(5000);
@@ -147,6 +150,20 @@ export function makeSoundtrack(outFile) {
       // a thin whine that climbs as the storm comes in (0-5 s), stops at the hit
       const wk = smooth(-1, V_HIT - 0.2, v) * (1 - smooth(V_HIT, V_HIT + 0.05, v));
       if (wk > 0.001) { ph[1] += (900 + 2600 * wk * wk) / SR; const x = Math.sin(TAU * ph[1]) * 0.006 * wk * wk; put(x, 0.2, 0.6); }
+    }
+    // --- frame 0: the crack (a sharp snap, a low boom, then an arc buzzing and crackling as it dies away) ---
+    {
+      const dt = v - V_CRACK;
+      if (dt >= 0 && dt < 1.6) {
+        const snap = white() * env(dt, 0.0015, 0.025) * 0.9;
+        const crk = crackF[0].run(white(), 3400, 0.45).bp * (env(dt, 0.002, 0.07) * 1.4 + 0.5 * Math.exp(-dt / 0.35) * (0.25 + 0.75 * crackE.run(R0() < 0.06 ? 1 : 0)));
+        ph[30] += (34 + 40 * Math.exp(-dt * 7)) / SR;
+        const boom = Math.sin(TAU * ph[30]) * env(dt, 0.004, 0.55) * 0.9 + crackF[1].run(white(), 140, 0.6).bp * env(dt, 0.003, 0.2) * 1.2;
+        ph[31] += 120 / SR;
+        const buzz = crackBuzzF.run(Math.tanh(saw(ph[31]) * 5 + white() * 0.8)) * env(dt, 0.01, 0.3) * 0.25 * (0.6 + 0.4 * Math.sin(dt * 90));
+        const x = (snap * 0.5 + crk * 0.6 + boom * 0.45 + buzz) * 0.25;
+        l += x * 1.0; r += x * 0.94; wet += x * 0.45;
+      }
     }
     // --- zaps as each lit thing dies ---
     for (const z of ZAPS) {
@@ -260,10 +277,7 @@ export function makeSoundtrack(outFile) {
     }
   }
   const out = (x, g) => 0.95 * Math.tanh((x * g) / 0.95);
-  const openingDb = (g) => { let s = 0; for (let n = 0; n < SR; n++) { const m = (out(L[n], g) + out(R[n], g)) / 2; s += m * m; } return 10 * Math.log10(s / SR + 1e-12); };
-  let lo = 0.01, hi = 100;
-  for (let i = 0; i < 50; i++) { const m = Math.sqrt(lo * hi); if (openingDb(m) < TARGET_OPENING_DB) lo = m; else hi = m; }
-  const gn = Math.sqrt(lo * hi);
+  const gn = MASTER;
   const buf = Buffer.alloc(44 + N * 4);
   buf.write('RIFF', 0); buf.writeUInt32LE(36 + N * 4, 4); buf.write('WAVE', 8);
   buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(2, 22);
@@ -276,7 +290,7 @@ export function makeSoundtrack(outFile) {
     buf.writeInt16LE(Math.round(clamp(a, -1, 1) * 32767), 44 + n * 4);
     buf.writeInt16LE(Math.round(clamp(b, -1, 1) * 32767), 46 + n * 4);
   }
-  console.log(`audio: master gain ${gn.toFixed(3)} (opening at ${TARGET_OPENING_DB} dB)`);
+  console.log(`audio: master gain ${gn.toFixed(3)} (fixed)`);
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, buf);
   return outFile;

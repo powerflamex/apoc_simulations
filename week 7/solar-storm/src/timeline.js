@@ -1,7 +1,10 @@
-// "What if the biggest solar storm ever hit tonight?": the story as functions of VIDEO time v (seconds; STORY_START = 0).
+// "What if the Sun knocked out all power tonight?": the story as functions of VIDEO time v (seconds; STORY_START = 0).
+// (Re-upload, Nov 14: the first version, "What if the biggest solar storm ever hit tonight?", opened on a 5 s countdown;
+// this one opens on the blackout itself.)
 // The 1859 solar storm (the Carrington Event) hits today's world. You're walking up a busy downtown avenue at night with
-// the crowd; the whole sky is already rippling red and green and everyone is filming it. At 0:05 the storm hits: every
-// sign, screen and street light dies in a wave down the street, sparks, a scream. Then the street is lit only by the sky
+// the crowd under a sky rippling red and green. Frame 0: the storm hits with a loud electric crack and the lights die in
+// a wave that rushes down the avenue toward you (the far towers first, then the shops, signs and street lights, then the
+// street you're on: all dark by 0:01.3), sparks, a scream; the counter is racing from frame 0. Then the street is lit only by the sky
 // and the cars' headlights; a transformer on the pole over you blows, sparks run along the wires; the traffic lights
 // are dead and two cars bump at the crossing; phones lose service; people climb out of the dark subway; satellites burn up
 // across the aurora; the skyline down the avenue goes dark block by block; people light the street with phone torches.
@@ -25,8 +28,9 @@
 import { smooth, clamp, lerp, keys } from './util.js';
 
 export const STORY_START = 0;
-export const V_FLICK = 2.7;           // the street lights flicker once
-export const V_HIT = 5.0;             // the storm hits: everything electric dies in a wave down the street
+export const V_FLICK = -9;            // (the old pre-hit flicker: off in the re-upload)
+export const V_CRACK = 0.0;           // frame 0: the electric crack, the wave starts at the far end of the avenue
+export const V_HIT = 1.15;            // the wave reaches you: the street you're on goes dark
 export const V_XF = 7.5;              // the transformer on the pole over you blows
 export const V_LINES = 8.2;           // sparks run along the wires
 export const V_BUMP = 14.2;           // two cars bump at the dead crossing
@@ -43,26 +47,27 @@ export const LOOP = 0.6;
 export const VIDEO_DURATION = T_SWITCH + LOOP;                     // 47.0 s
 export const BEATS = [V_HIT, V_XF, V_BUMP, V_PHONE, V_SUBWAY, V_SATS, V_CANDLE, V_FLARE];
 
-// ---- the blackout front: how far from the middle of the street (ORIGIN) the power is gone (m) ----
-// 0:05 the street dies in a wave running away from you (~200 m/s), then the towers down the avenue go out one after
-// another: the whole city is dark 1.6 s after the hit.
-export const ORIGIN = { x: 0, z: 4 };
-const FRONT = [[V_HIT, 0], [V_HIT + 0.6, 120], [V_HIT + 1.15, 600], [V_HIT + 1.6, 3000], [V_HIT + 2.0, 9000]];
+// ---- the blackout front: how far from you (ORIGIN, on your sidewalk) the power is still on (m) ----
+// From frame 0 the dark rushes down the avenue toward you: the far towers go out first, then the blocks nearer and
+// nearer, then the shops, signs and street lights of your block, and your own street at 0:01.15.
+export const ORIGIN = { x: 8, z: 7 };
+const FRONT = [[-0.15, 14000], [0.1, 5000], [0.3, 1800], [0.5, 650], [0.75, 220], [0.95, 80], [V_HIT, 15], [V_HIT + 0.15, 0]];
 export function frontR(v) {
-  if (v < V_HIT) return -1;
+  if (v < FRONT[0][0]) return 1e9;
   for (let i = 0; i < FRONT.length - 1; i++) {
     const [a, x] = FRONT[i], [b, y] = FRONT[i + 1];
     if (v <= b) return lerp(x, y, (v - a) / (b - a));
   }
-  return FRONT[FRONT.length - 1][1];
+  return 0;
 }
-// when the front reaches distance r
+// when the front reaches distance r (farther things die first)
 export function dieAt(r) {
+  if (r >= FRONT[0][1]) return FRONT[0][0];
   for (let i = 0; i < FRONT.length - 1; i++) {
     const [a, x] = FRONT[i], [b, y] = FRONT[i + 1];
-    if (r <= y) return lerp(a, b, (r - x) / (y - x));
+    if (r >= y) return lerp(a, b, (x - r) / (x - y));
   }
-  return 1e9;
+  return FRONT[FRONT.length - 1][0];
 }
 // the flicker at 0:02.7 (all street power): two quick dips
 export function flick(v) {
@@ -72,15 +77,16 @@ export function flick(v) {
 }
 // the aurora's brightness: already bright, brighter and lower to the hit, surging, then the last flare to white
 export function aurora(v) {
-  const base = keys([[-2, 1.0], [0, 1.0], [V_HIT - 0.3, 1.45], [V_HIT + 0.2, 1.75], [V_HIT + 2, 1.4], [20, 1.35], [V_SATS - 1.4, 1.35], [V_SATS - 0.2, 0.8], [V_SATS + 5.2, 0.8], [V_SATS + 6.6, 1.3], [V_FLARE - 1, 1.4], [V_FLARE + 2, 2.4], [V_WHITE - 0.6, 7], [V_WHITE + 1, 14]], v);
+  const base = keys([[-2, 1.5], [0, 1.55], [V_HIT + 0.2, 1.8], [V_HIT + 2.5, 1.5], [6.5, 1.4], [20, 1.35], [V_SATS - 1.4, 1.35], [V_SATS - 0.2, 0.8], [V_SATS + 5.2, 0.8], [V_SATS + 6.6, 1.3], [V_FLARE - 1, 1.4], [V_FLARE + 2, 2.4], [V_WHITE - 0.6, 7], [V_WHITE + 1, 14]], v);
   return base;
 }
-export const auroraLow = (v) => keys([[-2, 0], [V_HIT, 1], [V_HIT + 3, 0.7], [V_FLARE, 0.7], [V_WHITE, 1.3]], v);
+export const auroraLow = (v) => keys([[-2, 0.7], [0, 0.75], [V_HIT, 1], [V_HIT + 3, 0.85], [7, 0.7], [V_FLARE, 0.7], [V_WHITE, 1.3]], v);
 
 // ---- the counter after the hit: people without power in the U.S. (Lloyd's 2013: 20-40 million; this runs to 40) ----
-const POWER_N = [[V_HIT, 0], [V_HIT + 0.6, 300000], [V_HIT + 1.6, 1.4e6], [9, 3.0e6], [13, 5.6e6], [18, 9.4e6], [23, 14e6], [28, 19.5e6], [33, 26e6], [37, 33e6], [V_FULL - 0.8, 38.4e6], [V_FULL, 40e6]];
+const N0 = -0.1;   // the counter starts just before frame 0, so it's already racing on frame 0
+const POWER_N = [[N0, 0], [0.5, 150000], [V_HIT, 700000], [3, 1.4e6], [5.5, 2.2e6], [9, 3.0e6], [13, 5.6e6], [18, 9.4e6], [23, 14e6], [28, 19.5e6], [33, 26e6], [37, 33e6], [V_FULL - 0.8, 38.4e6], [V_FULL, 40e6]];
 export function powerN(v) {
-  if (v <= V_HIT) return 0;
+  if (v <= N0) return 0;
   if (v >= V_FULL) return 40e6;
   for (let i = 0; i < POWER_N.length - 1; i++) {
     const [a, x] = POWER_N[i], [b, y] = POWER_N[i + 1];
@@ -92,7 +98,7 @@ export function powerN(v) {
 // ---- the gold popups: one phrase saying what is happening (never a number) ----
 export const POP = 1.7;
 export const POPS = [
-  [V_HIT + 0.1, 'THE POWER DIES'],
+  [3.0, 'THE POWER DIES'],
   [V_XF + 0.05, 'A TRANSFORMER BLOWS'],
   [V_BUMP + 0.1, 'CARS COLLIDE'],
   [V_SUBWAY + 0.05, 'THE SUBWAY STOPS'],
@@ -107,7 +113,7 @@ export function popupAt(v) {
 
 // ---- captions (in the gaps between the popups: never on screen together; nothing while the title is up) ----
 export const CAPTIONS = [
-  [3.05, 4.95, 'In 1859 it was bright enough to read by.'],
+  [4.85, 7.35, 'In 1859 it was bright enough to read by.'],
   [9.35, 12.3, 'In 1859, telegraph wires sparked and set paper on fire.'],
   [12.45, 14.15, 'Every traffic light is out.'],
   [16.0, 17.9, 'Cars still run. Planes still fly.'],
@@ -130,18 +136,14 @@ export function captionAt(v) {
   return null;
 }
 
-// ---- the counter: the countdown to the hit, then the people without power ----
+// ---- the counter: the people without power, racing from frame 0 ----
 let _t = 0;
 export const COUNTERS = [
   {
-    from: -3, to: VIDEO_DURATION + 1, label: 'STORM HITS IN', allowNegative: true,
-    labelFn: (t) => (t < V_HIT ? 'STORM HITS IN' : 'PEOPLE WITHOUT POWER'),
+    from: -3, to: VIDEO_DURATION + 1, label: 'PEOPLE WITHOUT POWER', allowNegative: true,
     value: (t) => { _t = t; return t; },
-    fmt: () => {
-      if (_t < V_HIT) { const s = Math.max(0, V_HIT - _t); return `0:0${s.toFixed(2)}`; }
-      return Math.round(powerN(_t)).toLocaleString('en-US');
-    },
-    unit: (t) => (t < V_HIT ? 'PEOPLE WITHOUT POWER: 0' : 'IN THE U.S. · UP TO 40 MILLION'),
+    fmt: () => Math.round(powerN(_t)).toLocaleString('en-US'),
+    unit: 'IN THE U.S. · UP TO 40 MILLION',
   },
 ];
 

@@ -1686,6 +1686,48 @@ whole country's count is shown racing in ~26 s; satellites dragged down by a sto
 mild storm in 2022), not in the same minute; the pole transformer blowing and the sparks at the signs stand in for the surges
 (1859's telegraph wires really sparked). Cars keep running, planes keep flying, nobody is hurt by the storm itself.
 
+## Re-upload (Nov 14). What if the Sun knocked out all power tonight? — `week 7/solar-storm/out/solar-storm_v4_1080x1920_60fps_tiktok.mp4`
+
+The solar storm Short again with a new first second and a plainer question: the first upload got 172 views in its first
+hour (YouTube barely showed it), so the owner makes it private and posts this one. The old version is in git (commit
+before this one). 47.0 s, loops. Frame 0: the title "What if the Sun knocked out all power tonight?", PEOPLE WITHOUT POWER
+already racing (25,000 on frame 0), the sky blazing red and green over a lit downtown avenue, and a loud electric crack:
+the lights die in a wave rushing down the avenue toward you: the far towers go dark first (0:00-0:00.5), then the nearer
+blocks, then the shops, signs and street lamps of your block pop with sparks (0:00.7-0:01.1), and your own street goes
+dark at 0:01.15 (a jolt, a deep hit); the owner's scream from 0:00.4. 0:01.4-0:04 your eyes go up to the sky, now the
+only light; 0:03 THE POWER DIES; 0:05 the street ahead ("In 1859 it was bright enough to read by."). From 0:05 on it is
+the same video: 0:07.5 the transformer blows, arcs along the wires; 0:14.2 two cars collide at the dead crossing; 0:18
+no service; 0:22 the subway; 0:28 satellites burn up; 0:32 phone torches; 0:36 candles; 0:40 the counter lands on
+40,000,000; 0:42 the aurora flares to white and clears onto frame 0 (the loop). The 5-second "STORM HITS IN" countdown
+and the 0:02.7 flicker are gone. Facts and numbers unchanged (see the first entry above).
+
+**YouTube title (93 chars, emoji counted as 2)**
+```
+What if the Sun knocked out all power tonight? Up to 40 million in the dark ⚡ #whatif #space
+```
+
+**YouTube description**
+```
+The Sun throws off giant storms. In 1859 the biggest one on record hit Earth: the sky glowed red and green as far south as the Caribbean, bright enough to read by, and telegraph wires sparked and set paper on fire.
+
+If one hit tonight:
+Every light on your street goes dark in a second.
+Transformers blow. Traffic lights die. Phones lose service.
+The subway stops and everyone walks up out of the tunnels.
+Satellites get dragged down and burn up.
+People light candles and huddle round car radios.
+
+Lloyd's of London worked it out in 2013: 20 to 40 million Americans could lose power, for weeks or even 1 to 2 years, because the giant transformers that blow take a year or more to replace.
+
+Your car would still run. Planes would still fly. But no heat, no fridge, and soon no tap water.
+
+How long could you last without power? 👇
+
+#whatif #sun #solarstorm #space #science
+```
+
+Cover: `week 7/solar-storm/out/solar-storm_v4_cover.png` (`node render.mjs --cover 30.2`: burning satellites streaking across the red and green aurora over the dark towers, headlights and the crowd below; "WHAT IF THE SUN / knocked out / all power tonight?")
+
 ## Next Short. What if a black hole passed by the Sun? — `week 8/bh-passes-sun/out/bh-passes-sun_v4_1080x1920_60fps_tiktok.mp4`
 
 47.6 s, loops. A made-up harbour-city avenue at midday, traffic stopped, the street packed with people looking up. Frame 0:
