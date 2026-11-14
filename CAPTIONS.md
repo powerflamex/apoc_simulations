@@ -2091,6 +2091,62 @@ How far away would you need to be to survive? 👇
 
 Cover: `week 8/dino-asteroid/out/dino-asteroid_v4_cover.png` (`node render.mjs --cover 17.3`: the fireball, a glowing dome wider than the street, rising behind the river; the palms on both sides on fire; the crowd in the street; "WHAT IF THE DINOSAUR / asteroid / hit today?")
 
+## Next Short. What if every man disappeared? — `week 8/men-vanish/out/men-vanish_v4_1080x1920_60fps_tiktok.mp4`
+
+48.5 s, loops. The twin of Day 9's women-vanish (696K views), on a new street. The counter: EVERY MAN DISAPPEARS IN 1.00 s on
+frame 0, then DAYS WITHOUT MEN racing up, with its finish line on the one line under it, FIRST NEW BABY: DAY 280. Every beat is
+a later day and a bigger step. What you see, in order: 0:00 a packed downtown corner at rush hour, 5:00 PM in late September,
+people right round you, crowds on the crosswalks, the cross street's traffic flowing, a crane mid-lift over the corner; the title.
+0:01 every man and boy vanishes mid-step (a soft white blink, a scream): his clothes drop and crumple into a heap with his
+shoes, phones and bags fall, half the crowd is gone; cars with nobody at the wheel roll on and slam into the cars ahead in the
+intersection (0:02.2-0:03); "4 billion men and boys just vanished." 0:03.7 the first night races past (a locked time-lapse,
+the wrecks' lights on). 0:05.4 the next morning, out on the crosswalk among the clothes: a jet comes in low over the towers,
+rolls and dives at the far end of the avenue; 0:09.35 it hits beyond the last buildings, a fireball between the towers, then
+smoke; "About 19 in 20 airline pilots were men." 0:10.7 day 1 time-lapse: the crane's load still hangs where it stopped
+over the street as the light sweeps round; "Almost every crane operator was a man." 0:15 day 2, the avenue at dusk: the
+windows and street lamps come on, flicker and go out block by block, the plane's fire still glowing under its smoke;
+"96 in 100 power-line workers were men." 0:19.6 days 3-6, up on the elevated highway: trucks and cars stopped dead in every
+lane, a jack-knifed truck, a few women walking between them; "9 in 10 truck drivers were men. Food stops moving." 0:24
+days 6-14: the shop fronts going dark and shuttered, the wrecks gathering dust; "Within a week, the shops are empty."
+0:30 day 14, a sperm bank's storage room: a technician lifts a canister of frozen samples out of a liquid-nitrogen tank in a
+spill of white vapour; "But humanity doesn't end." "One sperm bank in China alone stored 119,558 frozen samples." 0:35 the
+months after, a locked time-lapse: a woman on the bench by the corner every morning, her belly growing, the street trees
+dropping their leaves, bare all winter, green again by summer, the lights back on; "Within two weeks, women are getting
+pregnant." 0:41 day 280, the same corner at golden hour, busy again: the first new baby in its mother's arms, women round her;
+the counter lands on 280.00; "Half the new babies are boys." "Who would you miss first?" 0:46 we turn into the low Sun down
+the cross street; white; the white clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): 4.17 billion men and boys in 2026 (UN World Population Prospects 2024);
+airline pilots ~5-6% women worldwide (ISWAP/IATA; ICAO puts all pilots at 4%); US crane and tower operators 95.5% men, US
+power-line installers and repairers 96.2% men, US driver/sales workers and truck drivers 92.3% men (BLS, CPS table 11, 2025
+averages); the Hunan sperm bank (China) study of 119,558 frozen donor samples stored up to 15 years (Huang et al., ESHRE
+2019); 266 days of pregnancy from conception (the standard figure), so a woman inseminated with donor sperm two weeks in
+gives birth around day 280. Honest notes: the job shares for cranes, power lines and trucks are US figures; the jet is shown
+coming down the next morning because one on autopilot flies on until its fuel runs out (planes being hand-flown would come
+down at once); the crane's load is drawn hanging still from then on (nobody to lower it); women who were already pregnant
+when it happens are left out ("first new baby" means the first conceived after); day 280's evening Sun is drawn right down
+the cross street (its true bearing in early July is ~25° north of it); people are low-poly figures.
+
+**YouTube title (89 chars)**
+What if every man disappeared? The first new baby arrives on day 280 👶 #whatif #science
+
+**YouTube description**
+Rush hour, 5 PM. In one instant every man and boy on Earth vanishes: 4 billion people. Their clothes drop to the pavement and cars with nobody at the wheel crash.
+
+The next morning a jet on autopilot runs out of fuel and comes down. About 19 in 20 airline pilots were men.
+A crane's load hangs stuck over the street. Almost every crane operator was a man.
+Day 2: the lights flicker and fail. 96 in 100 power-line workers were men.
+Day 3: the highways stand still. 9 in 10 truck drivers were men, and within a week the shops are empty.
+(Crane, power-line and truck numbers are US figures.)
+
+But humanity doesn't end. Sperm banks hold frozen samples: one bank in China alone stored 119,558. Two weeks in, women are getting pregnant, and on day 280 the first new baby is born. Half the new babies are boys.
+
+Who would you miss first? 👇
+
+#whatif #science #humanity #simulation
+
+Cover: `week 8/men-vanish/out/men-vanish_v4_cover.png` (`node render.mjs --cover 2.2`: a second after the vanishing, the men's clothes in heaps on the crosswalk, the women left standing among them, wrecked cars behind; "WHAT IF EVERY / man / disappeared?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
