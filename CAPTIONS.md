@@ -2156,6 +2156,56 @@ Who would you miss first? 👇
 
 Cover: `week 8/men-vanish/out/men-vanish_v4_cover.png` (`node render.mjs --cover 2.2`: a second after the vanishing, the men's clothes in heaps on the crosswalk, the women left standing among them, wrecked cars behind; "WHAT IF EVERY / man / disappeared?")
 
+## Next Short. What if you lived for 1 trillion seconds? — `week 8/trillion-seconds/out/trillion-seconds_v4_1080x1920_60fps_tiktok.mp4`
+
+48.3 s, loops. Same idea as Day 2's trillion-years (2.2M views: you stand still while time races), on a new scene and a
+shorter scale. The counter: SECONDS racing up from 2,511 on frame 0, with its finish line on the one line under it,
+1,000,000,000,000 SECONDS = 31,700 YEARS; 10x every few seconds (a soft camera kick and a deep whoomp on each). You stand on
+one busy street corner the whole video, seen over your shoulder at eye level. What you see, in order: 0:00 the corner on an
+October afternoon, autumn trees, crowds and cars streaking past as see-through time-lapse ghosts, you sharp in the middle of
+it; the title. 0:03 "1 million seconds = 12 days." The leaves fall, 0:05 snow on everything, bare trees; "10 million seconds
+= 4 months. A whole winter." 0:06-0:10 the seasons flash past (green, autumn, snow again). 0:08.5 "100 million seconds = 3
+years. New towers rise." (glass towers go up on the skyline, your hair starts to grey). 0:12 "1 billion seconds = 32 years.
+You're old." (white hair, a stoop, a cane). 0:13-0:19 every building round the corner drops floor by floor and a new one
+rises in its place: the new city's white towers with garden terraces, paler cars; "Every building you know is torn down and
+rebuilt." 0:19 "10 billion seconds = 317 years. A whole new city." 0:20-0:27 the people and cars thin out and are gone, the
+windows go black, vines climb the walls, the lamps and signals lean and fall, grass breaks up the road, young trees come up
+through it, deer graze in the street; "Then the people leave. Nature moves in." 0:27 "100 billion seconds = 3,170 years.
+Trees grow through the street." The towers fall in, in chunks, ragged and open. 0:31 "The ruins sink into the forest."
+0:34 "No ice age yet: the next is 50,000+ years away." 0:38 "1 trillion seconds ago, people were painting caves." 0:42 the
+counter lands on 1,000,000,000,000; you, old, with your cane, in a forest; "1 trillion seconds = 31,700 years. You're still
+here." 0:45 white; it clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): a year of 31,557,600 s, so 1 million s = 11.6 days, 10 million = 116
+days, 100 million = 3.17 years, 1 billion = 31.7 years, 10 billion = 317 years, 100 billion = 3,169 years, 1 trillion =
+31,688 years (~31,700). Ice age: without people the next one was ~50,000 years off (Earth's orbit is nearly round right
+now), and the carbon we've already added pushes it later (Ganopolski, Winkelmann & Schellnhuber, Nature 2016), so none comes
+within 31,700 years. Cave paintings: Chauvet Cave's art is ~37,000-28,000 years old. Most city buildings stand 50-100 years,
+so in 317 years all of them have been replaced. Honest notes: the city emptying out is a story choice, not a prediction (the
+caption says only "Then the people leave"); the time-lapse is shot at 1:30 PM every day and, once a frame spans months, on
+the same summer day each year (so it never strobes); people, cars and deer are see-through ghosts the way a time-lapse
+catches them; you stop ageing at "old" (the premise is that you live that long).
+
+**YouTube title (81 chars)**
+What if you lived for 1 trillion seconds? That's 31,700 years ⏳ #whatif #science
+
+**YouTube description**
+You stand on one busy street corner and never move. Time speeds up around you.
+
+1 million seconds = 12 days.
+1 billion seconds = 32 years. You're old.
+10 billion seconds = 317 years. Every building you knew has been torn down and rebuilt.
+100 billion seconds = 3,170 years. Trees grow through the street.
+1 trillion seconds = 31,700 years. The city is a forest, and there's still no ice age: the next one is 50,000+ years away.
+
+1 trillion seconds ago, people were painting caves.
+
+How many seconds old are you? 👇
+
+#whatif #science #time #simulation
+
+Cover: `week 8/trillion-seconds/out/trillion-seconds_v4_cover.png` (`node render.mjs --cover 24.5`: you, white-haired with your cane, in the old avenue gone to meadow, deer grazing, the towers green with moss; "WHAT IF YOU LIVED FOR / 1 trillion / seconds?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
