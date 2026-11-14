@@ -70,7 +70,7 @@ void main() {
     float w = uRockR * (0.38 + 0.3 * u) + 0.5 * age;
     float tn = fbm(vec3(P * 0.45, uT * 0.4)) - 0.5;
     float core = exp(-pow(d / (w * (0.55 + 0.4 * tn)), 2.0));
-    float T = min(0.7, uHot * (0.7 * exp(-age / 2.4) + 0.22) + 0.25 * tn);
+    float T = min(0.85, uHot * (0.7 * exp(-age / 2.4) + 0.22) + 0.25 * tn + uUnder * 0.55 * exp(-max(el, 0.0) / 9.0));
     vec3 tc = mix(vec3(0.32, 0.22, 0.15), ramp(T) * 0.5, smoothstep(0.2, 0.45, T));
     c = mix(c, tc, core * uTrail * smoothstep(-0.5, 0.6, el) * 0.85);
   }
@@ -90,9 +90,18 @@ void main() {
   }
   // ---------- the glow behind the horizon, then the flash ----------
   {
-    float dx = (az - uUnderAz) / 14.0;
-    float g = exp(-dx * dx) * exp(-max(el, 0.0) / (4.0 + 6.0 * uUnder)) * uUnder;
-    c += vec3(1.0, 0.55, 0.22) * g * 0.9;
+    // (the rock still ploughing down through the thick air out of sight: the sky over it blazes, wider and higher each moment)
+    float fl = 0.85 + 0.15 * sin(uT * 23.0) * sin(uT * 7.0);
+    // a dome of fire-light swelling up over the horizon: a hard bright core, a wide orange halo
+    float R0 = 2.0 + 9.0 * uUnder * uUnder;
+    vec2 dq = vec2((az - uUnderAz) / 1.6, max(el, 0.0));
+    float r = length(dq);
+    float noise = fbm(vec3(atan(dq.y, dq.x) * 3.0, r * 0.3 - uT * 2.0, uT));
+    float core = 1.0 - smoothstep(R0 * (0.75 + 0.35 * noise), R0 * (1.05 + 0.35 * noise), r);
+    float halo = exp(-max(r - R0, 0.0) / (3.0 + 8.0 * uUnder));
+    float k = smoothstep(0.0, 0.08, uUnder);
+    c = mix(c, vec3(1.3, 0.45, 0.1), clamp(halo * 0.9 * k, 0.0, 0.9));
+    c = mix(c, mix(vec3(2.2, 1.1, 0.35), vec3(3.0, 2.4, 1.5), core * smoothstep(0.5, 0.0, r / R0)), core * k * fl);
     float f = exp(-abs(az) / 40.0) * exp(-max(el, 0.0) / 30.0);
     c += vec3(1.0, 0.94, 0.85) * uFlash * (1.4 * f + 0.25);
   }

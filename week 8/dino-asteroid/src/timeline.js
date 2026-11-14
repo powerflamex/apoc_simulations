@@ -37,7 +37,8 @@ const TK = [
   // (from 0:26 the wall closes in by the same share every second: 60 km at 0:26, 20 km at 0:30, 3 km at 0:37)
   [18, 300], [20.2, T_EJECTA], [22.4, 640], [24.4, 930], [26, 2711.6], [27, 2755.1], [28, 2788.2], [29, 2813.4], [30, 2832.6],
   [31, 2847.3], [32, 2858.4], [33, 2866.9], [34, 2873.4], [35, 2878.3], [36, 2882.0], [37.0, 2884.9],
-  [46.1, T_BLAST], [48, T_BLAST + 1.9],
+  // (the last 0.6 s, from 200 m, in slow motion: 0.29x, labelled on the counter)
+  [45.2, 2893.39], [47.3, T_BLAST], [49, T_BLAST + 1.7],
 ];
 const MC = (() => {
   const n = TK.length, x = TK.map((k) => k[0]), y = TK.map((k) => k[1]);
@@ -110,8 +111,9 @@ export const V_CARS = 26.2;           // the cars catch fire
 export const V_WALL = 26.0;           // the dust wall shows on the horizon (60 km off); it grows every second from here
 export const V_REAL = 37.0;           // from here on real time: the front is 3 km off, crossing the far bank
 export const V_FALL = 40.0;           // it flattens the far bank's city
-export const V_RIVER = 43.9;          // it reaches the river (728 m off)
-export const V_HIT = 46.1;            // it reaches you (48:14)
+export const V_RIVER = 42.9;          // it reaches the river (728 m off)
+export const V_SLOW = 45.2;           // slow motion from here (200 m off): it crosses the quay and the street
+export const V_HIT = 47.3;            // it reaches you (48:14)
 export const T_SWITCH = V_HIT + 0.35; // full white: the loop point
 export const VIDEO_DURATION = T_SWITCH + LOOP;
 // the hits (camera kick + boom in the soundtrack)
@@ -164,7 +166,8 @@ export function counterAt(v) {
   const left = Math.max(0, T_BLAST - T), km = frontKm(T), mi = km * 1000 / MILE;
   // minutes racing down (a time-lapse); hundredths race too in the last minute
   const value = left >= 60 ? mmss(left) : `0:${left.toFixed(2).padStart(5, '0')}`;
-  return { label: 'THE BLAST REACHES YOU IN', value, line: mi >= 10 ? `${Math.round(mi)} MILES AWAY` : `${mi.toFixed(1)} MILES AWAY` };
+  const slow = v > V_SLOW - 0.05 && v < V_HIT + 0.3;
+  return { label: slow ? 'THE BLAST REACHES YOU IN  ·  SLOW MOTION' : 'THE BLAST REACHES YOU IN', value, line: mi >= 10 ? `${Math.round(mi)} MILES AWAY` : `${mi.toFixed(1)} MILES AWAY` };
 }
 
 // ---- the state at video time v ----
@@ -177,7 +180,7 @@ export function state(v) {
   s.fbHeat = fireballHeat(s.T);
   s.fbI = fireballLight(s.T);
   // the glow behind the horizon while the rock ploughs down through the thick air out of sight
-  s.under = smooth(V_SINK - 0.3, V_IMPACT, v) * (1 - smooth(V_IMPACT, V_IMPACT + 0.2, v));
+  s.under = (0.55 * smooth(V_SINK - 0.3, V_SINK + 0.2, v) + 0.45 * smooth(V_SINK + 0.2, V_IMPACT, v)) * (1 - smooth(V_IMPACT, V_IMPACT + 0.2, v));
   // the flash: blinding for a moment, then the fireball's own light
   s.flash = v >= V_FLASH ? Math.exp(-(v - V_FLASH) / 0.35) : 0;
   s.flashIn = smooth(V_FLASH - 0.05, V_FLASH, v) * (v < V_FLASH + 1 ? 1 : 0);

@@ -424,7 +424,8 @@ function update(v, cover = -1) {
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 1 - smooth(0.6, 1, white);
   finish.uniforms.uVig.value = 0.2;
-  finish.uniforms.uFill.value = window.__cover ? 0 : s.wall * smooth(260, 8, s.frontM);
+  // (the dust only fills the frame as the wall itself reaches you)
+  finish.uniforms.uFill.value = window.__cover ? 0 : s.wall * smooth(26, 0.5, s.frontM);
 
   s.hide = smooth(0.6, 1.0, white);
   overlay(v, s);

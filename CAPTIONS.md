@@ -2037,14 +2037,15 @@ Cover: `week 8/shrink-trillion/out/shrink-trillion_v4_cover.png` (`node render.m
 
 ## Next Short. What if the asteroid that killed the dinosaurs hit today? — `week 8/dino-asteroid/out/dino-asteroid_v4_1080x1920_60fps_tiktok.mp4`
 
-47.4 s, loops. The same rock (about 6 miles wide, 45,000 mph, from the northeast at ~60°) lands where it did 66 million years
+48.6 s, loops. The same rock (about 6 miles wide, 45,000 mph, from the northeast at ~60°) lands where it did 66 million years
 ago, at Chicxulub on Mexico's Yucatán coast. You're on Canal Street in New Orleans, at the river, 592 miles due north.
 Reworked Nov 14 (owner's review): a burning fireball from frame 0, the dust wall in sight from 0:26 and closing in every
 second, a crowd that stays to the end, a dust-and-debris arrival instead of dark blocks, and the quake caption fixed.
 What you see, in order: 0:00 a packed street of palms on a summer evening, people close to you pointing up and filming;
 the rock already deep in the air down the street: a huge fireball, its head glowing, a long flaming trail back up the sky;
 the title; the counter racing (IMPACT IN 5.30 s; one line: 45,000 MPH). 0:00-0:02 it dives to the horizon (it sinks out of
-sight at 0:01.4, the true moment), leaving the burning trail across the sky; the horizon glows; 0:03.4 "You're in New Orleans, 592 miles
+sight at 0:01.4, the true moment), leaving the burning trail across the sky; where it went down a dome of fire-light
+flares over the horizon at once and swells until the flash (it is still ploughing down through the thick air out of sight); 0:03.4 "You're in New Orleans, 592 miles
 away." 0:05.3 the flash: everyone throws an arm over their eyes, "IT HITS MEXICO"; the counter becomes THE BLAST REACHES
 YOU IN 48:14 (a time-lapse, racing down to the end; the line under it: how many miles off the blast is). 0:07.6 the phone
 zooms in as the fireball climbs over the horizon behind the far bank, "TALLER THAN ANY MOUNTAIN". 0:09.5 "Its heat: 30 times
@@ -2056,8 +2057,9 @@ of Mexico 8 minutes ago." 0:24.2 the whole sky glows red-hot, "THE SKY TURNS RED
 off; the crowd turns to watch it. It closes in by the same share every second, matching the miles on the counter (22 miles
 at 0:28, 12 at 0:30, towering over the far bank's skyline; 5 at 0:33); 0:26.2 the cars and the streetcar go up, "CARS
 CATCH FIRE". 0:28.5 "The blast takes 48 minutes to get here." 0:34.6 "The wind behind it: 400 mph." From 0:37 real time: it crosses the far bank's city,
-"IT FLATTENS EVERYTHING" (0:40), crosses the river (0:43.9) with debris in its face, and reaches you at 0:46.1: a roaring wall of
-billowing dust and flying debris swallows the street, then white. The white clears onto frame 0.
+"IT FLATTENS EVERYTHING" (0:40), crosses the river (0:42.9) with debris in its face; from 0:45.2 (200 m off) the last 0.6 s
+are in slow motion (the counter says SLOW MOTION): the roaring wall of billowing dust and flying debris swallows the quay,
+the palms and the crowd, reaches you at 0:47.3, and only then the dust fills the frame and goes white. The white clears onto frame 0.
 
 The numbers (`week 8/dino-asteroid/physics.mjs` and the top of `src/timeline.js`): New Orleans to the Chicxulub crater 952 km
 = 592 miles. Everything after the impact is from the Imperial College "Impact: Earth!" calculator (Collins, Melosh & Marcus)
@@ -2072,7 +2074,7 @@ horizon). The energy is usually quoted as ~100 million megatons; the calculator 
 Drawn, not to scale: the rock would really look as small as the Sun (0.6°) from 592 miles; it's drawn ~20x wider and its path
 12x higher in the sky so that it reaches the horizon at the true moment. The fireball and the red sky are at their real size,
 the fireball drawn a little cooler than its real white glare so its shape shows. The time-lapse runs from the impact to 0:37
-(the counter shows it racing). The dust wall is drawn ~5 km tall, far taller than the real blast would raise, so you can see it from 37 miles.
+(the counter shows it racing); the last 0.6 s before the blast are slowed down 3.5x (labelled). The dust wall is drawn ~5 km tall, far taller than the real blast would raise, so you can see it from 37 miles.
 The people who stay out in the heat would really be badly burned; nobody is shown hurt.
 New Orleans is flat: the street is drawn falling to the river so you can see over the crowd. The streetcar, the palms and the
 crowd are drawn, not a real map of Canal Street.
