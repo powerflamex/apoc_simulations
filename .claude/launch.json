@@ -228,6 +228,17 @@
       "env": {
         "PORT": "5251"
       }
+    },
+    {
+      "name": "heavy-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 8/heavy-trillion/server.mjs"
+      ],
+      "port": 5283,
+      "env": {
+        "PORT": "5283"
+      }
     }
   ]
 }

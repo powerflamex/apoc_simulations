@@ -2206,6 +2206,61 @@ How many seconds old are you? 👇
 
 Cover: `week 8/trillion-seconds/out/trillion-seconds_v4_cover.png` (`node render.mjs --cover 24.5`: you, white-haired with your cane, in the old avenue gone to meadow, deer grazing, the towers green with moss; "WHAT IF YOU LIVED FOR / 1 trillion / seconds?")
 
+## Next Short. What if you were 1 trillion times heavier? — `week 8/heavy-trillion/out/heavy-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+48.3 s, loops. You stay your own size (a 150 lb person); only your weight grows, in uneven named steps. The counter: YOU WEIGH
+(lb, then tons) over the racing "x times heavier", with the finish line on the one line under it, 1,000,000,000,000x: AS HEAVY
+AS A MOUNTAIN. What you see, in order: 0:00 you on a bench at the curb of a busy downtown avenue at midday, close to the
+camera, people and stopped cabs behind you, the counter already racing (3.6x), the title. 0:00.85 x10 (1,500 lb): the bench
+snaps and you drop onto the pavement, splinters fly, people stop and turn, phones come up; cracks spread under you as you get
+up. 0:03.5 x100 (7.5 tons): the sidewalk breaks, the slabs tip into a pit and you sink to your shins; "As heavy as an
+elephant. The sidewalk breaks." 0:06 x1,000 (75 tons): you punch through into the subway station below, crashing through
+its roof with the rubble, daylight pouring in after you, and land on the track bed in a cloud of dust; people on the far
+platform flinch back, filming; "As heavy as a jet: you drop into the subway." The bed cracks and the rails bend down under
+you. 0:10.6 x1,000,000 (75,000 tons): the floor gives way and you fall into the rock, the station's light shrinking above,
+the crushed rock under your feet glowing; "As heavy as a cruise ship. Rock can't hold you." "Solid rock barely slows you
+down." 0:16.6 x1 billion: the gravel and water that fell in with you drift toward you; "As heavy as 11 Great Pyramids." "A
+meter from you, your pull is half of Earth's." 0:23.8 x10 billion: they circle you; "The gravel falling with you starts to
+orbit you." 0:27 x100 billion: "You're falling through solid rock at 360 mph." 0:30 x1 trillion: the wall bulges in and splits
+with glowing cracks, chunks torn off it fly in at you; "A sugar cube of you weighs a million tons." "The rock around you is
+crushed onto you." 0:34 a time-lapse down through the crust into the red-hot mantle; "Nothing can stop you. Minutes later…"
+0:41.5 the core: orange, then white; "You'd end up stuck at the center of the Earth." 0:45.6 white; it clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): 150 lb = 68 kg. x100 = 6.8 t (African bull elephant 6-7 t); x1,000 =
+68 t (a loaded Boeing 737, 79 t max take-off; on your feet that's ~13 MPa, more than a sidewalk slab takes); x1 million =
+68,000 t (cruise ships displace 50,000-100,000 t; ~6.7 GPa under you, 30x what granite takes, and the crushing slows you only
+~3%, so you fall almost freely); x1 billion = 6.8e10 kg = 11.5 Great Pyramids (5.9 Mt each), pull at 1 m G M / r² = 4.5 m/s²
+(0.46 g), at 10 m 0.005 g; things falling with you share your free fall, so your gravity can pull them into orbit (at 1 m one
+turn in 3 s at x1 billion, 0.9 s at x10 billion); 360 mph = 9.8 m/s² x 16.4 s of free fall; x1 trillion = 6.8e13 kg (75
+billion tons): a mountain ~1.5 km high and ~8 km wide (Everest is about twice that); your density 1.0e15 kg/m³, so 1 cm³ of
+you is 1.0e9 kg = 1.1 million tons; pull at 1 m 460 g, at 10 m 4.6 g; the rock round you is squeezed by ~120 MPa at 10 cm, so
+it crumbles onto you. Falling freely (g ~ 10 m/s² down through the mantle) you'd reach the core 2,890 km down in ~13 minutes,
+and drag would damp your swings until you rest at the center. Honest notes: the hole is drawn ~4 m wide so the camera fits (you'd
+punch one your own width); the crushed rock at your feet is drawn glowing so you can be seen (the energy is there: hundreds
+of megawatts and up); the time-lapse is marked "Minutes later"; heat and pressure don't harm you (only your weight changes);
+people are low-poly figures.
+
+**YouTube title (91 chars)**
+What if you were 1 trillion times heavier? You'd sink to the center of the Earth 🌍 #whatif
+
+**YouTube description**
+You stay the same size. Only your weight grows.
+
+10x: the bench snaps under you.
+100x: as heavy as an elephant. The sidewalk breaks.
+1,000x: as heavy as a jet. You drop into the subway.
+1 million x: as heavy as a cruise ship. Solid rock can't hold you up, and barely slows you down.
+1 billion x: as heavy as 11 Great Pyramids. A meter from you, your own gravity pulls half as hard as Earth's, and the gravel falling with you starts to orbit you.
+1 trillion x: as heavy as a mountain. A sugar cube of you weighs a million tons, and the rock around you is crushed onto you.
+
+Nothing can stop you now. About 13 minutes later you hit the Earth's core, and in the end you'd stay stuck at the very center of the planet.
+
+At what weight would you start to panic? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 8/heavy-trillion/out/heavy-trillion_v4_cover.png` (`node render.mjs --cover 25.5`: you falling through the rock, the gravel and water orbiting you, the glow under your feet; "WHAT IF YOU WERE / 1 trillion / times heavier?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
