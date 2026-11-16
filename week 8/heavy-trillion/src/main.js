@@ -151,7 +151,8 @@ function poseAt(v) {
   }
   // falling: arms out and up, legs a little bent; a slow turn of the head
   const fl = smooth(V_SINK, V_SINK + 0.6, v);
-  return { hipY: 0.88, footZ: 0.06, lean: 0.0, head: [lerp(0.5, -0.1, smooth(V_SINK + 0.4, V_SINK + 3, v)) + 0.15 * Math.sin(v * 0.4), 0.3 * Math.sin(v * 0.23)], armsOut: 0.55 + 0.25 * fl, armsUp: 0.35 * fl + 0.1 * Math.sin(v * 0.7), float: 0.3 * fl };
+  // (a tight hole: arms up over your head, legs together)
+  return { hipY: 0.9, footZ: 0.03, lean: 0.0, head: [lerp(0.5, -0.1, smooth(V_SINK + 0.4, V_SINK + 3, v)) + 0.15 * Math.sin(v * 0.4), 0.3 * Math.sin(v * 0.23)], armsOut: 0.55 - 0.4 * fl, armsUp: 0.5 + 0.38 * fl + 0.05 * Math.sin(v * 0.7), float: 0.1 * fl };
 }
 // put you with your middle (between your feet) at x, z, facing yaw (the figure's origin is its right sole)
 function placeYou(x, y, z, yaw) { you.root.rotation.y = yaw; you.root.position.set(x - 0.105 * Math.cos(yaw), y, z + 0.105 * Math.sin(yaw)); }
@@ -312,44 +313,45 @@ function update(v, cover = -1) {
     const face = Math.PI / 2 - you.root.rotation.y;
     const cave = bore.layers.CUTS.caveY;
     const inCave = 1 - smooth(5, 11, Math.abs(cave));
+    // (the hole hugs you: the cameras stay within ~0.6 m of the middle, or look along the hole from above or below)
     if (v < 12.3) {
       // following you down out of the station: from above, looking down past you at what's coming (the sewer)
       const k = sh(V_SINK, 12.3);
-      pos = orbit(face + 0.4, 0.95, 3.0 - 0.7 * k); tgt = new THREE.Vector3(0, 0.1, 0); fov = 66;
-    } else if (v < V_GRAV) {
-      // beside you, the bedrock's coloured layers streaking up behind you
-      const k = sh(12.3, V_GRAV);
-      pos = orbit(face + 0.75 - 0.45 * k, 1.55, 1.15 - 0.1 * k); tgt = new THREE.Vector3(0, 0.95, 0); fov = 62;
+      pos = orbit(face + 0.4, 0.3, 3.2 - 0.6 * k); tgt = new THREE.Vector3(0, 0.0, 0); fov = 70;
+    } else if (v < 16.6) {
+      // close on your face, the bedrock's coloured layers a hand's width behind you
+      const k = sh(12.3, 16.6);
+      pos = orbit(face + 0.35 - 0.3 * k, 0.6, 1.95 - 0.1 * k); tgt = new THREE.Vector3(0, 1.2, 0); fov = 76;
     } else if (v < 19.3) {
-      // low in front, looking up at you as your gravity starts pulling the loose rocks in
-      const k = sh(V_GRAV, 19.3);
-      pos = orbit(face + 0.3 - 0.2 * k, 1.5, -0.25 + 0.2 * k); tgt = new THREE.Vector3(0, 1.3, 0); fov = 64;
+      // from below, looking up the hole at you
+      const k = sh(16.6, 19.3);
+      pos = orbit(face + 0.2 - 0.2 * k, 0.4, 2.75); tgt = new THREE.Vector3(0, 0.5, 0); fov = 74;
     } else if (v < 21.6) {
-      // the cave: the camera backs off into it (the lake below, the stalactites, the waterfall)
-      pos = orbit(face + 0.5, 1.5 + 1.4 * inCave, 1.1 + 0.7 * inCave); tgt = new THREE.Vector3(0, 0.75 - 0.5 * inCave, 0); fov = 64 + 6 * inCave;
+      // the cave: suddenly room all round; the camera backs off into it (the lake below, the stalactites)
+      pos = orbit(face + 0.5, 0.5 + 2.4 * inCave, 1.5 + 0.4 * inCave); tgt = new THREE.Vector3(0, 0.9 - 0.4 * inCave, 0); fov = 70;
     } else if (v < 25.3) {
-      // the deepest mine: its tunnels flashing past behind you
+      // above you, looking down the hole: the mine's tunnels flashing past round you
       const k = sh(21.6, 25.3);
-      pos = orbit(face - 0.55 + 0.2 * k, 1.5, 0.75); tgt = new THREE.Vector3(0, 1.05, 0); fov = 62;
+      pos = orbit(face - 0.3 + 0.3 * k, 0.35, 2.9); tgt = new THREE.Vector3(0, 0.3, 0); fov = 72;
     } else if (v < 28.4) {
-      // the deepest hole ever drilled: its pipe in the wall right behind you, then its end
+      // close in front, the drill pipe in the wall right behind your shoulder
       const k = sh(25.3, 28.4);
-      pos = orbit(face + 0.5 - 0.1 * k, 1.45, 1.2 - 0.2 * k); tgt = new THREE.Vector3(0, 0.95, 0); fov = 62;
+      pos = orbit(face + 0.5 - 0.1 * k, 0.6, 1.95); tgt = new THREE.Vector3(0, 1.15, 0); fov = 76;
     } else if (v < V_MTN) {
       // below you looking up as the rock starts to glow red
-      pos = orbit(face - 0.2, 1.5, -0.35); tgt = new THREE.Vector3(0, 1.45, 0); fov = 64;
+      pos = orbit(face - 0.4, 0.6, 1.95); tgt = new THREE.Vector3(0, 1.15, 0); fov = 76;
     } else if (v < V_LAPSE) {
-      // close in front as the wall caves in round you
+      // close on your face as the rock caves in on you
       const k = sh(V_MTN, V_LAPSE);
-      pos = orbit(face + 0.45 - 0.2 * k, 1.6, 1.2 - 0.1 * k); tgt = new THREE.Vector3(0, 0.85, 0); fov = 64;
+      pos = orbit(face + 0.45 - 0.2 * k, 0.58, 1.95); tgt = new THREE.Vector3(0, 1.15, 0); fov = 76;
     } else if (v < V_CORE) {
-      // the long drop: the layers rushing up, red then orange
+      // the long drop: from above, looking down the hole, red then orange
       const k = sh(V_LAPSE, V_CORE);
-      pos = orbit(face - 0.6 + 0.4 * k, 1.7, 0.7 + 0.4 * k); tgt = new THREE.Vector3(0, 0.95 + 0.2 * k, 0); fov = 64;
+      pos = orbit(face - 0.6 + 0.4 * k, 0.32, 3.0 - 0.3 * k); tgt = new THREE.Vector3(0, 0.2, 0); fov = 72;
     } else {
       // the core: below you looking up as it goes white
       const k = sh(V_CORE, T_SWITCH);
-      pos = orbit(face + 0.3 + 0.2 * k, 1.6, -0.35 - 0.2 * k); tgt = new THREE.Vector3(0, 1.2, 0); fov = 66;
+      pos = orbit(face + 0.3 + 0.2 * k, 0.4, 2.8); tgt = new THREE.Vector3(0, 0.4, 0); fov = 74;
     }
     const shake = (s.kick * 0.6 + 0.04 + 0.08 * smooth(V_MTN, V_MTN + 2, v) + 0.06 * smooth(V_LAPSE, V_CORE, v)) * 0.02;
     camB.position.copy(pos);

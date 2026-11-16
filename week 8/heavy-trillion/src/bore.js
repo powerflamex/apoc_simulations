@@ -18,7 +18,7 @@ import { makeGlows } from './glows.js';
 import { makeLayers, CAVE, SEWER_R, NMINE } from './layers.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
-export const RS = 2.0;
+export const RS = 0.95;                    // the hole: hardly wider than you (it's drawn jagged, 0.65-1.25 m)
 const LEN = 900;
 const OCT = [0.7, 2.6, 10, 40, 160, 640, 2560, 10240, 40960, 163840];
 
@@ -53,12 +53,14 @@ export function makeBore() {
     uSeenM: { value: 0 },                  // where the strata pattern is (m, wrapped)
     uSewerY: { value: -1e4 }, uCaveY: { value: -1e4 }, uMineY: { value: new Float32Array(NMINE).fill(-1e4) }, uMineA: { value: new Float32Array(NMINE) },
   };
-  const geo = new THREE.CylinderGeometry(RS, RS, LEN * 2, 96, 220, true);
+  const geo = new THREE.CylinderGeometry(RS, RS, LEN * 2, 72, 700, true);
+  // (rings packed close round you, sparse far off: y = LEN u³)
+  { const pa = geo.attributes.position; for (let i = 0; i < pa.count; i++) { const u = pa.getY(i) / LEN; pa.setY(i, LEN * u * u * u); } }
   const mat = new THREE.ShaderMaterial({
     uniforms: U,
     side: THREE.BackSide,
     vertexShader: /* glsl */ `
-      uniform float uCrush, uTime; varying vec3 vP;
+      uniform float uCrush, uTime, uSeenM; varying vec3 vP;
       float vh(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
       float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(vh(i), vh(i + vec2(1, 0)), f.x), mix(vh(i + vec2(0, 1)), vh(i + vec2(1, 1)), f.x), f.y); }
@@ -68,7 +70,13 @@ export function makeBore() {
         float a = atan(p.z, p.x);
         float near = exp(-p.y * p.y / 30.0);
         float bump = vn(vec2(a * 3.0, p.y * 0.5 + uTime * 3.0)) * 0.6 + 0.4;
-        p.xz *= 1.0 - uCrush * near * 0.32 * bump;
+        p.xz *= 1.0 - uCrush * near * 0.25 * bump;
+        // jagged: the rock you smash through breaks unevenly, lumps and ledges sticking in (they move with the rock)
+        float al = uSeenM - p.y;
+        vec2 cs = vec2(cos(a), sin(a));
+        float j = vn(cs * 1.6 + vec2(al * 0.45, -al * 0.3)) * 0.55 + vn(cs * 4.0 + vec2(-al * 1.3, al * 1.1)) * 0.3 + vn(cs * 9.0 + vec2(al * 3.0, al * 2.7)) * 0.15;
+        float ledge = smoothstep(0.55, 0.75, vn(vec2(al * 0.35, cs.x * 1.3 + cs.y * 0.7)));
+        p.xz *= max(0.66, 0.66 + 0.62 * j - 0.18 * ledge);
         vP = (modelMatrix * vec4(p, 1.0)).xyz;
         gl_Position = projectionMatrix * viewMatrix * vec4(vP, 1.0);
       }`,
@@ -115,8 +123,8 @@ export function makeBore() {
         for (int k = 0; k < ${NMINE}; k++) {
           float dy = vP.y - uMineY[k];
           float da = abs(mod(th - uMineA[k] + 3.14159, 6.28318) - 3.14159) * ${RS.toFixed(1)};
-          if (abs(dy) < 1.6 && da < 1.5) discard;
-          tunLight += exp(-max(abs(dy) - 1.6, 0.0) * 0.9) * exp(-max(da - 1.5, 0.0) * 0.8);   // the tunnel's light spilling out
+          if (abs(dy) < 1.4 && da < 0.85) discard;
+          tunLight += exp(-max(abs(dy) - 1.4, 0.0) * 0.9) * exp(-max(da - 0.85, 0.0) * 0.8);   // the tunnel's light spilling out
         }
         float ang = (th + 3.14159) / 6.2832;
         float circ = 6.2832 * ${RS.toFixed(1)};
@@ -257,11 +265,11 @@ export function makeBore() {
   for (let i = 0; i < NP; i++) {
     const water = false;
     // before your gravity: tumbling round you, wherever they were when the floor went
-    const r0 = 0.7 + R() * 1.1, a0 = R() * Math.PI * 2, y0 = -0.5 + R() * 3.0;
+    const r0 = 0.32 + R() * 0.3, a0 = R() * Math.PI * 2, y0 = -0.3 + R() * 2.4;
     // their orbit: a radius, a tilted plane (most near your waist level), a phase
-    const ro = 0.45 + Math.pow(R(), 0.7) * 1.05;
+    const ro = 0.33 + Math.pow(R(), 0.7) * 0.27;
     const tilt = (R() - 0.5) * 0.9, node = R() * Math.PI * 2;
-    P.push({ water, r0, a0, y0, ro, tilt, node, ph: R() * Math.PI * 2, cap: V_GRAV + R() * 2.2, s: 0.015 + Math.pow(R(), 2) * 0.04, spin: R() * 6, dr: (R() - 0.5) * 0.3, dy: (R() - 0.5) * 0.25 });
+    P.push({ water, r0, a0, y0, ro, tilt, node, ph: R() * Math.PI * 2, cap: 19.4 + R() * 3.0, s: 0.015 + Math.pow(R(), 2) * 0.04, spin: R() * 6, dr: (R() - 0.5) * 0.3, dy: (R() - 0.5) * 0.25 });
     if (!water) stones.setColorAt(i, cc.set(R() < 0.4 ? 0x8a857c : R() < 0.5 ? 0x5a5550 : R() < 0.5 ? 0x3a3530 : 0x9a9488));
   }
   // pieces torn off the wall at x1e11+ (they fly in along spirals and hit you)
@@ -299,11 +307,11 @@ export function makeBore() {
       const fc = new THREE.Color(1.0, 0.55, 0.2).lerp(new THREE.Color(1.0, 0.85, 0.6), smooth(0.8, 1.6, heat));
       U.uFeet.value.copy(fc).multiplyScalar(0.6 + 1.6 * heat);
       feetL.color.copy(fc); feetL.intensity = 3 + 7 * heat;
-      hot.scale.setScalar(0.55 + 0.3 * heat);
-      hotMat.color.copy(fc).multiplyScalar(1.1 + 0.7 * heat);
+      hot.scale.setScalar(0.32 + 0.12 * heat);
+      hotMat.color.copy(fc).multiplyScalar(0.7 + 0.35 * heat);
       topL.intensity = 60 * U.uTop.value;
       // the named layers, and their openings in the wall
-      layers.frame(v, depthFeet, U.uFeet.value, faceAng(V_KOLA) + 0.5 + Math.PI);
+      layers.frame(v, depthFeet, U.uFeet.value, faceAng(V_KOLA) + 0.5 + Math.PI + 0.6);
       const C = layers.CUTS;
       U.uSewerY.value = C.sewerY; U.uCaveY.value = C.caveY;
       U.uMineY.value.set(C.mineY); U.uMineA.value.set(C.mineA);
@@ -354,13 +362,13 @@ export function makeBore() {
       const RS2 = rng(7);
       const flow = Math.min(seenFlowAt(v), 200);
       for (let k = 0; k < 55; k++) {
-        const a = RS2() * 6.28, r = 0.15 + RS2() * 0.6 + RS2() * 0.6, life = 0.25 + RS2() * 0.5;
+        const a = RS2() * 6.28, r = 0.12 + RS2() * 0.3 + RS2() * 0.2, life = 0.25 + RS2() * 0.5;
         const ph = (v * (1 + RS2()) / life + RS2()) % 1;
         const up = ph * (1.5 + flow * 0.02) * (1 + RS2());
         const y = -0.1 + up;
         const b = (1 - ph) * heat * 1.4;
         if (v < V_SINK) continue;
-        const rr = r + ph * 0.4;
+        const rr = Math.min(r + ph * 0.2, 0.6);
         for (let j = 0; j < 3; j++) glows.add(Math.cos(a) * rr, y - j * 0.04 * (1 + flow * 0.01), Math.sin(a) * rr, 0.04, 1.4 * b, 0.6 * b, 0.15 * b);
       }
       // the splash as you plunge through the cave's lake: spray thrown up round you
@@ -368,7 +376,7 @@ export function makeBore() {
       if (lakeY > -0.3 && lakeY < 9) {
         const RS3 = rng(11), k = smooth(-0.3, 0.4, lakeY) * (1 - smooth(4, 9, lakeY));
         for (let i = 0; i < 140; i++) {
-          const a = RS3() * 6.28, r = 0.3 + RS3() * 1.5, up = RS3() * Math.min(lakeY + 0.3, 3.5) * (0.5 + RS3());
+          const a = RS3() * 6.28, r = 0.2 + RS3() * 0.45, up = RS3() * Math.min(lakeY + 0.3, 3.5) * (0.5 + RS3());
           const b = 0.5 * k * (0.5 + RS3());
           glows.add(Math.cos(a) * r, lakeY - up, Math.sin(a) * r, 0.05 + RS3() * 0.06, 0.8 * b, 0.95 * b, 1.0 * b);
         }

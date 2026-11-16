@@ -8,6 +8,7 @@
 //   x1e6     75,000 tons (68,000 t): a cruise ship's displacement (big ones are 50,000-100,000 t). Your weight on ~0.1 m²
 //            is ~6.7 GPa, 30x the crushing strength of granite (~0.2 GPa): rock can't hold you. The crushing force is
 //            only ~2e7 N against your 6.7e8 N weight (3%), so you fall almost freely: g t, as through air.
+//   x1e8     7.5 million tons (6.8e9 kg): about the Great Pyramid (5.9 Mt).
 //   x1e9     75 million tons (6.8e10 kg) = 11 Great Pyramids (5.9 Mt each). Your pull: G M / r² = 4.54 m/s² at 1 m
 //            (0.46 g, "half of Earth's"), 0.005 g at 10 m. The gravel and water that fell into the hole with you fall
 //            alongside you (free fall), so your own gravity pulls them in and they start to orbit you (at 1 m: 2.1 m/s,
@@ -35,23 +36,24 @@ export const V_CRACK = 3.5;                    // x100: the sidewalk breaks, you
 export const V_PUNCH = 6.0;                    // x1,000: you punch through into the station
 export const V_LAND = 6.97;                    // you hit the track bed
 export const V_SINK = 10.6;                    // x1e6: the floor gives; the free fall starts
-export const V_GRAV = 16.6;                    // x1e9: your own gravity
-export const V_ORBIT = 23.8;                   // x1e10: things orbit you
-export const V_WALLS = 27.0;                   // x1e11
-export const V_MTN = 30.0;                     // x1e12: a mountain
-export const V_LAPSE = 34.0;                   // the time-lapse down through the crust and mantle starts
+export const V_PYR = 16.8;                     // x1e8: as heavy as the Great Pyramid
+export const V_GRAV = 21.6;                    // x1e9: your own gravity, half of Earth's at 1 m
+export const V_ORBIT = 25.4;                   // x1e10: things orbit you
+export const V_WALLS = 28.8;                   // x1e11
+export const V_MTN = 32.5;                     // x1e12: a mountain
+export const V_LAPSE = 35.0;                   // the time-lapse down through the crust and mantle starts
 export const V_CORE = 41.5;                    // the core
 export const V_FLASH = 45.6;                   // the white starts
 export const T_SWITCH = 47.4;                  // full white: the loop point
 export const LOOP = 0.9;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
-export const HITS = [V_SNAP, V_CRACK, V_PUNCH, V_LAND, V_SINK, V_GRAV, V_ORBIT, V_WALLS, V_MTN, V_CORE];
+export const HITS = [V_SNAP, V_CRACK, V_PUNCH, V_LAND, V_SINK, V_PYR, V_GRAV, V_ORBIT, V_WALLS, V_MTN, V_CORE];
 
 // ---- your mass: log10 of the multiplier, linear between keys (a 0.5 s jump at each step, a creep between) ----
 const LK = [
   [-2, 0.2], [0.35, 0.62], [V_SNAP, 1.0], [V_CRACK - 0.5, 1.32], [V_CRACK, 2.0], [V_PUNCH - 0.5, 2.3], [V_PUNCH, 3.0],
-  [V_SINK - 0.5, 3.6], [V_SINK, 6.0], [V_GRAV - 0.5, 6.6], [V_GRAV, 9.0], [V_ORBIT - 0.5, 9.05], [V_ORBIT, 10.0],
-  [V_WALLS - 0.5, 10.3], [V_WALLS, 11.0], [V_MTN - 0.5, 11.4], [V_MTN, 12.0],
+  // from the station on, a steady climb (x10 every ~3-5 s) through the named points, no jumps
+  [V_LAND, 3.25], [V_SINK, 6.0], [V_PYR, 8.0], [V_GRAV, 9.0], [23.3, 9.15], [V_ORBIT, 10.0], [V_WALLS, 11.0], [V_MTN, 12.0],
 ];
 export function logMult(v) {
   if (v <= LK[0][0]) return LK[0][1];
@@ -111,14 +113,16 @@ export const CAPTIONS = [
   [3.05, 5.75, 'As heavy as an elephant. The sidewalk breaks.'],
   [6.3, 10.2, 'As heavy as a jet: you drop into the subway.'],
   [10.75, 13.4, 'As heavy as a cruise ship. Rock can’t hold you.'],
-  [13.6, 16.4, 'Solid bedrock barely slows you down.'],
-  [16.75, 19.5, 'As heavy as 11 Great Pyramids. Your gravity starts pulling rocks toward you.'],
-  [19.7, 22.6, 'A meter from you, your pull is already half of Earth’s.'],
-  [22.8, 26.0, 'Deeper than the deepest mine ever dug: 2.5 miles.'],
-  [26.2, 29.4, 'Deeper than the deepest hole ever drilled: 7.6 miles.'],
-  [30.4, 33.8, 'A sugar cube of you weighs a million tons.'],
-  [34.2, 37.6, 'Your gravity crushes the rock around you onto you.'],
-  [38.0, 41.3, 'Nothing can stop you. Minutes later…'],
+  [13.6, 16.5, 'Solid bedrock barely slows you down.'],
+  [16.8, 19.1, 'As heavy as the Great Pyramid.'],
+  [19.3, 21.4, 'You’re so heavy, your own gravity starts pulling rocks toward you.'],
+  [21.6, 23.3, 'A meter from you, it pulls half as hard as Earth.'],
+  [23.8, 25.8, 'Deeper than the deepest mine ever dug: 2.5 miles.'],
+  [26.0, 28.6, 'Deeper than the deepest hole ever drilled: 7.6 miles.'],
+  [28.8, 32.2, 'You keep getting heavier. The rock starts to glow.'],
+  [32.7, 35.6, 'A sugar cube of you weighs a million tons.'],
+  [35.9, 38.6, 'Your gravity crushes the rock around you onto you.'],
+  [38.8, 41.3, 'Nothing can stop you. Minutes later…'],
   [41.7, 45.3, 'You’d end up stuck at the center of the Earth.'],
 ];
 export function captionAt(v) {
