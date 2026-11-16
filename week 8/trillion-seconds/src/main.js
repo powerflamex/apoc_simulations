@@ -10,10 +10,14 @@ import { makeCity, CU, hazed } from './city.js';
 import { makeForest } from './forest.js';
 import { makeGhosts, ghostMatOf } from './ghosts.js';
 import { makeDeer } from './deer.js';
+import { makeAnimals } from './animals.js';
+import { makeWater } from './water.js';
+import { makeSmoke } from './smoke.js';
 import { makeYou } from './you.js';
 import { makeOverlay } from './overlay.js';
 import { YOU, YOU_FACE, CZ } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, BEATS, T_SWITCH } from './timeline.js';
+import { FALL } from './city.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, BEATS, T_SWITCH, V_CRACK, V_FALL, V_IMPACT } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 
 const W = 1080, H_PX = 1920, DEG = Math.PI / 180;
@@ -51,8 +55,21 @@ function camAt(v) {
   // aim past you, a little above the horizon (you stand low in the frame, the city over your shoulder)
   const tx = YOU.x + fx * 30 - rx * 1.5, tz = YOU.z + fz * 30 - rz * 1.5;
   const yaw = Math.atan2(-(tx - pos[0]), -(tz - pos[2]));
-  const pitch = keys([[-2, 4], [0, 4], [12, 5.5], [30, 7], [46, 7]], v) * DEG;
-  return { pos, yaw, pitch, fov: 62 };
+  let pitch = keys([[-2, 4], [0, 4], [12, 5.5], [30, 7], [46, 7]], v) * DEG;
+  let yw = yaw;
+  // the last tower: look up at it as it cracks, follow it down as it falls toward you
+  const w = smooth(22.7, 23.5, v) * (1 - smooth(25.7, 26.9, v));
+  if (w > 0 && FALL.P) {
+    const t = Math.min(1, Math.max(0, (v - V_FALL) / (V_IMPACT - V_FALL)));
+    const ang = 0.04 * smooth(V_CRACK, V_FALL, v) + (Math.PI / 2 - 0.09) * Math.pow(t, 2.2);
+    const r = FALL.h * 0.62;
+    const tx = FALL.P.x + FALL.d.x * Math.sin(ang) * r, ty = Math.cos(ang) * r, tz = FALL.P.z + FALL.d.z * Math.sin(ang) * r;
+    const dx = tx - pos[0], dz = tz - pos[2];
+    const tyaw = Math.atan2(-dx, -dz), tp = Math.atan2(ty - pos[1], Math.hypot(dx, dz));
+    let dy = tyaw - yw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+    yw += dy * w * 0.3; pitch = lerp(pitch, Math.min(tp, 13 * DEG), w);
+  }
+  return { pos, yaw: yw, pitch, fov: 62 + 10 * w };
 }
 const CAM_POS0 = (() => { const c = camAt(0); return new THREE.Vector3(c.pos[0], 0, c.pos[2]); })();
 
@@ -68,6 +85,9 @@ const city = makeCity(scene, ctx);
 const forest = makeForest(scene, ctx);
 const ghosts = makeGhosts(scene, ctx, CAM_POS0);
 const deer = makeDeer(scene, ghostMatOf(hazed), CAM_POS0);
+const animals = makeAnimals(scene, ctx, CAM_POS0);
+const water = makeWater(scene);
+const smoke = makeSmoke(scene, 400);
 // you: an orange hoodie, jeans; greying, stooped, a cane by 32 years
 const you = makeYou(scene, { hoodie: 0xe8641e, jeans: 0x2f4d7d, skin: 0xd59b72, hair: 0x2a1a10 });
 you.root.position.set(YOU.x, 0, YOU.z);
@@ -138,6 +158,9 @@ function update(v, cover = -1) {
   // the decade beats: a kick on each
   s.kick = 0;
   for (const t of BEATS) { const dt = v - t; if (dt > -0.05 && dt < 1.2) s.kick = Math.max(s.kick, smooth(-0.05, 0.04, dt) * Math.exp(-Math.max(dt, 0) / 0.3) * 0.5); }
+  // the tower: a tremble as it cracks, a big jolt when it lands
+  { const dt = v - V_IMPACT; if (dt > -0.05 && dt < 2.5) s.kick = Math.max(s.kick, smooth(-0.05, 0.03, dt) * Math.exp(-Math.max(dt, 0) / 0.45) * 1.1); }
+  if (v > V_CRACK && v < V_FALL + 0.4) s.kick = Math.max(s.kick, 0.12 * smooth(V_CRACK, V_CRACK + 0.2, v));
   if (window.__cover) s.kick = 0;
   const elDeg = s.sun.el / DEG;
 
@@ -181,18 +204,25 @@ function update(v, cover = -1) {
   hemi.groundColor.setRGB(0.5, 0.45, 0.4).lerp(new THREE.Color(0.85, 0.87, 0.9), snow * 0.7).lerp(new THREE.Color(0.25, 0.32, 0.15), s.soil * 0.7);
   renderer.toneMappingExposure = 1.08;
 
-  city.frame(v, s);
+  smoke.begin();
+  city.frame(v, s, smoke);
   ground.frame(s);
   forest.frame(v, s);
   ghosts.frame(v, s);
   deer.frame(v, s);
+  animals.frame(v, s);
+  water.frame(v, s);
+  smoke.end();
+  smoke.mat.uniforms.uTime.value = v;
+  smoke.mat.uniforms.uLight.value.copy(C(sc.sun)).multiplyScalar(1.1).add(new THREE.Color(0.35, 0.37, 0.4));
+  smoke.mat.uniforms.uSun.value.copy(SUN);
 
   // ---------- you ----------
   {
     const age = s.age;
     // little movements a time-lapse catches: a look round at each new thing, the weight shifting
-    const look = keys([[-2, 0], [3, 0], [4, 0.25], [9, 0.3], [10.5, -0.2], [16, 0.35], [21, -0.3], [28, 0.25], [35, -0.15], [42, 0.1], [50, 0.1]], v);
-    const up = keys([[-2, 0.02], [8, 0.02], [10, 0.25], [12, 0.1], [17, 0.3], [20, 0.05], [27, 0.2], [32, 0.05], [50, 0.05]], v);
+    const look = keys([[-2, 0], [3, 0], [4, 0.25], [9, 0.3], [10.5, -0.2], [16, 0.35], [21, -0.3], [22.6, -0.12], [25.6, -0.05], [27.6, -0.32], [29.6, -0.45], [31.6, 0.2], [33.2, 0.3], [34.8, 0.1], [37, 0.0], [42, 0.0], [43.4, 0.12], [46, 0.45], [50, 0.45]], v);
+    const up = keys([[-2, 0.02], [8, 0.02], [10, 0.25], [12, 0.1], [17, 0.3], [20, 0.05], [22.4, 0.08], [23.4, 0.32], [24.3, 0.42], [25.4, 0.06], [26.5, 0.0], [28.2, -0.14], [30, -0.1], [32, 0.02], [34.6, -0.16], [37.4, 0.0], [50, 0.0]], v);
     you.pose({ lift: [0, 0], lean: 0.17 * age, head: [-up + 0.18 * age, look], curl: 0.4 });
     you.M.hair.color.copy(HAIR0).lerp(HAIR1, age);
     you.root.updateMatrixWorld(true);

@@ -5,8 +5,9 @@
 // a concrete frame); the city empties (windows go dark, glass breaks, vines climb); it falls in, in chunks, its top
 // ragged and open; the ruin sinks to a mossy mound under the forest.
 import * as THREE from 'three';
-import { BLD, SIGNS, LAMPS, SIGNALS, CZ, CR } from './layout.js';
-import { vOfYears } from './timeline.js';
+import { BLD, SIGNS, LAMPS, SIGNALS, CZ, CR, FX, YOU, YOU_FACE } from './layout.js';
+import { vOfYears, V_CRACK, V_FALL, V_IMPACT } from './timeline.js';
+import { groundH } from './terrain.js';
 import { smooth, clamp, lerp, rng } from './util.js';
 
 export const CU = {
@@ -265,10 +266,68 @@ export function buildingAt(b, v, Y) {
   return { h, kind, col, cons, dark, jag, gen };
 }
 
+export const FALL = {};
 export function makeCity(scene, ctx) {
   const m4 = new THREE.Matrix4(), col = new THREE.Color();
   const q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   for (const b of BLD) { b.vSwap = vOfYears(b.ySwap); if (b.yNew) b.vNew = vOfYears(b.yNew); }
+  // ---- the last tower: the one up the avenue's east side most nearly in front of you. It stands (dark, vines up its
+  // walls, its top ragged) until 0:23, cracks and leans, goes over toward you at 0:24 and smashes into the trees
+  // 16 m in front of you at 0:25.5: a ridge of rubble that sinks into the soil, all but one big block, the last stone,
+  // which the river's mud buries at 0:34-0:37 ----
+  const FI = (() => {
+    const fx = Math.sin(YOU_FACE), fz = Math.cos(YOU_FACE);
+    let best = -1, bestA = 1e9;
+    BLD.forEach((b, i) => {
+      if (b.far || b.yNew || b.x < FX || Math.abs(b.x - b.w / 2 - FX) > 1.5 || b.z > -70 || b.z < -125) return;
+      const dx = b.x - YOU.x, dz = b.z - YOU.z;
+      const a = Math.atan2(fx * dz - fz * dx, fx * dx + fz * dz);    // (angle off your line of sight)
+      if (Math.abs(a - 0.1) < bestA) { bestA = Math.abs(a - 0.1); best = i; }
+    });
+    return best;
+  })();
+  const FB = BLD[FI];
+  {
+    const dx = YOU.x - FB.x, dz = YOU.z - FB.z, L = Math.hypot(dx, dz);
+    const d = new THREE.Vector3(dx / L, 0, dz / L);
+    const half = Math.abs(d.x) * FB.w / 2 + Math.abs(d.z) * FB.d / 2;
+    const P = new THREE.Vector3(FB.x + d.x * half, 0, FB.z + d.z * half);
+    const h = Math.hypot(YOU.x - P.x, YOU.z - P.z) - 16;
+    FB.hB = h; FB.kindB = 0; FB.colB = 0xb8b0a2;          // (a stone-clad tower: stone lasts)
+    FB.yFall = 1e12; FB.fallTower = true;
+    FALL.d = d; FALL.P = P; FALL.h = h; FALL.axis = new THREE.Vector3(d.z, 0, -d.x); FALL.w = Math.min(FB.w, FB.d);
+    FALL.top = P.clone().addScaledVector(d, h);
+    // (towers between you and it have already fallen in, so you see it go)
+    const fx = Math.sin(YOU_FACE), fz = Math.cos(YOU_FACE);
+    BLD.forEach((b) => {
+      if (b === FB || b.far) return;
+      const bx = b.x - YOU.x, bz = b.z - YOU.z, dist = Math.hypot(bx, bz);
+      const a = Math.atan2(fx * bz - fz * bx, fx * bx + fz * bz);
+      if (dist < Math.hypot(FB.x - YOU.x, FB.z - YOU.z) && Math.abs(a) < 0.45 && b.x > 0) { b.yFall = Math.min(b.yFall, 650); b.ruin = Math.min(b.ruin, 0.18); }
+    });
+  }
+  // the rubble: chunks of the tower's walls along where it fell; the last one (nearest you) is the last stone
+  const DEB = [];
+  {
+    const R = rng(808);
+    const N = 22;
+    for (let k = 0; k < N; k++) {
+      const f = 0.06 + 0.9 * (k + R() * 0.6) / N;
+      const lat = (R() - 0.5) * FALL.w * 0.7;
+      const c = FALL.P.clone().addScaledVector(FALL.d, FALL.h * f).add(new THREE.Vector3(FALL.d.z * lat, 0, -FALL.d.x * lat));
+      DEB.push({ x: c.x, z: c.z, sx: 3 + R() * 4, sy: 3 + R() * 3.5, sz: 3 + R() * 4, yaw: R() * 3.14, tilt: (R() - 0.5) * 0.9, seed: R(), last: false });
+    }
+    const c = FALL.P.clone().addScaledVector(FALL.d, FALL.h * 0.985);
+    DEB.push({ x: c.x - FALL.d.z * 2.5, z: c.z + FALL.d.x * 2.5, sx: 4.2, sy: 3.6, sz: 3.6, yaw: 0.5, tilt: 0.22, seed: 0.37, last: true });
+  }
+  const debGeo = new THREE.BoxGeometry(1, 1, 1, 1, 6, 1).translate(0, 0.5, 0);
+  const deb = new THREE.InstancedMesh(debGeo, facadeMaterial(), DEB.length);
+  const dS = new THREE.InstancedBufferAttribute(new Float32Array(DEB.length * 4), 4), dC = new THREE.InstancedBufferAttribute(new Float32Array(DEB.length * 3), 3), dR = new THREE.InstancedBufferAttribute(new Float32Array(DEB.length * 4), 4);
+  debGeo.setAttribute('aS', dS); debGeo.setAttribute('aCol', dC); debGeo.setAttribute('aR', dR);
+  DEB.forEach((c, i) => { col.set(FB.colB).convertSRGBToLinear(); dC.setXYZ(i, col.r, col.g, col.b); dS.setXYZW(i, (i * 0.31) % 1, 0, 0, 40); });
+  deb.frustumCulled = false; deb.castShadow = true; deb.receiveShadow = true;
+  scene.add(deb);
+  const qA = new THREE.Quaternion(), mP = new THREE.Matrix4(), mR = new THREE.Matrix4(), mB = new THREE.Matrix4();
   // ---- buildings ----
   const geo = new THREE.BoxGeometry(1, 1, 1, 1, 24, 1).translate(0, 0.5, 0);
   const n = BLD.length;
@@ -319,19 +378,32 @@ export function makeCity(scene, ctx) {
     ...SIGNALS.map((s, i) => ({ mesh: sigs, i, x: s.x, z: s.z, yaw: s.arm === 'x' ? (s.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (s.dir > 0 ? 0 : Math.PI) }))];
   {
     const R = rng(515);
-    for (const f of FURN) { f.yLean = Math.exp(Math.log(450) + R() * Math.log(1400 / 450)); f.yDown = f.yLean * (1.3 + R() * 0.8); f.yGone = f.yDown * (1.8 + R() * 0.6); f.tilt = R() * Math.PI * 2; }
+    for (const f of FURN) { f.yLean = Math.exp(Math.log(380) + R() * Math.log(750 / 380)); f.yDown = f.yLean * (1.25 + R() * 0.3); f.yGone = Math.min(f.yDown * 1.3, 1350); f.tilt = R() * Math.PI * 2; }
   }
 
   let lastSnow = -1;
   return {
     mesh,
-    frame(v, s) {
+    frame(v, s, smoke) {
       const Y = s.Y;
       for (let i = 0; i < n; i++) {
         const b = BLD[i];
         const st = buildingAt(b, v, Y);
+        if (b.fallTower) {
+          st.jag = 5; st.dark = Math.min(st.dark, 0.45);
+          if (v >= V_IMPACT) st.h = 0;
+        }
         if (st.h < 0.05) { mesh.setMatrixAt(i, hide); continue; }
         m4.makeScale(b.w, st.h, b.d).setPosition(b.x, -0.3, b.z);
+        if (b.fallTower && v > V_CRACK) {
+          // it cracks and leans (a shudder), then goes over, faster and faster
+          const lean = 0.04 * smooth(V_CRACK, V_FALL, v) + 0.006 * Math.sin(v * 37) * smooth(V_CRACK, V_CRACK + 0.3, v) * (1 - smooth(V_FALL, V_FALL + 0.2, v));
+          const t = Math.max(0, (v - V_FALL) / (V_IMPACT - V_FALL));
+          const ang = lean + (Math.PI / 2 - 0.05 - 0.04) * Math.pow(Math.min(t, 1), 2.2);
+          qA.setFromAxisAngle(FALL.axis, ang);
+          mP.makeTranslation(FALL.P.x, 0, FALL.P.z); mR.makeRotationFromQuaternion(qA); mB.makeTranslation(-FALL.P.x, 0, -FALL.P.z);
+          m4.premultiply(mB).premultiply(mR).premultiply(mP);
+        }
         mesh.setMatrixAt(i, m4);
         aS.setXYZW(i, (i * 0.6180339) % 1, st.kind, 0, st.gen ? b.hB : b.hA);
         col.set(st.col).convertSRGBToLinear();
@@ -358,13 +430,46 @@ export function makeCity(scene, ctx) {
         e.set(0, f.yaw, 0); q.setFromEuler(e);
         const qt = new THREE.Quaternion().setFromAxisAngle(p.set(Math.cos(f.tilt), 0, Math.sin(f.tilt)), down);
         q.premultiply(qt);
-        const sink = lsm(f.yDown, f.yGone, Y) * 0.5;
+        const sink = lsm(f.yDown, f.yGone, Y) * 0.9;
         m4.compose(p.set(f.x, -sink, f.z), q, sc.set(1, 1, 1));
         f.mesh.setMatrixAt(f.i, m4);
       }
       lamps.instanceMatrix.needsUpdate = true; sigs.instanceMatrix.needsUpdate = true;
       signMat.emissiveIntensity = 0.18;
       CU.uSnow.value = s.season.snow;
+      // the rubble: there from the impact; it settles into the ground (the river and the soil), the last stone last
+      for (let i = 0; i < DEB.length; i++) {
+        const c = DEB[i];
+        if (v < V_IMPACT) { deb.setMatrixAt(i, hide); continue; }
+        const sink = c.last ? s.bury : smooth(V_IMPACT + 3 + c.seed * 1.5, 33.5 + c.seed * 0.8, v);
+        if (sink > 0.995) { deb.setMatrixAt(i, hide); continue; }
+        const gy = groundH(c.x, c.z, s);
+        e.set(c.tilt, c.yaw, c.tilt * 0.6); q.setFromEuler(e);
+        m4.compose(p.set(c.x, gy - c.sy * (0.3 + 0.85 * sink), c.z), q, sc.set(c.sx, c.sy, c.sz));
+        deb.setMatrixAt(i, m4);
+        dR.setXYZW(i, 1, Math.min(0.55, s.vine * 0.3 + 0.4 * smooth(V_IMPACT + 2, 34, v)), 0, 0);
+        dS.setY(i, c.last ? 2 : 0);
+      }
+      deb.instanceMatrix.needsUpdate = true; dR.needsUpdate = true; dS.needsUpdate = true;
+      if (smoke) {
+        // dust: a little from the base as it goes, a great cloud along the line where it lands, settling
+        if (v > V_FALL && v < V_IMPACT + 0.2) {
+          const k = (v - V_FALL) / (V_IMPACT - V_FALL);
+          for (let j = 0; j < 8; j++) smoke.puff(FALL.P.x + (j - 4) * 3, 2 + j * 0.7, FALL.P.z + Math.sin(j * 2.3) * 4, 3 + 5 * k, 0.45 * k, 0.75, 0, j * 0.13);
+        }
+        const age = v - V_IMPACT;
+        if (age > -0.05 && age < 2.8) {
+          for (let j = 0; j < 46; j++) {
+            const f = 0.08 + 0.92 * (j % 23) / 22, a = age - (1 - f) * 0.12;
+            if (a < 0) continue;
+            const lat = (((j * 0.618) % 1) - 0.5) * FALL.w * 1.2;
+            const x = FALL.P.x + FALL.d.x * FALL.h * f + FALL.d.z * lat, z = FALL.P.z + FALL.d.z * FALL.h * f - FALL.d.x * lat;
+            const r = 3 + 5.5 * (1 - Math.exp(-a * 1.5)) + (j % 3) * 0.8;
+            const al = 0.55 * smooth(0, 0.08, a) * (1 - smooth(0.9, 2.6, a));
+            smoke.puff(x, 1.5 + r * 0.55 + (j > 22 ? r * 0.6 : 0), z, r, al, 0.78, 0, (j * 0.37) % 1);
+          }
+        }
+      }
     },
   };
 }

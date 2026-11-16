@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { AV, CZ, CR, YOU } from './layout.js';
 import { rng, smooth } from './util.js';
+import { groundH, riverX, waterHalfWidth } from './terrain.js';
 
 const N = 22, COPIES = 3;
 const lsm = (a, b, y) => smooth(Math.log10(a), Math.log10(b), Math.log10(Math.max(y, 1e-9)));
@@ -50,7 +51,8 @@ export function makeDeer(scene, ghostMat, camPos) {
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   return {
     frame(v, s) {
-      const share = lsm(450, 1300, s.Y);
+      const share = lsm(450, 1300, s.Y) * s.ghostFade * (s.real ? 0 : 1);
+      const whw = waterHalfWidth(s);
       const R = rng(Math.floor(v * 60 + 0.5) * 3571 + 5);
       for (const m of kinds) for (let i = 0; i < N * COPIES; i++) m.setMatrixAt(i, zero);
       for (let k = 0; k < N; k++) {
@@ -62,10 +64,12 @@ export function makeDeer(scene, ghostMat, camPos) {
         const yaw = R() * Math.PI * 2, kind = R() < 0.35 ? 1 : R() < 0.25 ? 2 : 0;
         const sc = 0.9 + R() * 0.2;
         if (!on || Math.hypot(x - camPos.x, z - camPos.z) < 4 || Math.hypot(x - YOU.x, z - YOU.z) < 2.5) continue;
+        if (whw > 0 && Math.abs(x - riverX(z, s.meander)) < whw + 0.6) continue;
+        const gy = groundH(x, z, s);
         for (let c = 0; c < COPIES; c++) {
           const st = kind === 1 ? 0.06 : 0.28;   // (grazing ones barely move)
           e.set(0, yaw, 0); q.setFromEuler(e);
-          m4.compose(p.set(x - Math.sin(yaw) * st * c, 0, z - Math.cos(yaw) * st * c), q, one.set(sc, sc, sc));
+          m4.compose(p.set(x - Math.sin(yaw) * st * c, gy, z - Math.cos(yaw) * st * c), q, one.set(sc, sc, sc));
           kinds[kind].setMatrixAt(k * COPIES + c, m4);
         }
       }

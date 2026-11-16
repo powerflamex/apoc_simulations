@@ -4,6 +4,9 @@
 import * as THREE from 'three';
 import { TREES, WILD } from './layout.js';
 import { smooth, clamp, lerp } from './util.js';
+import { groundH, riverX, RIVER } from './terrain.js';
+import { FALL } from './city.js';
+import { yearsAt, V_IMPACT } from './timeline.js';
 
 const lsm = (a, b, y) => smooth(Math.log10(a), Math.log10(b), Math.log10(Math.max(y, 1e-9)));
 
@@ -32,6 +35,13 @@ export function makeForest(scene, ctx) {
   const GREEN = [0x3f6e24, 0x4f7f2a, 0x356222, 0x5a8a30, 0x2f5a20, 0x47752c, 0x6a8a2c, 0x2a4a1c, 0x587a34].map((c) => new THREE.Color(c));
   const BARE = new THREE.Color(0x5a4636), SNOW = new THREE.Color(0xe4e8ee);
 
+  // trees under the falling tower are flattened; wild ones sprout again afterwards
+  const Y_IMP = yearsAt(V_IMPACT);
+  for (const t of ALL) {
+    const ax = t.x - FALL.P.x, az = t.z - FALL.P.z;
+    const along = ax * FALL.d.x + az * FALL.d.z, across = Math.abs(-ax * FALL.d.z + az * FALL.d.x);
+    t.crushed = along > -3 && along < FALL.h + 4 && across < FALL.w * 0.6 + (t.r || 2) * 0.5;
+  }
   return {
     frame(v, s) {
       const Y = s.Y, se = s.season;
@@ -45,22 +55,32 @@ export function makeForest(scene, ctx) {
           h = t.h * grow; r = t.r * (1 + 1.2 * lsm(400, 3000, Y));
           leaf = se.leaf; autumn = se.autumn; snow = se.snow;
         } else {
-          if (Y < t.yBorn * 0.98) { trunks.setMatrixAt(i, hide); for (let k = 0; k < 3; k++) crowns.setMatrixAt(i * 3 + k, hide); continue; }
-          const g = lsm(t.yBorn, t.yBorn * (t.near ? 4 : 3), Y);
+          if (t.crushed && v >= V_IMPACT && t.yBorn < Y_IMP * 1.3) t.yB2 = Y_IMP * (1.3 + t.seed); else t.yB2 = t.yBorn;
+          if (Y < t.yB2 * 0.98) { trunks.setMatrixAt(i, hide); for (let k = 0; k < 3; k++) crowns.setMatrixAt(i * 3 + k, hide); continue; }
+          const g = lsm(t.yB2, t.yB2 * (t.near ? 4 : 3), Y);
           h = t.hMax * Math.max(0.03, Math.pow(g, 0.85)); r = t.r * Math.max(0.03, g);
         }
+        if (t.street && t.crushed && v >= V_IMPACT) { trunks.setMatrixAt(i, hide); for (let k = 0; k < 3; k++) crowns.setMatrixAt(i * 3 + k, hide); continue; }
+        // the river washes out the trees in its way (it swings across its valley)
+        if (s.river > 0) {
+          const dx = Math.abs(t.x - riverX(t.z, s.meander));
+          const wash = smooth(0.15, 0.7, s.river) * (1 - smooth(RIVER.hw + 1.5, RIVER.hw + 3.5, dx)) * (t.z < 8 ? 1 : 0);
+          if (wash > 0.98) { trunks.setMatrixAt(i, hide); for (let k = 0; k < 3; k++) crowns.setMatrixAt(i * 3 + k, hide); continue; }
+          h *= 1 - wash; r *= 1 - wash;
+        }
+        const gy = groundH(t.x, t.z, s);
         const lean = (t.seed - 0.5) * 0.12;
         e.set(lean, t.seed * 6.28, 0); q.setFromEuler(e);
         const tw = t.street ? 1 + 1.5 * lsm(400, 3000, Y) : t.bush ? 0.5 : 1.2 + h * 0.13;
         const trunkH = t.bush ? 0.01 : h * (t.street ? 0.75 : 0.55);
-        trunks.setMatrixAt(i, m4.compose(p.set(t.x, 0, t.z), q, sc.set(tw, trunkH, tw)));
+        trunks.setMatrixAt(i, m4.compose(p.set(t.x, gy - 0.2, t.z), q, sc.set(tw, trunkH + 0.2, tw)));
         // the crown: three lumps, the leaves thin out in winter (bare twigs: small and brown)
         const lr = r * (0.35 + 0.65 * leaf);
         for (let k = 0; k < 3; k++) {
           const rr = lr * (k === 0 ? 1 : k === 1 ? 0.75 : 0.62);
           const a = t.seed * 9 + k * 2.1, o = k === 0 ? 0 : 0.5 * r;
           const yc = t.bush ? rr * 0.5 : trunkH + rr * 0.45 + (k === 1 ? r * 0.35 : k === 2 ? -r * 0.15 : 0);
-          crowns.setMatrixAt(i * 3 + k, m4.makeScale(rr, rr * (t.bush ? 0.7 : 0.85), rr).setPosition(t.x + o * Math.cos(a), yc, t.z + o * Math.sin(a)));
+          crowns.setMatrixAt(i * 3 + k, m4.makeScale(rr, rr * (t.bush ? 0.7 : 0.85), rr).setPosition(t.x + o * Math.cos(a), gy + yc, t.z + o * Math.sin(a)));
           col.copy(GREEN[Math.floor(((t.seed * 7 + k * 0.37) % 1) * GREEN.length)]);
           if (autumn > 0) col.lerp(AUT[Math.floor(((t.seed * 5 + k * 0.29) % 1) * AUT.length)], autumn);
           col.lerp(BARE, clamp(1 - leaf));

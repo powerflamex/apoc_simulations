@@ -3,12 +3,14 @@
 // The street corner, sped up: the crowd's murmur and the traffic racing faster and higher as time speeds up, smearing
 // into one rushing wash. Every 10x lands as a deep soft "whoomp" while a low drone climbs a semitone. A cold wind in
 // the winters; the city's hum thinning out as the people leave; then birdsong and leaves in the forest; a warm chord
-// at "You're old" and at the finish; a riser into the white flash (and back into the street: it loops).
+// at "You're old" and at the finish; the last tower's groan and crash, the river coming back, a wolf's howl; at
+// the finish line the time-lapse rush stops dead and you hear the forest at normal speed; a riser into the white flash
+// (and back into the street: it loops).
 // No sharp clicks or crackles anywhere: every impact is a soft, low thud.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { state, VIDEO_DURATION, LOOP, BEATS, T_SWITCH, V_FLASH, V_END, logS } from './src/timeline.js';
+import { state, VIDEO_DURATION, LOOP, BEATS, T_SWITCH, V_FLASH, V_END, logS, V_CRACK, V_FALL, V_IMPACT, V_RIVER, V_ANIMALS, V_REAL } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -70,6 +72,7 @@ export function makeSoundtrack(outFile) {
   const trafLP = new OnePole(220), trafF = new SVF(), rushF = [new SVF(), new SVF()], whoompF = new SVF(), padLP = new OnePole(700);
   const windF = [new SVF(), new SVF()], windE = new OnePole(0.6), leafF = [new SVF(), new SVF()], leafE = new OnePole(1.5);
   const riseF = [new SVF(), new SVF()];
+  const groanF = new SVF(), crashF = [new SVF(), new SVF()], crashSub = new OnePole(45), rumF = [new SVF(), new SVF()], rivF = [new SVF(), new SVF()], rivE = new OnePole(3), howlLP = new OnePole(1800);
   const revL = new Reverb(11), revR = new Reverb(12);
   const ph = new Float64Array(64);
   // birds: a list of chirps (time, pitch, length, pan), more of them as the forest grows
@@ -89,7 +92,7 @@ export function makeSoundtrack(outFile) {
     if (n % 48 === 0) s = state(v);
     let l = 0, r = 0, wet = 0, dl = 0, dr = 0;
     const fast = clamp((Math.log10(Math.max(s.rate, 1)) - 3.0) / 6);   // 0 at frame 0's pace .. 1 at years per second
-    const end = 1 - smooth(V_END + 0.2, V_END + 1.6, v);               // the rush settles once the counter lands
+    const end = 1 - smooth(V_REAL - 0.25, V_REAL + 0.05, v);           // the rush stops dead at the finish line
 
     // --- the corner, sped up: the crowd's murmur, the traffic; smearing into one wash ---
     {
@@ -160,6 +163,44 @@ export function makeSoundtrack(outFile) {
         let cv = 0;
         chord.forEach((f, q) => { ph[30 + q] += f / SR; cv += Math.sin(TAU * ph[30 + q]) * (q === 0 ? 1 : 0.6); });
         l += cv * e; r += cv * e; wet += cv * e * 1.6;
+      }
+    }
+    // --- the last tower: a low groan as it cracks and leans, a deep crash when it lands, rumbling rubble ---
+    {
+      const g = smooth(V_CRACK, V_CRACK + 0.4, v) * (1 - smooth(V_IMPACT - 0.1, V_IMPACT + 0.1, v));
+      if (g > 0.001) {
+        ph[44] += (38 + 10 * Math.sin(v * 2.1) + 18 * smooth(V_FALL, V_IMPACT, v)) / SR;
+        const gr = (saw(ph[44]) * 0.4 + groanF.run(white(), 140 + 220 * smooth(V_FALL, V_IMPACT, v), 2.5).bp * 1.2) * g * 0.12 * (0.6 + 0.4 * smooth(V_FALL, V_IMPACT, v));
+        l += gr; r += gr; wet += gr * 0.4;
+      }
+      const dt = v - V_IMPACT;
+      if (dt > -0.02 && dt < 4.5) {
+        ph[45] += (30 + 34 * Math.exp(-Math.max(dt, 0) * 3)) / SR;
+        const e = Math.min(Math.max(dt + 0.02, 0) / 0.05, 1) * Math.exp(-Math.max(dt, 0) * 1.3);
+        const sub = crashSub.run(white()) * 3;
+        const vv = (Math.sin(TAU * ph[45]) * 0.9 + crashF[0].run(white(), 90 + 260 * Math.exp(-Math.max(dt, 0) * 2), 0.6).lp * 1.2 + sub) * e * 0.22;
+        const rum = smooth(0.1, 0.5, dt) * (1 - smooth(1.5, 4.5, dt)) * 0.12;
+        dl += vv; dr += vv; wet += vv * 0.5;
+        l += rumF[0].run(white(), 160, 0.6).lp * rum + crashF[1].run(white(), 900, 0.8).bp * rum * 0.4; r += rumF[1].run(white(), 175, 0.6).lp * rum;
+      }
+    }
+    // --- the river: a steady murmur from the moment the stream comes back ---
+    {
+      const g = smooth(V_RIVER[0] + 0.3, V_RIVER[1], v) * (1 - smooth(T_SWITCH - 0.4, T_SWITCH, v));
+      if (g > 0.001) {
+        const am = rivE.run(0.7 + 0.3 * Math.sin(v * 5.3) * Math.sin(v * 2.9) + 0.2 * white());
+        l += rivF[0].run(white(), 1100 + 250 * Math.sin(v * 1.3), 0.45).bp * 0.07 * g * am; r += rivF[1].run(white(), 1250 + 250 * Math.sin(v * 1.1), 0.45).bp * 0.07 * g * am;
+      }
+    }
+    // --- a wolf howls (a soft, rising and falling tone, far off) ---
+    for (const [t0, pan] of [[V_ANIMALS + 1.0, -0.4], [V_REAL + 1.8, 0.3]]) {
+      const dt = v - t0;
+      if (dt > 0 && dt < 2.4) {
+        const k = dt / 2.4, e = Math.sin(Math.PI * Math.min(1, dt / 0.35)) * 0 + smooth(0, 0.3, dt) * (1 - smooth(1.6, 2.4, dt)) * 0.03;
+        const f = 380 + 260 * Math.sin(Math.PI * Math.min(1, k * 1.4)) - 80 * k;
+        ph[48] += f * (1 + 0.012 * Math.sin(v * 31)) / SR;
+        const hv = howlLP.run(Math.sin(TAU * ph[48]) + 0.25 * Math.sin(2 * TAU * ph[48])) * e;
+        l += hv * (1 - pan); r += hv * (1 + pan); wet += hv * 2.5;
       }
     }
     // --- the riser into the white flash ---

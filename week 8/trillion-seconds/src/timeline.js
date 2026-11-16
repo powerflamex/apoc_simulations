@@ -67,6 +67,15 @@ export const LOOP = 0.9;                         // the white clears onto the fi
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 // the decade beats: a camera kick and a deep whoomp on each
 export const BEATS = [3.0, 5.6, 8.4, 12.0, 19.0, 27.0, 42.0];
+// the last 24 s, a new thing every 4-5 s:
+export const V_CRACK = 23.2;                     // the last tower near you cracks and leans
+export const V_FALL = 24.1;                      // it goes over, toward you
+export const V_IMPACT = 25.45;                   // it smashes into the trees in front of you (dust, a shake)
+export const V_RIVER = [27.2, 29.9];             // the stream buried under the avenue comes back and cuts a valley
+export const V_ANIMALS = 31.3;                   // wolves, black bears and elk move in
+export const V_BURY = [34.3, 37.2];              // river mud buries the last stone of the city
+export const V_MEANDER = [36.5, 41.6];           // the river swings across its valley
+export const V_REAL = 42.0;                      // the finish line: time runs at normal speed again
 
 // ---- seasons: day of the year (0 = Jan 1); frame 0 is October 10 ----
 const DOY0 = 283, LOCK_DOY = 175;               // the locked day: late June
@@ -112,12 +121,14 @@ export const CAPTIONS = [
   [12.05, 15.2, '1 billion seconds = 32 years. You’re old.'],
   [15.6, 18.7, 'Every building you know is torn down and rebuilt.'],
   [19.05, 22.3, '10 billion seconds = 317 years. A whole new city.'],
-  [22.7, 26.6, 'Then the people leave. Nature moves in.'],
-  [27.05, 30.4, '100 billion seconds = 3,170 years. Trees grow through the street.'],
-  [30.8, 34.0, 'The ruins sink into the forest.'],
-  [34.5, 37.8, 'No ice age yet: the next is 50,000+ years away.'],
-  [38.2, 41.6, '1 trillion seconds ago, people were painting caves.'],
-  [42.05, 44.9, '1 trillion seconds = 31,700 years. You’re still here.'],
+  [22.4, 24.6, 'Then the people leave. Nature moves in.'],
+  [25.7, 27.0, 'The last tower falls.'],
+  [27.15, 30.9, '100 billion seconds = 3,170 years. The stream buried under your street comes back.'],
+  [31.5, 34.1, 'Wolves, bears and elk move back in.'],
+  [34.4, 36.9, 'River mud buries the last stone of your city.'],
+  [37.15, 39.5, 'No ice age yet: the next is 50,000+ years away.'],
+  [39.75, 41.85, '1 trillion seconds ago, people were painting caves.'],
+  [42.05, 45.0, 'All of written history is about 5,000 years. You just lived 6 times that.'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {
@@ -156,6 +167,13 @@ export function state(v) {
   s.wild = lsm(360, 1800, Y);                // weeds and grass through the cracks
   s.soil = lsm(1800, 9000, Y);               // the forest floor covers everything
   s.furn = lsm(500, 1600, Y);                // street furniture leaning and falling
+  // the last 24 s
+  s.river = smooth(V_RIVER[0], V_RIVER[1], v);
+  s.meander = smooth(V_MEANDER[0], V_MEANDER[1], v);
+  s.bury = smooth(V_BURY[0], V_BURY[1], v);
+  s.animals = smooth(V_ANIMALS - 0.3, V_ANIMALS + 0.6, v);
+  s.real = v >= V_REAL ? 1 : 0;                // after the finish line: no more time-lapse ghosts, real animals walking
+  s.ghostFade = 1 - smooth(41.2, 41.95, v);    // (the time-lapse thins out as the clock slows into the finish)
   // the end
   s.flash = smooth(V_FLASH, T_SWITCH - 0.05, v);
   s.title = 1 - smooth(2.5, 2.95, v);

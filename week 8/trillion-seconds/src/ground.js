@@ -5,9 +5,12 @@
 import * as THREE from 'three';
 import { AV, FX, CZ, CR, FZ, XWALK_S, XWALK_N, XWALK_E, XWALK_W } from './layout.js';
 import { hazed } from './city.js';
+import { GLSL_TERRAIN, PATCH } from './terrain.js';
+import { smooth } from './util.js';
 
 export const GU = {
   uSnow: { value: 0 }, uWild: { value: 0 }, uSoil: { value: 0 }, uEra: { value: 0 },
+  uRiver: { value: 0 }, uMeander: { value: 0 }, uSoilH: { value: 0 },
 };
 const f = (x) => x.toFixed(2);
 
@@ -16,13 +19,29 @@ export function makeGround(scene) {
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader, r) => {
     Object.assign(shader.uniforms, GU);
+    // the ground bends into the river valley and the mounds (terrain.js); the normal from the slope
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vGW;')
+      .replace('#include <common>', `#include <common>
+        varying vec3 vGW; varying float vBed;
+        ${GLSL_TERRAIN}`)
+      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+        {
+          vec2 P0 = (modelMatrix * vec4(position, 1.0)).xz;
+          float hx = groundH(P0 + vec2(0.4, 0.0)) - groundH(P0 - vec2(0.4, 0.0));
+          float hz = groundH(P0 + vec2(0.0, 0.4)) - groundH(P0 - vec2(0.0, 0.4));
+          objectNormal = normalize(vec3(-hx / 0.8, 1.0, -hz / 0.8));
+        }`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        {
+          vec2 P0 = (modelMatrix * vec4(position, 1.0)).xz;
+          transformed.y += groundH(P0);
+          vBed = riverDepth(P0);
+        }`)
       .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
         vGW = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
-        varying vec3 vGW;
+        varying vec3 vGW; varying float vBed;
         uniform float uSnow; uniform float uWild; uniform float uSoil; uniform float uEra;
         float g21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -106,18 +125,29 @@ export function makeGround(scene) {
         // the forest floor: leaf litter and moss under the trees
         vec3 floorC = mix(vec3(0.17, 0.13, 0.08), vec3(0.14, 0.22, 0.07), fb(P * 0.5)) * (0.8 + 0.4 * gn(P * 5.0));
         c = mix(c, floorC, uSoil * smoothstep(0.0, 0.4, uSoil + fb(P * 0.3) * 0.5 - 0.2));
+        // the river valley: bare earth banks, wet mud and pebbles on the bed
+        float bank = smoothstep(0.05, 0.5, vBed);
+        vec3 earth = mix(vec3(0.3, 0.22, 0.14), vec3(0.22, 0.17, 0.11), gn(P * 1.3));
+        vec3 bed = mix(vec3(0.16, 0.14, 0.11), vec3(0.34, 0.31, 0.26), step(0.62, gn(P * 4.0))) * (0.8 + 0.3 * gn(P * 9.0));
+        c = mix(c, earth, bank * 0.85);
+        c = mix(c, bed, smoothstep(1.2, 2.0, vBed));
         diffuseColor.rgb = c;
       `)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = road ? mix(0.72 + 0.15 * gn(P * 2.0) - paint * 0.1, 0.95, max(uWild, uSnow * 0.5)) : 0.85;`);
     prev(shader, r);
   };
-  mat.customProgramCacheKey = () => 'ts-ground-v1';
-  const geo = new THREE.PlaneGeometry(2400, 2400, 1, 1).rotateX(-Math.PI / 2);
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(0, 0, CZ);
+  mat.customProgramCacheKey = () => 'ts-ground-v2';
+  // the patch that can change shape (finely divided), and flat ground round it out to the horizon
+  const PW = PATCH.x1 - PATCH.x0, PD = PATCH.z1 - PATCH.z0;
+  const patch = new THREE.PlaneGeometry(PW, PD, Math.round(PW / 0.8), Math.round(PD / 0.8)).rotateX(-Math.PI / 2).translate((PATCH.x0 + PATCH.x1) / 2, 0, (PATCH.z0 + PATCH.z1) / 2);
+  const R = 1400, cz = CZ;
+  const rect = (x0, x1, z0, z1) => new THREE.PlaneGeometry(x1 - x0, z1 - z0, 1, 1).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
+  const outer = [rect(-R, R, cz - R, PATCH.z0), rect(-R, R, PATCH.z1, cz + R), rect(-R, PATCH.x0, PATCH.z0, PATCH.z1), rect(PATCH.x1, R, PATCH.z0, PATCH.z1)];
+  const mesh = new THREE.Mesh(patch, mat);
   mesh.receiveShadow = true;
   scene.add(mesh);
+  for (const g of outer) { const m = new THREE.Mesh(g, mat); m.receiveShadow = true; scene.add(m); }
   // the curbs (left open at the crosswalks); they sink under the soil
   const curbMat = hazed(new THREE.MeshStandardMaterial({ color: 0x8e8a84, roughness: 0.8 }));
   const curbs = [];
@@ -143,9 +173,12 @@ export function makeGround(scene) {
     frame(s) {
       GU.uSnow.value = s.season.snow * (1 - s.wild);
       GU.uWild.value = s.wild; GU.uSoil.value = s.soil; GU.uEra.value = s.eraB;
-      cg.visible = s.soil < 0.6;
-      cg.position.y = -0.15 * s.soil / 0.6;
-      curbMat.color.setHex(0x8e8a84).lerp(new THREE.Color(0x2c3a1c), s.vine);
+      GU.uRiver.value = s.river; GU.uMeander.value = s.meander; GU.uSoilH.value = s.soil;
+      // (the curbs crack and sink under the grass as the street goes wild)
+      const sinkC = smooth(0.25, 0.75, s.wild);
+      cg.visible = sinkC < 0.999;
+      cg.position.y = -0.17 * sinkC;
+      curbMat.color.setHex(0x8e8a84).lerp(new THREE.Color(0x5a6a3a), s.wild * 0.6);
     },
   };
 }

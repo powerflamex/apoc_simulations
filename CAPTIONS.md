@@ -2164,27 +2164,35 @@ shorter scale. The counter: SECONDS racing up from 2,511 on frame 0, with its fi
 one busy street corner the whole video, seen over your shoulder at eye level. What you see, in order: 0:00 the corner on an
 October afternoon, autumn trees, crowds and cars streaking past as see-through time-lapse ghosts, you sharp in the middle of
 it; the title. 0:03 "1 million seconds = 12 days." The leaves fall, 0:05 snow on everything, bare trees; "10 million seconds
-= 4 months. A whole winter." 0:06-0:10 the seasons flash past (green, autumn, snow again). 0:08.5 "100 million seconds = 3
-years. New towers rise." (glass towers go up on the skyline, your hair starts to grey). 0:12 "1 billion seconds = 32 years.
-You're old." (white hair, a stoop, a cane). 0:13-0:19 every building round the corner drops floor by floor and a new one
-rises in its place: the new city's white towers with garden terraces, paler cars; "Every building you know is torn down and
-rebuilt." 0:19 "10 billion seconds = 317 years. A whole new city." 0:20-0:27 the people and cars thin out and are gone, the
-windows go black, vines climb the walls, the lamps and signals lean and fall, grass breaks up the road, young trees come up
-through it, deer graze in the street; "Then the people leave. Nature moves in." 0:27 "100 billion seconds = 3,170 years.
-Trees grow through the street." The towers fall in, in chunks, ragged and open. 0:31 "The ruins sink into the forest."
-0:34 "No ice age yet: the next is 50,000+ years away." 0:38 "1 trillion seconds ago, people were painting caves." 0:42 the
-counter lands on 1,000,000,000,000; you, old, with your cane, in a forest; "1 trillion seconds = 31,700 years. You're still
-here." 0:45 white; it clears onto frame 0.
+= 4 months. A whole winter." 0:06-0:09 the seasons flash past. 0:08.5 "100 million seconds = 3 years. New towers rise."
+(glass towers go up on the skyline, your hair starts to grey). 0:12 "1 billion seconds = 32 years. You're old." (white
+hair, a stoop, a cane). 0:13-0:19 every building round the corner drops floor by floor and a new one rises in its place: the
+new city's white towers with garden terraces; "Every building you know is torn down and rebuilt." 0:19 "10 billion seconds =
+317 years. A whole new city." 0:20-0:23 the people and cars thin out and are gone, windows go black, vines climb the walls,
+grass breaks up the road, deer graze in the street; "Then the people leave. Nature moves in." 0:23 the last tower up the
+avenue cracks and leans (you look up at it), 0:24 it goes over toward you and smashes into the trees 16 m in front of you:
+a jolt, a deep crash, a wall of dust; "The last tower falls." 0:27 the stream that was piped under the avenue comes back and
+cuts a valley down the street past you, water running in it; "100 billion seconds = 3,170 years. The stream buried under
+your street comes back." 0:31 wolves, black bears and elk among the deer on the banks; "Wolves, bears and elk move back in."
+0:34 the last big block of the tower sinks into the riverbank; "River mud buries the last stone of your city." 0:36-0:42 the
+river swings across its valley, the forest closes in; "No ice age yet: the next is 50,000+ years away." "1 trillion seconds
+ago, people were painting caves." 0:42 the counter lands on 1,000,000,000,000 and time runs at normal speed again: the
+ghosts are gone, the river runs, a wolf howls, and a real elk walks up out of the river and past you; "All of written history
+is about 5,000 years. You just lived 6 times that." 0:45 white; it clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`): a year of 31,557,600 s, so 1 million s = 11.6 days, 10 million = 116
 days, 100 million = 3.17 years, 1 billion = 31.7 years, 10 billion = 317 years, 100 billion = 3,169 years, 1 trillion =
-31,688 years (~31,700). Ice age: without people the next one was ~50,000 years off (Earth's orbit is nearly round right
-now), and the carbon we've already added pushes it later (Ganopolski, Winkelmann & Schellnhuber, Nature 2016), so none comes
-within 31,700 years. Cave paintings: Chauvet Cave's art is ~37,000-28,000 years old. Most city buildings stand 50-100 years,
-so in 317 years all of them have been replaced. Honest notes: the city emptying out is a story choice, not a prediction (the
-caption says only "Then the people leave"); the time-lapse is shot at 1:30 PM every day and, once a frame spans months, on
-the same summer day each year (so it never strobes); people, cars and deer are see-through ghosts the way a time-lapse
-catches them; you stop ageing at "old" (the premise is that you live that long).
+31,688 years (~31,700). Writing began ~5,200 years ago (Sumer and Egypt, ~3200 BC): 31,700 / 5,200 = 6.1. Ice age: without
+people the next one was ~50,000 years off (Earth's orbit is nearly round right now), and the carbon we've already added
+pushes it later (Ganopolski, Winkelmann & Schellnhuber, Nature 2016), so none comes within 31,700 years. Cave paintings:
+Chauvet Cave's art is ~37,000-28,000 years old. Most city buildings stand 50-100 years, so in 317 years all of them have been
+replaced. Gray wolves, black bears and elk all lived in the north-eastern US before the cities (the eastern elk was hunted
+out in the 1800s); bison are left out (they were rare that far east). Many cities buried their streams in pipes under the
+streets. Honest notes: the city emptying out is a story choice, not a prediction (the caption says only "Then the people
+leave"); the tower's fall is drawn over about 1.3 s (in a time-lapse this fast it would be over within one frame); the
+time-lapse is shot at 1:30 PM every day and, once a frame spans months, on the same summer day each year (so it never
+strobes); people, cars and animals are see-through ghosts the way a time-lapse catches them until the counter lands; you
+stop ageing at "old" (the premise is that you live that long).
 
 **YouTube title (81 chars)**
 What if you lived for 1 trillion seconds? That's 31,700 years ⏳ #whatif #science
@@ -2195,16 +2203,17 @@ You stand on one busy street corner and never move. Time speeds up around you.
 1 million seconds = 12 days.
 1 billion seconds = 32 years. You're old.
 10 billion seconds = 317 years. Every building you knew has been torn down and rebuilt.
-100 billion seconds = 3,170 years. Trees grow through the street.
-1 trillion seconds = 31,700 years. The city is a forest, and there's still no ice age: the next one is 50,000+ years away.
+Then the people leave, and the last tower falls.
+100 billion seconds = 3,170 years. The stream buried under your street comes back. Wolves, bears and elk move in.
+1 trillion seconds = 31,700 years. Still no ice age: the next one is 50,000+ years away.
 
-1 trillion seconds ago, people were painting caves.
+All of written history is about 5,000 years. You just lived 6 times that.
 
 How many seconds old are you? 👇
 
 #whatif #science #time #simulation
 
-Cover: `week 8/trillion-seconds/out/trillion-seconds_v4_cover.png` (`node render.mjs --cover 24.5`: you, white-haired with your cane, in the old avenue gone to meadow, deer grazing, the towers green with moss; "WHAT IF YOU LIVED FOR / 1 trillion / seconds?")
+Cover: `week 8/trillion-seconds/out/trillion-seconds_v4_cover.png` (`node render.mjs --cover 25.25`: the last tower tipping over toward you, its broken windows overhead, you white-haired with your cane in the overgrown avenue, deer ghosts in the meadow; "WHAT IF YOU LIVED FOR / 1 trillion / seconds?")
 
 ## Next Short. What if you were 1 trillion times heavier? — `week 8/heavy-trillion/out/heavy-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
