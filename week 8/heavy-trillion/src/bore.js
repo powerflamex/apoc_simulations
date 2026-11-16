@@ -11,8 +11,11 @@
 // gravity pulls them in and they orbit you (angular speed sqrt(GM / r³), from timeline's real GM, capped for sight);
 // from V_MTN pieces torn off the wall stream in onto you; sparks of glowing rock stream up from your feet.
 import * as THREE from 'three';
-import { V_SINK, V_GRAV, V_ORBIT, V_WALLS, V_MTN, GMAt, depthAt, speedAt, rateAt, D_STATION } from './timeline.js';
+import { V_SINK, V_GRAV, V_ORBIT, V_WALLS, V_MTN, V_KOLA, GMAt, depthAt, speedAt, rateAt, D_STATION } from './timeline.js';
+// the angle round the shaft your face points at (main.js turns you slowly: yaw = PI/2 - 0.35 + 0.06 (v - V_SINK))
+export const faceAng = (v) => 0.35 - 0.06 * (v - V_SINK);
 import { makeGlows } from './glows.js';
+import { makeLayers, CAVE, SEWER_R, NMINE } from './layers.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 export const RS = 2.0;
@@ -21,17 +24,18 @@ const OCT = [0.7, 2.6, 10, 40, 160, 640, 2560, 10240, 40960, 163840];
 
 // where the wall's pattern is: the real flow (m of hole per video second), eased off above F0 so it streams instead of
 // flickering; tabulated over the video
-const F0 = 120, FCAP = 260;
-const seenFlow = (f) => (f <= F0 ? f : F0 + (FCAP - F0) * (1 - Math.exp(-(f - F0) / (FCAP - F0))));
+// (through the named layers the rock streams at a readable 12-30 m/s; in the mantle time-lapse it may race)
+const capAt = (v) => 14 + 16 * smooth(21.0, 22.0, v) + 90 * smooth(29.0, 32.0, v);
+const seenFlowV = (f, v) => { const F0 = 0.4 * capAt(v), FCAP = capAt(v); return f <= F0 ? f : F0 + (FCAP - F0) * (1 - Math.exp(-(f - F0) / (FCAP - F0))); };
 const flowAt = (v) => (v < V_SINK ? 0 : speedAt(v) * rateAt(v));
 const SDT = 1 / 240, SV0 = V_SINK - 0.5;
 const ST = new Float64Array(Math.ceil((60 - SV0) / SDT) + 2);
-{ let x = 0; for (let i = 0; i < ST.length; i++) { ST[i] = x; x += seenFlow(flowAt(SV0 + (i + 0.5) * SDT)) * SDT; } }
+{ let x = 0; for (let i = 0; i < ST.length; i++) { ST[i] = x; const vv = SV0 + (i + 0.5) * SDT; x += seenFlowV(flowAt(vv), vv) * SDT; } }
 export function seenAt(v) {
   const x = (v - SV0) / SDT, i = clamp(Math.floor(x), 0, ST.length - 2), f = clamp(x - i, 0, 1);
   return ST[i] + (ST[i + 1] - ST[i]) * f;
 }
-export const seenFlowAt = (v) => seenFlow(flowAt(v));
+export const seenFlowAt = (v) => seenFlowV(flowAt(v), v);
 
 export function makeBore() {
   const scene = new THREE.Scene();
@@ -46,6 +50,8 @@ export function makeBore() {
     uTop: { value: 1 },                     // the station's light from above
     uCrush: { value: 0 },
     uWhite: { value: 0 },
+    uSeenM: { value: 0 },                  // where the strata pattern is (m, wrapped)
+    uSewerY: { value: -1e4 }, uCaveY: { value: -1e4 }, uMineY: { value: new Float32Array(NMINE).fill(-1e4) }, uMineA: { value: new Float32Array(NMINE) },
   };
   const geo = new THREE.CylinderGeometry(RS, RS, LEN * 2, 96, 220, true);
   const mat = new THREE.ShaderMaterial({
@@ -68,7 +74,7 @@ export function makeBore() {
       }`,
     fragmentShader: /* glsl */ `
       #define NO ${OCT.length}
-      uniform float uD, uOff[NO], uScale[NO], uBlur, uTime, uTop, uCrush, uWhite;
+      uniform float uD, uOff[NO], uScale[NO], uBlur, uTime, uTop, uCrush, uWhite, uSeenM, uSewerY, uCaveY, uMineY[${NMINE}], uMineA[${NMINE}];
       uniform vec3 uFeet;
       varying vec3 vP;
       float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -102,6 +108,16 @@ export function makeBore() {
         float dq = -vP.y;                                   // m deeper than your feet
         float D = uD + dq;                                  // depth below the street (m)
         float km = D / 1000.0;
+        // openings: the sewer pipe, the cave, the mine's tunnels
+        { float yy = vP.y - uSewerY; if (yy * yy + vP.z * vP.z < ${(SEWER_R*SEWER_R).toFixed(3)}) discard; }
+        { float yy = (vP.y - uCaveY) / ${CAVE.b.toFixed(1)}; vec2 xz = vP.xz / ${CAVE.a.toFixed(1)}; if (dot(xz, xz) + yy * yy < 0.8 * 0.8) discard; }
+        float tunLight = 0.0;
+        for (int k = 0; k < ${NMINE}; k++) {
+          float dy = vP.y - uMineY[k];
+          float da = abs(mod(th - uMineA[k] + 3.14159, 6.28318) - 3.14159) * ${RS.toFixed(1)};
+          if (abs(dy) < 1.6 && da < 1.5) discard;
+          tunLight += exp(-max(abs(dy) - 1.6, 0.0) * 0.9) * exp(-max(da - 1.5, 0.0) * 0.8);   // the tunnel's light spilling out
+        }
         float ang = (th + 3.14159) / 6.2832;
         float circ = 6.2832 * ${RS.toFixed(1)};
         float pxw = max(fwidth(dq), 1e-4);
@@ -126,29 +142,43 @@ export function makeBore() {
         float clr0 = smoothstep(0.9, 0.25, blur / uScale[0]);
 
         // ---- the rock's colour ----
-        // the station's concrete and the fill under it (above 12 m), then schist: dark grey with silver sheen, foliated
-        float fol = fbw(ang * 30.0, y1 * 1.6 + 0.3 * sin(ang * 12.0), 30.0);
-        vec3 schist = mix(vec3(0.16, 0.16, 0.17), vec3(0.34, 0.33, 0.32), smoothstep(0.3, 0.7, fol));
-        schist = mix(schist, vec3(0.22, 0.2, 0.17), smoothstep(0.55, 0.8, bands[3]) * 0.6);   // rusty bands
+        // the station's slab, the fill under it, then the bedrock: clear coloured strata (gneiss, schist, marble,
+        // amphibolite...), a few metres to tens of metres thick, tilted a little; deeper, darker and hotter-looking
+        float sy = uSeenM + dq + 1.6 * sin(th + 0.7) + 0.6 * sin(th * 2.0 + 2.0);
+        float bi = floor(sy / 2.6 + 0.45 * sin(sy / 9.0));
+        float bh = h21(vec2(bi, 3.7));
+        vec3 band = vec3(0.55, 0.37, 0.32);                                   // pink gneiss
+        band = mix(band, vec3(0.16, 0.16, 0.18), step(0.18, bh));             // dark schist
+        band = mix(band, vec3(0.78, 0.76, 0.7), step(0.38, bh));              // white marble
+        band = mix(band, vec3(0.5, 0.3, 0.16), step(0.52, bh));               // rusty iron-stained rock
+        band = mix(band, vec3(0.22, 0.27, 0.22), step(0.66, bh));             // green amphibolite
+        band = mix(band, vec3(0.62, 0.52, 0.36), step(0.8, bh));              // tan quartzite
+        band = mix(band, vec3(0.32, 0.3, 0.3), step(0.92, bh));               // grey granite
+        float edgeB = abs(fract(sy / 2.6 + 0.45 * sin(sy / 9.0)) - 0.5);
+        band *= (0.7 + 0.45 * grain) * 0.8;
+        band *= 1.0 - 0.6 * (1.0 - smoothstep(0.0, 0.03, 0.5 - edgeB)) * clr1;   // the dark seams between layers
+        { vec2 ck = cells(ang * 41.0, (uSeenM + dq) / 0.85, 41.0); band *= 1.0 - 0.3 * (1.0 - smoothstep(0.02, 0.06, ck.x)) * clr0; band *= 0.85 + 0.3 * ck.y * clr0; }   // cracks and blocks
         float qv = fbw(ang * 7.0, y2 * 0.9, 7.0);
-        float quartz = (1.0 - smoothstep(0.0, 0.04, abs(qv - 0.5))) * mix(0.5, 1.0, clr2);
-        schist = mix(schist, vec3(0.78, 0.76, 0.72), quartz);
+        float quartz = (1.0 - smoothstep(0.0, 0.035, abs(qv - 0.5))) * mix(0.4, 1.0, clr2);
+        band = mix(band, vec3(0.85, 0.83, 0.78), quartz * 0.8);
+        band = mix(band, band * 0.55 + vec3(0.05, 0.02, 0.0), smoothstep(12000.0, 33000.0, D));
         vec3 fill = mix(vec3(0.36, 0.3, 0.24), vec3(0.5, 0.48, 0.44), step(0.5, n2(vec2(ang * 40.0, y1 * 4.0)))) * (0.8 + 0.3 * grain);
         vec3 concr = vec3(0.55, 0.54, 0.5) * (0.85 + 0.2 * grain);
-        vec3 gneiss = mix(vec3(0.2, 0.19, 0.19), vec3(0.42, 0.4, 0.38), smoothstep(0.35, 0.65, bands[3] * 0.6 + fol * 0.4));
-        gneiss = mix(gneiss, vec3(0.62, 0.5, 0.45), smoothstep(0.6, 0.75, bands[2]) * 0.6);   // pink feldspar bands
         vec3 alb = concr;
-        alb = mix(alb, fill, smoothstep(7.3, 7.7, D));
-        alb = mix(alb, schist, smoothstep(11.0, 13.0, D));
-        alb = mix(alb, gneiss, smoothstep(1500.0, 4000.0, D));
+        alb = mix(alb, fill, smoothstep(7.5, 7.8, D));
+        alb = mix(alb, band, smoothstep(14.0, 16.0, D));
+        float strataK = 1.0;
         alb *= 0.85 + 0.3 * strata;
         // mica glints catching the light as they pass
-        float glint = pow(nw(ang * 90.0, y1 * 5.0 + uTime * 0.2, 90.0), 14.0) * 6.0 * clr0 * (1.0 - smoothstep(1500.0, 5000.0, D));
+        float glint = pow(nw(ang * 90.0, y1 * 5.0 + uTime * 0.2, 90.0), 14.0) * 4.0 * clr0 * (1.0 - smoothstep(8000.0, 20000.0, D));
 
         // ---- the light on it ----
         float ad = abs(dq + 0.1);
-        float feet = 0.55 / (1.0 + ad * ad * 0.25) + 0.08 * exp(-ad / 25.0);           // the glow at your feet
+        float feet = 0.4 / (1.0 + ad * ad * 0.25) + 0.05 * exp(-ad / 25.0);           // the glow at your feet
         vec3 L = uFeet * feet;
+        float dc = length(vP - cameraPosition);
+        L += vec3(0.95, 0.95, 1.0) * 1.1 / (1.0 + dc * dc * 0.3);                     // a soft light from the camera
+        L += vec3(1.0, 0.9, 0.72) * tunLight * 1.4;                                      // the mine's lights
         L += vec3(1.0, 0.97, 0.9) * uTop * 1.6 * exp(-max(D - 7.0, 0.0) / 2.5) * step(D, 40.0);   // the station above
         L += vec3(0.05, 0.05, 0.06);                                                       // (a touch, so the dark still reads)
         vec3 col = alb * L + vec3(1.0, 0.9, 0.75) * glint * feet * length(uFeet) * 0.2;
@@ -213,24 +243,25 @@ export function makeBore() {
 
   // ---- the debris that fell in with you: gravel, chunks, water drops ----
   const R = rng(2626);
-  const NP = 260, NW = 120, NWALL = 220;
+  const NP = 90, NW = 1, NWALL = 220;
   const stoneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
   const stones = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), stoneMat, NP + NWALL);
   stones.frustumCulled = false;
   const waterMat = new THREE.MeshStandardMaterial({ color: 0x9fc4e0, roughness: 0.05, metalness: 0.2, emissive: new THREE.Color(0.05, 0.08, 0.12) });
   const drops = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), waterMat, NW);
+  drops.visible = false;   // (no water drops: they read as bubbles in space)
   drops.frustumCulled = false;
   scene.add(stones, drops);
   const cc = new THREE.Color();
   const P = [];
-  for (let i = 0; i < NP + NW; i++) {
-    const water = i >= NP;
+  for (let i = 0; i < NP; i++) {
+    const water = false;
     // before your gravity: tumbling round you, wherever they were when the floor went
     const r0 = 0.7 + R() * 1.1, a0 = R() * Math.PI * 2, y0 = -0.5 + R() * 3.0;
     // their orbit: a radius, a tilted plane (most near your waist level), a phase
     const ro = 0.45 + Math.pow(R(), 0.7) * 1.05;
     const tilt = (R() - 0.5) * 0.9, node = R() * Math.PI * 2;
-    P.push({ water, r0, a0, y0, ro, tilt, node, ph: R() * Math.PI * 2, cap: V_GRAV + R() * 2.2, s: water ? 0.012 + R() * 0.02 : 0.012 + Math.pow(R(), 2) * 0.05, spin: R() * 6, dr: (R() - 0.5) * 0.3, dy: (R() - 0.5) * 0.25 });
+    P.push({ water, r0, a0, y0, ro, tilt, node, ph: R() * Math.PI * 2, cap: V_GRAV + R() * 2.2, s: 0.015 + Math.pow(R(), 2) * 0.04, spin: R() * 6, dr: (R() - 0.5) * 0.3, dy: (R() - 0.5) * 0.25 });
     if (!water) stones.setColorAt(i, cc.set(R() < 0.4 ? 0x8a857c : R() < 0.5 ? 0x5a5550 : R() < 0.5 ? 0x3a3530 : 0x9a9488));
   }
   // pieces torn off the wall at x1e11+ (they fly in along spirals and hit you)
@@ -246,10 +277,11 @@ export function makeBore() {
   { let x = 0; for (let i = 0; i < OT.length; i++) { OT[i] = x; const v = i * ODT; x += (v < V_GRAV ? 0 : Math.min(Math.sqrt(GMAt(v)), OMAX)) * ODT; } }
   const phase1 = (v) => { const x = clamp(v / ODT, 0, OT.length - 2), i = Math.floor(x); return OT[i] + (OT[i + 1] - OT[i]) * (x - i); };
   const glows = makeGlows(scene, 1500);
+  const layers = makeLayers(scene, RS);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
 
   return {
-    scene, U, feetL, fill, topL, hot, glows,
+    scene, U, feetL, fill, topL, hot, glows, layers,
     frame(v, s, camera) {
       const depthFeet = D_STATION + depthAt(v);
       U.uD.value = depthFeet;
@@ -257,6 +289,7 @@ export function makeBore() {
       for (let k = 0; k < OCT.length; k++) U.uOff.value[k] = ((seen / OCT[k]) % 4096 + 4096) % 4096;
       // (uOff is where the pattern is; the shader adds the distance along the hole from you)
       U.uBlur.value = seenFlowAt(v) / 60;
+      U.uSeenM.value = seen % 20000;
       U.uTime.value = v;
       U.uTop.value = 1 - smooth(V_SINK + 0.5, V_SINK + 4.0, v);
       U.uCrush.value = smooth(V_MTN - 0.3, V_MTN + 1.2, v);
@@ -269,6 +302,13 @@ export function makeBore() {
       hot.scale.setScalar(0.55 + 0.3 * heat);
       hotMat.color.copy(fc).multiplyScalar(1.1 + 0.7 * heat);
       topL.intensity = 60 * U.uTop.value;
+      // the named layers, and their openings in the wall
+      layers.frame(v, depthFeet, U.uFeet.value, faceAng(V_KOLA) + 0.5 + Math.PI);
+      const C = layers.CUTS;
+      U.uSewerY.value = C.sewerY; U.uCaveY.value = C.caveY;
+      U.uMineY.value.set(C.mineY); U.uMineA.value.set(C.mineA);
+      // (in the cave your glow reaches further)
+      feetL.distance = 12 + 30 * smooth(60, 20, Math.abs(C.caveY));
       // ---- debris ----
       const GM = GMAt(v);
       const ph1 = phase1(v);
@@ -322,6 +362,16 @@ export function makeBore() {
         if (v < V_SINK) continue;
         const rr = r + ph * 0.4;
         for (let j = 0; j < 3; j++) glows.add(Math.cos(a) * rr, y - j * 0.04 * (1 + flow * 0.01), Math.sin(a) * rr, 0.04, 1.4 * b, 0.6 * b, 0.15 * b);
+      }
+      // the splash as you plunge through the cave's lake: spray thrown up round you
+      const lakeY = layers.CUTS.caveY - CAVE.b * 0.62;
+      if (lakeY > -0.3 && lakeY < 9) {
+        const RS3 = rng(11), k = smooth(-0.3, 0.4, lakeY) * (1 - smooth(4, 9, lakeY));
+        for (let i = 0; i < 140; i++) {
+          const a = RS3() * 6.28, r = 0.3 + RS3() * 1.5, up = RS3() * Math.min(lakeY + 0.3, 3.5) * (0.5 + RS3());
+          const b = 0.5 * k * (0.5 + RS3());
+          glows.add(Math.cos(a) * r, lakeY - up, Math.sin(a) * r, 0.05 + RS3() * 0.06, 0.8 * b, 0.95 * b, 1.0 * b);
+        }
       }
       glows.end();
     },

@@ -2217,13 +2217,18 @@ up. 0:03.5 x100 (7.5 tons): the sidewalk breaks, the slabs tip into a pit and yo
 elephant. The sidewalk breaks." 0:06 x1,000 (75 tons): you punch through into the subway station below, crashing through
 its roof with the rubble, daylight pouring in after you, and land on the track bed in a cloud of dust; people on the far
 platform flinch back, filming; "As heavy as a jet: you drop into the subway." The bed cracks and the rails bend down under
-you. 0:10.6 x1,000,000 (75,000 tons): the floor gives way and you fall into the rock, the station's light shrinking above,
-the crushed rock under your feet glowing; "As heavy as a cruise ship. Rock can't hold you." "Solid rock barely slows you
-down." 0:16.6 x1 billion: the gravel and water that fell in with you drift toward you; "As heavy as 11 Great Pyramids." "A
-meter from you, your pull is half of Earth's." 0:23.8 x10 billion: they circle you; "The gravel falling with you starts to
-orbit you." 0:27 x100 billion: "You're falling through solid rock at 360 mph." 0:30 x1 trillion: the wall bulges in and splits
-with glowing cracks, chunks torn off it fly in at you; "A sugar cube of you weighs a million tons." "The rock around you is
-crushed onto you." 0:34 a time-lapse down through the crust into the red-hot mantle; "Nothing can stop you. Minutes later…"
+you. 0:10.6 x1,000,000 (75,000 tons): the floor gives way and you fall through a fall of named layers, a new one every
+3-4 s, streaking up past you, the crushed rock under your feet glowing: 0:11.5 the brick sewer pipe under the station, broken
+open; "As heavy as a cruise ship. Rock can't hold you." 0:12.5 the bedrock: clear coloured strata (pink gneiss, dark schist,
+white marble, rusty and green bands), cracked into blocks; "Solid bedrock barely slows you down." 0:16.6 x1 billion: the loose
+rocks falling with you drift toward you; "As heavy as 11 Great Pyramids. Your gravity starts pulling rocks toward you." 0:19.5 slow
+motion through an underground cave (stalactites, a waterfall) and a plunge through its lake; "A meter from you, your pull is
+already half of Earth's." 0:22.3 the deepest mine ever dug: its tunnels, rails and strip lights flashing past; "Deeper than
+the deepest mine ever dug: 2.5 miles." 0:23.8 x10 billion: the rocks start to circle you. 0:25.5 the deepest hole ever drilled:
+its drill pipe in the wall behind you, and its end; "Deeper than the deepest hole ever drilled: 7.6 miles." 0:28.5 the rock
+starts to glow red as you leave the crust (0:29.6). 0:30 x1 trillion: the wall bulges in and splits
+with glowing cracks, chunks torn off it fly in at you; "A sugar cube of you weighs a million tons." "Your gravity crushes the rock
+around you onto you." 0:34 a time-lapse down through the crust into the red-hot mantle; "Nothing can stop you. Minutes later…"
 0:41.5 the core: orange, then white; "You'd end up stuck at the center of the Earth." 0:45.6 white; it clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`): 150 lb = 68 kg. x100 = 6.8 t (African bull elephant 6-7 t); x1,000 =
@@ -2231,11 +2236,16 @@ The numbers (also at the top of `src/timeline.js`): 150 lb = 68 kg. x100 = 6.8 t
 68,000 t (cruise ships displace 50,000-100,000 t; ~6.7 GPa under you, 30x what granite takes, and the crushing slows you only
 ~3%, so you fall almost freely); x1 billion = 6.8e10 kg = 11.5 Great Pyramids (5.9 Mt each), pull at 1 m G M / r² = 4.5 m/s²
 (0.46 g), at 10 m 0.005 g; things falling with you share your free fall, so your gravity can pull them into orbit (at 1 m one
-turn in 3 s at x1 billion, 0.9 s at x10 billion); 360 mph = 9.8 m/s² x 16.4 s of free fall; x1 trillion = 6.8e13 kg (75
+turn in 3 s at x1 billion, 0.9 s at x10 billion); the deepest mine, Mponeng (South Africa), ~4.0 km = 2.5 miles, passed
+after 28.5 s of falling; the deepest hole, the Kola Superdeep Borehole (Russia), 12,262 m = 7.6 miles (1989), after 50 s; the
+crust's base ~35 km, after 84 s; x1 trillion = 6.8e13 kg (75
 billion tons): a mountain ~1.5 km high and ~8 km wide (Everest is about twice that); your density 1.0e15 kg/m³, so 1 cm³ of
 you is 1.0e9 kg = 1.1 million tons; pull at 1 m 460 g, at 10 m 4.6 g; the rock round you is squeezed by ~120 MPa at 10 cm, so
 it crumbles onto you. Falling freely (g ~ 10 m/s² down through the mantle) you'd reach the core 2,890 km down in ~13 minutes,
-and drag would damp your swings until you rest at the center. Honest notes: the hole is drawn ~4 m wide so the camera fits (you'd
+and drag would damp your swings until you rest at the center. Honest notes: the fall runs in real time to the cave, in slow
+motion through it, then as a time-lapse (the mine and the borehole are passed after 28 and 50 s of falling, not 12 and 16); the
+mine and the borehole are far from any one city, drawn at their depths as markers; the cave is a made-up groundwater cave at
+400 m; the hole is drawn ~4 m wide so the camera fits (you'd
 punch one your own width); the crushed rock at your feet is drawn glowing so you can be seen (the energy is there: hundreds
 of megawatts and up); the time-lapse is marked "Minutes later"; heat and pressure don't harm you (only your weight changes);
 people are low-poly figures.
@@ -2249,17 +2259,18 @@ You stay the same size. Only your weight grows.
 10x: the bench snaps under you.
 100x: as heavy as an elephant. The sidewalk breaks.
 1,000x: as heavy as a jet. You drop into the subway.
-1 million x: as heavy as a cruise ship. Solid rock can't hold you up, and barely slows you down.
-1 billion x: as heavy as 11 Great Pyramids. A meter from you, your own gravity pulls half as hard as Earth's, and the gravel falling with you starts to orbit you.
-1 trillion x: as heavy as a mountain. A sugar cube of you weighs a million tons, and the rock around you is crushed onto you.
+1 million x: as heavy as a cruise ship. Solid rock can't hold you up, and barely slows you down. You fall through a sewer, the bedrock and an underground cave.
+1 billion x: as heavy as 11 Great Pyramids. You're so heavy that your own gravity pulls rocks toward you: a meter from you, it pulls half as hard as Earth.
+You fall past the deepest mine ever dug (2.5 miles) and the deepest hole ever drilled (7.6 miles), and the rock starts to glow red.
+1 trillion x: as heavy as a mountain. A sugar cube of you weighs a million tons, and your gravity crushes the rock around you onto you.
 
-Nothing can stop you now. About 13 minutes later you hit the Earth's core, and in the end you'd stay stuck at the very center of the planet.
+Nothing can stop you now. About 13 minutes after you started falling you hit the Earth's core, and in the end you'd stay stuck at the very center of the planet.
 
 At what weight would you start to panic? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 8/heavy-trillion/out/heavy-trillion_v4_cover.png` (`node render.mjs --cover 25.5`: you falling through the rock, the gravel and water orbiting you, the glow under your feet; "WHAT IF YOU WERE / 1 trillion / times heavier?")
+Cover: `week 8/heavy-trillion/out/heavy-trillion_v4_cover.png` (`node render.mjs --cover 36.5`: you falling through the red-hot mantle, glowing cracks streaming up all round you; "WHAT IF YOU WERE / 1 trillion / times heavier?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

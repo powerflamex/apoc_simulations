@@ -16,9 +16,14 @@
 //            Density 1.0e15 kg/m³: a sugar cube (1 cm³) of you weighs 1.0e9 kg = 1.1 million tons. Your pull at 1 m:
 //            4,540 m/s² (460 g), at 10 m 4.6 g. Rock near you is squeezed by ~ρ G M / r: 120 MPa at 10 cm, so the rock
 //            right round you is crushed onto you.
-// The fall: from the station floor (v = V_SINK) you fall freely, depth = g T² / 2 (real time to 0:31: 2.0 km, 450 mph),
-// then a time-lapse ("Minutes later") to the core-mantle boundary at 2,890 km (with g ~ 10 m/s² through the mantle:
-// 760 s = 12.7 min, 7.6 km/s). In the end you'd sink to the center and stay there (drag damps the swings).
+// The fall: from the station floor (v = V_SINK) you fall freely, depth = g T² / 2 (g = 9.81; the crushing and the air
+// slow you by a few % at most). Story time T runs on a smooth monotone curve through the layers you pass (fallT): real time
+// through the floor, the sewer and the bedrock; slow motion through the cave; a time-lapse past the deepest mine ever dug
+// (Mponeng, South Africa, ~4.0 km below the surface: T = 28.5 s, 630 mph), the deepest hole ever drilled (the Kola
+// Superdeep Borehole, Russia, 12,262 m in 1989: T = 50 s, 1,100 mph) and the base of the crust (~35 km: T = 84 s); then
+// "Minutes later" to the core-mantle boundary at 2,890 km (T = 767 s, 12.8 min, 7.5 km/s). The mine and the borehole are
+// far from any one city: they are drawn at their depths as markers of how deep you are. In the end you'd sink to the
+// center and stay there (drag damps the swings).
 import { smooth, clamp, lerp } from './util.js';
 
 export const STORY_START = 0;
@@ -60,47 +65,59 @@ export const multAt = (v) => Math.pow(10, logMult(v));
 export const GMAt = (v) => G * KG0 * multAt(v);          // m³/s²
 export const pullAt = (v, r) => GMAt(v) / (r * r);         // m/s² at r m from you
 
-// ---- the fall: story seconds since the floor gave way, depth (m) below the station floor ----
-const GF = 9.81, GM_ = 10.0;
-export const T_CMB = 760;                                // s to the core-mantle boundary
+// ---- the fall: story seconds since the floor gave way (T), depth (m) below the track bed ----
+const GF = 9.81;
 export const D_STATION = 7.0;                            // the track bed is 7 m below the street
-const T_REAL_END = 31.0 - V_SINK;                        // real time until 0:31
-function fallT(v) {
-  if (v < V_SINK) return 0;
-  const t = v - V_SINK;
-  if (t <= T_REAL_END) return t;
-  // a time-lapse: smooth from rate 1 at 0:31 to the core-mantle boundary at V_CORE, then slower again
-  const a = 31.0, b = V_CORE;
-  if (v <= b) {
-    const u = (v - a) / (b - a);
-    // T = T_REAL_END + (v - a) + k u^3 (rate 1 at the start), k chosen to land on T_CMB
-    const k = T_CMB - T_REAL_END - (b - a);
-    return T_REAL_END + (v - a) + k * u * u * u;
+// layers, by depth below the street (m)
+export const D_SEWER = 11.5, D_ROCK = 15, D_CAVE = 400, D_MINE = 4000, D_KOLA = 12262, D_MOHO = 35000, D_CMB = 2890e3;
+const TD = (D) => Math.sqrt(2 * Math.max(D - D_STATION, 0) / GF);
+export const T_CMB = TD(D_CMB);                          // 767 s
+export const V_CAVE = 20.3, V_MINE = 23.4, V_KOLA = 27.0, V_MOHO = 29.6;
+function pchip(keys) {
+  const n = keys.length, x = keys.map((k) => k[0]), y = keys.map((k) => k[1]);
+  const d = [], m = [];
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    if (d[i - 1] * d[i] <= 0) m[i] = 0;
+    else { const w1 = 2 * (x[i + 1] - x[i]) + (x[i] - x[i - 1]), w2 = (x[i + 1] - x[i]) + 2 * (x[i] - x[i - 1]); m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]); }
   }
-  return T_CMB + (v - b) * 25;
+  return (t) => {
+    if (t <= x[0]) return y[0] + m[0] * (t - x[0]);
+    if (t >= x[n - 1]) return y[n - 1] + m[n - 1] * (t - x[n - 1]);
+    let i = 0;
+    while (t > x[i + 1]) i++;
+    const h = x[i + 1] - x[i], s = (t - x[i]) / h;
+    const h00 = 2 * s ** 3 - 3 * s ** 2 + 1, h10 = s ** 3 - 2 * s ** 2 + s, h01 = -2 * s ** 3 + 3 * s ** 2, h11 = s ** 3 - s ** 2;
+    return h00 * y[i] + h10 * h * m[i] + h01 * y[i + 1] + h11 * h * m[i + 1];
+  };
 }
-export function depthAt(v) {
-  const T = fallT(v);
-  if (T <= T_REAL_END) return 0.5 * GF * T * T;
-  const d1 = 0.5 * GF * T_REAL_END * T_REAL_END, v1 = GF * T_REAL_END;
-  const t = T - T_REAL_END;
-  return d1 + v1 * t + 0.5 * GM_ * t * t;
-}
-export const speedAt = (v) => { const T = fallT(v); return T <= T_REAL_END ? GF * T : GF * T_REAL_END + GM_ * (T - T_REAL_END); };
+const FK = [
+  [10.6, 0], [11.6, 1.0], [15.0, 4.4], [18.6, 8.0],                         // real time: the floor, the sewer, the bedrock
+  [19.3, 8.6], [V_CAVE, TD(D_CAVE)], [21.3, TD(D_CAVE) + 0.32],            // slow motion through the cave
+  [22.3, TD(3650)], [V_MINE, TD(3870)], [24.7, TD(4060)],                 // the mine's levels flashing past
+  [26.1, TD(11900)], [V_KOLA, TD(D_KOLA)], [27.9, TD(12650)],              // the borehole's pipe, its end
+  [V_MOHO, TD(D_MOHO)], [31.5, TD(80e3)], [34, TD(150e3)], [37, TD(450e3)], [39.5, TD(1300e3)], [41.5, T_CMB], [43, T_CMB + 40],
+];
+const FT = pchip(FK);
+function fallT(v) { return v < V_SINK ? 0 : Math.max(0, FT(v)); }
+export function depthAt(v) { const T = fallT(v); return 0.5 * GF * T * T; }
+export const speedAt = (v) => GF * fallT(v);
 export const rateAt = (v) => (fallT(v + 0.02) - fallT(v - 0.02)) / 0.04;
+export const depthStreet = (v) => D_STATION + depthAt(v);
 
 // ---- text: captions (never more than one; none while the title is up) ----
 export const CAPTIONS = [
   [3.05, 5.75, 'As heavy as an elephant. The sidewalk breaks.'],
   [6.3, 10.2, 'As heavy as a jet: you drop into the subway.'],
-  [10.75, 13.6, 'As heavy as a cruise ship. Rock can’t hold you.'],
-  [13.8, 16.4, 'Solid rock barely slows you down.'],
-  [16.8, 19.6, 'As heavy as 11 Great Pyramids.'],
-  [19.8, 23.5, 'A meter from you, your pull is half of Earth’s.'],
-  [24.0, 26.8, 'The gravel falling with you starts to orbit you.'],
-  [27.2, 29.8, 'You’re falling through solid rock at 360 mph.'],
+  [10.75, 13.4, 'As heavy as a cruise ship. Rock can’t hold you.'],
+  [13.6, 16.4, 'Solid bedrock barely slows you down.'],
+  [16.75, 19.5, 'As heavy as 11 Great Pyramids. Your gravity starts pulling rocks toward you.'],
+  [19.7, 22.6, 'A meter from you, your pull is already half of Earth’s.'],
+  [22.8, 26.0, 'Deeper than the deepest mine ever dug: 2.5 miles.'],
+  [26.2, 29.4, 'Deeper than the deepest hole ever drilled: 7.6 miles.'],
   [30.4, 33.8, 'A sugar cube of you weighs a million tons.'],
-  [34.2, 37.6, 'The rock around you is crushed onto you.'],
+  [34.2, 37.6, 'Your gravity crushes the rock around you onto you.'],
   [38.0, 41.3, 'Nothing can stop you. Minutes later…'],
   [41.7, 45.3, 'You’d end up stuck at the center of the Earth.'],
 ];

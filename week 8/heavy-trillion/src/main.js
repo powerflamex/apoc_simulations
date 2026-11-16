@@ -310,21 +310,34 @@ function update(v, cover = -1) {
     const orbit = (ang, r, y) => new THREE.Vector3(Math.cos(ang) * r, y, Math.sin(ang) * r);
     // (angles round you measured from straight in front of your face, so it stays in view)
     const face = Math.PI / 2 - you.root.rotation.y;
-    if (v < V_SINK + 0.9) {
-      // following you down out of the station: from above, looking down past you
-      pos = orbit(face + 0.4, 0.9, 3.0 - 0.6 * sh(V_SINK, V_SINK + 0.9)); tgt = new THREE.Vector3(0, 0.4, 0); fov = 66;
+    const cave = bore.layers.CUTS.caveY;
+    const inCave = 1 - smooth(5, 11, Math.abs(cave));
+    if (v < 12.3) {
+      // following you down out of the station: from above, looking down past you at what's coming (the sewer)
+      const k = sh(V_SINK, 12.3);
+      pos = orbit(face + 0.4, 0.95, 3.0 - 0.7 * k); tgt = new THREE.Vector3(0, 0.1, 0); fov = 66;
     } else if (v < V_GRAV) {
-      // below and in front, looking up past you at the light of the station shrinking above
-      const k = sh(V_SINK + 0.9, V_GRAV);
-      pos = orbit(face + 0.55 - 0.2 * k, 1.45, -0.45 + 0.2 * k); tgt = new THREE.Vector3(0, 1.5 + 0.8 * (1 - k), 0); fov = 64;
-    } else if (v < V_ORBIT) {
-      // beside you, swinging round in front, the gravel drifting in and starting to circle you
-      const k = sh(V_GRAV, V_ORBIT);
-      pos = orbit(face + 0.9 - 1.2 * k, 1.65, 1.0 + 0.15 * k); tgt = new THREE.Vector3(0, 0.9, 0); fov = 62;
+      // beside you, the bedrock's coloured layers streaking up behind you
+      const k = sh(12.3, V_GRAV);
+      pos = orbit(face + 0.75 - 0.45 * k, 1.55, 1.15 - 0.1 * k); tgt = new THREE.Vector3(0, 0.95, 0); fov = 62;
+    } else if (v < 19.3) {
+      // low in front, looking up at you as your gravity starts pulling the loose rocks in
+      const k = sh(V_GRAV, 19.3);
+      pos = orbit(face + 0.3 - 0.2 * k, 1.5, -0.25 + 0.2 * k); tgt = new THREE.Vector3(0, 1.3, 0); fov = 64;
+    } else if (v < 21.6) {
+      // the cave: the camera backs off into it (the lake below, the stalactites, the waterfall)
+      pos = orbit(face + 0.5, 1.5 + 1.4 * inCave, 1.1 + 0.7 * inCave); tgt = new THREE.Vector3(0, 0.75 - 0.5 * inCave, 0); fov = 64 + 6 * inCave;
+    } else if (v < 25.3) {
+      // the deepest mine: its tunnels flashing past behind you
+      const k = sh(21.6, 25.3);
+      pos = orbit(face - 0.55 + 0.2 * k, 1.5, 0.75); tgt = new THREE.Vector3(0, 1.05, 0); fov = 62;
+    } else if (v < 28.4) {
+      // the deepest hole ever drilled: its pipe in the wall right behind you, then its end
+      const k = sh(25.3, 28.4);
+      pos = orbit(face + 0.5 - 0.1 * k, 1.45, 1.2 - 0.2 * k); tgt = new THREE.Vector3(0, 0.95, 0); fov = 62;
     } else if (v < V_MTN) {
-      // above and in front, looking down at you: the ring of things orbiting you, the glow below
-      const k = sh(V_ORBIT, V_MTN);
-      pos = orbit(face - 0.35 + 0.3 * k, 1.25, 2.4 - 0.15 * k); tgt = new THREE.Vector3(0, 0.6, 0); fov = 64;
+      // below you looking up as the rock starts to glow red
+      pos = orbit(face - 0.2, 1.5, -0.35); tgt = new THREE.Vector3(0, 1.45, 0); fov = 64;
     } else if (v < V_LAPSE) {
       // close in front as the wall caves in round you
       const k = sh(V_MTN, V_LAPSE);

@@ -12,7 +12,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, HITS, V_SNAP, V_CRACK, V_PUNCH, V_LAND, V_SINK, V_GRAV, V_ORBIT, V_WALLS, V_MTN, V_LAPSE, V_CORE, V_FLASH, speedAt, rateAt } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, HITS, V_SNAP, V_CRACK, V_PUNCH, V_LAND, V_SINK, V_GRAV, V_ORBIT, V_WALLS, V_MTN, V_LAPSE, V_CORE, V_FLASH, speedAt, rateAt, depthStreet, D_SEWER, D_CAVE, D_KOLA } from './src/timeline.js';
+import { MINE, CAVE } from './src/layers.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -65,6 +66,14 @@ export function makeSoundtrack(outFile) {
     [V_MTN, 1.3, 800, 1.2], [V_MTN + 0.1, 0.7, 2000, 0.6],
   ].map(([t, g, fc, d]) => ({ t, g, fc, d, f: new SVF() }));
   // splinters and pebbles: little ticks after the bench and the slab break, and when you land
+  // when your feet pass a depth (m below the street)
+  const passAt = (D) => { let lo = V_SINK, hi = 45; for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if (depthStreet(m) < D) lo = m; else hi = m; } return lo; };
+  const V_SPLASH1 = passAt(D_SEWER - 0.8), V_LAKE = passAt(D_CAVE + CAVE.b * 0.62), V_BIT = passAt(D_KOLA);
+  // splashes: the sewer's water, the cave's lake (a big one); a whoosh past each mine tunnel; a clang at the drill pipe's end
+  const SPL = [[V_SPLASH1, 0.45, 0.5], [V_LAKE, 0.9, 1.1]].map(([t, g, d]) => ({ t, g, d, f: new SVF(), f2: new SVF() }));
+  const WHO = MINE.flatMap((m) => [m, ...(m.a2 !== null ? [m] : [])]).map((m) => ({ t: passAt(m.D), f: new SVF() }));
+  const CLANG = { t: V_BIT, ph: [0, 0, 0] };
+  console.log(`audio: sewer ${V_SPLASH1.toFixed(2)} s, lake ${V_LAKE.toFixed(2)} s, Kola bit ${V_BIT.toFixed(2)} s, ${WHO.length} tunnels`);
   const TICKS = [];
   for (const [t0, n, span] of [[V_SNAP + 0.1, 14, 0.6], [V_CRACK + 0.15, 22, 1.2], [V_PUNCH + 0.4, 26, 1.0], [V_LAND + 0.1, 24, 1.4]]) for (let i = 0; i < n; i++) TICKS.push({ t: t0 + Math.pow(R0(), 1.5) * span, g: 0.04 + 0.06 * R0(), fc: 1500 + 3000 * R0(), pan: R0() * 1.6 - 0.8, f: new SVF() });
   const HORNS = [{ t: -0.5, f: 420, d: 0.3 }, { t: 2.6, f: 380, d: 0.5 }, { t: 4.4, f: 440, d: 0.25 }].map((h) => ({ ...h, ph: 0, lp: new OnePole(1500) }));
@@ -154,6 +163,18 @@ export function makeSoundtrack(outFile) {
       const o = k.f.run(white(), k.fc, 0.6).bp * env(dt, 0.0015, 0.012) * k.g * 6;
       l += o * (1 - k.pan) * 0.6; r += o * (1 + k.pan) * 0.6;
     }
+    for (const sp of SPL) {
+      const dt = tv - sp.t; if (dt < -0.02 || dt > sp.d * 5) continue;
+      const e = env(dt, 0.006, sp.d);
+      const o = sp.f.run(white(), 900 + 1600 * Math.exp(-dt * 3), 1.2).bp * e * sp.g + sp.f2.run(white(), 180, 1.0).lp * env(dt, 0.004, 0.15) * sp.g * 1.6;
+      l += o; r += o; wet += o * 0.5;
+    }
+    for (const w of WHO) {
+      const dt = tv - w.t; if (Math.abs(dt) > 0.25) continue;
+      const o = w.f.run(white(), 600 + 900 * Math.exp(-dt * dt * 200), 1.5).bp * Math.exp(-dt * dt * 120) * 0.22;
+      l += o * (1 + Math.sin(w.t * 7) * 0.5); r += o * (1 - Math.sin(w.t * 7) * 0.5);
+    }
+    { const dt = tv - CLANG.t; if (dt > 0 && dt < 2.5) { let o = 0; [523, 1187, 2011].forEach((f, k) => { CLANG.ph[k] += f / SR; o += Math.sin(TAU * CLANG.ph[k]) * env(dt, 0.002, 0.5 / (k + 1)); }); l += o * 0.08; r += o * 0.08; wet += o * 0.05; } }
     for (const b of BEATS) {
       const dt = tv - b.t; if (dt < -0.01 || dt > 3) continue;
       const f = b.f * (1 + 0.6 * Math.exp(-dt * 10));
