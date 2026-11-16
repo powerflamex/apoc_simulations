@@ -757,3 +757,25 @@ New curves (% still watching at 0:03 / 0:10 / 0:15 / 0:30 / 0:40): Sun black hol
   title/counter on frame 0 of a hit topic. Advice: re-upload solar storm once (new first second, plainer title, old one private); don't remake the
   others from the lows (dinosaurs, volcano, antimatter, quake, time stop, gojo, oxygen): make follow-ups of hits instead.
 - Nov 14 ideas (prompts given): the dinosaur-killer asteroid hits today (follow-up of asteroid 1.15M); every man disappears (twin of women vanish 696K).
+
+## Nov 15 read (~10 PM ET; exact views from each video's page)
+| Short | Posted | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:03 / 0:10 / 0:15 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| shrink trillion | Nov 13 | 4,495 | 13,713 | 31,597 | 81,738 | 117,600 | 229,332 | 251.9K (57 h) | 43.8K-81.6K | 62.3% | 123 / 97 / 88 / 80 / 69 / 63 |
+| planet picker | Nov 12 | 1,400 | 6,050 | 13,094 | 40,885 | 82,427 | 157,474 | 228.7K (81 h) | 48.2K-91.0K | 64.2% | 131 / 102 / 94 / 90 / 84 / 68 |
+| earth falls (new) | Nov 14, 7 AM | 2,274 | 10,918 | 22,860 | 38,854 | 62,563 | | 75.2K (39 h) | 39.6K-73.2K | 63.9% | 129 / 95 / 83 / 78 / 69 / 65 |
+| star incoming | Nov 13 | 1,644 | 6,566 | 10,312 | 20,861 | 30,312 | 37,828 | 40.1K (61 h) | 44.4K-82.7K | 63.4% | 115 / 82 / 70 / 64 / 58 / 52 |
+| meteor storm | Nov 14 | 1,580 | 5,764 | 9,276 | 16,487 | 24,217 | | 26.8K (33 h) | 38.5K-70.6K | 55.5% | 116 / 86 / 74 / 66 / 53 / 50 |
+| men vanish | Nov 15 | 783 | 4,474 | 9,591 | 13,740 | | | 15.2K (15 h) | 30.1K-38.4K | 65.8% | not out |
+| solar storm re-upload | Nov 15 | 360 | 748 | 1,205 | | | | 1.5K (9 h) | 18.7K-26.3K | 53.5% | not out |
+Oceans 88.6K (105 h, 70% at 0:30).
+- Shrink trillion is the channel's best Short since the October boom: 117.6K at 24 h, 229K at 48 h. Planet picker keeps climbing (229K; 84% at 0:30).
+- The Earth falls remake (Day 1's topic, which got 1.7K on its first day) did 62.6K in 24 h with 69% at 0:30: remaking an early video on a strong
+  topic worked again.
+- Solar storm re-upload: 360 views in hour one (first upload 172), so YouTube barely showed it again. Both uploads kept only ~54% of viewers past the
+  first seconds (others 62-66%). It's the video's opening, not a flag. Let it go; no third try.
+- The two night Shorts this week (solar storm, meteor storm) have the lowest "stayed" (53-56%). Two videos, and CLAUDE.md says frame brightness did
+  not predict stay across all Shorts: a thing to watch, not a rule.
+- Meteor storm loses 13 points from 0:20 to 0:30 (66 -> 53) and star incoming ends at 58%: both under the 70% target.
+- Men vanish (follow-up of women vanish 696K) is under YouTube's typical range at 15 h: a likely miss for the "follow-ups of hits" lead (judge at 24 h).
+- Backlog after Nov 15: dino asteroid, trillion seconds, heavy trillion (all built).
