@@ -239,6 +239,17 @@
       "env": {
         "PORT": "5283"
       }
+    },
+    {
+      "name": "scream-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 9/scream-trillion/server.mjs"
+      ],
+      "port": 5301,
+      "env": {
+        "PORT": "5301"
+      }
     }
   ]
 }
