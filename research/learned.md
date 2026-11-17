@@ -807,3 +807,31 @@ Oceans 88.6K (105 h, 70% at 0:30).
   rule and the owner's "no clear progression" call on men vanish before it was posted.
 - The two "picker" Shorts (star picker 290K / 70%, planet picker 252K / 84%) are both in the top five since Oct 21.
 - Backlog: heavy trillion (fixed, unposted). Ideas given Nov 16: you on other planets (third picker), scream 1 trillion times louder.
+
+## Nov 17 morning read (~8:05 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:03 / 0:10 / 0:15 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| planet stand | Nov 17, 8:03 AM | | | | | | | 14 (5 min) | | | not out |
+| trillion seconds | Nov 16, 1 PM | 1,720 | 4,941 | 9,344 | 26,344 | | | 50.8K (19 h) | 33.6K-47.1K | 66.4% | not out |
+| dino asteroid | Nov 16, 7 AM | 1,068 | 4,744 | 8,740 | 21,034 | 34,467 | | 35.4K (25 h) | 36.5K-64.8K | 69.5% | not out |
+| solar storm re-upload | Nov 15 | 355 | 743 | 1,199 | 1,757 | 2,795 | | 4.6K (43 h) | 40.4K-74.5K | 53.0% | 108 / 63 / 48 / 42 / **36** / 32 |
+| men vanish | Nov 15 | 763 | 4,390 | 9,573 | 13,736 | 18,660 | 23,910 | 24.2K (49 h) | 41.8K-78.1K | 64.9% | 120 / 92 / 83 / 75 / **64** / 61 |
+| meteor storm | Nov 14 | 1,580 | 5,764 | 9,276 | 16,487 | 24,219 | 29,877 | 32.3K (67 h) | 45.1K-84.7K | 55.3% | 115 / 85 / 72 / 65 / **51** / 48 |
+| earth falls (new) | Nov 14 | 2,274 | 10,918 | 22,860 | 38,854 | 62,563 | 79,278 | 89.8K (73 h) | 46.1K-87.8K | 63.1% | 128 / 94 / 81 / 76 / **68** / 64 |
+| shrink trillion | Nov 13 | 4,495 | 13,713 | 31,597 | 81,738 | 117,600 | 229,340 | 381.9K (91 h) | 50.9K-94.5K | 60.7% | 123 / 97 / 87 / 79 / **67** / 60 |
+| star incoming | Nov 13 | 1,644 | 6,566 | 10,312 | 20,861 | 30,312 | 37,828 | 44.2K (95 h) | 52.1K-95.9K | 62.8% | 115 / 81 / 70 / 63 / **57** / 52 |
+| planet picker | Nov 12 | 1,400 | 6,050 | 13,094 | 40,885 | 82,427 | 157,474 | 284.7K (115 h) | 56.1K-101K | 63.8% | 131 / 102 / 94 / 89 / **84** / 67 |
+| oceans drain | Nov 11 | 2,046 | 5,017 | 9,796 | 29,104 | 42,041 | 53,970 | 97.8K (139 h) | 51.0K-105K | 59.5% | 121 / 90 / 83 / 76 / **70** / 64 |
+| Sun black hole | Nov 10 | 1,425 | 4,720 | 9,861 | 23,139 | 55,842 | 71,699 | 150.4K (162 h) | 75.7K-109K | 57.2% | 119 / 96 / 89 / 81 / **73** / 63 |
+- Trillion seconds took off after a slow start: 9.3K at 6 h (I called it "ordinary"), 26.3K at 12 h, 50.8K at 19 h, above YouTube's typical range. The
+  second "trillion" title is working, though at about a third of shrink's pace (81.7K at 12 h).
+- **The 6-hour count says nothing; the 12-hour count starts to.** Ten Shorts from Nov 10-16: eight had 8.7K-13.1K at 6 h and ended the day anywhere
+  from 18.7K to 82.4K. Sorted by 12 h they line up almost in order: 13.7K -> 18.7K (men vanish), 16.5K -> 24.2K, 20.9K -> 30.3K, 21.0K -> 34.5K,
+  23.1K -> 55.8K, 29.1K -> 42.0K, 38.9K -> 62.6K, 40.9K -> 82.4K, 81.7K -> 117.6K. Don't call a Short before 12 h.
+- Men vanish's curve is out: 64% at 0:30, 18.7K at 24 h. It sits in the under-65% group (middle 21K), as the 0:30 rule says.
+- Solar storm re-upload: 36% at 0:30, against 64% for the first upload. The new opening loses people much faster (63% left at 0:10, old one 96%).
+  Different viewers may have been shown it, but either way the re-upload did worse on both the feed test and the hold. Closed.
+- Dino asteroid 34.5K at 24 h, just under typical, with the batch's best stayed (69.5%). Curve not out.
+- Shrink trillion 382K and planet picker 285K are still climbing (+58K and +33K since the evening of Nov 16).
+- Planet stand went up Nov 17 at 8:03 AM as built (owner: good ideas, drawing too simple; may repost with better graphics). Heavy trillion is
+  scheduled for Nov 17. Scream trillion is built, not posted: owner finds it samey and worries the scream annoys people.
