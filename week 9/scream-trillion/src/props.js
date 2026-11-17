@@ -71,7 +71,7 @@ export function makeProps(scene, ctx, glass) {
   const PANELS = [];
   const nS = Math.round((CAFE.z1 - CAFE.z0) / 1.25);
   for (let k = 0; k < nS; k++) { const za = CAFE.z0 + k * (CAFE.z1 - CAFE.z0) / nS, zb = za + (CAFE.z1 - CAFE.z0) / nS; PANELS.push({ x: CAFE.x0, z: (za + zb) / 2, w: zb - za, along: 'z' }); }
-  const nE = 2;
+  const nE = 1;     // (the south end: one big pane, the one you see burst)
   for (let k = 0; k < nE; k++) { const xa = CAFE.x0 + k * (CAFE.x1 - CAFE.x0) / nE, xb = xa + (CAFE.x1 - CAFE.x0) / nE; PANELS.push({ x: (xa + xb) / 2, z: CAFE.z1, w: xb - xa, along: 'x' }); }
   const glassMat = new THREE.MeshStandardMaterial({ color: 0xcfe6f0, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false });
   const panes = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 0.012), glassMat, PANELS.length);
@@ -81,10 +81,12 @@ export function makeProps(scene, ctx, glass) {
   PANELS.forEach((P, i) => {
     const y = 0.22 + (H - 0.22) / 2;
     const r = Math.hypot(P.x - MOUTH.x, y - MOUTH.y, P.z - MOUTH.z);
-    P.t = timeOfPressure((0.09 + 0.06 * R()) * PSI, r);
+    P.hero = P.along === 'x';
+    P.t = timeOfPressure((P.hero ? 0.1 : 0.09 + 0.06 * R()) * PSI, r);
     P.m = new THREE.Matrix4().makeRotationY(P.along === 'z' ? Math.PI / 2 : 0).scale(sc.set(P.w - 0.06, H - 0.26, 1)).setPosition(P.x, y, P.z);
     panes.setMatrixAt(i, P.m);
-    glass.addSource({ t: P.t, x: P.x, y, z: P.z, nx: P.along === 'z' ? -1 : 0, nz: P.along === 'x' ? 1 : 0, w: P.w * 0.9, h: H - 0.3, n: 40 });
+    // (a sound wave pushes and pulls: the glass flies both ways; the big south pane's shards fly past the camera)
+    glass.addSource({ t: P.t, x: P.x, y, z: P.z, nx: P.along === 'z' ? -1 : 0, nz: P.along === 'x' ? 1 : 0, w: P.w * 0.95, h: H - 0.3, n: P.hero ? 260 : 60, big: P.hero ? 2.2 : 1.4, back: P.hero ? 0.55 : 0.3 });
     // the frame: posts at the ends, a top rail, a kick plate
     const g = P.along === 'z'
       ? [new THREE.BoxGeometry(0.05, H, 0.05).translate(P.x, H / 2, P.z - P.w / 2), new THREE.BoxGeometry(0.05, 0.05, P.w).translate(P.x, H, P.z), new THREE.BoxGeometry(0.04, 0.22, P.w).translate(P.x, 0.11, P.z)]

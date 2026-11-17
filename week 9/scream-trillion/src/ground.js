@@ -1,12 +1,13 @@
 // The ground: the street (one lane each way, a double yellow line, white lines marking the parking lanes), the cross
 // street 110 m up with its crosswalks, concrete sidewalks with curbs. Dust settles on everything once things blow.
 import * as THREE from 'three';
-import { RW, FX, CZ, CW } from './layout.js';
+import { RW, FX, CZ, CW, YOU } from './layout.js';
 import { CU } from './city.js';
 
 export const GU = {
   uTime: { value: 0 }, uSkyHi: { value: new THREE.Color(0.1, 0.3, 0.78) }, uSkyLo: { value: new THREE.Color(0.62, 0.78, 0.95) },
   uHaze: CU.uHaze, uHazeD: CU.uHazeD, uDust: CU.uDust, uL: CU.uL, uMouth: CU.uMouth,
+  uCrack: { value: 0 }, uPit: { value: 0 },         // the crater under you: how far its cracks reach (m), its dark middle (m)
 };
 const f = (x) => x.toFixed(2);
 
@@ -21,7 +22,7 @@ export function makeGround(scene) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         varying vec3 vGW;
-        uniform float uTime; uniform float uDust; uniform float uL; uniform vec3 uMouth;
+        uniform float uTime; uniform float uDust; uniform float uL; uniform vec3 uMouth; uniform float uCrack; uniform float uPit;
         uniform vec3 uSkyHi; uniform vec3 uSkyLo; uniform vec3 uHaze; uniform float uHazeD;
         float g21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -64,6 +65,24 @@ export function makeGround(scene) {
           c = vec3(0.44, 0.42, 0.4) * (0.88 + 0.2 * g21(floor(P / 1.5))) * (0.9 + 0.15 * n);
           c *= 0.84 + 0.16 * smoothstep(0.0, 0.03 + aw, joint);
           if (ax > ${f(FX + 0.5)} && dz > ${f(CW + 5.5)}) c *= 0.7;
+        }
+        // the crater under you: jagged cracks out from your feet, rings of them, a dark broken middle
+        if (uCrack > 0.0) {
+          vec2 Q = P - vec2(${f(YOU.x)}, ${f(YOU.z)});
+          float rq = length(Q), aq = atan(Q.y, Q.x);
+          float wig = (gn(vec2(rq * 3.0, aq * 2.0)) - 0.5) * 0.9 + (gn(vec2(rq * 11.0, aq * 5.0)) - 0.5) * 0.25;
+          float sec = (aq / 6.2832 + 0.5) * 11.0 + wig;
+          float ds = abs(fract(sec) - 0.5) * 6.2832 / 11.0 * rq;
+          float reach = uCrack * (0.45 + 0.55 * g21(vec2(floor(sec), 7.0)));
+          float cw = 0.008 + 0.035 * smoothstep(reach, 0.0, rq);
+          float crack = (1.0 - smoothstep(cw, cw + aw * 1.5, ds)) * (1.0 - smoothstep(reach - 0.4, reach, rq));
+          for (int k = 0; k < 3; k++) {
+            float ringR = (0.9 + float(k) * 1.1) * (0.6 + 0.4 * min(uCrack / 4.0, 1.0)) + 0.1 * (gn(vec2(aq * 4.0, float(k))) - 0.5);
+            crack = max(crack, (1.0 - smoothstep(0.012, 0.012 + aw * 1.5, abs(rq - ringR))) * step(ringR, reach * 0.8));
+          }
+          c = mix(c, vec3(0.04, 0.035, 0.03), crack * 0.95);
+          float pit = uPit * (0.85 + 0.3 * gn(vec2(aq * 3.0, 2.0)));
+          c *= mix(1.0, 0.3, (1.0 - smoothstep(pit * 0.6, pit * 1.6, rq)) * step(0.01, uPit));
         }
         // dust blown over everything near you once the shock wave starts
         float pk = 2.874 * pow(10.0, uL * 0.5) / max(distance(vec3(P.x, 0.0, P.y), uMouth), 0.5);

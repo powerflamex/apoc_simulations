@@ -19,13 +19,22 @@ float yn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
              mix(mix(yh(i + vec3(0,0,1)), yh(i + vec3(1,0,1)), f.x), mix(yh(i + vec3(0,1,1)), yh(i + vec3(1,1,1)), f.x), f.y), f.z); }
 `;
 
+// the wind of your own scream whipping your hoodie and hair: uFlap 0..1, uFT time (main.js sets them)
+export const FLAP = { uFlap: { value: 0 }, uFT: { value: 0 } };
 function fabric(color, rough, kind) {
   const m = new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
   m.userData.kind = kind;
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uRim = m.userData.uRim || (m.userData.uRim = { value: new THREE.Color(0, 0, 0) });
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position;');
+    sh.uniforms.uFlap = FLAP.uFlap; sh.uniforms.uFT = FLAP.uFT;
+    const flap = kind === 1 ? `
+        { float w = sin(position.y * 55.0 + uFT * 31.0 + position.x * 40.0) * 0.6 + sin(position.y * 23.0 - uFT * 19.0 + position.z * 37.0) * 0.4;
+          transformed += normal * uFlap * 0.02 * w; }`
+      : kind === 3 ? `
+        { float w = sin(position.x * 90.0 + uFT * 37.0) * sin(position.z * 70.0 + uFT * 29.0 + position.y * 60.0);
+          transformed += normal * uFlap * 0.016 * (0.4 + w) + vec3(0.0, 0.0, 1.0) * uFlap * 0.014 * w; }` : '';
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; uniform float uFlap; uniform float uFT;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position;' + flap);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\nvarying vec3 vOP; uniform vec3 uRim;\n${DETAIL}`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         {
@@ -47,7 +56,7 @@ function fabric(color, rough, kind) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         totalEmissiveRadiance += diffuseColor.rgb * uRim * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 3.0);`);
   };
-  m.customProgramCacheKey = () => 'you-' + kind;
+  m.customProgramCacheKey = () => 'you-flap-' + kind;
   return m;
 }
 
@@ -235,6 +244,15 @@ export function makeYou(scene, opts = {}) {
   }
   // hair: a cap over the top and back with a short fringe
   head.add(new THREE.Mesh(new THREE.SphereGeometry(0.106, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.56).rotateX(-0.42).scale(0.9, 1.0, 1.02).translate(0, 0.118, -0.012), M.hair));
+  // tufts of hair (they whip in the wind of your scream)
+  const tufts = [];
+  for (let k = 0; k < 9; k++) {
+    const a = -1.2 + k * 0.3, g = new THREE.Group();
+    g.position.set(Math.sin(a) * 0.07, 0.19 - 0.03 * Math.abs(a), -0.035 - Math.cos(a) * 0.04);
+    g.add(new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.1, 6).translate(0, 0.045, 0), M.hair));
+    g.userData.a = a;
+    head.add(g); tufts.push(g);
+  }
   // ---- arms ----
   const arms = [];
   for (const side of [0, 1]) {
@@ -266,7 +284,7 @@ export function makeYou(scene, opts = {}) {
   const tmpM = new THREE.Matrix4();
 
   return {
-    root, mats, M, arms, legs, head, torso, pelvis,
+    root, mats, M, arms, legs, head, torso, pelvis, tufts,
     // q: { lift: [L, R] (feet raised, m), sink (m), lean, head: [pitch, yaw], arms: 'down' | 'out' | 'float',
     //      reach (0..1), reachDir (Vector3 in the figure's frame), curl (0..1 fingers), float (0..1) }
     pose(q) {

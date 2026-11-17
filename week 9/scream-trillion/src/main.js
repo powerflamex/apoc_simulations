@@ -12,7 +12,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { makeSky, skyColors } from './sky.js';
 import { makeGround, GU } from './ground.js';
-import { makeCity, CU, hazed, DUST } from './city.js';
+import { makeCity, CU, hazed, DUST, TOWERS, towerAngle } from './city.js';
 import { makeTraffic } from './traffic.js';
 import { makeProps } from './props.js';
 import { makeGlass } from './glass.js';
@@ -20,11 +20,11 @@ import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
 import { makeCrowd } from './crowd.js';
 import { makeOverlay } from './overlay.js';
-import { makeYou } from './you.js';
+import { makeYou, FLAP } from './you.js';
 import { PEOPLE, personAt, earArms } from './people.js';
 import { YOU, YOU_YAW, MOUTH, CAM } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, BEATS, HITS, V_FILL, V_FLASH, T_SWITCH, logMult } from './timeline.js';
-import { lerp, smooth, wobble, clamp, rng } from './util.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, BEATS, HITS, V_FILL, V_FLASH, T_SWITCH, logMult, V_RING, V_BACK, V_WHITE } from './timeline.js';
+import { lerp, smooth, wobble, clamp, rng, easeInOut } from './util.js';
 
 const W = 1080, H_PX = 1920, DEG = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -95,18 +95,32 @@ const shellMat = new THREE.ShaderMaterial({
     }`,
 });
 const SHELLS = [];
-for (let k = 0; k < 4; k++) {
+for (let k = 0; k < 5; k++) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), shellMat.clone());
   m.renderOrder = 7; m.frustumCulled = false; m.visible = false;
   scene.add(m); SHELLS.push(m);
 }
-const SHOCK = [...BEATS.filter(([, L]) => L >= 9.6).map(([t, L]) => ({ t, L })), { t: V_FILL, L: 12.6 }];
+const SHOCK = BEATS.filter(([, L]) => L >= 3).map(([t, L]) => ({ t, L }));
 const RING_DUST = [];
 {
   const R = rng(99);
-  for (const b of SHOCK) for (let k = 0; k < 40; k++) RING_DUST.push({ t: b.t, a: (k / 40) * Math.PI * 2 + R() * 0.15, L: b.L, s: R(), sh: 0.55 + 0.25 * R() });
+  for (const b of SHOCK) if (b.L >= 6) for (let k = 0; k < 40; k++) RING_DUST.push({ t: b.t, a: (k / 40) * Math.PI * 2 + R() * 0.15, L: b.L, s: R(), sh: 0.55 + 0.25 * R() });
+  // the last ring: racing down the street to the horizon
+  for (let k = 0; k < 90; k++) RING_DUST.push({ t: V_RING, a: -Math.PI / 2 + (R() - 0.5) * 2.2, L: 14, s: R(), sh: 0.7 + 0.2 * R(), last: true });
 }
 
+// ---------- the crater under your feet: sidewalk slabs that crack loose and tip up round you from the shock wave on ----------
+const CRATER = [];
+{
+  const R = rng(4040);
+  for (let k = 0; k < 22; k++) {
+    const a = (k / 22) * Math.PI * 2 + R() * 0.2, r = 0.6 + 0.6 * R();
+    CRATER.push({ a, r, t: HITS[6] + 0.05 + (r - 0.75) * 0.2 + R() * 0.1, tilt: 0.35 + 0.5 * R(), grow: 0.2 + 0.3 * R(), sx: 0.22 + 0.2 * R(), sz: 0.2 + 0.18 * R() });
+  }
+}
+const slabs = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.09, 1).translate(0, 0, 0.5), plainMat(0x77726c, 0.9), CRATER.length);
+slabs.castShadow = true; slabs.receiveShadow = true; slabs.frustumCulled = false;
+scene.add(slabs);
 const overlay = makeOverlay();
 
 // ---------- post ----------
@@ -158,7 +172,7 @@ const finish = new ShaderPass({
       vec2 c = vUv - 0.5;
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.79) / 0.09, 2.0));
-      col *= 1.0 - uCounter * 0.4 * exp(-pow((vUv.y - 0.625) / 0.06, 2.0)) * smoothstep(0.85, 0.1, vUv.x);
+      col *= 1.0 - uCounter * 0.45 * exp(-pow((vUv.y - 0.6) / 0.085, 2.0)) * smoothstep(1.1, 0.2, vUv.x);
       col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.125) / 0.045, 2.0));
       // the blast filling the frame: a dusty white from the edges in
       float e = length(c * vec2(1.3, 1.0));
@@ -180,21 +194,40 @@ function update(v, cover = -1) {
   const white = Math.max(s.flash, cover);
   if (cover >= 0) s.title *= 1 - smooth(0.55, 1, cover);
   s.kick = kickAt(v);
-  // ---- you: screaming, leaning in, fists clenched; a tremble that grows ----
+  // ---- you: leaning into the scream, fists clenched, head shaking, hoodie and hair whipping; each step a lunge ----
   const tr = 0.012 + 0.004 * s.L;
-  you.pose({ hipY: 0.87, footZ: 0.05, lean: 0.12 + 0.03 * Math.sin(v * 1.3), head: [-0.55 + tr * wobble(v * 31, 2), 0.12 + tr * wobble(v * 27, 5)], armsOut: 0.22 + 0.04 * Math.sin(v * 2), armsFwd: -0.12, curl: 1.0 });
-  you.pelvis.rotation.x = 0.12;
+  let lunge = 0;
+  HITS.forEach((h) => { const dt = v - h; if (dt > -0.15 && dt < 1.2) lunge = Math.max(lunge, smooth(-0.15, 0.05, dt) * Math.exp(-Math.max(dt, 0) / 0.45)); });
+  const shakeH = 0.5 + 0.5 * smooth(0, 12, v);
+  const lean = 0.16 + 0.05 * Math.sin(v * 2.3) + 0.14 * lunge;
+  you.pose({ hipY: 0.84 + 0.015 * Math.sin(v * 2.3) - 0.04 * lunge, footZ: 0.08, lean,
+    head: [-0.5 + 0.07 * Math.sin(v * 6.3) * shakeH + tr * wobble(v * 31, 2) - 0.15 * lunge, 0.06 + 0.22 * Math.sin(v * 4.7) * shakeH + 0.06 * wobble(v * 13, 5)],
+    armsOut: 0.55 + 0.06 * Math.sin(v * 3.1) + 0.15 * lunge, armsFwd: -0.15 + 0.06 * Math.sin(v * 2.3 + 1) - 0.15 * lunge, curl: 1.0 });
+  you.pelvis.rotation.x = lean;
+  // (elbows bent, fists clenched in front of you, shaking with the effort)
+  you.arms.forEach((A, i) => {
+    A.el.rotation.set(-0.75 + 0.1 * Math.sin(v * 9 + i) - 0.2 * lunge, 0, 0); A.wr.rotation.set(0.25, 0, 0);
+    A.sh.rotation.z += (i ? 1 : -1) * 0.04 * wobble(v * 21, i + 3);
+    // clenched fists
+    A.fingers.forEach((f) => f.forEach((seg) => seg.rotation.set(0, 0, 1.35)));
+    A.thumb.forEach((seg, k) => seg.rotation.set(0, 0, k ? 0.9 : 0.4));
+  });
+  FLAP.uFT.value = v;
+  FLAP.uFlap.value = 0.35 + 0.65 * smooth(10.5, 12.5, v) + 0.3 * lunge;
+  you.tufts.forEach((t) => { const a = t.userData.a; t.rotation.set(-0.9 + 0.45 * Math.sin(v * 23 + a * 3) * FLAP.uFlap.value, 0, a * 0.5 + 0.35 * Math.sin(v * 19 + a * 5) * FLAP.uFlap.value); });
   placeYou(YOU.x, 0, YOU.z, YOU_YAW);
   you.root.updateMatrixWorld(true);
   you.head.localToWorld(mouthV.set(0, 0.041, 0.09));
-  // ---- the camera: fixed, a slow drift, a shake that grows with the power ----
-  const pos = new THREE.Vector3(CAM.x - 0.05 * smooth(0, 40, v), CAM.y, CAM.z + 0.25 * smooth(0, 44, v));
-  const yaw = -5 * DEG, pitch = (10.5 - 1.5 * smooth(20, 40, v)) * DEG;
+  // ---- the camera: one shot; from 0:05 it eases back and up (you end about half the size, off-centre, the street
+  //      readable behind you); a shake that grows with the power ----
+  const cx0 = clamp((v - 5) / 35, 0, 1), ce = smooth(0, 1, cx0) * 0.55 + (1 - Math.pow(1 - cx0, 2.2)) * 0.45;
+  const pos = new THREE.Vector3(lerp(CAM.x, 7.85, ce), lerp(CAM.y, 2.9, ce), lerp(CAM.z, 4.55, ce));
+  const yaw = lerp(3.2, -2.5, ce) * DEG, pitch = lerp(9.5, -3.5, ce) * DEG;
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
   camera.position.copy(pos);
   camera.lookAt(tv.copy(pos).add(dir));
-  camera.fov = 56 + 3 * smooth(26, 44, v);
-  const shake = 0.0015 + s.kick * 0.012 + 0.0006 * Math.max(0, s.L - 8) + 0.012 * smooth(V_FILL - 2, T_SWITCH, v);
+  camera.fov = 56 + 4 * ce;
+  const shake = 0.0015 + s.kick * 0.012 + 0.0006 * Math.max(0, s.L - 8) + 0.004 * smooth(V_RING, V_RING + 0.3, v) + 0.02 * smooth(V_BACK, V_WHITE, v);
   camera.rotation.x += wobble(v * 43, 3) * shake; camera.rotation.y += wobble(v * 47, 4) * shake; camera.rotation.z += wobble(v * 39, 6) * shake * 0.5;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
@@ -211,6 +244,15 @@ function update(v, cover = -1) {
   CU.uTime.value = v; GU.uTime.value = v;
   CU.uL.value = s.L;
   CU.uDust.value = smooth(15.5, 24, v);
+  GU.uCrack.value = v < HITS[6] ? 0 : 1.2 + 2.2 * smooth(HITS[6], HITS[6] + 0.4, v) + 6 * smooth(HITS[6] + 0.4, 40, v);
+  GU.uPit.value = v < HITS[6] ? 0 : 0.55 * smooth(HITS[6], HITS[6] + 0.3, v) + 0.45 * smooth(HITS[8], HITS[8] + 0.3, v);
+  CRATER.forEach((c, i) => {
+    const k = smooth(c.t, c.t + 0.25, v), k2 = smooth(HITS[8], HITS[8] + 0.4, v) + smooth(HITS[10], HITS[10] + 0.4, v);
+    const ang = (c.tilt + 0.25 * k2) * k, rr = c.r + (c.grow + 0.2 * k2) * k;
+    const e = new THREE.Euler(-ang, -c.a + Math.PI / 2, 0, 'YXZ');
+    slabs.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(YOU.x + Math.cos(c.a) * (rr - 0.3), -0.05 + 0.05 * k, YOU.z + Math.sin(c.a) * (rr - 0.3)), new THREE.Quaternion().setFromEuler(e), new THREE.Vector3(c.sx, 1, c.sz * k + 0.001)));
+  });
+  slabs.instanceMatrix.needsUpdate = true;
   const lc = new THREE.Vector3(YOU.x - 4, 0, YOU.z - 50);
   sunL.position.copy(SUNDIR).multiplyScalar(500).add(lc);
   sunL.target.position.copy(lc); sunL.target.updateMatrixWorld();
@@ -237,16 +279,37 @@ function update(v, cover = -1) {
   // the ring of dust along the ground at each shock step
   for (const d of RING_DUST) {
     const t = v - d.t; if (t < 0 || t > 3.2) continue;
-    const R = 2 + 40 * (1 - Math.exp(-t * 1.6)) * (0.6 + 0.1 * (d.L - 9.6));
-    smoke.puff(MOUTH.x + Math.cos(d.a) * R, 0.6 + 0.8 * t, MOUTH.z + Math.sin(d.a) * R, 1.0 + 1.6 * t + d.s, 0.6 * smooth(0, 0.15, t) * (1 - smooth(1.2, 3.2, t)), d.sh, 0, d.s);
+    if (d.last) {
+      if (t > 2.4) continue;
+      const R = 8 + 160 * Math.pow(t, 1.5) * (0.8 + 0.4 * d.s);
+      smoke.puff(MOUTH.x + Math.cos(d.a) * R, 2 + 4 * d.s + 0.03 * R, MOUTH.z + Math.sin(d.a) * R, 3 + 0.06 * R, 0.8 * smooth(0, 0.1, t) * (1 - smooth(1.5, 2.4, t)), d.sh, 0, d.s);
+      continue;
+    }
+    const R = 2 + 40 * (1 - Math.exp(-t * 1.6)) * clamp(0.25 + 0.12 * (d.L - 6), 0.25, 1.0);
+    smoke.puff(MOUTH.x + Math.cos(d.a) * R, 0.6 + 0.8 * t, MOUTH.z + Math.sin(d.a) * R, (1.0 + 1.6 * t + d.s) * (d.L < 9 ? 0.6 : 1), 0.6 * smooth(0, 0.15, t) * (1 - smooth(1.2, 3.2, t)), d.sh, 0, d.s);
   }
-  // the end: the dust of the whole block rolls in down the street and fills the frame
-  if (v > V_FILL - 0.5) {
-    const k = smooth(V_FILL - 0.5, V_FLASH + 0.8, v);
-    for (let i = 0; i < 110; i++) {
-      const a = -Math.PI / 2 + (((i * 0.618) % 1) - 0.5) * 1.5, h = ((i * 0.377) % 1);
-      const R = 85 - 72 * k * (0.7 + 0.3 * ((i * 0.29) % 1));
-      smoke.puff(MOUTH.x + Math.cos(a) * R, 1 + 28 * h * h, MOUTH.z + Math.sin(a) * R, 5 + 7 * h + 4 * k, 0.85 * smooth(0, 0.4, k), 0.74, 0, (i * 0.618) % 1);
+  // the towers: dust at the foot as one starts to go, a huge burst along it where it lands
+  for (const T of TOWERS) {
+    const t = v - T.t; if (t < 0 || t > T.T + 7) continue;
+    const b = T.b;
+    for (let i = 0; i < 4; i++) {
+      const f = (i * 0.618) % 1, ang = i * 2.4;
+      smoke.puff(b.x + Math.cos(ang) * b.w * 0.4, 2 + 2 * f + 0.8 * t, b.z + Math.sin(ang) * b.d * 0.4, 4 + 3 * f + t, 0.55 * smooth(0, 0.6, t) * (1 - smooth(3, 6, t)), 0.7, 0, f);
+    }
+    const ti = t - T.T;
+    if (ti > 0) for (let i = 0; i < 14; i++) {
+      const f = i / 13, d = b.h * f;
+      smoke.puff(T.px + T.ux * d + Math.sin(i * 3.1) * 6, 4 + 10 * ((i * 0.37) % 1) + 2.5 * ti, T.pz + T.uz * d + Math.cos(i * 2.3) * 6, 10 + 8 * ((i * 0.53) % 1) + 4 * ti, 0.85 * smooth(0, 0.3, ti) * (1 - smooth(3, 7, ti)), 0.74, 0, (i * 0.29) % 1);
+    }
+  }
+  // the echo: the last ring bounced off the far towers comes back up the street, a wall of white, at the camera
+  if (v > V_BACK) {
+    const k = clamp((v - V_BACK) / (V_WHITE - V_BACK), 0, 1);
+    const zf = lerp(-210, camera.position.z + 2, Math.pow(k, 1.25));
+    for (let i = 0; i < 120; i++) {
+      const fx = (i * 0.618) % 1, fy = (i * 0.377) % 1, fz = (i * 0.211) % 1;
+      const x = -40 + 90 * fx, y = 1 + 70 * fy * fy;
+      smoke.puff(x, y, zf - 18 * fz, 13 + 12 * fy, smooth(0, 0.12, k), 1.0, 0, fx);
     }
   }
   smoke.end(); glows.end();
@@ -260,9 +323,19 @@ function update(v, cover = -1) {
     if (t < 0 || t > 1.8 || si >= SHELLS.length) continue;
     const m = SHELLS[si++];
     m.visible = true;
-    const R = 1.5 + 60 * t * (1 + 0.3 * (b.L - 9.6));
+    const R = 1.2 + 60 * t * clamp(0.25 + 0.12 * (b.L - 3), 0.25, 1.3);
     m.position.set(MOUTH.x, 0, MOUTH.z); m.scale.setScalar(R);
-    m.material.uniforms.uA.value = (0.55 + 0.1 * (b.L - 9.6)) * smooth(0, 0.08, t) * (1 - smooth(0.4, 1.8, t));
+    m.material.uniforms.uA.value = clamp(0.25 + 0.06 * (b.L - 3), 0.25, 0.75) * smooth(0, 0.08, t) * (1 - smooth(0.4, 1.8, t));
+  }
+  {
+    const t = v - V_RING;
+    if (t > 0 && t < 2.6 && si < SHELLS.length) {
+      const m = SHELLS[si++];
+      m.visible = true;
+      const R = 8 + 160 * Math.pow(t, 1.5);
+      m.position.set(MOUTH.x, 0, MOUTH.z); m.scale.setScalar(R);
+      m.material.uniforms.uA.value = 2.2 * smooth(0, 0.06, t) * (1 - smooth(1.6, 2.6, t));
+    }
   }
   for (; si < SHELLS.length; si++) SHELLS[si].visible = false;
   // the people
@@ -272,7 +345,7 @@ function update(v, cover = -1) {
     earArms(crowd, p.i, P);
   });
   crowd.commit();
-  bloom.strength = 0.2 + 0.15 * s.kick + 0.2 * smooth(V_FILL, T_SWITCH, v);
+  bloom.strength = 0.2 + 0.15 * s.kick + 0.35 * Math.exp(-Math.max(0, v - V_RING) / 0.5) * (v > V_RING ? 1 : 0) + 0.25 * smooth(V_BACK, V_WHITE, v);
   // ---------- the ripples from your mouth ----------
   tv.copy(mouthV).project(camera);
   const cx = tv.x * 0.5 + 0.5, cy = tv.y * 0.5 + 0.5;
@@ -289,13 +362,13 @@ function update(v, cover = -1) {
   HITS.forEach((h, n) => {
     const t = v - h; if (t < 0 || t > 1.0 || ri >= NR) return;
     const L = BEATS[n][1];
-    rings[ri++].set(cx, cy, 0.06 + 1.25 * t, (0.014 + 0.0016 * L) * (1 - smooth(0.4, 1.0, t)) * smooth(0, 0.04, t));
+    rings[ri++].set(cx, cy, 0.06 + 1.25 * t, (0.02 + 0.0016 * L) * (1 - smooth(0.4, 1.0, t)) * smooth(0, 0.04, t));
   });
   for (; ri < NR; ri++) rings[ri].z = -1;
   // ---------- post ----------
   finish.uniforms.uTime.value = v;
-  finish.uniforms.uAb.value = s.kick * 0.6 + 0.3 * smooth(V_FILL, T_SWITCH, v);
-  finish.uniforms.uDustW.value = smooth(V_FILL, V_FLASH + 0.6, v);
+  finish.uniforms.uAb.value = s.kick * 0.6 + 0.6 * smooth(V_BACK, V_WHITE, v);
+  finish.uniforms.uDustW.value = 0.6 * smooth(V_BACK + 0.6, V_WHITE, v);
   finish.uniforms.uWhite.value = window.__cover ? 0 : white;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 1 - smooth(0.6, 1, white);

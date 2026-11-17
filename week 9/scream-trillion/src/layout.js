@@ -14,7 +14,7 @@ export const YOU_YAW = -0.3;                                // (the figure faces
 export const MOUTH = { x: 8.32, y: 1.57, z: 0.09 };          // where the sound comes from (physics; matches the figure)
 export const CAM = { x: 8.6, y: 1.35, z: 2.3 };              // the camera: 2.3 m in front of you, looking up the street
 // the cafe terrace behind you: tables against the shop front, low glass screens on its street side and south end
-export const CAFE = { x0: 8.95, x1: 10.95, z0: -10.5, z1: -3.0, screenH: 1.35 };
+export const CAFE = { x0: 8.95, x1: 10.95, z0: -10.5, z1: -3.2, screenH: 2.3 };
 export const LANES = [-1.7, 1.7], PARK = [-4.75, 4.75];     // traffic lanes (south-bound at x < 0), parking lanes
 export const LAMP_X = 6.35;
 export const CHUNK_R = 135;                                 // buildings closer than this (m) are chunked

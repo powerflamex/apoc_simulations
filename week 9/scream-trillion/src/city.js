@@ -305,6 +305,39 @@ export const DUST = [];        // [t, x, y, z, size] puffs where chunks break aw
   }
   console.log(`city: ${CHUNKS.length} chunks, ${CHUNKS.filter((c) => Number.isFinite(c.dep)).length} break away, ${DUST.length} dust puffs`);
 }
+// the towers down the street that topple (the whole box, about its base edge away from you), from ~2 psi held: a
+// steady push ~5x the strongest wind they're built for (timeline.js). Each one's strength is its own (1.95-2.3 psi),
+// so they go one after another, outward, as the power climbs.
+export const TOWERS = [];
+{
+  const R = rng(1717);
+  for (const b of BLD) {
+    if (b.chunk || b.h < 34 || b.z > -100) continue;
+    const dx = b.x - MOUTH.x, dz = b.z - MOUTH.z, dh = Math.hypot(dx, dz);
+    if (dh > 230 || Math.abs(b.x) > 90) continue;
+    const r = Math.hypot(dh, b.h * 0.4 - MOUTH.y);
+    const thr = PSI * (1.95 + 0.35 * R());
+    const t = timeOfPressure(thr, r);
+    if (!(t < 44.4)) continue;
+    // tip away from you, slewing toward the middle of the street (a tower falls the way it's weakest: across its
+    // narrow side), so from your end of the street you see it go over instead of only shrinking away
+    let ux = dx / dh - 0.75 * Math.sign(b.x), uz = dz / dh;
+    { const l = Math.hypot(ux, uz); ux /= l; uz /= l; }
+    const ext = Math.abs(ux) * b.w / 2 + Math.abs(uz) * b.d / 2;
+    const T = 1.15 * Math.sqrt(2 * b.h / 9.81);
+    TOWERS.push({ b, t, r, T, ux, uz, px: b.x + ux * ext, pz: b.z + uz * ext, axis: new THREE.Vector3(uz, 0, -ux) });
+  }
+  // (their strengths, all within 1.7-2.8 psi, are picked so the falls come one every ~2.3 s from 0:30, nearest first)
+  TOWERS.sort((a, b) => a.r - b.r);
+  TOWERS.forEach((T, k) => {
+    const tk = 30.4 + 2.3 * k, thr = peakPa(logMult(tk), T.r);
+    if (thr > 1.7 * PSI && thr < 2.8 * PSI && tk < 41.5) T.t = tk;
+    T.thr = thr;
+  });
+  TOWERS.sort((a, b) => a.t - b.t);
+  console.log(`city: ${TOWERS.length} towers fall at ${TOWERS.map((t) => t.t.toFixed(1)).join(' ')}`);
+}
+export function towerAngle(T, v) { const t = v - T.t; return t <= 0 ? 0 : t >= T.T ? Math.PI / 2 * 0.985 : Math.PI / 2 * 0.985 * Math.pow(t / T.T, 2.2); }
 // where chunk c is at time v: { x, y, z } and its rotation angle about c.axis
 function chunkAt(c, v, out) {
   out.ang = 0;
@@ -346,12 +379,15 @@ export function makeCity(scene, ctx) {
   const q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   // ---- the whole buildings (far ones) ----
   const WHOLE = BLD.filter((b) => !b.chunk);
+  let wholeMesh = null;
+  const tq = new THREE.Quaternion(), tP = new THREE.Matrix4(), tR = new THREE.Matrix4(), tB = new THREE.Matrix4();
   {
     const geo = new THREE.BoxGeometry(1, 1, 1, 1, 24, 1).translate(0, 0.5, 0);
     const n = WHOLE.length;
     const aS = new Float32Array(n * 4), aCol = new Float32Array(n * 3);
     const mesh = new THREE.InstancedMesh(geo, facadeMaterial(false), n);
     WHOLE.forEach((b, i) => {
+      b.wi = i;
       m4.makeScale(b.w, b.h, b.d).setPosition(b.x, b.y, b.z);
       mesh.setMatrixAt(i, m4);
       aS.set([b.i, b.kind, b.colW, b.h], i * 4);
@@ -362,6 +398,7 @@ export function makeCity(scene, ctx) {
     geo.setAttribute('aCol', new THREE.InstancedBufferAttribute(aCol, 3));
     mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = true;
     scene.add(mesh);
+    wholeMesh = mesh;
   }
   // ---- the chunks ----
   const n = CHUNKS.length;
@@ -438,6 +475,18 @@ export function makeCity(scene, ctx) {
   return {
     signMat,
     frame(v, s) {
+      // the toppling towers
+      for (const T of TOWERS) {
+        const a = towerAngle(T, v), b = T.b;
+        tB.makeScale(b.w, b.h, b.d).setPosition(b.x, b.y, b.z);
+        if (a > 0) {
+          tq.setFromAxisAngle(T.axis, a);
+          tR.makeRotationFromQuaternion(tq);
+          tB.premultiply(tP.makeTranslation(-T.px, 0, -T.pz)).premultiply(tR).premultiply(tP.makeTranslation(T.px, 0, T.pz));
+        }
+        wholeMesh.setMatrixAt(b.wi, tB);
+      }
+      wholeMesh.instanceMatrix.needsUpdate = true;
       // the chunks: only those that have moved (or moved last frame) need a new matrix
       const back = v < lastV;
       lastV = v;

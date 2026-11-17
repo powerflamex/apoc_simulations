@@ -12,10 +12,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, HITS, BEATS, logMult, V_FILL, V_FLASH } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, HITS, BEATS, logMult, V_FILL, V_FLASH, V_RING, V_BACK, V_WHITE } from './src/timeline.js';
 import { MOUTH, CAM } from './src/layout.js';
 import { SOURCES } from './src/glass.js';
-import { CHUNKS } from './src/city.js';
+import { CHUNKS, TOWERS } from './src/city.js';
 import { CARS } from './src/traffic.js';
 import { PEOPLE } from './src/people.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -131,7 +131,12 @@ export function makeSoundtrack(outFile) {
   const revL = new Reverb(21), revR = new Reverb(22);
   let brownL = 0, brownR = 0, wetPrev = 0;
   const BEAT = HITS.map((t, n) => ({ t, k: 0.3 + 0.05 * n, f: 60 * Math.pow(2, -n / 16) }));
-  BEAT.push({ t: V_FILL, k: 0.95, f: 34 });
+  BEAT.push({ t: V_RING, k: 1.0, f: 34 }, { t: V_WHITE, k: 1.1, f: 30 });
+  // the towers: a long groan as each one goes, a deep crash where it lands
+  for (const T of TOWERS) {
+    for (let k = 0; k < 4; k++) crunch.push({ t: T.t + T.T - 0.1 + k * 0.18, g: 0.55 - 0.08 * k, fc: 160 + 120 * k, d: 0.9, pan: clamp((T.b.x - CAM.x) / 60, -0.7, 0.7), f: new SVF() });
+    crunch.push({ t: T.t, g: 0.18, fc: 110, d: T.T * 0.6, pan: clamp((T.b.x - CAM.x) / 60, -0.7, 0.7), f: new SVF() });
+  }
   for (let n = 0; n < N; n++) {
     const t = T0 + n / SR;
     const Lm = logMult(t);
@@ -175,8 +180,8 @@ export function makeSoundtrack(outFile) {
       const bl = boomLP.run(white()) * env(dt, 0.004, 0.3) * b.k * 2.2;
       l += o + bl; r += o + bl; wet += o * 0.25;
     }
-    // the wash into the white
-    const wa = smooth(V_FILL, T_SWITCH - 0.1, t) * (1 - smooth(T_SWITCH - 0.1, T_SWITCH + 0.3, t));
+    // the echo rushing back up the street at you: a rising roar, cut by the hit; a soft wash under the white
+    const wa = Math.max(smooth(V_BACK, V_WHITE, t) * (1 - smooth(V_WHITE, V_WHITE + 0.25, t)) * 1.6, 0.35 * smooth(V_WHITE, V_WHITE + 0.1, t) * (1 - smooth(T_SWITCH - 0.2, T_SWITCH + 0.3, t)));
     if (wa > 0) { const o = washF.run(white(), 400 + 4000 * wa, 1.3).bp * wa * 0.35; l += o; r += o; }
     const rv = revL.run(wet, 0.82), rv2 = revR.run(wet, 0.82);
     L[n] += l + rv * 0.5; R[n] += r + rv2 * 0.5;

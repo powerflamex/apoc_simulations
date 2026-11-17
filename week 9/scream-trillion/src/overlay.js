@@ -17,7 +17,13 @@ export function makeOverlay() {
     }
     const c = counterAt(v);
     if (label.textContent !== c.label) label.textContent = c.label;
-    if (value.textContent !== c.value) value.textContent = c.value;
+    if (value.textContent !== c.value) {
+      value.textContent = c.value;
+      // as big as it fits: 172 px until the number gets too long for the frame, then shrunk to fit
+      value.style.fontSize = '172px';
+      const w = value.scrollWidth;
+      if (w > 1000) value.style.fontSize = `${Math.floor(172 * 1000 / w)}px`;
+    }
     if (unit.textContent !== c.line) unit.textContent = c.line;
     const hide = s.hide || 0;
     counter.style.opacity = (1 - hide).toFixed(3);

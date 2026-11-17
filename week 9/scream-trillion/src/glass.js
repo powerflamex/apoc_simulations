@@ -3,7 +3,7 @@
 // screens (props.js adds those as extra sources). Each pane sheds shards when it breaks: they tumble out over the
 // sidewalk, fall, glint in the sun, and lie where they land.
 import * as THREE from 'three';
-import { BLD, MOUTH, FX } from './layout.js';
+import { BLD, MOUTH, FX, CAM } from './layout.js';
 import { timeOfPressure } from './timeline.js';
 import { winHash, winKey, paneKey, WIN_THR, PANE_THR, floorSpec, fr32 } from './city.js';
 import { throwAt } from './physics.js';
@@ -90,8 +90,14 @@ export function makeGlass(scene, max = 14000) {
       // out over the sidewalk, away from you a little, then down
       const dx = p[0] - MOUTH.x, dz = p[2] - MOUTH.z, dh = Math.hypot(dx, dz) || 1;
       const out = 0.6 + 2.6 * R(), away = 0.4 + 1.8 * R();
-      const vel = [s.nx * out + dx / dh * away + (R() - 0.5) * 0.8, 0.3 + 1.6 * R(), s.nz * out + dz / dh * away + (R() - 0.5) * 0.8];
-      SH.push({ T: { t0: s.t + R() * 0.06, p, vel, hs: 0.006, D: 9, wallX: 10.9 }, size: (s.n > 10 ? 0.07 : 0.045) + 0.11 * R() * R(), spin: [R() * 9 - 4.5, R() * 9 - 4.5, R() * 9 - 4.5], yaw: R() * 6.28, a0: [R() * 6, R() * 6, R() * 6] });
+      let vel = [s.nx * out + dx / dh * away + (R() - 0.5) * 0.8, 0.3 + 1.6 * R(), s.nz * out + dz / dh * away + (R() - 0.5) * 0.8];
+      if (s.back && R() < s.back) {
+        // pulled back out on the wave's low-pressure half: toward the source side, past the camera
+        const cx = CAM.x + (R() - 0.5) * 3.5 - p[0], cy = CAM.y + (R() - 0.3) * 2.5 - p[1], cz = CAM.z + 1 - p[2], cl = Math.hypot(cx, cy, cz);
+        const sp = 5 + 7 * R();
+        vel = [cx / cl * sp, cy / cl * sp + 1.5, cz / cl * sp];
+      } else if (s.big) vel = vel.map((x, i) => x * (i === 1 ? 1 : 1.8));
+      SH.push({ T: { t0: s.t + R() * 0.05, p, vel, hs: 0.006, D: 9, wallX: 10.9 }, size: ((s.n > 10 ? 0.07 : 0.045) + 0.11 * R() * R()) * (s.big || 1), spin: [R() * 9 - 4.5, R() * 9 - 4.5, R() * 9 - 4.5], yaw: R() * 6.28, a0: [R() * 6, R() * 6, R() * 6] });
     }
     built = true;
     console.log(`glass: ${SOURCES.length} panes, ${SH.length} shards`);

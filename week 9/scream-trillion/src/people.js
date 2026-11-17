@@ -48,7 +48,7 @@ export const PEOPLE = [];
     }
   }
   // standing near you: a couple, a man with a coffee, a woman at the curb (all turned to you already)
-  for (const [x, z] of [[6.9, -1.9], [6.45, -2.6], [7.5, -4.9], [6.6, -5.6], [7.2, -7.9], [8.3, -10.2]]) add({ kind: 'stand', x, z, yaw: Math.PI + (R() - 0.5) });
+  for (const [x, z] of [[6.9, -1.9], [7.5, -4.9], [8.5, -11.2], [9.4, -11.6], [10.2, -12.3], [8.9, -13.4], [7.4, -8.6]]) add({ kind: 'stand', x, z, yaw: Math.PI + (R() - 0.5) });
   // the cafe's customers
   CHAIRS.forEach((c, k) => { if (k % 3 !== 2) add({ kind: 'sit', x: c.x - Math.sin(c.yaw) * 0.04, z: c.z - Math.cos(c.yaw) * 0.04, yaw: c.yaw }); });
   // crossing the road
@@ -68,6 +68,21 @@ export const PEOPLE = [];
     if (p.kind === 'walk') { p.sx = p.x; p.sz = posAt(tw); }
     else if (p.kind === 'cross') { p.sx = p.x + p.dir * SPEED * tw; p.sz = p.z; }
     else { p.sx = p.x; p.sz = p.z; }
+    // the people nearest you: past 120 dB (pain coming) they turn away and stagger off, hands over their ears
+    p.flee = (p.kind === 'stand' || p.kind === 'walk' || p.kind === 'sit') && rOf(p.sx, p.sz) < 14;
+    if (p.flee) {
+      p.tFlee = Math.max(p.tHear + 0.3, timeOfL(1.4 + 2 * Math.log10(Math.max(rOf(p.sx, p.sz), 0.5))) + p.react * 0.6);
+      const dx = p.sx - MOUTH.x, dz = p.sz - MOUTH.z, dh = Math.hypot(dx, dz) || 1;
+      p.fx = dx / dh; p.fz = dz / dh;
+      p.fd = 2.2 + 1.4 * p.rnd;                      // how far they get (m) before the pain doubles them over
+      let ex = p.sx + p.fx * p.fd, ez = p.sz + p.fz * p.fd;
+      ex = clamp(ex, 6.2, 10.6);
+      if (p.kind === 'sit') { ex = clamp(p.sx + p.fx * 0.4, CAFE.x0 + 0.35, CAFE.x1 - 0.3); ez = Math.max(p.sz + p.fz * p.fd, CAFE.z0 + 0.3); }
+      else if (ez > CAFE.z0 - 0.5 && ez < CAFE.z1 + 0.5) ex = Math.min(ex, CAFE.x0 - 0.35);
+      p.ex = ex; p.ez = ez; p.away = true;
+      p.sx0 = p.sx; p.sz0 = p.sz;
+      p.sx = ex; p.sz = ez;
+    }
     const r = rOf(p.sx, p.sz);
     p.r = r;
     p.tPain = timeOfL(3 + 2 * Math.log10(Math.max(r, 0.5))) + p.react * 0.5;
@@ -75,15 +90,28 @@ export const PEOPLE = [];
     const Lk = Number.isFinite(p.tKnock) ? logMult(p.tKnock) : 9;
     const dx = p.sx - MOUTH.x, dz = p.sz - MOUTH.z, dh = Math.hypot(dx, dz) || 1;
     const V = 2.5 + 3 * p.rnd + 4 * Math.max(0, Lk - 9);
-    p.T = { t0: p.tKnock, p: [p.sx, p.kind === 'sit' ? 0.5 : 0.9, p.sz], vel: [dx / dh * V, 1.6 + 2.2 * p.rnd2, dz / dh * V], hs: 0.12, D: 5, wallX: 10.6 };
+    p.T = { t0: p.tKnock, p: [p.sx, p.kind === 'sit' && !p.flee ? 0.5 : 0.9, p.sz], vel: [dx / dh * V, 1.6 + 2.2 * p.rnd2, dz / dh * V], hs: 0.12, D: 5, wallX: 10.6 };
     p.flips = V > 9 ? 1 : 0;
     p.faceYou = Math.atan2(MOUTH.x - p.sx, MOUTH.z - p.sz);
+  }
+  // nobody may end up standing inside anybody else: a walker whose stop (or stagger) spot is taken isn't there at all
+  const spots = (p) => (p.flee ? [[p.sx0, p.sz0], [p.sx, p.sz]] : [[p.sx, p.sz]]);
+  for (let i = 0; i < PEOPLE.length; i++) {
+    const a = PEOPLE[i];
+    if (a.kind !== 'walk') continue;
+    for (let j = 0; j < PEOPLE.length && !a.gone; j++) {
+      const b = PEOPLE[j];
+      if (j === i || b.gone || (b.kind === 'walk' && j > i)) continue;
+      if (spots(a).some(([x, z]) => spots(b).some(([u, w]) => Math.hypot(x - u, z - w) < 0.65))) a.gone = true;
+    }
   }
 }
 
 const angTo = (a, b, k) => { let d = b - a; d = Math.atan2(Math.sin(d), Math.cos(d)); return a + d * k; };
 // the pose of person p at time v (for crowd.pose), plus ears: 0..1 (hands over the ears)
 export function personAt(p, v, out) {
+  if (p.gone) { out.visible = false; out.ears = 0; return out; }
+  out.visible = true;
   const st = out.st || (out.st = {});
   let x = p.sx, z = p.sz, yaw = p.kind === 'walk' ? (p.dir > 0 ? 0 : Math.PI) : p.kind === 'cross' ? (p.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : p.yaw;
   let stride = 0, walk = 0, sit = p.kind === 'sit' ? 1 : 0, pitch = 0, roll = 0, armL = 0, armR = 0, y = 0, ears = 0, look = 0;
@@ -97,10 +125,20 @@ export function personAt(p, v, out) {
     stride = atEnd ? 0 : 1 - smooth(p.tHear, p.tHear + 0.5, v);
     walk = v * 7.2 + p.ph;
   }
-  // turn to you, hands to the ears
+  // the nearest: stagger away (hands still over their ears)
+  if (p.flee && (p.kind !== 'walk' || v >= p.tHear + 0.5)) {
+    if (p.kind === 'sit') sit = 1 - smooth(p.tFlee - 0.4, p.tFlee, v);
+    const t = Math.max(0, v - p.tFlee), T = p.fd / 0.95;
+    const k = t < T ? (t / T) * (0.6 + 0.4 * (t / T)) : 1;
+    x = p.sx0 + (p.ex - p.sx0) * clamp(k, 0, 1); z = p.sz0 + (p.ez - p.sz0) * clamp(k, 0, 1);
+    if (v > p.tFlee && t < T + 0.3) { stride = 0.75 * (1 - smooth(T, T + 0.3, t)); walk = v * 6.5 + p.ph; }
+  }
+  // turn to you, hands to the ears (the nearest turn away from you as they go)
   const kH = smooth(p.tHear, p.tHear + 0.5, v);
-  const face = p.away ? p.faceYou + Math.PI : p.faceYou;
-  yaw = angTo(yaw, face, p.kind === 'sit' ? kH * 0.5 : kH);
+  const face = p.flee ? (v < p.tFlee ? p.faceYou : p.faceYou + Math.PI) : p.away ? p.faceYou + Math.PI : p.faceYou;
+  yaw = angTo(yaw, p.faceYou, p.kind === 'sit' ? kH * 0.5 : kH);
+  if (p.flee) yaw = angTo(yaw, face, smooth(p.tFlee, p.tFlee + 0.35, v));
+  else if (p.away) yaw = angTo(yaw, face, kH);
   ears = smooth(p.tHear + 0.1, p.tHear + 0.5, v);
   // doubled over in pain
   const kP = smooth(p.tPain, p.tPain + 0.6, v);

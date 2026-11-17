@@ -2286,36 +2286,41 @@ Cover: `week 8/heavy-trillion/out/heavy-trillion_v4_cover.png` (`node render.mjs
 
 ## Next Short. What if you screamed 1 trillion times louder? — `week 9/scream-trillion/out/scream-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
-47.9 s, loops. One busy downtown shopping street at midday, one continuous shot, no cuts: you stand on the sidewalk 2.3 m
-from the camera, mouth wide open, screaming, the whole time. The counter: the decibels (1 m from you) over the racing
-"times louder", with the finish line on the one line under it, 1,000,000,000,000x. "Times louder" counts sound power:
-every 10x adds 10 decibels. What you see, in order: 0:00 you screaming (a real scream, its attack on frame 0), the air
-rippling out from your mouth, people round you already clapping their hands over their ears, a cafe terrace behind you,
-cabs and crowds up the street, the title, the counter racing; a visible ring of force spreads from you at every step.
-0:02 100x, 0:03.7 1,000x (130 dB): everyone covers their ears, the people near you double over; "It hurts to hear you."
-0:05.3 10,000x (140 dB): "A jet engine, 100 feet away." 0:06.9 1,000,000x (160 dB): the cafe's glass screens behind you
-burst, car alarms start flashing; "The glass next to you bursts." 0:10 100 million x (180 dB): shop windows and windows
-burst up and down the street, glass rains onto the sidewalk; "Windows burst up and down the street." 0:13.3 1 billion x
-(190 dB): the people next to you are knocked flat, the cafe's tables fly; "190 decibels: the loudest sound air can carry."
-0:16.5 a white shock shell and a ring of dust race out from you; "Any louder, and it's not sound anymore. It's a shock
-wave." 0:19.7 10 billion x: cars flip, people are thrown down the street, lamp posts bend; 0:23 the building next to you
-blows apart; 0:26 walls across the street cave in; 0:29 the whole block is coming apart, floor by floor, in dust;
-0:35.75 1 trillion x (220 dB); "1 trillion times louder: 30 tons of TNT. Every second." "Windows break over a mile away."
-0:42 the dust of the whole block rolls in and fills the frame; "Nothing within 250 feet is left standing." 0:45 white;
-it clears onto frame 0.
+47.5 s, loops. One busy downtown shopping street at midday, one continuous shot, no cuts. Reworked Nov 16 after the owner's
+review (an early picture that changes every 2 s, you alive, the camera easing back, towers falling, a hard white ending,
+a counter twice as big). The counter: the decibels (1 m from you) and TIMES LOUDER over the racing number, with the finish
+line on the one line under it, 1,000,000,000,000x. "Times louder" counts sound power: every 10x adds 10 decibels. What you
+see, in order: 0:00 you screaming 2.3 m from the camera, leaning into it, fists clenched, head shaking (a real scream, its
+attack on frame 0), the air rippling out from your mouth, people round you and the cafe's customers behind its glass wall
+already clapping their hands over their ears, the title, the counter racing; a ring of force leaves you at every step.
+0:02.5 1,000x (130 dB, pain): the people nearest you turn and stagger away holding their ears, the cafe customers get up
+and stumble off. 0:03.4 10,000x: "A jet engine, 100 feet away." 0:04.7 1,000,000x: the cafe's whole glass wall bursts
+across the frame, shards flying past the camera, car alarms start; "The glass next to you bursts." 0:06 200 million x:
+windows burst and rain down the street; "Windows burst up and down the street." From 0:05 the camera eases back and up
+(by 0:40 you're about half the size, a little right of centre, the street readable behind you). 0:08.6 1 billion x
+(190 dB): the people next to you are knocked flat; "190 decibels: the loudest sound air can carry." 0:11 a white shock
+shell and a ring of dust race out from you, the pavement cracks into a crater under your feet, your hoodie and hair whip;
+"Any louder, and it's not sound anymore. It's a shock wave." 0:14 "People are thrown off their feet." 0:17.5 "Cars flip.
+Lamp posts bend." 0:21 "The building next to you blows apart." 0:24.5 "Walls across the street cave in." 0:28 "The whole
+block is coming apart." From 0:30 a tower down the street topples every ~2.3 s, farther each time (0:30.4, 0:32.7, 0:35,
+0:37.2, 0:39.5); "And you're still screaming." "Towers down the street start to fall." "Windows break over a mile away."
+0:41 1 trillion x (220 dB): one huge ring races down the street to the horizon; "1 trillion times louder: 30 tons of TNT.
+Every second." 0:42.9 its echo off the far towers rushes back up the street as a white wall and hits the camera: hard
+white at 0:44.6, held; it clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`): a loud scream is ~100 dB at 1 m (typical screams 95-105 dB), which is
-0.126 W of sound (spread over a 1 m sphere). +10 dB per 10x power. 130 dB = the pain threshold; 140 dB = a jet engine at
-~30 m. Peak pressure at r metres = 2.9 kPa x sqrt(times louder) / r. Plate glass breaks at ~0.1-0.15 psi, ordinary
-windows at ~0.15-0.5 psi (the cafe screens 3 m away go at 1 million x; the street's windows within 17-35 m at 100 million
-x). The loudest undistorted sound in air is ~191 dB rms / 194 dB peak (the pressure dips to a vacuum); past it the wave
-turns into a shock. People are knocked over at ~2 psi (7 m at 1 billion x, 21 m at 10 billion x); cars are shoved at ~3
-psi and overturned at ~5 psi (26 m at 100 billion x); most buildings collapse at ~5 psi (83 m = 270 ft at 1 trillion x).
-1 trillion x = 1.26e11 W = 30 tons of TNT (4.184e9 J per ton) every second; 0.2 psi, enough to break windows, reaches
-~2 km (1.2 miles). Honest notes: "times louder" is power (perceived loudness only doubles per 10 dB); the pressures use
-plain sound physics far past where it strictly holds (an order-of-magnitude estimate); walls that only just hold give way
-over the next few seconds of the steady blast; the rings, the ripples and the white shell are drawn slower than real
-sound so they can be seen; you are unharmed (only your scream changes); people are low-poly figures.
+0.126 W of sound. +10 dB per 10x power. 130 dB = the pain threshold; 140 dB = a jet engine at ~30 m. Peak pressure at r
+metres = 2.9 kPa x sqrt(times louder) / r. Plate glass breaks at ~0.1-0.15 psi (the cafe wall 3.3 m away goes at ~600,000x),
+ordinary windows at ~0.15-0.5 psi. The loudest undistorted sound in air is ~191 dB rms / 194 dB peak; past it the wave turns
+into a shock. People are knocked over at ~2 psi; cars shoved at ~3 psi, overturned at ~5 psi; most buildings collapse at
+~5 psi (83 m = 270 ft at 1 trillion x). Towers: the push is steady, not a millisecond blast; 2 psi = 14 kPa is ~5x the
+strongest wind a tower is built for (a 70 m/s hurricane, ~3 kPa), so the towers out to ~190 m topple (each given a strength
+of 1.8-2.4 psi). Beyond ~200 m they stand. 1 trillion x = 1.26e11 W = 30 tons of TNT (4.184e9 J per ton) every second; 0.2
+psi reaches ~2 km (1.2 miles). Honest notes: "times louder" is power (perceived loudness only doubles per 10 dB); the
+pressures use plain sound physics far past where it strictly holds (an order-of-magnitude estimate); a sound wave pushes and
+pulls, so glass flies both ways; the rings, ripples, white shells and the final echo are drawn slower than real sound so they
+can be seen; the last ring does not flatten the far towers (it breaks their windows), and its echo is a reflection off them;
+you are unharmed (only your scream changes); people are low-poly figures.
 
 **YouTube title (93 chars)**
 What if you screamed 1 trillion times louder? It would blow the whole street apart 💥 #whatif
@@ -2328,15 +2333,16 @@ Your scream starts at about 100 decibels. Every 10x louder adds 10 decibels.
 1 million x: the glass next to you bursts.
 100 million x: windows burst up and down the street.
 1 billion x: 190 decibels, the loudest sound air can carry. Any louder and it's not sound anymore: it's a shock wave.
-10 billion x: cars flip and people are thrown down the street.
+10 billion x: people are thrown off their feet, cars flip.
 100 billion x: the building next to you and the ones across the street blow apart.
-1 trillion x: 220 decibels. Your scream puts out as much energy as 30 tons of TNT, every second. Windows break over a mile away, and nothing within 250 feet is left standing.
+Then the towers down the street start to fall, one after another.
+1 trillion x: 220 decibels. Your scream puts out as much energy as 30 tons of TNT, every second, and breaks windows over a mile away.
 
 At what point would you stop screaming? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 9/scream-trillion/out/scream-trillion_v4_cover.png` (`node render.mjs --cover 32.5`: you screaming up at the sky, a white ring of force bursting out round you, both sides of the street breaking apart in dust, people and tables thrown on the sidewalk; "WHAT IF YOU SCREAMED / 1 trillion / times louder?")
+Cover: `week 9/scream-trillion/out/scream-trillion_v4_cover.png` (`node render.mjs --cover 4.85`: you screaming big in the foreground, fists clenched, the cafe's glass wall exploding beside you, shards flying at the camera; "WHAT IF YOU SCREAMED / 1 trillion / times louder?")
 
 ## Next Short. What if you stood on other planets? — `week 9/planet-stand/out/planet-stand_v4_1080x1920_60fps_tiktok.mp4`
 

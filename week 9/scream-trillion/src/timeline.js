@@ -21,6 +21,10 @@
 //           5 psi (most buildings collapse) out to 83 m (270 ft); 0.2 psi (windows) at 2 km: over a mile away.
 //           Walls that only just hold are battered on by the steady blast and give way over the next seconds
 //           (city.js: a wall's strength sinks to 60% within ~5 s once it's past 60% of it).
+//           Towers: blast tables (5 psi) are for millisecond pulses; this push is steady. 2 psi = 14 kPa is ~5x the
+//           strongest wind a tower is built for (a 70 m/s hurricane: ~3 kPa), held for seconds, so towers out to
+//           ~200 m (2 psi at x1e12) topple, away from you. Beyond that they stand, their windows gone (0.2 psi: 2 km).
+//           The last ring's echo off the far towers (reflected shock) comes back up the street at the camera.
 // The pressures use plain sound physics (p falls as 1/r) far past where it strictly holds; near you the real shock
 // would be stronger and lose energy faster. They are order-of-magnitude estimates, and only the robust claims are made.
 import { smooth, clamp, lerp } from './util.js';
@@ -32,24 +36,30 @@ export const TNT = 4.184e9;                     // J per ton
 export const PSI = 6894.76;
 // the beats: [video time, log10(times louder) after the jump]. A 0.35 s jump at each, a slow creep between.
 export const BEATS = [
-  [1.7, 2.0],     // 100x, 120 dB
-  [3.4, 3.0],     // 1,000x, 130 dB: pain
-  [5.0, 4.0],     // 10,000x, 140 dB: a jet engine
-  [6.6, 6.0],     // 1,000,000x, 160 dB: the shop window next to you bursts, car alarms
-  [9.8, 8.0],     // 1e8, 180 dB: the windows across the street
-  [13.0, 9.0],    // 1e9, 190 dB: the loudest sound air can carry; people next to you knocked down
-  [16.2, 9.6],    // 196 dB: a shock wave
-  [19.4, 10.2],   // the crowd thrown down the street, cars shoved, lamps bend
-  [22.6, 10.8],   // cars flip; the building beside you torn open
-  [25.8, 11.0],   // across the street, walls blow in
-  [29.0, 11.4],
-  [32.2, 11.7],
-  [35.4, 12.0],   // 1 trillion
+  [0.9, 2.0],     // 100x, 120 dB
+  [2.1, 3.0],     // 1,000x, 130 dB: pain; the people nearest you stumble away
+  [3.3, 4.0],     // 10,000x, 140 dB: a jet engine
+  [4.4, 6.0],     // 1,000,000x, 160 dB: the cafe's glass wall bursts, car alarms
+  [6.0, 8.2],     // 1.6e8, 182 dB: windows rain down the street
+  [8.6, 9.0],     // 1e9, 190 dB: the loudest sound air can carry; people next to you knocked down
+  [11.0, 9.6],    // 196 dB: a shock wave; the pavement cracks under you
+  [14.0, 10.2],   // people thrown off their feet
+  [17.5, 10.6],   // cars flip, lamp posts bend
+  [21.0, 11.0],   // the building next to you blows apart
+  [24.5, 11.3],   // across the street, walls cave in
+  [28.0, 11.55],  // the whole block
+  [31.0, 11.7],
+  [34.0, 11.8],   // the towers down the street start to fall
+  [37.0, 11.9],
+  [40.6, 12.0],   // 1 trillion
 ];
-export const V_TRILLION = 35.4;
-export const V_FILL = 42.2;                     // the blast fills the frame
-export const V_FLASH = 45.0;                    // the white starts
-export const T_SWITCH = 47.0;                   // full white: the loop point
+export const V_TRILLION = 40.6;
+export const V_RING = 41.0;                     // one ring at 1 trillion races down the street to the horizon
+export const V_BACK = 42.9;                     // its echo off the far towers comes back up the street
+export const V_WHITE = 44.6;                    // and hits the camera: hard white
+export const V_FILL = V_RING;
+export const V_FLASH = V_WHITE - 0.06;
+export const T_SWITCH = 46.6;                   // full white since V_WHITE: the loop point
 export const LOOP = 0.9;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 export const HITS = BEATS.map((b) => b[0]);
@@ -99,20 +109,20 @@ export const P_PLATE = 0.12 * PSI, P_WINDOW = 0.25 * PSI, P_KNOCK = 2 * PSI, P_S
 
 // ---- text: captions (never more than one; none while the title is up) ----
 export const CAPTIONS = [
-  [3.15, 4.85, 'It hurts to hear you.'],
-  [5.15, 6.45, 'A jet engine, 100 feet away.'],
-  [6.95, 9.55, 'The glass next to you bursts.'],
-  [10.15, 12.8, 'Windows burst up and down the street.'],
-  [13.3, 16.0, '190 decibels: the loudest sound air can carry.'],
-  [16.5, 19.2, 'Any louder, and it’s not sound anymore. It’s a shock wave.'],
-  [19.7, 22.4, 'Cars flip. People are thrown down the street.'],
-  [22.9, 25.6, 'The building next to you blows apart.'],
-  [26.1, 28.8, 'Walls across the street cave in.'],
-  [29.3, 32.0, 'The whole block is coming apart.'],
-  [32.5, 35.2, 'And you’re still screaming.'],
-  [36.0, 39.6, '1 trillion times louder: 30 tons of TNT. Every second.'],
-  [40.0, 42.4, 'Windows break over a mile away.'],
-  [42.8, 44.9, 'Nothing within 250 feet is left standing.'],
+  [3.4, 4.35, 'A jet engine, 100 feet away.'],
+  [4.6, 6.2, 'The glass next to you bursts.'],
+  [6.5, 8.4, 'Windows burst up and down the street.'],
+  [8.9, 10.8, '190 decibels: the loudest sound air can carry.'],
+  [11.2, 13.8, 'Any louder, and it’s not sound anymore. It’s a shock wave.'],
+  [14.3, 17.0, 'People are thrown off their feet.'],
+  [17.6, 20.4, 'Cars flip. Lamp posts bend.'],
+  [21.1, 23.9, 'The building next to you blows apart.'],
+  [24.6, 27.4, 'Walls across the street cave in.'],
+  [28.1, 30.6, 'The whole block is coming apart.'],
+  [31.2, 33.7, 'And you’re still screaming.'],
+  [34.3, 37.0, 'Towers down the street start to fall.'],
+  [37.6, 40.4, 'Windows break over a mile away.'],
+  [41.1, 44.4, '1 trillion times louder: 30 tons of TNT. Every second.'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {
@@ -141,8 +151,9 @@ export function state(v) {
   s.L = logMult(v);
   s.mult = Math.pow(10, s.L);
   s.db = DB0 + 10 * s.L;
-  s.flash = smooth(V_FLASH, T_SWITCH - 0.05, v);
-  s.fill = smooth(V_FILL, T_SWITCH, v);
+  // the end: hard white the moment the wave reaches the camera (two frames), held to the loop point
+  s.flash = smooth(V_WHITE - 0.035, V_WHITE, v);
+  s.fill = smooth(V_FILL, V_WHITE, v);
   s.title = 1 - smooth(2.6, 3.0, v);
   return s;
 }
