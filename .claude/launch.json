@@ -250,6 +250,17 @@
       "env": {
         "PORT": "5301"
       }
+    },
+    {
+      "name": "planet-stand",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 9/planet-stand/server.mjs"
+      ],
+      "port": 5293,
+      "env": {
+        "PORT": "5293"
+      }
     }
   ]
 }

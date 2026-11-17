@@ -2338,6 +2338,68 @@ At what point would you stop screaming? 👇
 
 Cover: `week 9/scream-trillion/out/scream-trillion_v4_cover.png` (`node render.mjs --cover 32.5`: you screaming up at the sky, a white ring of force bursting out round you, both sides of the street breaking apart in dust, people and tables thrown on the sidewalk; "WHAT IF YOU SCREAMED / 1 trillion / times louder?")
 
+## Next Short. What if you stood on other planets? — `week 9/planet-stand/out/planet-stand_v4_1080x1920_60fps_tiktok.mp4`
+
+47.7 s, loops. The third "picker" (star picker 290K, planet picker 252K / 84% at 0:30): one camera spot over your right
+shoulder the whole video, you in a red-and-white striped beach chair with a tall blue drink, never a cut. Every ~6 s the
+whole world around you swaps to another place in one quick wipe (a bright seam sweeps right to left); you and the chair stay
+(each stop starts fresh: a full drink, a whole chair). Under the title a bar of eight small worlds; its cursor steps right at
+every wipe, Earth is the finish line. Counter: YOU'D LAST (with no suit), the place's name on the one line under it; it races
+between the times as the wipe passes. What you see, in order: 0:00 already on Venus: an orange sky, cracked basalt slabs, the
+title, the counter racing down from 80 years to LESS THAN 1 SECOND; the drink flashes into a column of steam (0:00.2-0:01),
+a scream, the chair cloth scorches, the air shimmers. "900°F. Hotter than your oven." 0:06 Mars: butterscotch sky, small
+white Sun, rust sand and rocks; your drink froths (it boils) then ices over; "The air is 100x thinner. Your drink boils."
+A dust storm rolls in from the left and dusts you red. ABOUT 2 MINUTES. 0:12 Mercury: black starry sky, a huge pale-yellow
+Sun on the crater rims, grey dust, black shadows; the plastic chair slumps under you and you sink; "800°F. Your chair melts."
+ABOUT 2 MINUTES. 0:18 Titan (Saturn's moon): thick orange haze, a dark methane lake behind the shore, icy pebbles; a
+wingsuit on your arms: you flap and lift off the chair and hover; "-290°F, but strap on wings and you fly". A FEW MINUTES.
+0:24 Jupiter: no ground: you and the chair drop toward the banded cream-and-orange cloud tops, clouds rushing up, your drink
+floating up out of the glass in blobs (falling = weightless); "No ground. You fall." LESS THAN 1 SECOND. 0:30 Neptune: deep
+blue, white cloud streaks racing past; the wind tears the glass out of your hand and shoves you and the chair sideways;
+"Winds of 1,200 mph". A FEW SECONDS. 0:36 Pluto: black sky full of stars, thin blue haze layers on the horizon, white
+nitrogen-ice plain with red-brown patches, ice mountains; the Sun is a bright star with spikes; frost grows over your hair and
+the chair, the drink freezes; "-380°F. The Sun is just a star." LESS THAN 1 MINUTE. 0:42 back on Earth: blue sky, the sea,
+sand; you raise your glass; "Home." ABOUT 80 YEARS. 0:46 white flash; it clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`). Survival times with no suit, from Neil deGrasse Tyson for Business Insider
+(2014) and WorldAtlas ("How long could you survive on each planet": Venus "a maximum of one second", Mercury and Mars "about
+two minutes", Jupiter to Neptune "less than one second"), and Explain It All ("How long could humans survive on each planet":
+Pluto "less than 1 minute", Neptune "seconds"). Titan has no published figure: no pressure suit is needed there (1.5x our air
+pressure) but its air is nitrogen with no oxygen at -290°F, so "a few minutes" (a breath or two of pure nitrogen knocks you
+out; death follows within minutes). NASA on vacuum: conscious ~10-15 s, dead within ~2 minutes. Venus ~900°F (NASA; mean 464°C),
+~90x our air pressure. Mars air ~1% of ours (0.6 kPa, about water's triple point: a cold drink boils and freezes at once).
+Mercury day ~800°F (NASA); the Sun up to 3x as wide as from Earth. Titan -290°F, gravity 1/7 of ours, air ~4x as dense: people
+could fly by flapping wings strapped to their arms (Robert Zubrin; checked by Univ. of Leicester's Physics Special Topics,
+~4.7 m² of wing). Jupiter gravity 2.5x ours at the cloud tops. Neptune: winds "more than 1,200 mph" (NASA). Pluto -375 to
+-400°F (NASA); from 39.5 AU the Sun is 1/40 as wide: a point, a very bright star. Earth: life expectancy ~78 (US), ~81 (EU).
+Honest notes: sources disagree (the gas-giant "under a second" is Tyson's estimate; strictly you'd fall for minutes and
+suffocate first; Mars and Mercury both "about 2 minutes" because lack of air kills first). The Suns are drawn 4x their true
+width so they read on a phone (sizes against each other true: Mercury 3x, Mars 2/3). Light is art-directed bright everywhere
+(Titan's daylight is ~1/100-1/1000 of ours, Pluto's ~1/900). The chair melting on Mercury and the steam on Venus are sped up
+(seconds, not minutes). Neptune: carried by the wind you'd mostly move with it; the gust hitting you is drawn for the picture.
+Mars: its winds are too thin to blow a chair over, so the storm only dusts you.
+
+**YouTube title (66 chars)**
+What if you stood on other planets with no suit? 🪐 #whatif #space
+
+**YouTube description**
+You sit in a beach chair with a cold drink. Every few seconds, the world around you becomes another planet. No spacesuit.
+
+Venus: 900°F. Your drink boils away. You'd last less than a second.
+Mars: the air is 100x thinner. Your drink boils and freezes. About 2 minutes.
+Mercury: 800°F under a giant Sun. Your chair melts.
+Titan: -290°F, but the air is so thick you could fly with wings.
+Jupiter: no ground. You fall into the clouds.
+Neptune: winds of 1,200 mph rip the drink from your hand.
+Pluto: -380°F. The Sun is just a bright star.
+Earth: about 80 years.
+
+Which one would you pick? 👇
+
+#whatif #space #planets #simulation
+
+Cover: `week 9/planet-stand/out/planet-stand_v4_cover.png` (`node render.mjs --cover 19.6`: you rising off the striped chair in an orange-and-yellow wingsuit, arms up, over Titan's sand with the dark methane lake behind, orange haze; "WHAT IF YOU STOOD ON / other planets?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
