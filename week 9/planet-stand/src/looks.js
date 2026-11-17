@@ -25,7 +25,7 @@ export const LOOKS = {
   },
   titan: {
     kind: 3, top: [0.85, 0.48, 0.13], hor: [1.15, 0.72, 0.32], haze: [1.2, 0.78, 0.38], hazeK: 0.7, hazeW: 5, skyPow: 0.55,
-    sun: [-14, 32], sunR: SUN0 * 0.19, sunI: 4, glow: [1.3, 0.85, 0.4], glowK: 0.45, glowW: 0.25,
+    sun: [150, 30], sunR: SUN0 * 0.19, sunI: 4, glow: [1.3, 0.85, 0.4], glowK: 0.45, glowW: 0.25,
     light: [1.0, 0.72, 0.38], li: 1.5, hemiSky: [1.0, 0.62, 0.28], hemiGnd: [0.5, 0.3, 0.12], hi: 1.4,
     fog: [1.1, 0.68, 0.3], fogD: 0.0009, exp: 1.0, stars: 0, mount: 70,
   },

@@ -46,8 +46,9 @@ float groundH(vec2 p) {
   } else if (k < 2.5) {   // Mercury: craters at every scale
     h = (craters(p, 14.0) * 0.7 + craters(p + 37.0, 60.0)) * mid + craters(p, 420.0) * far * 1.4 + (fbm2(p / 700.0) - 0.4) * uMount * far;
   } else if (k < 3.5) {   // Titan: sand down to the lake shore; hills beyond the lake
-    float shore = 7.5 + 2.0 * sin(p.x * 0.13) + 1.5 * fbm2(p / 9.0);
-    h = (fbm2(p / 18.0) - 0.5) * 0.35 * mid - 0.12 * max(p.y - shore + 3.0, 0.0);
+    // a sandy plateau ending in a bluff ~9 m above the lake (you run off it)
+    float edge = 8.2 + 1.2 * sin(p.x * 0.09) + 1.0 * fbm2(p / 9.0);
+    h = (fbm2(p / 18.0) - 0.5) * 0.35 * mid - 9.2 * smoothstep(edge, edge + 4.5, p.y) + 0.6 * (fbm2(p / 3.0) - 0.5) * smoothstep(edge - 0.5, edge + 2.0, p.y) * (1.0 - smoothstep(edge + 3.0, edge + 6.0, p.y));
     h += uMount * smoothstep(1500.0, 2600.0, r) * (0.4 + fbm2(p / 600.0));
   } else if (k < 6.5) {   // Pluto: flat ice plain; jagged mountains of water ice far off
     h = (fbm2(p / 30.0) - 0.5) * 0.4 * mid + pow(ridged(p / 900.0), 2.2) * uMount * smoothstep(700.0, 1600.0, r);
@@ -139,9 +140,17 @@ export function makeGround(scene) {
             gWater = 1.0;
             c = uWaterCol;
           }
+          if (k > 6.5) {
+            // the wave's edge: white foam on both sides of the line where the water reaches
+            float dh = vGH - uWaterY;
+            float foam = smoothstep(0.05, 0.0, dh) * step(0.0, dh) + smoothstep(-0.08, 0.0, dh) * step(dh, 0.0) * (0.6 + 0.4 * fbm2(p * 3.0 + uT));
+            foam *= 0.7 + 0.3 * fbm2(p * 5.0 - uT * 0.5);
+            c = mix(c, vec3(0.95, 0.97, 1.0), clamp(foam, 0.0, 1.0));
+            if (foam > 0.5) gWater = 0.0;
+          }
           diffuseColor.rgb = c;
         }`)
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, 0.12, gWater);`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, uReflK < 0.5 ? 1.0 : 0.12, gWater);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         if (gWater > 0.5) {
           // the water: a mirror of the sky (a fresnel blend of its horizon and top), ripples moving
@@ -151,7 +160,7 @@ export function makeGround(scene) {
           vec3 sky = mix(uSkyTop, uSkyHor, 0.55 + 0.4 * f + 0.25 * rip);
           totalEmissiveRadiance += sky * (0.35 + 0.65 * f) * uReflK;
           vec3 R = reflect(-V, normalize(vec3(rip * 0.12, 1.0, rip * 0.05)));
-          totalEmissiveRadiance += uSunCol * pow(max(dot(R, uSunD), 0.0), 900.0) * 6.0;
+          totalEmissiveRadiance += uSunCol * pow(max(dot(R, uSunD), 0.0), 900.0) * 6.0 * uReflK * uReflK;
         }`);
   };
   mat.customProgramCacheKey = () => 'ground-v1';

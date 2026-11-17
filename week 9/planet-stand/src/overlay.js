@@ -6,7 +6,7 @@ import { smooth } from './util.js';
 
 const PW = 1080, PH = 196;
 const SLOT_X = (i) => 92 + i * 128;
-const ICON_R = [22, 19, 17, 20, 30, 25, 15, 22];
+const ICON_R = [22, 17, 19, 20, 30, 25, 15, 22];
 const CY = 80;
 
 function icon(ctx, key, x, y, r) {

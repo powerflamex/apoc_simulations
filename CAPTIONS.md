@@ -2346,26 +2346,31 @@ Cover: `week 9/scream-trillion/out/scream-trillion_v4_cover.png` (`node render.m
 
 ## Next Short. What if you stood on other planets? — `week 9/planet-stand/out/planet-stand_v4_1080x1920_60fps_tiktok.mp4`
 
-47.7 s, loops. The third "picker" (star picker 290K, planet picker 252K / 84% at 0:30): one camera spot over your right
-shoulder the whole video, you in a red-and-white striped beach chair with a tall blue drink, never a cut. Every ~6 s the
-whole world around you swaps to another place in one quick wipe (a bright seam sweeps right to left); you and the chair stay
-(each stop starts fresh: a full drink, a whole chair). Under the title a bar of eight small worlds; its cursor steps right at
-every wipe, Earth is the finish line. Counter: YOU'D LAST (with no suit), the place's name on the one line under it; it races
-between the times as the wipe passes. What you see, in order: 0:00 already on Venus: an orange sky, cracked basalt slabs, the
-title, the counter racing down from 80 years to LESS THAN 1 SECOND; the drink flashes into a column of steam (0:00.2-0:01),
-a scream, the chair cloth scorches, the air shimmers. "900°F. Hotter than your oven." 0:06 Mars: butterscotch sky, small
-white Sun, rust sand and rocks; your drink froths (it boils) then ices over; "The air is 100x thinner. Your drink boils."
-A dust storm rolls in from the left and dusts you red. ABOUT 2 MINUTES. 0:12 Mercury: black starry sky, a huge pale-yellow
-Sun on the crater rims, grey dust, black shadows; the plastic chair slumps under you and you sink; "800°F. Your chair melts."
-ABOUT 2 MINUTES. 0:18 Titan (Saturn's moon): thick orange haze, a dark methane lake behind the shore, icy pebbles; a
-wingsuit on your arms: you flap and lift off the chair and hover; "-290°F, but strap on wings and you fly". A FEW MINUTES.
-0:24 Jupiter: no ground: you and the chair drop toward the banded cream-and-orange cloud tops, clouds rushing up, your drink
-floating up out of the glass in blobs (falling = weightless); "No ground. You fall." LESS THAN 1 SECOND. 0:30 Neptune: deep
-blue, white cloud streaks racing past; the wind tears the glass out of your hand and shoves you and the chair sideways;
-"Winds of 1,200 mph". A FEW SECONDS. 0:36 Pluto: black sky full of stars, thin blue haze layers on the horizon, white
-nitrogen-ice plain with red-brown patches, ice mountains; the Sun is a bright star with spikes; frost grows over your hair and
-the chair, the drink freezes; "-380°F. The Sun is just a star." LESS THAN 1 MINUTE. 0:42 back on Earth: blue sky, the sea,
-sand; you raise your glass; "Home." ABOUT 80 YEARS. 0:46 white flash; it clears onto frame 0.
+47.7 s, loops. The third "picker" (star picker 290K, planet picker 252K / 84% at 0:30): you in a red-and-white striped beach
+chair with a tall blue drink, seen over your right shoulder; every ~6 s the whole world around you swaps to another place in
+one quick wipe (a bright seam sweeps right to left); you and the chair stay (each stop starts fresh). Under the title a bar of
+eight small worlds; its cursor steps right at every wipe, Earth is the finish line. Counter: YOU'D LAST (with no suit), the
+place's name on the one line under it; it races between the times as the wipe passes. Every stop: something happens to you
+or the chair within the first second, and a bigger second beat about 3 s in. What you see, in order:
+0:00 Venus: orange sky, cracked basalt slabs, the title, the counter racing down from 80 years to LESS THAN 1 SECOND; at
+once the drink flashes into a column of steam (a scream), the cloth chars black, you glow dull red and slump. 0:03 the
+seat burns through with glowing edges and you drop through it, black flakes lifting off. "900°F. Hotter than your oven."
+0:06 Mercury: black starry sky, a huge pale-yellow Sun over crater rims; at once the plastic chair sags into a puddle and
+you sink to the ground. 0:09 you shield your eyes from the Sun and the drink bursts into a fountain of glittering ice. "800°F.
+Your chair melts." ABOUT 2 MINUTES. 0:12 Mars: butterscotch sky, rust sand; at once the drink froths over and you clutch
+your throat ("The air is 100x thinner"); a towering wall of red dust rises on the horizon and sweeps in; 0:16 it swallows
+you ("A dust storm the size of a continent"). ABOUT 2 MINUTES. 0:18 Titan (Saturn's moon): orange haze, a sandy plateau;
+at once you leap up out of the chair in an orange wingsuit, run for the edge, jump off a bluff and glide out over a dark
+methane lake 9 m below, flapping, the camera chasing you. "-290°F, but the air is so thick you can fly". A FEW MINUTES.
+0:25 Jupiter: no ground; at once you float up off the seat (falling = weightless) and the drink floats out in blobs;
+"No ground. You fall."; 0:28 you punch through the cream-and-orange cloud deck into a lower layer where lightning flashes
+and thunder rolls ("Into storms with lightning"). LESS THAN 1 SECOND. 0:31 Neptune: deep blue, white cloud streaks
+racing past; at once the wind tears the glass from your hand and shoves you; 0:34 a bigger gust blows you and the chair
+away, tumbling, the camera chasing ("Winds of 1,200 mph", "They blow you away"). A FEW SECONDS. 0:37 Pluto: black starry
+sky, thin blue haze layers, white nitrogen-ice plain, ice mountains, the Sun a bright star; at once frost races over your
+hair, you and the chair, the drink freezes; 0:40 the frozen drink shatters into flying ice. "-380°F. The Sun is just a
+star." LESS THAN 1 MINUTE. 0:43 back on Earth (3 s): blue sky and sea, a wave runs up the sand, three gulls fly out over
+the water, you raise your glass; "Home." ABOUT 80 YEARS. 0:46 white flash; it clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`). Survival times with no suit, from Neil deGrasse Tyson for Business Insider
 (2014) and WorldAtlas ("How long could you survive on each planet": Venus "a maximum of one second", Mercury and Mars "about
@@ -2373,17 +2378,20 @@ two minutes", Jupiter to Neptune "less than one second"), and Explain It All ("H
 Pluto "less than 1 minute", Neptune "seconds"). Titan has no published figure: no pressure suit is needed there (1.5x our air
 pressure) but its air is nitrogen with no oxygen at -290°F, so "a few minutes" (a breath or two of pure nitrogen knocks you
 out; death follows within minutes). NASA on vacuum: conscious ~10-15 s, dead within ~2 minutes. Venus ~900°F (NASA; mean 464°C),
-~90x our air pressure. Mars air ~1% of ours (0.6 kPa, about water's triple point: a cold drink boils and freezes at once).
-Mercury day ~800°F (NASA); the Sun up to 3x as wide as from Earth. Titan -290°F, gravity 1/7 of ours, air ~4x as dense: people
-could fly by flapping wings strapped to their arms (Robert Zubrin; checked by Univ. of Leicester's Physics Special Topics,
-~4.7 m² of wing). Jupiter gravity 2.5x ours at the cloud tops. Neptune: winds "more than 1,200 mph" (NASA). Pluto -375 to
--400°F (NASA); from 39.5 AU the Sun is 1/40 as wide: a point, a very bright star. Earth: life expectancy ~78 (US), ~81 (EU).
+~90x our air pressure. Mars air ~1% of ours (0.6 kPa, about water's triple point: a cold drink boils and freezes at once);
+its dust storms can cover a continent (NASA). Mercury day ~800°F (NASA); the Sun up to 3x as wide as from Earth. Titan
+-290°F, gravity 1/7 of ours, air ~4x as dense: people could fly with wings strapped to their arms (Robert Zubrin; checked by
+Univ. of Leicester's Physics Special Topics: ~4.7 m² of wing at a running take-off, which is what the video shows). Jupiter:
+gravity 2.5x ours at the cloud tops; lightning in its deeper clouds (Juno). Neptune: winds "more than 1,200 mph" (NASA). Pluto
+-375 to -400°F (NASA); from 39.5 AU the Sun is 1/40 as wide: a point, a very bright star. Earth: life expectancy ~78 (US), ~81 (EU).
 Honest notes: sources disagree (the gas-giant "under a second" is Tyson's estimate; strictly you'd fall for minutes and
 suffocate first; Mars and Mercury both "about 2 minutes" because lack of air kills first). The Suns are drawn 4x their true
 width so they read on a phone (sizes against each other true: Mercury 3x, Mars 2/3). Light is art-directed bright everywhere
-(Titan's daylight is ~1/100-1/1000 of ours, Pluto's ~1/900). The chair melting on Mercury and the steam on Venus are sped up
-(seconds, not minutes). Neptune: carried by the wind you'd mostly move with it; the gust hitting you is drawn for the picture.
-Mars: its winds are too thin to blow a chair over, so the storm only dusts you.
+(Titan's daylight is ~1/100-1/1000 of ours, Pluto's ~1/900). Everything that happens to you is sped up to seconds: the chair
+would take minutes to char or melt. Venus: real glowing starts at ~980°F, just above Venus's 900°F, so the dull red glow on you
+is a stretch. Mercury: in a vacuum the drink boils violently and freezes; the fountain is drawn bigger. Neptune: carried by the
+wind you'd mostly move with it; the gusts hitting you are drawn for the picture. Titan's bluff and lake are made up for the
+flight (Titan does have methane lakes and cliffs).
 
 **YouTube title (66 chars)**
 What if you stood on other planets with no suit? 🪐 #whatif #space
@@ -2391,20 +2399,20 @@ What if you stood on other planets with no suit? 🪐 #whatif #space
 **YouTube description**
 You sit in a beach chair with a cold drink. Every few seconds, the world around you becomes another planet. No spacesuit.
 
-Venus: 900°F. Your drink boils away. You'd last less than a second.
-Mars: the air is 100x thinner. Your drink boils and freezes. About 2 minutes.
-Mercury: 800°F under a giant Sun. Your chair melts.
-Titan: -290°F, but the air is so thick you could fly with wings.
-Jupiter: no ground. You fall into the clouds.
-Neptune: winds of 1,200 mph rip the drink from your hand.
-Pluto: -380°F. The Sun is just a bright star.
+Venus: 900°F. Your drink boils away, your chair burns. You'd last less than a second.
+Mercury: 800°F under a giant Sun. Your chair melts into a puddle.
+Mars: the air is 100x thinner. Then a dust storm the size of a continent swallows you.
+Titan: -290°F, but the air is so thick you can fly with wings.
+Jupiter: no ground. You fall through the clouds into lightning storms.
+Neptune: winds of 1,200 mph blow you away.
+Pluto: -380°F. Your drink freezes and shatters. The Sun is just a bright star.
 Earth: about 80 years.
 
 Which one would you pick? 👇
 
 #whatif #space #planets #simulation
 
-Cover: `week 9/planet-stand/out/planet-stand_v4_cover.png` (`node render.mjs --cover 19.6`: you rising off the striped chair in an orange-and-yellow wingsuit, arms up, over Titan's sand with the dark methane lake behind, orange haze; "WHAT IF YOU STOOD ON / other planets?")
+Cover: `week 9/planet-stand/out/planet-stand_v4_cover.png` (`node render.mjs --cover 20.75`: you leaping off the bluff on Titan in an orange-and-yellow wingsuit, arms spread, the dark methane lake below, orange haze; "WHAT IF YOU STOOD ON / other planets?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

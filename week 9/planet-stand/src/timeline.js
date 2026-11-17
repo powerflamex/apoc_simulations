@@ -35,8 +35,8 @@ export const WIPE = 0.38;                // one wipe (s)
 // sec: the survival time in seconds (for the counter's race between stops); text: what the counter says once landed
 export const PLACES = [
   { key: 'venus', name: 'VENUS', line: 'ON VENUS', text: 'LESS THAN 1 SECOND', sec: 0.8 },
-  { key: 'mars', name: 'MARS', line: 'ON MARS', text: 'ABOUT 2 MINUTES', sec: 120 },
   { key: 'mercury', name: 'MERCURY', line: 'ON MERCURY', text: 'ABOUT 2 MINUTES', sec: 120 },
+  { key: 'mars', name: 'MARS', line: 'ON MARS', text: 'ABOUT 2 MINUTES', sec: 120 },
   { key: 'titan', name: 'TITAN', line: "ON TITAN, SATURN'S MOON", text: 'A FEW MINUTES', sec: 200 },
   { key: 'jupiter', name: 'JUPITER', line: 'ON JUPITER', text: 'LESS THAN 1 SECOND', sec: 0.8 },
   { key: 'neptune', name: 'NEPTUNE', line: 'ON NEPTUNE', text: 'A FEW SECONDS', sec: 4 },
@@ -48,20 +48,20 @@ export const P = Object.fromEntries(PLACES.map((p) => [p.key, p]));
 
 // the stops: when each wipe lands (its middle) and the one caption, [from, to] in seconds after the landing
 export const STOPS = [
-  { key: 'venus', land: -1.6, cap: [[3.3, 7.4, '900°F. Hotter than your oven.']] },
-  { key: 'mars', land: 6.0, cap: [[1.9, 5.6, 'The air is 100x thinner. Your drink boils.']] },
-  { key: 'mercury', land: 12.0, cap: [[1.8, 5.6, '800°F. Your chair melts.']] },
-  { key: 'titan', land: 18.0, cap: [[1.6, 5.8, '-290°F, but strap on wings and you fly']] },
-  { key: 'jupiter', land: 24.2, cap: [[1.4, 5.8, 'No ground. You fall.']] },
-  { key: 'neptune', land: 30.4, cap: [[1.4, 5.6, 'Winds of 1,200 mph']] },
-  { key: 'pluto', land: 36.4, cap: [[1.6, 5.6, '-380°F. The Sun is just a star.']] },
-  { key: 'earth', land: 42.4, cap: [[1.0, 4.2, 'Home.']] },
+  { key: 'venus', land: -1.6, cap: [[3.4, 5.9, '900°F. Hotter than your oven.']] },
+  { key: 'mercury', land: 6.2, cap: [[1.4, 5.8, '800°F. Your chair melts.']] },
+  { key: 'mars', land: 12.4, cap: [[1.0, 2.6, 'The air is 100x thinner'], [2.9, 5.8, 'A dust storm the size of a continent']] },
+  { key: 'titan', land: 18.6, cap: [[1.5, 5.9, '-290°F, but the air is so thick you can fly']] },
+  { key: 'jupiter', land: 24.8, cap: [[1.0, 2.8, 'No ground. You fall.'], [3.6, 5.9, 'Into storms with lightning']] },
+  { key: 'neptune', land: 31.0, cap: [[1.0, 2.9, 'Winds of 1,200 mph'], [3.4, 5.9, 'They blow you away']] },
+  { key: 'pluto', land: 37.2, cap: [[1.1, 5.8, '-380°F. The Sun is just a star.']] },
+  { key: 'earth', land: 43.4, cap: [[0.7, 2.8, 'Home.']] },
 ];
 for (const s of STOPS) s.place = P[s.key];
 export const LAND = Object.fromEntries(STOPS.map((s) => [s.key, s.land]));
 
-// the ending: a beat back on Earth, then a white flash; the loop point sits inside it
-export const T_FLASH = LAND.earth + 3.95;
+// the ending: ~3 s back on Earth (a wave runs up the sand, gulls), then a white flash; the loop point sits inside it
+export const T_FLASH = LAND.earth + 2.95;
 export const T_SWITCH = Math.round((T_FLASH + 0.42) * 60) / 60;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 

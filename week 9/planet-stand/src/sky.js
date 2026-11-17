@@ -30,14 +30,14 @@ export function makeSky() {
     uStars: { value: 0 }, uT: { value: 0 }, uPx: { value: 0.001 },
     uDeck: { value: 0 }, uDeckH: { value: 300 }, uDeckOff: { value: new THREE.Vector2() },
     uD1: { value: new THREE.Color() }, uD2: { value: new THREE.Color() }, uD3: { value: new THREE.Color() },
-    uStorm: { value: 0 }, uPlutoHaze: { value: 0 },
+    uStorm: { value: 0 }, uPlutoHaze: { value: 0 }, uBolt: { value: 0 }, uBoltD: { value: new THREE.Vector3(0, -0.3, 1).normalize() },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms: u, side: THREE.BackSide, depthWrite: false, depthTest: false,
     vertexShader: /* glsl */ `varying vec3 vDir;
       void main() { vDir = position; vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position = p.xyww; }`,
     fragmentShader: /* glsl */ `
-      uniform vec3 uTop, uHor, uHaze, uSunD, uSunCol, uGlow, uD1, uD2, uD3;
+      uniform vec3 uTop, uHor, uHaze, uSunD, uSunCol, uGlow, uD1, uD2, uD3, uBoltD; uniform float uBolt;
       uniform float uHazeK, uHazeW, uSkyPow, uSunR, uSunI, uGlowK, uGlowW, uStars, uT, uPx, uDeck, uDeckH, uStorm, uPlutoHaze;
       uniform vec2 uDeckOff;
       varying vec3 vDir;
@@ -123,6 +123,8 @@ export function makeSky() {
           float spikes = (exp(-abs(sp.y) * 1.4) * exp(-abs(sp.x) / 14.0) + exp(-abs(sp.x) * 1.4) * exp(-abs(sp.y) / 14.0)) * 0.5;
           col += uSunCol * (core * uSunI * 0.25 + spikes * uSunI * 0.05) + uGlow * uGlowK * exp(-ang / uGlowW);
         }
+        // lightning inside the clouds: the whole sky flickers, brightest round the strike
+        if (uBolt > 0.0) { float ab = acos(clamp(dot(d, uBoltD), -1.0, 1.0)); col += vec3(0.75, 0.85, 1.25) * uBolt * (0.15 + 1.1 * exp(-ab / 0.07)); }
         gl_FragColor = vec4(col, 1.0);
       }`,
   });

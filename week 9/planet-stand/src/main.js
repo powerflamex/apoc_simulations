@@ -45,10 +45,11 @@ composer.setPixelRatio(1);
 composer.setSize(RW, RH);
 const mix = new ShaderPass({
   uniforms: { tA: { value: rtA.texture }, tB: { value: rtB.texture }, uW: { value: 0 }, uExpA: { value: 1 }, uExpB: { value: 1 },
-    uShimA: { value: 0 }, uShimB: { value: 0 }, uT: { value: 0 }, uAspect: { value: W / H_ } },
+    uShimA: { value: 0 }, uShimB: { value: 0 }, uT: { value: 0 }, uAspect: { value: W / H_ },
+    uVeilA: { value: new THREE.Vector4(1, 1, 1, 0) }, uVeilB: { value: new THREE.Vector4(1, 1, 1, 0) } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tA, tB; uniform float uW, uExpA, uExpB, uShimA, uShimB, uT, uAspect;
+    uniform sampler2D tA, tB; uniform float uW, uExpA, uExpB, uShimA, uShimB, uT, uAspect; uniform vec4 uVeilA, uVeilB;
     varying vec2 vUv;
     float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -65,8 +66,10 @@ const mix = new ShaderPass({
       float s = vUv.x + (vUv.y - 0.5) * 0.22 / uAspect;
       float E = mix(1.16, -0.16, uW);
       vec3 col;
-      if (uW <= 0.0 || s < E) col = texture2D(tA, shim(vUv, uShimA)).rgb * uExpA;
-      else col = texture2D(tB, shim(vUv, uShimB)).rgb * uExpB;
+      // (a veil: dust or cloud close round you, thicker toward the edges of the frame)
+      float vg = 0.75 + 0.5 * length(vUv - 0.5) + 0.15 * (n(vUv * vec2(6.0, 11.0) + uT * 0.6) - 0.5);
+      if (uW <= 0.0 || s < E) { col = texture2D(tA, shim(vUv, uShimA)).rgb * uExpA; col = mix(col, uVeilA.rgb, clamp(uVeilA.a * vg, 0.0, 1.0)); }
+      else { col = texture2D(tB, shim(vUv, uShimB)).rgb * uExpB; col = mix(col, uVeilB.rgb, clamp(uVeilB.a * vg, 0.0, 1.0)); }
       if (uW > 0.0 && uW < 1.0) {
         float d = abs(s - E);
         col += vec3(1.4, 1.25, 1.0) * (exp(-d * 260.0) * 3.0 + exp(-d * 40.0) * 0.5);
@@ -104,8 +107,9 @@ const CAM = { x: -0.22, y: 1.52, z: -2.95, pitch: 2.0 };
 function placeCamera(v, cam, snap) {
   let x = CAM.x + wobble(v * 0.4, 2) * 0.012 + (cam.dx || 0);
   let y = CAM.y + wobble(v * 0.33, 3) * 0.01 + (cam.dy || 0);
+  const z = CAM.z + (cam.dz || 0);
   let pitch = (CAM.pitch + (cam.pitch || 0) + wobble(v * 0.3, 7) * 0.25) * DEG;
-  let yaw = Math.PI + wobble(v * 0.27, 5) * 0.25 * DEG;          // (yaw PI looks along +z)
+  let yaw = Math.PI + (wobble(v * 0.27, 5) * 0.25 + (cam.yaw || 0)) * DEG;          // (yaw PI looks along +z)
   let roll = (wobble(v * 0.21, 9) * 0.3 + (cam.roll || 0)) * DEG;
   const sh = (cam.shake || 0) + snap * 0.6;
   if (!window.__cover && sh > 0) {
@@ -113,7 +117,7 @@ function placeCamera(v, cam, snap) {
     pitch += wobble(v * 17, 6) * 0.5 * DEG * sh; roll += wobble(v * 9, 8) * 0.7 * DEG * sh;
   }
   pitch -= snap * 0.8 * DEG;
-  camera.position.set(x, y, CAM.z);
+  camera.position.set(x, y, z);
   camera.rotation.set(pitch, yaw, roll);
   camera.fov = FOV * (1 - 0.025 * snap);
   camera.updateProjectionMatrix();
@@ -141,8 +145,10 @@ function update(v, cover = -1) {
     oa = drawSide(s.a, v, rtA, s.snap);
     const ob = drawSide(s.b, v, rtB, s.snap);
     mix.uniforms.uW.value = s.w; mix.uniforms.uExpB.value = ob.exp; mix.uniforms.uShimB.value = ob.shimmer;
+    mix.uniforms.uVeilB.value.set(...(ob.veil || [1, 1, 1, 0]));
   }
   mix.uniforms.uExpA.value = oa.exp; mix.uniforms.uShimA.value = oa.shimmer; mix.uniforms.uT.value = v;
+  mix.uniforms.uVeilA.value.set(...(oa.veil || [1, 1, 1, 0]));
   finish.uniforms.uAb.value = s.snap * 0.7;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uPick.value = window.__cover ? 0 : (1 - s.flash);
@@ -164,6 +170,7 @@ async function boot() {
   await document.fonts.load('500 40px Cormorant');
   await document.fonts.load('italic 500 40px Cormorant');
   await document.fonts.load('600 40px Cormorant');
+  await document.fonts.load('italic 600 40px Cormorant');
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
