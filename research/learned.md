@@ -779,3 +779,31 @@ Oceans 88.6K (105 h, 70% at 0:30).
 - Meteor storm loses 13 points from 0:20 to 0:30 (66 -> 53) and star incoming ends at 58%: both under the 70% target.
 - Men vanish (follow-up of women vanish 696K) is under YouTube's typical range at 15 h: a likely miss for the "follow-ups of hits" lead (judge at 24 h).
 - Backlog after Nov 15: dino asteroid, trillion seconds, heavy trillion (all built).
+
+## Nov 16 read (evening ET; exact views from each video's page)
+| Short | Posted | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| trillion seconds | Nov 16 | 1,719 | 4,943 | 9,426 | | | | 10.9K (7 h) | 13.1K-16.2K | 68.3% | not out |
+| dino asteroid | Nov 16 | 1,132 | 4,777 | 8,790 | 21,127 | | | 22.2K (13 h) | 25.1K-33.9K | 71.2% | not out |
+| solar storm re-upload | Nov 15 | 355 | 743 | 1,199 | 1,757 | 2,795 | | 3.5K (31 h) | 37.8K-68.9K | 53.4% | not out |
+| men vanish | Nov 15 | 763 | 4,390 | 9,573 | 13,736 | 18,660 | | 21.8K (37 h) | 39.1K-72.0K | 65.3% | not out |
+| meteor storm | Nov 14 | 1,580 | 5,764 | 9,276 | 16,487 | 24,219 | 29,877 | 31.2K | 43.2K-80.7K | 55.5% | 53% |
+| earth falls (new) | Nov 14 | 2,274 | 10,918 | 22,860 | 38,854 | 62,563 | 79,278 | 85.4K | 44.3K-82.4K | 63.3% | 69% |
+| shrink trillion | Nov 13 | 4,495 | 13,713 | 31,597 | 81,738 | 117,600 | 229,340 | 323.7K (79 h) | 47.8K-90.2K | 61.2% | 69% |
+| star incoming | Nov 13 | 1,644 | 6,566 | 10,312 | 20,861 | 30,312 | 37,828 | 42.6K | 48.4K-91.3K | 63.2% | 58% |
+| planet picker | Nov 12 | 1,400 | 6,050 | 13,094 | 40,885 | 82,427 | 157,474 | 251.9K (103 h) | 53.6K-98.3K | 63.9% | 84% |
+- Shrink trillion 324K in 79 h: the channel's biggest Short since Oct 17. Planet picker 252K.
+- Men vanish 18.7K at 24 h (follow-up of women vanish 696K) and the solar storm re-upload 2.8K at 24 h are clear misses. Dino asteroid (follow-up of
+  asteroid 1.15M) is middling at 12 h. So "follow-ups of hits do best" (Nov 14 lead) does not hold as a rule: 3 hits (shrink, planet picker, Earth falls
+  remake), 1 miss, 2 undecided.
+- Trillion seconds at 6 h (9.4K) is ordinary, not shrink-like (31.6K at 6 h). Too early to judge (planet picker had 13K at 6 h), but "trillion" in the
+  title did not give it shrink's start.
+- **% still watching at 0:30 keeps sorting the views** (all 31 Shorts since Oct 21 with a curve and a 24 h count): 69%+ at 0:30: 9 Shorts, 24 h views
+  36K-118K, median 56K (Sun explodes, grow trillion, fall through, star picker, Sun black hole, planet picker, oceans, shrink, Earth falls new);
+  65-68%: 7 Shorts, median 32K; under 65%: 15 Shorts, median 21K, 2 over 50K (black hole appears, Moon explodes). Confirms the CLAUDE.md rule; nothing new.
+- What the 69%+ group shares (my reading of the videos, not a measured thing): one continuous change you follow from start to end with the same person
+  or place in frame (shrinking, the walk down the seabed, the Sun growing, one beach under a changing sky). The under-60% ones this fortnight are lists
+  of separate scenes or places (men vanish, meteor storm, star incoming, dinosaurs, volcano). Same as the Nov 10 "stay with the person, few hard cuts"
+  rule and the owner's "no clear progression" call on men vanish before it was posted.
+- The two "picker" Shorts (star picker 290K / 70%, planet picker 252K / 84%) are both in the top five since Oct 21.
+- Backlog: heavy trillion (fixed, unposted). Ideas given Nov 16: you on other planets (third picker), scream 1 trillion times louder.
