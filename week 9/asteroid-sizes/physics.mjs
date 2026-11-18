@@ -10,7 +10,8 @@
 //      1,200 Mt; crater 4.8 km (3.0 miles) wide, 480 m deep; quake 6.7; rocks thrown out arrive 28 s after (37 m deep
 //      here); air blast 1 min 10 s after, 192 psi, 2,009 mph; "no fireball" (below 15 km/s little rock vaporises).
 //   4  10 km (6.2 miles), 2,700 kg/m3, 20 km/s, 60 deg (the Chicxulub rock): 6.8e7 Mt; crater 120 km (77 miles) wide;
-//      "Your position is inside the fireball"; quake 9.8.
+//      "Your position is inside the fireball"; quake 9.8. (Its fireball reaches ~130 km out (radius 0.002 E^(1/3) m, E in J): the
+//      video draws it landing ~24 km out, past the far shore, so the rock is seen whole; you are still inside the fireball.)
 //   5  939 km (Ceres): the calculator's crater formulas break down at this size; it still gives 1.1e29 J at 15 km/s.
 //   6  3,475 km (the Moon): the calculator returns an error. Worked out below.
 const MT = 4.184e15;

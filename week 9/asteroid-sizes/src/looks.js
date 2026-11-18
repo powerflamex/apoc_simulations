@@ -49,7 +49,7 @@ vec3 melt(vec3 c, float gz, vec2 xz) {
   float inside = 1.0 - smoothstep(uMelt - 60.0, uMelt, gz);
   if (inside <= 0.0) return c;
   float cr = f21(xz * 0.012 + 3.0), cr2 = abs(n21(xz * 0.03) - 0.5) * 2.0;
-  vec3 lava = mix(vec3(0.08, 0.03, 0.02), vec3(3.2, 0.9, 0.12), smoothstep(0.35, 0.75, cr) * 0.7 + (1.0 - smoothstep(0.0, 0.12, cr2)) * 0.8);
+  vec3 lava = mix(vec3(0.08, 0.03, 0.02), vec3(3.2, 0.9, 0.12), smoothstep(0.4, 0.75, cr) * 0.75 + (1.0 - smoothstep(0.0, 0.32, cr2)) * 0.55);
   return mix(c, lava, inside);
 }
 `;

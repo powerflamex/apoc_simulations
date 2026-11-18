@@ -10,9 +10,12 @@
 //                        "multistory buildings will collapse" (real: 80 million trees flattened over 830 square miles)
 //   3 SKYSCRAPER 1,100 ft (340 m, the size of Apophis): hits the ground (1,200 Mt); a crater 3.0 miles (4.8 km) wide,
 //                        192 psi, 2,000 mph wind
-//   4 EVEREST    6 miles  (10 km, the dinosaur killer): a crater 77 miles wide; you are inside the fireball
+//   4 EVEREST    6 miles  (10 km, the dinosaur killer): a crater 77 miles wide; you are inside the fireball. Drawn
+//                        landing ~12 miles out, past the far shore, so you see it whole as it goes into the ground (one
+//                        that size landing 1.5 miles away would already fill the whole sky)
 //   5 TEXAS      580 miles (939 km, Ceres, the biggest asteroid: a disc that size covers as much ground as Texas):
-//                        30x the energy it takes to boil every ocean away (1e29 J vs 3.6e27 J)
+//                        30x the energy it takes to boil every ocean away (1e29 J vs 3.6e27 J). Drawn landing beyond
+//                        the horizon (one that size touching downtown is a ceiling over you the instant it touches)
 //   6 THE MOON   2,159 miles (3,475 km): 5e30 J, enough to melt much of the planet (a magma ocean)
 // What is drawn vs real (CAPTIONS.md): time is sped up (the blasts take 30 s to minutes to cross 1.5 miles; here 2-4 s)
 // and the airbursts and the rocks' paths are drawn lower in the sky so they show in the frame.
@@ -30,16 +33,16 @@ export const HILL = 112;                 // the terrace's top level, metres abov
 export const STOPS = [
   { key: 'house', name: 'HOUSE', ft: 60, t0: -LOOP, hit: 0.95, you: 3.55,
     lines: [[-9, 'SIZE OF A HOUSE'], [2.8, 'RUSSIA, 2013: 1,500 HURT BY GLASS']] },
-  { key: 'jet', name: 'JUMBO JET', ft: 200, t0: 3.75, hit: 5.6, you: 12.1,
+  { key: 'jet', name: 'JUMBO JET', ft: 200, t0: 3.75, hit: 5.6, you: 10.1,
     lines: [[0.15, 'SIZE OF A JUMBO JET'], [2.2, 'SIBERIA, 1908: 80 MILLION TREES FLATTENED']] },
-  { key: 'tower', name: 'SKYSCRAPER', ft: 1100, t0: 12.25, hit: 14.1, you: 20.6,
+  { key: 'tower', name: 'SKYSCRAPER', ft: 1100, t0: 10.25, hit: 12.1, you: 16.6,
     lines: [[0.15, 'SIZE OF A SKYSCRAPER'], [2.3, 'A CRATER 3 MILES WIDE']] },
-  { key: 'everest', name: 'EVEREST', ft: 6.2 * 5280, label: '6 MILES', t0: 20.75, hit: 22.7, you: 29.1,
-    lines: [[0.15, 'BIGGER THAN MOUNT EVEREST'], [2.1, 'THE ONE THAT KILLED THE DINOSAURS']] },
-  { key: 'texas', name: 'TEXAS', ft: 580 * 5280, label: '580 MILES', t0: 29.25, hit: 31.45, you: 37.6,
-    lines: [[0.15, 'SIZE OF TEXAS'], [2.6, 'THE BAY BOILS AWAY']] },
-  { key: 'moon', name: 'THE MOON', ft: 2159 * 5280, label: '2,159 MILES', t0: 37.75, hit: 41.0, you: 46.6,
-    lines: [[0.15, 'SIZE OF THE MOON'], [1.8, 'ITS PULL LIFTS THE SEA'], [4.4, 'EARTH TURNS TO LAVA']] },
+  { key: 'everest', name: 'EVEREST', ft: 6.2 * 5280, label: '6 MILES', t0: 16.75, hit: 19.2, you: 25.4,
+    lines: [[0.15, 'BIGGER THAN MOUNT EVEREST'], [2.6, 'THE ONE THAT KILLED THE DINOSAURS']] },
+  { key: 'texas', name: 'TEXAS', ft: 580 * 5280, label: '580 MILES', t0: 25.55, hit: 28.4, you: 36.3,
+    lines: [[0.15, 'SIZE OF TEXAS'], [3.3, 'THE BAY BOILS AWAY']] },
+  { key: 'moon', name: 'THE MOON', ft: 2159 * 5280, label: '2,159 MILES', t0: 36.45, hit: 41.0, you: 46.6,
+    lines: [[0.15, 'SIZE OF THE MOON'], [1.9, 'ITS PULL LIFTS THE SEA'], [4.75, 'EARTH TURNS TO LAVA']] },
 ];
 STOPS.forEach((s, i) => { s.i = i; s.m = s.ft * FT; });
 export const S = Object.fromEntries(STOPS.map((s) => [s.key, s]));
@@ -121,6 +124,9 @@ export function state(v) {
   // a short pulse on the picker as the cursor lands on the new slot
   s.snap = i === 0 ? 0 : Math.exp(-Math.max(0, s.dt - 0.45) / 0.14) * smooth(0.38, 0.47, s.dt);
   s.title = 1 - smooth(2.85, 3.35, v);
+  // once the title has gone the picker, the counter and its line move up to the top of the frame (the counter bigger),
+  // leaving the sky clear for the rocks
+  s.up = smooth(2.95, 3.55, v);
   return s;
 }
 export { lerp };

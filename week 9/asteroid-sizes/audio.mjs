@@ -169,7 +169,7 @@ export function makeSoundtrack(outFile) {
         const fv = (fireF[0].run(w, 650 + 200 * Math.sin(v * 3.1), 0.7).bp * 0.6 + fireLP.run(white()) * 1.2) * 0.2 * g * (0.75 + 0.25 * Math.sin(v * 9) * Math.sin(v * 5.3));
         l += fv; r += fireF[1].run(w, 820, 0.7).bp * 0.12 * g + fireLP.y * 0.24 * g; wet += fv * 0.3;
       }
-      const hs = i === 4 ? smooth(st.hit - 1.1, st.hit + 0.5, v) * (1 - smooth(st.you - 0.05, st.you + 0.1, v)) : 0;
+      const hs = i === 4 ? smooth(st.hit + 0.2, st.hit + 1.6, v) * (1 - smooth(st.you - 0.05, st.you + 0.1, v)) : 0;
       if (hs > 0) {
         const hv = hissF[0].run(white(), 3800, 0.5).bp * 0.05 * hs, hr = hissF[1].run(white(), 4300, 0.5).bp * 0.05 * hs;
         l += hv; r += hr; wet += (hv + hr) * 0.5;

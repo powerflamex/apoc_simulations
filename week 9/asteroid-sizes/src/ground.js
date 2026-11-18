@@ -5,7 +5,7 @@
 // The bay mirrors the sky and ripples; it boils behind the fire (uBoil) and heaps up under the Moon's pull (uTide).
 import * as THREE from 'three';
 import { LU, LIGHT_GLSL } from './looks.js';
-import { groundY, floorY, TER_X, RAIL_Z, GRID, zFar } from './layout.js';
+import { groundY, floorY, TER_X, RAIL_Z, GRID, zFar, GZ } from './layout.js';
 
 export const GU = { uTideP: { value: new THREE.Vector2(-60, -6500) }, uTideR: { value: 4500 } };
 
@@ -101,23 +101,26 @@ export function makeGround(scene) {
   scene.add(land);
 
   // ---------- the bay ----------
-  const wgeo = new THREE.PlaneGeometry(70000, 70000, 220, 220).rotateX(-Math.PI / 2).translate(0, 0, -30000);
+  const wgeo = new THREE.PlaneGeometry(70000, 70000, 440, 440).rotateX(-Math.PI / 2).translate(0, 0, -30000);
   const waterMat = new THREE.ShaderMaterial({
     uniforms: { ...LU, ...GU },
     transparent: false,
     vertexShader: /* glsl */ `
       uniform float uTide; uniform vec2 uTideP; uniform float uTideR;
-      varying vec3 vW;
+      varying vec3 vW; varying float vT;
       void main() {
         vec4 w = modelMatrix * vec4(position, 1.0);
-        // the Moon's pull: the bay heaps up toward it, and the level rises at the shore
-        float t = exp(-pow(length(w.xz - uTideP) / uTideR, 2.0));
+        // the Moon's pull: the bay heaps up toward it into a hill of water, and the level rises at the shore
+        float r = length(w.xz - uTideP) / uTideR;
+        float t = exp(-r * r * 1.4) * (0.75 + 0.25 * exp(-r * r * 6.0));
         w.y += uTide * (t + 0.03);
+        vT = t;
         vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragmentShader: /* glsl */ `
       ${LIGHT_GLSL}
-      varying vec3 vW;
+      uniform vec2 uTideP; uniform float uTideR;
+      varying vec3 vW; varying float vT;
       void main() {
         vec3 V = normalize(vW - cameraPosition);
         float d = length(vW - cameraPosition);
@@ -135,7 +138,20 @@ export function makeGround(scene) {
         vec3 c = mix(deep * (uSkyC * 0.8 + uSunC * 0.1), refl, fres);
         // the fire's light on the water
         c += uFrontC * 0.15 * pow(max(dot(R, uFrontDir), 0.0), 8.0);
-        float gz = length(p - uGZ);
+        // the hill of water under the Moon: steep, streaked with white foam, spray blowing off its top
+        if (uTide > 1.0) {
+          vec3 Nt = normalize(cross(dFdx(vW), dFdy(vW))); if (Nt.y < 0.0) Nt = -Nt;
+          float steep = 1.0 - Nt.y;
+          float streak = n21(vec2(atan(vW.x - uTideP.x, vW.z - uTideP.y) * 40.0, vW.y * 0.01 - uTime * 0.6));
+          float foam = smoothstep(0.08, 0.5, steep) * smoothstep(0.35, 0.75, streak) + smoothstep(0.75, 0.95, vT) * 0.6;
+          vec3 Rt = reflect(V, Nt);
+          float fr = 0.04 + 0.96 * pow(1.0 - max(dot(-V, Nt), 0.0), 5.0);
+          vec3 deepT = mix(vec3(0.02, 0.1, 0.13), vec3(0.05, 0.3, 0.32), smoothstep(0.55, 0.95, vT)) * (uSkyC * 1.2 + uSunC * 0.45);
+          vec3 wcol = mix(deepT, skyRefl(Rt), fr) + uSunC * 0.6 * pow(max(dot(Rt, uSunDir), 0.0), 40.0);
+          c = mix(c, wcol, smoothstep(0.02, 0.2, vT * uTide / 600.0));
+          c = mix(c, vec3(0.95, 0.97, 1.0) * (uSunC * 0.6 + uSkyC * 0.6), clamp(foam, 0.0, 1.0) * smoothstep(50.0, 400.0, uTide));
+        }
+        float gz = length(p - vec2(${GZ.x.toFixed(1)}, ${GZ.z.toFixed(1)}));
         // boiling: white churning water and steam behind the fire's front
         float boil = (1.0 - smoothstep(4500.0, 9000.0, gz)) * uBoil * (0.65 + 0.35 * f21(p * 0.02 + uTime));
         vec3 steam = mix(vec3(0.75, 0.72, 0.7), vec3(1.4, 0.8, 0.45), 0.3) * (0.7 + 0.5 * f21(p * 0.01 + uTime * 0.6));

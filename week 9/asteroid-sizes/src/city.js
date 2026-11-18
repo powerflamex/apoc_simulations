@@ -213,8 +213,8 @@ export function makeCity(scene) {
     commit(v) {
       mesh.instanceMatrix.needsUpdate = true; aF.needsUpdate = true; mat.uniforms.uV.value = v;
     },
-    traffic(v, stopT, frozen) {
-      // the cars drive on until the blast, then stop where they are
+    traffic(v, stopT, frozen, toss) {
+      // the cars drive on until the blast, then stop where they are (toss(i, pos, quat) may throw one: main.js)
       CARS.forEach((c, i) => {
         const t = Math.min(v, frozen) - stopT;
         const d = c.dir * c.sp * t + c.seed * 400;
@@ -223,7 +223,9 @@ export function makeCity(scene) {
         const x = c.along ? c.x + w : c.x, z = c.along ? c.z : c.z + w;
         const y = groundY(x, z);
         e.set(0, c.along ? Math.PI / 2 : 0, 0); q.setFromEuler(e);
-        m4.compose(p.set(x, y, z), q, s.set(1, 1, 1));
+        p.set(x, y, z);
+        if (toss) toss(i, p, q);
+        m4.compose(p, q, s.set(1, 1, 1));
         cars.setMatrixAt(i, m4);
       });
       cars.instanceMatrix.needsUpdate = true;

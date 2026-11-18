@@ -186,6 +186,12 @@ export function makeOverlay() {
       return;
     }
     const hide = s.hide || 0;
+    // the stack: under the title on frame 0, up at the top (just under the channel's mark) once the title has gone
+    const up = s.up || 0, L = (a, b) => (a + (b - a) * up).toFixed(1);
+    picker.style.top = `${L(398, 222)}px`;
+    counter.style.top = `${L(596, 420)}px`;
+    value.style.fontSize = `${L(86, 129)}px`;
+    line.style.top = `${L(738, 606)}px`;
     drawPicker(s);
     picker.style.opacity = (1 - hide).toFixed(3);
     counter.style.opacity = (1 - hide).toFixed(3);
