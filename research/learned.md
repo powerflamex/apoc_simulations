@@ -859,3 +859,21 @@ List counts: meteor storm 33.3K, star incoming 45.0K, oceans 99.5K, solar storm 
 - Ideas given Nov 17 (none checked on YouTube): Earth gets other planets' weather (picker on a busy Earth scene); asteroid size picker over one city
   (car-size to Moon-size); it gets 10 degrees hotter every second (finish line: the Sun's surface); you get 1 trillion times faster (light speed stops
   you at about 220 million times walking pace; nearest thing to a speed-doubles follow-up). Still open from Nov 11: gravity off for 5 seconds.
+
+## Nov 18 morning read (~8:25 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:03 / 0:10 / 0:15 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| heavy trillion | Nov 17, 1:30 PM | 24,027 | 59,861 | | | 88.8K (19 h) | 24.4K-45.0K | 64.3% | not out |
+| planet stand | Nov 17, 8 AM | 12,147 | 24,983 | 42,805 | | 43.3K (24 h) | 29.7K-57.9K | 62.4% | not out |
+| trillion seconds | Nov 16, 1 PM | 9,252 | 26,045 | 72,115 | | 92.3K (43 h) | 35.8K-56.1K | 61.4% | 122 / 95 / 85 / 79 / **70** / 65 |
+| dino asteroid | Nov 16, 7 AM | 8,716 | 20,955 | 34,266 | 49,720 | 50.3K (49 h) | 39.9K-73.9K | 67.1% | 127 / 95 / 85 / 77 / **71** / 65 |
+- Heavy trillion: 59.9K at 12 h, 88.8K at 19 h. Second-best start of the month after shrink (81.7K at 12 h). Four of four "trillion" Shorts in a
+  week are above YouTube's typical range.
+- Dino asteroid holds 71% at 0:30 but made only 34.3K on day one: the first Short since Nov 10 at 67%+ that missed 42K. The 0:30 split is a
+  tendency, not a clean line (trillion seconds, 70%, made 72.1K).
+- Planet stand 42.8K at 24 h, inside typical, posted as built (before its fix pass).
+- Reviews, Nov 17-18 (frames from the renders; sound not heard): asteroid sizes after its fix pass is ready (dust waits gone, text moved to the top,
+  Texas and the Moon now look different). Planet weather after its fix is good; the Saturn stop has a plain beige sky (owner: add the rings).
+  Fast trillion after its rework still shows almost no destruction up close (owner's call too): a far dust puff on the avenue, empty sea and land,
+  13 s of two glowing lines on the laps. Scream trillion: the same framing from 0:20 to 0:44, and the soundtrack sits at one loudness from 0:06
+  to 0:44 (about 12 dB louder than shrink trillion's); owner finds it boring without the scream.
