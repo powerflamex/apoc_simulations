@@ -835,3 +835,27 @@ Oceans 88.6K (105 h, 70% at 0:30).
 - Shrink trillion 382K and planet picker 285K are still climbing (+58K and +33K since the evening of Nov 16).
 - Planet stand went up Nov 17 at 8:03 AM as built (owner: good ideas, drawing too simple; may repost with better graphics). Heavy trillion is
   scheduled for Nov 17. Scream trillion is built, not posted: owner finds it samey and worries the scream annoys people.
+
+## Nov 17 evening read (~7:55 PM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| heavy trillion | Nov 17, 1:30 PM | 3,212 | 11,821 | 24,361 | | | | 27.6K (6.4 h) | 11.5K-14.4K | 65.9% | not out |
+| planet stand | Nov 17, 8 AM | 1,601 | 6,567 | 12,181 | 25,008 | | | 25.0K (12 h) | 22.7K-32.5K | 63.1% | not out |
+| trillion seconds | Nov 16, 1 PM | 1,665 | 4,858 | 9,252 | 26,045 | 72,112 | | 82.4K (31 h) | 37.8K-68.9K | 62.3% | not out |
+| dino asteroid | Nov 16, 7 AM | 1,068 | 4,732 | 8,716 | 20,955 | 34,266 | | 45.7K (37 h) | 39.1K-72.0K | 67.7% | not out |
+| men vanish | Nov 15 | | | | 13,736 | 18,661 | 23,839 | 27.0K (61 h) | 44.3K-82.4K | 64.4% | 64% |
+| earth falls (new) | Nov 14 | | | | 38,854 | 62,563 | 79,283 | 95.7K (85 h) | 48.9K-92.0K | 63.0% | 68% |
+| shrink trillion | Nov 13 | | | | 81,738 | 117,600 | 229,340 | 434.1K (103 h) | 54.4K-98.6K | 60.4% | 67% |
+| planet picker | Nov 12 | | | | 40,885 | 82,427 | 157,474 | 300.9K (127 h) | 58.5K-103K | 63.8% | 84% |
+List counts: meteor storm 33.3K, star incoming 45.0K, oceans 99.5K, solar storm re-upload 5.9K.
+- Heavy trillion has the best start since shrink: 24.4K at 6 h (shrink 31.6K, Earth falls 22.9K; both of those passed 60K in a day). Two earlier cases only.
+- Trillion seconds 72.1K at 24 h, third-best day of the fortnight. All three "1 trillion" Shorts this week are above YouTube's typical range; with
+  trillion years (2.2M) and grow trillion (268K) every trillion title so far has passed 80K. No sign of the formula wearing off yet.
+- Planet stand 25.0K at 12 h, inside the typical range, close to trillion seconds (26.0K -> 72K) and Sun black hole (23.1K -> 56K) at that age.
+- Since Nov 10 the 0:30 number split the Shorts cleanly again: the five at 67%+ (planet picker, Sun black hole, oceans, Earth falls, shrink) all
+  got 42K+ in their first day; the seven under 65% (men vanish, star incoming, dinosaurs, volcano, meteor storm, both solar storms) all got 30K or less.
+- Looked for a topic pattern in this fortnight's misses (things that arrive from the sky: star, meteor storm, solar storm). It does not hold on all
+  Shorts: black hole passed 4.1M, asteroid 1.15M and Moon falls 370K are the same kind of topic. Not a rule.
+- Ideas given Nov 17 (none checked on YouTube): Earth gets other planets' weather (picker on a busy Earth scene); asteroid size picker over one city
+  (car-size to Moon-size); it gets 10 degrees hotter every second (finish line: the Sun's surface); you get 1 trillion times faster (light speed stops
+  you at about 220 million times walking pace; nearest thing to a speed-doubles follow-up). Still open from Nov 11: gravity off for 5 seconds.
