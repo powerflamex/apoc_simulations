@@ -1,8 +1,8 @@
 // Procedural soundtrack for "What if you screamed 1 trillion times louder?", synced to src/timeline.js (video clock).
 //   node audio.mjs  -> out/soundtrack.wav
-// What you hear: YOUR SCREAM, a real recorded scream (sounds/scream.mp3) whose attack lands right on frame 0, held for
-// the whole video (grains of its steady middle, overlapped) and growing heavier as its power grows: more drive, an
-// octave-down layer, a roar under it. Around it: the street (traffic, voices) that falls silent; the crowd's gasp;
+// What you hear: YOUR SCREAM, a real recorded scream (sounds/scream.mp3) whose attack lands right on frame 0, for about
+// a second; then it sinks into a deep roar with no voice in it that steps up with every jump of the counter (owner, Nov
+// 17: a scream held for 47 s makes people swipe, and from the shock wave on "it's not sound anymore"). Around it: the street (traffic, voices) that falls silent; the crowd's gasp;
 // a deep boom on every step; glass shattering where and when each window breaks (glass.js: the near panes loud, the
 // far ones a rain of tinkles); car alarms from 1,000,000x; people screaming as they're thrown; from the shock wave on a
 // roaring wind; the rumble and crunch of every chunk of building that breaks away (city.js); a rising wash into the
@@ -62,54 +62,44 @@ export function makeSoundtrack(outFile) {
   const R0 = rng(777);
   const white = () => R0() * 2 - 1;
 
-  // ================= your scream =================
+  // ================= your scream: one real second, then a roar with no voice in it =================
+  // The recorded scream lands on frame 0 (its attack just after it) and plays for about a second; then it sinks (its
+  // pitch drops, it darkens and fades by ~1.7 s) into a deep roar made from noise, no voice in it, that steps up with
+  // every jump of the counter. From then on nothing of the recording is heard.
   const scr = loadClip('scream.mp3');
-  const S_ON = -0.12;                      // the clip starts here: its attack peaks just after frame 0
+  const S_ON = -0.12, V_SINK0 = 0.95, V_SINK1 = 1.7;
+  let voiceLast = -9;
   if (scr) {
-    const g0 = 0.42 / scr.pk;
-    const voice = new Float32Array(N * 2), sub = new Float32Array(N);
-    // the clip itself, from its start to 3.3 s in
-    for (let i = 0; i < scr.n && i < 3.3 * SR; i++) {
-      const o = idx(S_ON) + i; if (o < 0 || o >= N) continue;
-      const fade = Math.min(1, (3.3 * SR - i) / (0.3 * SR));
-      voice[o * 2] += scr.f[i * 2] * fade; voice[o * 2 + 1] += scr.f[i * 2 + 1] * fade;
+    const g0 = 0.45 / scr.pk;
+    const sinkF = [new SVF(), new SVF()];
+    let pos = 0;
+    for (let n = idx(S_ON); n < Math.min(N, idx(V_SINK1 + 0.05)); n++) {
+      const t = T0 + n / SR;
+      const k = smooth(V_SINK0, V_SINK1, t);
+      pos += 1 - 0.38 * k;                                   // the pitch sinks
+      const fc = 7000 * Math.pow(150 / 7000, k);              // and the sound darkens
+      const g = g0 * (1 - k) * Math.min(1, (t - S_ON) / 0.005);
+      const l = sinkF[0].run(at(scr, pos, 0), fc, 0.9).lp * g, r = sinkF[1].run(at(scr, pos, 1), fc, 0.9).lp * g;
+      L[n] += l; R[n] += r;
+      if (Math.abs(l) + Math.abs(r) > 1e-4) voiceLast = t;
     }
-    // then grains of its steady middle (0.45-3.25 s), 0.6 s long, every 0.3 s, Hann windows (they sum flat)
-    const GR = rng(31), GL = 0.6 * SR, HOP = 0.3 * SR;
-    const tStart = S_ON + 3.0;
-    for (let g = 0; ; g++) {
-      const o0 = idx(tStart) + g * HOP;
-      if (o0 >= N) break;
-      const src = (0.45 + GR() * (3.25 - 0.45 - 0.7)) * SR, rate = 1 + (GR() - 0.5) * 0.04;
-      const fadeIn = g < 2 ? (g + 1) / 3 : 1;
-      for (let i = 0; i < GL; i++) {
-        const o = o0 + i; if (o >= N) break;
-        const w = 0.5 - 0.5 * Math.cos(TAU * i / GL);
-        voice[o * 2] += at(scr, src + i * rate, 0) * w * fadeIn; voice[o * 2 + 1] += at(scr, src + i * rate, 1) * w * fadeIn;
-      }
-      // the octave-down layer: the same grain read at half speed
-      for (let i = 0; i < GL; i++) {
-        const o = o0 + i; if (o >= N) break;
-        const w = 0.5 - 0.5 * Math.cos(TAU * i / GL);
-        sub[o] += (at(scr, src + i * rate * 0.5, 0) + at(scr, src + i * rate * 0.5, 1)) * 0.5 * w;
-      }
-    }
-    // grow it: drive, the octave down, a roar shaped by the voice's own envelope
-    const envF = new OnePole(30), lowF = new SVF(), roarF = new SVF(), subF = new SVF();
+  }
+  {
+    const deepF = [new SVF(), new SVF()], bodyF = [new SVF(), new SVF()], flut = new OnePole(9), flut2 = new OnePole(4);
+    let bL = 0, bR = 0, ph = 0;
     for (let n = 0; n < N; n++) {
       const t = T0 + n / SR;
-      const Lm = logMult(t);
-      const k = clamp(Lm / 12, 0, 1);
-      let l = voice[n * 2] * g0, r = voice[n * 2 + 1] * g0;
-      const drive = 1 + 5 * k * k;
-      l = Math.tanh(l * drive) / Math.sqrt(drive) * (1 + 0.6 * k); r = Math.tanh(r * drive) / Math.sqrt(drive) * (1 + 0.6 * k);
-      const e = envF.run(Math.abs(l + r));
-      const sb = subF.run(sub[n] * g0, 500, 0.8).lp * smooth(4, 10, Lm) * 1.6;
-      const ro = roarF.run(white(), 180 + 500 * k, 0.9).lp * e * smooth(6, 11, Lm) * 2.2;
-      const body = lowF.run(l + r, 160, 1.2).lp * 0.8 * k;
-      // (under the white at the end the scream is swallowed by the roar)
-      const keep = 1 - 0.6 * smooth(V_FLASH, T_SWITCH, t);
-      L[n] += (l + sb + ro + body) * keep; R[n] += (r + sb + ro + body) * keep;
+      const Lm = logMult(t), k = clamp(Lm / 12, 0, 1);
+      bL = bL * 0.997 + white() * 0.04; bR = bR * 0.997 + white() * 0.04;
+      // a ragged flutter (6-14 Hz, random) gives it a growl; no steady pitch anywhere above the sub
+      const fl = 0.65 + 0.35 * clamp(flut.run(white() * 6), -1, 1) + 0.15 * flut2.run(white() * 4);
+      const deep = [deepF[0].run(bL * 3, 70 + 160 * k, 0.8).lp, deepF[1].run(bR * 3, 75 + 160 * k, 0.8).lp];
+      const body = [bodyF[0].run(white(), 140 + 380 * k, 1.6).bp, bodyF[1].run(white(), 150 + 400 * k, 1.6).bp];
+      ph += (32 + 14 * k) / SR;
+      const sub = Math.sin(TAU * ph) * (0.25 + 0.5 * k);
+      const g = smooth(0.55, 2.0, t) * (0.07 + 0.045 * Lm) * (1 - 0.5 * smooth(V_WHITE, T_SWITCH, t));
+      L[n] += (deep[0] * 1.4 + body[0] * 0.5 * (0.4 + k) * fl + sub * 0.35) * g;
+      R[n] += (deep[1] * 1.4 + body[1] * 0.5 * (0.4 + k) * fl + sub * 0.35) * g;
     }
   }
 
@@ -234,6 +224,7 @@ export function makeSoundtrack(outFile) {
   });
   // building chunks: a heavy crunch for some of the near ones
   for (const c of crunch) {
+    if (c.t > V_WHITE - 0.1) continue;     // (nothing breaks audibly under the white: the loop seam stays smooth)
     add(c.t, c.d * 5, (dt) => { const o = c.f.run(white(), c.fc * (1 - 0.5 * Math.min(dt / c.d, 1)), 0.9).lp * env(dt, 0.004, c.d) * c.g; return [o * (1 - c.pan), o * (1 + c.pan)]; });
   }
   // the people: a gasp from the crowd at the start, "oh my god" when the glass goes, screams as they're thrown
@@ -283,6 +274,7 @@ export function makeSoundtrack(outFile) {
   }
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, buf);
+  console.log(`audio: your recorded scream last heard at ${voiceLast.toFixed(2)} s`);
   console.log(`audio: ${panes.length} panes, ${alarms.length} alarms, ${crunch.length} crunches, ${thrown.length} thrown screams`);
   return outFile;
 }

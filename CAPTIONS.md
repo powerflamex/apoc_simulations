@@ -2291,7 +2291,8 @@ review (an early picture that changes every 2 s, you alive, the camera easing ba
 a counter twice as big). The counter: the decibels (1 m from you) and TIMES LOUDER over the racing number, with the finish
 line on the one line under it, 1,000,000,000,000x. "Times louder" counts sound power: every 10x adds 10 decibels. What you
 see, in order: 0:00 you screaming 2.3 m from the camera, leaning into it, fists clenched, head shaking (a real scream, its
-attack on frame 0), the air rippling out from your mouth, people round you and the cafe's customers behind its glass wall
+attack on frame 0, heard for one second; by 0:01.7 it has sunk into a deep roar with no voice in it that steps up with
+every jump of the counter; owner, Nov 17), the air rippling out from your mouth, people round you and the cafe's customers behind its glass wall
 already clapping their hands over their ears, the title, the counter racing; a ring of force leaves you at every step.
 0:02.5 1,000x (130 dB, pain): the people nearest you turn and stagger away holding their ears, the cafe customers get up
 and stumble off. 0:03.4 10,000x: "A jet engine, 100 feet away." 0:04.7 1,000,000x: the cafe's whole glass wall bursts
