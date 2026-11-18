@@ -23,11 +23,14 @@ import { makeYou, FLAP, HEAT } from './you.js';
 import { makeCheetah, cheetahAhead } from './cheetah.js';
 import { makeSurface, SU } from './surface.js';
 import { makeFx } from './fx.js';
+import { makeThings } from './things.js';
+import { makeCorridor, corridorW } from './corridor.js';
+import { makeSpace, EARTH_C } from './space.js';
 import { makeOverlay } from './overlay.js';
 import { SEA_Y } from './avenue.js';
 import {
   state, VIDEO_DURATION, LOOP, distAt, speedAt, sunDirAt, thetaAt, THETA0, LAP, CITY_END, V_SEA, V_LIFT, V_SOUND, V_GLOW, V_C, T_WHITE, V_1PC,
-  weightAt, machAt, timesAt, SC, growRate, STEPS, captionAt,
+  weightAt, machAt, timesAt, SC, growRate, STEPS, captionAt, V_SPACE, R_EARTH,
 } from './timeline.js';
 import { lerp, smooth, wobble, clamp, keys } from './util.js';
 
@@ -73,6 +76,9 @@ const you = makeYou(scene, { hoodie: 0xd8342a, jeans: 0x2a3550, skin: 0xd09a74, 
 you.root.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; } });
 const cheetah = makeCheetah(scene);
 const fx = makeFx(scene, scene);
+const things = makeThings(scene);
+const corridor = makeCorridor(scene);
+let space = null;   // (made in boot: it loads the Earth's maps)
 const L1 = [you.root, cheetah.group, fx.wake.mesh, fx.caps.cap, fx.caps.cap2, fx.caps.vap, fx.streamers.mesh, fx.steam.smoke.mesh];
 // you and the cheetah are in both layers (they cast shadows on the world in pass 1, invisibly)
 for (const o of [you.root, cheetah.group]) o.traverse((c) => c.layers.enableAll());
@@ -235,24 +241,23 @@ const CAMK = [
   [-2, 13, 2.9, 0.45, 9, 0.25, -1.9, 60],
   [0, 13, 2.9, 0.45, 9, 0.25, -1.9, 60],
   [2.2, 15, 2.85, 0.55, 9, 0.15, -1.2, 60],
-  [4.2, 22, 2.9, 0.75, 9, 0.0, -0.4, 60],
-  [5.3, 96, 3.3, 1.35, 3, -0.5, 0.0, 60],
-  [6.4, 172, 3.4, 2.0, 22, -5.0, 0.4, 60],
-  [9.1, 175, 3.8, 2.3, 26, -5.6, 0.6, 60],
-  [10.6, 18, 3.2, 1.0, 10, -0.2, 0.0, 60],
-  [12.2, 8, 3.1, 0.75, 10, -0.2, 0.0, 60],
+  [3.5, 20, 2.9, 0.7, 9, 0.05, -0.6, 60],
+  [4.7, 95, 3.4, 1.3, 4, -0.4, 0.0, 60],
+  [5.5, 122, 3.4, 1.5, 8, -1.5, 0.0, 60],
+  [6.6, 168, 3.3, 1.7, 22, -4.0, 2.6, 60],
+  [9.1, 171, 3.6, 2.0, 26, -4.6, 2.8, 60],
+  [10.6, 6, 3.2, 1.05, 80, -1.2, 0.0, 60],
+  [12.2, 4, 3.1, 1.0, 80, -1.2, 0.0, 60],
   [13.3, -78, 3.3, -0.3, 3, -0.3, 0.0, 60],
   [14.9, -96, 3.8, 0.1, 3, -0.2, 0.0, 60],
-  [16.4, -142, 2.8, 1.45, 30, -9.0, -0.6, 62],
-  [18.2, -158, 3.0, 1.5, 40, -10.0, -5.0, 62],
-  [21.0, -162, 3.0, 1.55, 40, -11.0, -5.0, 62],
+  [15.8, -5, 6.2, 1.2, 120, -8.0, 0.0, 36],
+  [21.8, -4, 6.4, 1.25, 120, -8.0, 0.0, 36],
   [23.0, -164, 3.0, 1.5, 60, -12.0, -5.0, 62],
-  [25.6, -165, 3.0, 1.5, 60, -12.0, -5.0, 62],
-  [27.3, -155, 2.9, 1.6, 40, -14.0, -0.8, 62],
-  [28.5, -350, 3.2, 0.9, 40, 0.5, 0.0, 62],
-  [36.0, -354, 3.2, 0.9, 40, 0.5, 0.0, 64],
-  [40.3, -357, 3.1, 0.85, 40, 0.5, 0.0, 96],
-  [47, -358, 2.9, 0.8, 40, 0.5, 0.0, 100],
+  [25.3, -165, 3.0, 1.5, 60, -12.0, -5.0, 62],
+  [26.6, -352, 3.3, 1.45, 60, -1.0, 0.0, 62],
+  [36.0, -356, 3.2, 1.3, 60, -0.6, 0.0, 64],
+  [40.3, -357, 3.1, 1.2, 60, -0.6, 0.0, 84],
+  [47, -358, 3.1, 1.2, 60, -0.6, 0.0, 84],
 ];
 function camKey(v, j) { return keys(CAMK.map((k) => [k[0], k[j]]), v); }
 
@@ -277,7 +282,7 @@ const GT = (() => {
 })();
 
 // ---------- update ----------
-const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3(), sunD = new THREE.Vector3(), head = new THREE.Vector3();
+const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3(), sunD = new THREE.Vector3(), head = new THREE.Vector3(), tmpC = new THREE.Color();
 const prevCam = new THREE.PerspectiveCamera();
 function camPose(v, cam) {
   const yy = youY(v);
@@ -293,6 +298,22 @@ function camPose(v, cam) {
   cam.fov = camKey(v, 7);
   return cam;
 }
+// the ending: from 400 km above you out to 30,000 km, turning from looking down at your track to a 3/4 view of the
+// whole planet with the ring round it
+function spaceCam(v, cam) {
+  const e = smooth(V_SPACE, T_WHITE - 0.3, v), e2 = smooth(V_SPACE, V_SPACE + 1.6, v);
+  const alt = 4500e3 * Math.pow(26000 / 4500, e);
+  const d1 = new THREE.Vector3(0.12, 1, 0.25).normalize(), d2 = new THREE.Vector3(0.38, 0.55, 0.75).normalize();
+  const dir = d1.clone().lerp(d2, e2).normalize();
+  cam.position.copy(EARTH_C).addScaledVector(dir, R_EARTH + alt);
+  const top = EARTH_C.clone().add(new THREE.Vector3(0, R_EARTH, 0));
+  cam.up.set(0, 0, -1);
+  cam.lookAt(top.lerp(EARTH_C, 0.35 + 0.65 * smooth(V_SPACE, V_SPACE + 1.2, v)));
+  cam.fov = 50;
+  cam.near = Math.max(50, alt * 0.02); cam.far = alt + 3 * R_EARTH;
+  cam.updateProjectionMatrix();
+  return cam;
+}
 let lastShake = 0;
 function update(v, cover = -1) {
   const s = state(v);
@@ -300,7 +321,7 @@ function update(v, cover = -1) {
   if (cover >= 0) s.title *= 1 - smooth(0.55, 1, cover);
   const S = s.dist, vel = s.vel, mach = s.mach;
   const dS = S - distAt(v - 1 / 60);
-  const SHUT = lerp(0.5, 0.18, smooth(5.0, 6.0, v) * (1 - smooth(9.6, 10.6, v)));   // shutter (fraction of a frame): faster while you look back at the avenue
+  const SHUT = lerp(0.5, 0.07, smooth(4.2, 4.7, v) * (1 - smooth(9.8, 10.6, v))) * (1 - 0.6 * smooth(10.4, 11, v) * (1 - smooth(22, 23, v)));   // shutter (fraction of a frame): faster while you look back at the avenue
   const sea = seaK(v), inCity = S < CITY_END + 60000;
   // ---- the world slides past ----
   world.position.set(0, 0, S);
@@ -308,6 +329,7 @@ function update(v, cover = -1) {
   traffic.frame(v, S, S < CITY_END + 2000);
   people.frame(v, S, S < CITY_END + 2000);
   fx.debris.frame(v, S, S < CITY_END + 400);
+  fx.street.frame(v, S, S < CITY_END + 1200);
   // the city sinks below the curve of the Earth as you leave it behind
   world.position.y = -Math.pow(Math.max(0, S - CITY_END), 2) / (2 * 6.371e6);
   // ---- the Sun, the sky, the light ----
@@ -363,6 +385,19 @@ function update(v, cover = -1) {
   // ---- the sea / Earth under you ----
   surface.frame({ s: S, dz: Math.max(dS * SHUT, vel * 0.12 * smooth(24, 27, v)), v, camX: camera.position.x, camZ: camera.position.z, y: SEA_Y, visible: S > CITY_END - 4000 });
   SU.uTrench.value = smooth(V_SEA + 0.3, V_SEA + 1.5, v);
+  const inSpace = v >= V_SPACE;
+  things.frame(v, S, v > V_SEA - 0.6 && v < 23.0);
+  const homeFlash = corridor.frame(v, S, Math.max(dS * SHUT, vel * 0.12), day, v > 29.4 && !inSpace ? 1 : 0);
+  SU.uCanyon.value = smooth(29.5, 30.3, v) * (inSpace ? 0 : 1); SU.uCW.value = Math.max(corridorW(v), 1);
+  // the smoke of your earlier laps hangs over the canyon: a dark sky, glowing orange low down where the fire is
+  {
+    const c = SU.uCanyon.value * 0.88;
+    sky.uniforms.uZen.value.lerp(tmpC.setRGB(0.012, 0.009, 0.009), c);
+    sky.uniforms.uHor.value.lerp(tmpC.setRGB(0.42, 0.12, 0.025), c);
+    sky.uniforms.uGlow.value.multiplyScalar(1 - c);
+  }
+  if (space) space.frame(v, inSpace, smooth(V_SPACE, V_SPACE + 0.6, v));
+  if (inSpace) { surface.mesh.visible = false; sky.uniforms.uZen.value.setRGB(0, 0, 0.002); sky.uniforms.uHor.value.setRGB(0, 0, 0.004); sky.uniforms.uGlow.value.setRGB(0, 0, 0); sky.uniforms.uStars.value = 1; sky.uniforms.uSunI.value = 0; }
   // ---- you ----
   const yy = youY(v);
   const fly = smooth(V_LIFT + 0.15, V_LIFT + 1.3, v);
@@ -384,9 +419,10 @@ function update(v, cover = -1) {
   you.head.getWorldPosition(head);
   // ---- the cheetah ----
   cheetah.frame(v);
+  you.root.visible = !inSpace && !NO.includes('you');
   // ---- what travels with you ----
   const groundY = (d) => (S - d > CITY_END ? SEA_Y : 0);
-  fx.wake.frame(v, S, { on: 1, groundY, hotK: 1, water: smooth(V_SEA, V_SEA + 0.4, v) * (1 - smooth(23.5, 25, v) * 0.5) });
+  fx.wake.frame(v, S, { on: 0, groundY, hotK: 1, water: smooth(V_SEA, V_SEA + 0.4, v) * (1 - smooth(23.5, 25, v) * 0.5) });
   fx.wake.mat.uniforms.uLight.value.setRGB(0.25 + 0.75 * day, 0.25 + 0.75 * day, 0.28 + 0.72 * day);
   // steam rising along your track over the sea (seen while the camera looks back)
   { const az = camKey(v, 1) * DEG; fx.steam.frame(v, S, { on: 0 * smooth(V_SEA + 0.3, V_SEA + 1.2, v) * smooth(0.35, 0.75, -Math.cos(az)) * (1 - smooth(24.6, 26.0, v)), light: 0.5 + 1.0 * day, glow: (1 - day) * 0.6 }); fx.steam.smoke.mat.uniforms.uSun.value.copy(sunD); }
@@ -424,7 +460,8 @@ function update(v, cover = -1) {
   camera.rotation.y += wobble(v * 11, 3) * shake * 0.8 + wobble(v * 0.33, 4) * 0.004;
   camera.rotation.z += wobble(v * 9, 5) * shake * 0.6;
   camera.near = S > CITY_END + 200 ? 0.6 : 0.25;
-  camera.far = S > CITY_END + 200 ? 90000 : 30000;
+  camera.far = S > CITY_END + 200 ? (v > 15 ? 500000 : 90000) : 30000;
+  if (inSpace) spaceCam(v, camera);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   // the plasma pouring off you (from Mach ~6, full by orbit speed)
@@ -434,12 +471,12 @@ function update(v, cover = -1) {
     add(you.head, 0, 0.12, 0.06); add(you.head, -0.07, 0.07, 0.02); add(you.head, 0.07, 0.07, 0.02);
     you.arms.forEach((A) => { add(A.sh, 0, 0, 0); add(A.el, 0, 0, 0); add(A.wr, 0, -0.05, 0); });
     you.legs.forEach((L) => { add(L.knee, 0, 0, 0); add(L.ankle, 0, -0.05, 0.05); });
-    const strA = glow * (0.25 + 0.75 * hot);
-    const behind = smooth(27.6, 28.4, v);
+    const strA = glow * (0.25 + 0.75 * hot) * (v >= V_SPACE ? 0 : 1);
+    const behind = smooth(0.4, 0.9, Math.cos(camKey(v, 1) * DEG));
     fx.streamers.frame(v, camera, pts, { a: strA * (1 - 0.35 * behind), len: lerp(1.2, 5.5, hot) * (1 + 1.2 * blaze) * (1 - 0.55 * behind), w: lerp(0.05, 0.11, hot) * (1 + 0.6 * blaze) });
   }
   // where the camera was 1/60 s ago (for the motion blur)
-  camPose(v - SHUT / 60, prevCam);
+  if (inSpace) spaceCam(v - SHUT / 60, prevCam); else camPose(v - SHUT / 60, prevCam);
   prevCam.aspect = camera.aspect; prevCam.near = camera.near; prevCam.far = camera.far;
   { const vp = v - SHUT / 60; prevCam.rotation.x += wobble(vp * 13, 1) * shake + wobble(vp * 0.4, 2) * 0.004; prevCam.rotation.y += wobble(vp * 11, 3) * shake * 0.8 + wobble(vp * 0.33, 4) * 0.004; }
   prevCam.updateProjectionMatrix();
@@ -449,7 +486,7 @@ function update(v, cover = -1) {
   B.uInvProj.value.copy(camera.projectionMatrixInverse);
   B.uCamW.value.copy(camera.matrixWorld);
   B.uPrevVP.value.multiplyMatrices(prevCam.projectionMatrix, prevCam.matrixWorldInverse);
-  B.uDS.value = S - distAt(v - SHUT / 60); B.uT.value = v;
+  B.uDS.value = inSpace ? 0 : S - distAt(v - SHUT / 60); B.uT.value = v;
   // shadows follow you
   sunL.shadow.camera.updateProjectionMatrix();
   // ---- exposure, bloom, post ----
@@ -461,9 +498,10 @@ function update(v, cover = -1) {
   F.uShim.value = smooth(5.6, 7.0, v) * (1 - 0.6 * smooth(V_LIFT, V_LIFT + 3, v));
   head.project(camera);
   F.uYou.value.set(head.x * 0.5 + 0.5, head.y * 0.5 + 0.45);
-  B.uRel.value = smooth(35, V_C, v);
-  F.uSpot.value = smooth(43.3, T_WHITE, v);
-  F.uSlam.value = s.slam;
+  B.uRel.value = smooth(35, V_C, v) * (inSpace ? 0 : 1);
+  F.uSpot.value = 0;
+  // the slam: a hard white hit that covers the cut out to space
+  F.uSlam.value = Math.min(2.6, s.slam * 2.6) + 0.8 * homeFlash;
   F.uAb.value = 0.15 + 0.6 * kick + 0.5 * blaze;
   F.uWhite.value = white;
   F.uTitle.value = window.__cover ? 0 : s.title;
@@ -493,6 +531,7 @@ function renderFrame(t) {
 }
 
 async function boot() {
+  space = await makeSpace(scene);
   await document.fonts.load('500 40px Cormorant');
   await document.fonts.load('italic 500 40px Cormorant');
   await document.fonts.load('600 40px Cormorant');
@@ -502,7 +541,7 @@ async function boot() {
     const { makeCompositor } = await import('./compose.js');
     comp = await makeCompositor(renderer.domElement, stage);
   }
-  for (const t of [44, 38, 32, 27, 22, 17, 14, 12, 9, 7, 5, 2, 0]) renderFrame(t);
+  for (const t of [43, 41.5, 38, 32, 27, 22, 19.7, 17, 14, 12, 9, 7, 5, 2, 0]) renderFrame(t);
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, sky, state, update, you, cheetah, world };

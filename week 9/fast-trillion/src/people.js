@@ -63,9 +63,9 @@ export function personAt(P, v, out = {}) {
   out.stride = 0; out.walk = 0;
   const sH = P.s0 + P.dir * P.sp * b.t;
   out.yaw = away > 0 ? -Math.PI / 2 : Math.PI / 2;           // facing your path, so falling backward = away from it
-  const fall = smooth(0, 0.45, age);
+  const fall = smooth(0, 0.22, age);
   const throwK = clamp((psi - 2) / 8, 0, 1);
-  const dist = (0.4 + 5 * throwK) * (1 - Math.exp(-age * 4));
+  const dist = (0.8 + 6 * throwK) * (1 - Math.exp(-age * 5));
   out.x = clamp(P.x + away * dist, BLD_L + 0.3, BLD_R - 0.3);
   out.y = throwK > 0.4 ? Math.max(0, 1.2 * throwK * Math.sin(Math.PI * clamp(age / (0.25 + 0.4 * throwK), 0, 1))) : 0;
   out.pitch = -Math.PI / 2 * 0.97 * fall;

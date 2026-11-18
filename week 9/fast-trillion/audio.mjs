@@ -15,6 +15,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STEPS, V_SOUND, V_GLOW, V_SEA, V_LIFT, V_1PC, V_C, T_WHITE, growRate, speedAt, distAt, LAP, weightAt } from './src/timeline.js';
 import { rng, smooth, clamp } from './src/util.js';
+import { PASSES, PLANE_PASS_S, PLANE_V } from './src/things.js';
+import { HOME_PASSES } from './src/corridor.js';
+import { tPass, V_SPACE } from './src/timeline.js';
 
 const SR = 48000;
 const TAU = Math.PI * 2;
@@ -93,6 +96,8 @@ export function makeSoundtrack(outFile) {
     const r = rng(5);
     for (let t = -1; t < 5.2; t += 0.12 + r() * 0.3) whoosh.push({ t, pan: r() < 0.5 ? -0.7 : 0.7, a: 0.4 + 0.6 * r(), f: 500 + 900 * r() });
     // glass: tiny soft pings raining from the sound barrier on (no clicks: each one fades in over a few ms)
+    // things you pass: a whoosh each (boats and ships, islands), a rumble burst (towers, mountains)
+    for (const [ps, loud, kind] of PASSES) { const t = tPass(ps); if (t > 10.5 && t < 23) whoosh.push({ t, pan: r() < 0.5 ? -0.6 : 0.6, a: loud, f: kind === 0 ? 700 + 500 * r() : kind === 1 ? 300 + 200 * r() : 180 + 150 * r(), big: kind }); }
     for (let t = V_SOUND + 0.04; t < 9.5; t += 0.012 + r() * 0.03) tinkles.push({ t, f: 2600 + r() * 4200, d: 0.03 + r() * 0.08, a: (0.3 + 0.7 * r()) * (1 - smooth(6.5, 9.5, t)), pan: r() * 2 - 1 });
   }
   for (let n = 0; n < N; n++) {
@@ -140,11 +145,18 @@ export function makeSoundtrack(outFile) {
     for (const w of whoosh) {
       const dt = t - w.t;
       if (dt > -0.12 && dt < 0.25) {
-        const e = Math.exp(-Math.pow(dt / 0.06, 2)) * w.a * 0.18 * (1 - smooth(3.5, 5.2, t));
+        const e = Math.exp(-Math.pow(dt / 0.06, 2)) * w.a * (w.big !== undefined ? 0.22 : 0.18 * (1 - smooth(3.5, 5.2, t)));
         const s = whooF[w.pan > 0 ? 1 : 0].run(white(), w.f * (1 - 0.4 * dt / 0.25), 1.2).bp * e;
         if (w.pan > 0) { r += s; l += s * 0.4; } else { l += s; r += s * 0.4; }
       }
     }
+    // --- the airliner you overtake: a jet's roar swelling and cut off as you pass ---
+    { let tp = 12.6; for (let k = 0; k < 30; k++) { tp = tPass(PLANE_PASS_S + PLANE_V * tp); } const dj = t - tp;
+      if (dj > -1.2 && dj < 0.8) { const e = smooth(-1.2, -0.05, dj) * Math.exp(-Math.max(dj, 0) / 0.15); const x = whooF[0].run(white(), 900 + 600 * smooth(-1.2, 0, dj), 0.8).bp * e * 0.35; l += x; r += x * 0.8; } }
+    // --- each time you pass home: a deep thud (until laps blur together) ---
+    for (const hp of HOME_PASSES) { const dh = t - hp; if (dh > -0.01 && dh < 1.5 && hp < 34) { const x = Math.sin(TAU * 46 * dh) * env(dh, 0.008, 0.25) * 0.12; l += x; r += x; } }
+    // --- the ring of fire from space: a deep roar swelling into the white ---
+    { const ru = smooth(V_SPACE, V_SPACE + 0.8, t) * (1 - smooth(T_WHITE, T_WHITE + 0.4, t)); if (ru > 0) { const x = (rum[0].y + rum[1].y) * 0.0 + Math.sin(TAU * 41 * t) * 0.05 * ru + Math.sin(TAU * 55.3 * t) * 0.03 * ru; l += x; r += x; } }
     // --- the sonic boom: a double thump (the N-wave), then the glass ---
     const db = t - V_SOUND;
     if (db > -0.01 && db < 3) {

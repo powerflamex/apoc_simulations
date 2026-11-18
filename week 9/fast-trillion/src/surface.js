@@ -13,14 +13,15 @@ const N = 4096;
 // what's under you at distance s (m) along the lap: [land, desert, forest, lights], each 0..1
 function typeAt(s) {
   const km = s / 1000;
-  const land = [[5200, 12000], [12000, 16100], [23800, 28800], [40065, 40080], [-10, 12]];
+  // (the coast and the land with its mountains, 190-900 km: things.js puts the city and the peaks there)
+  const land = [[190, 900], [5200, 12000], [12000, 16100], [23800, 28800], [40065, 40080], [-10, 12]];
   let L = 0;
   for (const [a, b] of land) L = Math.max(L, Math.min(1, Math.max(0, Math.min(km - a, b - km) / 60)));
   // islands
   const isl = [8600, 19500, 21000, 31500, 34800, 36600];
   for (const c of isl) L = Math.max(L, Math.max(0, 1 - Math.abs(km - c) / 90));
   const desert = km > 11800 && km < 14900 ? Math.min(1, Math.min(km - 11800, 14900 - km) / 300) : 0;
-  const forest = (km > 5200 && km < 9000) || (km > 24500 && km < 27500) ? 1 : 0.35;
+  const forest = (km > 190 && km < 900) || (km > 5200 && km < 9000) || (km > 24500 && km < 27500) ? 1 : 0.35;
   // lights: towns along the coasts and a few big cities
   const lights = L * (0.25 + 0.75 * Math.pow(Math.max(0, Math.sin(km * 0.013) * Math.sin(km * 0.0071 + 1)), 2)) + (km < 30 || km > 40045 ? 1 : 0);
   return [L, desert * L, forest * L * (1 - desert), Math.min(1, lights)];
@@ -58,6 +59,7 @@ export const SU = {
   uSkyHi: { value: new THREE.Color(0.1, 0.3, 0.7) }, uSkyLo: { value: new THREE.Color(0.6, 0.75, 0.9) }, uDay: { value: 1 },
   uFire: { value: new THREE.Color(0, 0, 0) }, uFireR: { value: 30 }, uHaze: { value: new THREE.Color(0.7, 0.8, 0.9) }, uHazeD: { value: 6000 },
   uRaw: { value: null }, uSum: { value: null }, uTot: { value: new THREE.Vector4() }, uTrench: { value: 0 }, uPass: { value: null }, uSabs: { value: 0 },
+  uCanyon: { value: 0 }, uCW: { value: 2000 },
 };
 
 export function makeSurface(scene) {
@@ -71,6 +73,7 @@ export function makeSurface(scene) {
       uniform float uS; uniform float uDz; uniform float uT; uniform vec3 uSun; uniform vec3 uSunCol; uniform vec3 uSkyHi; uniform vec3 uSkyLo;
       uniform float uDay; uniform vec3 uFire; uniform float uFireR; uniform vec3 uHaze; uniform float uHazeD; uniform float uTrench;
       uniform sampler2D uRaw; uniform sampler2D uSum; uniform vec4 uTot; uniform sampler2D uPass; uniform float uSabs;
+      uniform float uCanyon; uniform float uCW;
       varying vec3 vP;
       float h2(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
       float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -134,7 +137,7 @@ export function makeSurface(scene) {
         ground *= (0.12 + 1.6 * sunL) * uSunCol + vec3(0.03, 0.04, 0.06) * uDay;
         vec3 col = mix(sea, ground, land);
         // night: the towns' lights
-        col += vec3(1.0, 0.62, 0.25) * lights * (1.0 - uDay) * 0.35 * (0.6 + 0.8 * streak);
+        col += vec3(1.0, 0.62, 0.25) * lights * (1.0 - uDay) * 1.1 * pow(0.4 + 0.8 * streak, 3.0);
         // your fire lighting everything round you (falls off with distance from you)
         float dF = length(vP.xz - vec2(0.0, 2.0));
         col += uFire * (mix(0.25, 0.08, land) + fres * 0.5) / (1.0 + pow(dF / uFireR, 2.0));
@@ -156,14 +159,28 @@ export function makeSurface(scene) {
             // churned water: dark, steaming, streaked with foam; scorched ground: black with glowing cracks
             float st = n2(vec2(vP.x * 0.03 + 3.0, s * sk * 0.4)) * 0.6 + n2(vec2(vP.x * 0.15, s * sk * 2.0)) * 0.4;
             // boiling white water and steam: bright and churned, edges torn into streaks
-            vec3 foam = mix(vec3(0.42, 0.45, 0.48), vec3(0.92, 0.94, 0.96), smoothstep(0.3, 0.75, st)) * (0.25 + 0.75 * uDay);
+            vec3 foam = mix(vec3(0.42, 0.45, 0.48), vec3(0.92, 0.94, 0.96), smoothstep(0.3, 0.75, st)) * (0.25 + 0.75 * uDay) * mix(1.0, 0.45, step(vP.z, 0.0));
             vec3 scorch = vec3(0.05, 0.04, 0.035) + vec3(1.2, 0.3, 0.06) * smoothstep(0.6, 0.85, st) * exp(-age / 6.0) * step(vP.z, 0.0);
             vec3 churn = mix(foam, scorch, land);
             col = mix(col, churn + uFire * 0.04, inT * 0.9 * (1.0 - exp(-age * 600.0)));
             col += vec3(1.3, 0.45, 0.12) * burn * inT * (0.5 + 0.5 * n2(vec2(vP.x * 0.004, s * sk * 0.6)));
           }
         }
-        col = mix(col, uHaze, 1.0 - exp(-dist / uHazeD));
+        // from lap 2: the floor of the canyon your earlier laps blasted: charred black, streaked with burning lines
+        // along your path (the lines run straight ahead, so they never flicker; each fades before it gets thinner
+        // than a pixel), lit orange near the walls of fire
+        if (uCanyon > 0.0) {
+          float ax = abs(vP.x);
+          float pxw = max(dist * 0.0007, 0.3);
+          float e1 = smoothstep(0.66, 0.84, n2(vec2(vP.x / 5.0, 1.0))) * (1.0 - smoothstep(1.2, 4.0, pxw));
+          float e2 = smoothstep(0.68, 0.86, n2(vec2(vP.x / 40.0, 2.0))) * (1.0 - smoothstep(9.0, 30.0, pxw));
+          float e3 = smoothstep(0.68, 0.86, n2(vec2(vP.x / 260.0, 3.0))) * (1.0 - smoothstep(60.0, 200.0, pxw));
+          float emb = max(max(e1, e2 * 0.9), e3 * 0.8);
+          vec3 ch = vec3(0.05, 0.03, 0.022) + vec3(2.2, 0.75, 0.16) * emb;
+          ch += vec3(1.3, 0.38, 0.07) * smoothstep(0.45, 1.0, ax / max(uCW, 1.0)) * 0.7;
+          col = mix(col, ch, uCanyon * (1.0 - smoothstep(uCW, uCW * 1.3, ax)));
+        }
+        col = mix(col, mix(uHaze, vec3(0.8, 0.3, 0.08), uCanyon), 1.0 - exp(-dist / uHazeD));
         // alpha 0: already blurred along your path here, so the post pass leaves it alone
         gl_FragColor = vec4(col, 0.0);
         #include <tonemapping_fragment>

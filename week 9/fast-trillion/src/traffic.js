@@ -16,9 +16,7 @@ const MAXC = 420;
 const G = 9.81;
 
 function carSpec(li, n) {
-  if (hh(li, n, 1) < 0.3) return null;
-  // (the lane next to you is clear where the cheetah runs at the start)
-  if (li === 0 && n * SPACING > -60 && n * SPACING < 90) return null;
+  if (hh(li, n, 1) < 0.2) return null;
   return { li, n, off: (hh(li, n, 2) - 0.5) * 10, kind: Math.floor(hh(li, n, 3) * 4), col: COLORS[Math.floor(hh(li, n, 4) * COLORS.length)], r: hh(li, n, 5), r2: hh(li, n, 6) };
 }
 
@@ -56,7 +54,8 @@ export function makeTraffic(world, ctx) {
               if (psi < 20) {
                 // rocked and shoved (the blast lasts milliseconds: a big pressure but a small push)
                 const k = clamp((psi - 0.8) / 12, 0, 1);
-                x += Math.sign(L.x) * 0.6 * k * (1 - Math.exp(-age * 6));
+                x += Math.sign(L.x) * 3.0 * k * (1 - Math.exp(-age * 3));
+                yaw += Math.sign(L.x) * (C.r - 0.5) * 0.6 * k * (1 - Math.exp(-age * 3));
                 roll = Math.sign(L.x) * 0.25 * k * Math.exp(-age * 3) * Math.sin(age * 14);
               } else {
                 // thrown: up and away from your path, rolling over, dragged your way by the wake

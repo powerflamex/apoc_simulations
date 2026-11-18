@@ -172,7 +172,7 @@ function makeCaps(scene) {
 }
 
 // ---- glass from the windows and shop fronts on your side; litter and leaves whirled up behind you ----
-const SH_MAX = 6000, LT_MAX = 900;
+const SH_MAX = 12000, LT_MAX = 900;
 function makeDebris(scene) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.4, 0, 0.55, -0.2, 0, -0.1, 0.6, 0], 3));
@@ -218,7 +218,7 @@ function makeDebris(scene) {
       shards.visible = litter.visible = visible;
       if (visible) {
         // glass: windows on your side within 160 m behind you, lowest 8 floors, plus the shop fronts
-        const s0 = Math.max(0, s - 160), s1 = Math.min(s + 2, PLAZA);
+        const s0 = Math.max(0, s - 420), s1 = Math.min(s + 2, PLAZA);
         const k0 = Math.floor((s0 - XST0) / XST) - 1, k1 = Math.floor((s1 - XST0) / XST) + 1;
         for (let k = k0; k <= k1 && n < SH_MAX; k++) {
           for (const L of blockLots(k, 1)) {
@@ -233,7 +233,7 @@ function makeDebris(scene) {
                 const b = blastAt(ws, Math.hypot(BLD_R, wy - 1));
                 if (v < b.t || b.pa / PSI < 0.12) continue;
                 const age = v - b.t;
-                const ns = iy < 0 ? 7 : 3;
+                const ns = iy < 0 ? 8 : 4;
                 for (let j = 0; j < ns && n < SH_MAX; j++) {
                   const r1 = hh(L.seed * 31 + ix, iy * 7 + j, 1), r2 = hh(L.seed * 31 + ix, iy * 7 + j, 2), r3 = hh(L.seed * 31 + ix, iy * 7 + j, 3);
                   // pushed in by the blast then sucked back out on its low-pressure half: out over the sidewalk and down
@@ -242,7 +242,7 @@ function makeDebris(scene) {
                   let x = BLD_R - 0.1 - out * t, y = wy + (r2 - 0.4) * 1.2 + (1 + 2 * r3) * t - 0.5 * G * t * t;
                   const z = -(ws + (r1 - 0.5) * cw * 0.8) - fwd * t;
                   if (y < 0.02) { y = 0.02; x = Math.max(CURB_R - 0.5, x); }
-                  const size = iy < 0 ? 0.08 + 0.18 * r3 * r3 : 0.05 + 0.1 * r3 * r3;
+                  const size = iy < 0 ? 0.12 + 0.25 * r3 * r3 : 0.09 + 0.16 * r3 * r3;
                   e.set(r1 * 6 + t * (r2 - 0.5) * 18, r2 * 6 + t * 7, r3 * 6 + t * (r1 - 0.5) * 14);
                   if (y <= 0.021) e.set(-Math.PI / 2, r1 * 6, 0);
                   q.setFromEuler(e);
@@ -385,11 +385,118 @@ function makeSteam(scene) {
 }
 const V_SEA_FX = V_SEA;
 
+// ---- the street coming apart behind you: dust pouring out of every building and kicked up off the road as the blast
+//      reaches it, and the shop awnings and blade signs ripped off and tumbling into the street. Each thing is fixed to
+//      its place on the avenue (a hash of its slot) and starts when the blast reaches it (timeline.js blastAt). ----
+const AW_COL = [0xc0392b, 0x1f6f4a, 0x2c4f8a, 0xe0a030, 0x6b2d5c, 0x1b1b1b, 0xd35400, 0x2e8b8b];
+function makeStreetFx(scene) {
+  const dust = makeSmoke(scene, 1400);
+  const G = 9.81;
+  const awGeo = new THREE.BoxGeometry(1, 0.07, 1).translate(0, 0, 0);
+  const awMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+  const awn = new THREE.InstancedMesh(awGeo, awMat, 420);
+  awn.castShadow = true; awn.receiveShadow = true; awn.frustumCulled = false;
+  scene.add(awn);
+  const sgGeo = new THREE.BoxGeometry(0.12, 1, 1);
+  const sgMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, emissive: 0x111111 });
+  const signs = new THREE.InstancedMesh(sgGeo, sgMat, 200);
+  signs.castShadow = true; signs.frustumCulled = false;
+  scene.add(signs);
+  const c = new THREE.Color();
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+  // a thing ripped loose at time t0 with kick (vx, vy, vz): where it is, and its spin, after age seconds (lands, slides)
+  const fly = (age, vx, vy, vz, y0) => {
+    const tf = (vy + Math.sqrt(vy * vy + 2 * G * Math.max(y0 - 0.05, 0))) / G;
+    const t = Math.min(age, tf), sl = Math.max(0, age - tf);
+    const slide = (1 - Math.exp(-sl * 2.5)) / 2.5;
+    return { x: vx * t + vx * 0.3 * slide, y: Math.max(0.04, y0 + vy * t - 0.5 * G * t * t), z: vz * t + vz * 0.3 * slide, t, landed: age > tf };
+  };
+  return {
+    dust, awn, signs,
+    frame(v, s, visible) {
+      dust.begin();
+      let na = 0, ns = 0;
+      if (visible) {
+        dust.mat.uniforms.uTime.value = v;
+        const a = Math.max(-30, s - 950), b = Math.min(s + 5, PLAZA);
+        // dust out of the buildings on your side (every 7 m), off the road (every 9 m), out of the far side (every 11 m)
+        const rows = [[4.5, 6.3, 6.5, 0], [5, -2.5, 3.0, 1], [6, 2.5, 3.0, 1], [9, -28.8, 29, 2]];
+        for (const [step, x0, r0, kind] of rows) {
+          for (let k = Math.floor(a / step); k * step < b; k++) {
+            const sk = k * step + hh(k, kind + 40) * step;
+            if (sk < a || sk > b || sk > PLAZA) continue;
+            const B = blastAt(sk, r0);
+            const psi = B.pa / PSI;
+            if (v < B.t || psi < (kind === 1 ? 0.6 : 0.25)) continue;
+            const age = v - B.t, r1 = hh(k, kind + 41), r2 = hh(k, kind + 42);
+            // the blast throws it out at once (a burst in the first ~0.15 s), then it billows slowly
+            const grow = 0.55 * (1 - Math.exp(-age / 0.12)) + 0.45 * (1 - Math.exp(-age / 1.5));
+            const strength = clamp(psi / 3, 0.4, 1.6);
+            const out = kind === 0 ? -1 : kind === 2 ? 1 : (r1 - 0.5) * 2;
+            const x = x0 + out * (1.5 + 5 * strength) * (1 - Math.exp(-age / 1.4));
+            const y = kind === 1 ? 0.8 + 2.5 * grow : 3 + 9 * r1 + 2 * grow;
+            const rad = (kind === 1 ? 2.8 : 3.4) + (7 + 7 * r2) * strength * grow;
+            const al = 0.7 * smooth(0, 0.03, age) * (1 - smooth(5, 9, age));
+            dust.puff(x, y, -sk + s, rad, al, 0.3 + 0.15 * r2, 0, r1 * 9 + kind);
+            if (kind === 0 && r2 < 0.55) dust.puff(x - 1.0, 1.2 + 1.5 * grow, -sk + s + 2, rad * 0.8, al, 0.26, 0, r2 * 7);
+          }
+        }
+        // awnings over the shop fronts on your side, and blade signs, ripped off from ~0.8 psi
+        const k0 = Math.floor((a - XST0) / XST) - 1, k1 = Math.floor((b + 400 - XST0) / XST) + 1;
+        for (let kb = k0; kb <= k1; kb++) {
+          for (const L of blockLots(kb, 1)) {
+            const W = L.s1 - L.s0, nb = Math.max(1, Math.floor(W / 5.5)), bw = W / nb;
+            for (let j = 0; j < nb; j++) {
+              const sb = L.s0 + (j + 0.5) * bw;
+              if (sb < a || sb > b + 400) continue;
+              const r1 = hh(L.seed, j, 61), r2 = hh(L.seed, j, 62), r3 = hh(L.seed, j, 63);
+              const B = blastAt(sb, Math.hypot(BLD_R - 0.8, 2.5));
+              const hit = v >= B.t && B.pa / PSI > 0.8;
+              const age = hit ? v - B.t : 0;
+              if (r1 < 0.62 && na < 420) {
+                // an awning: 0.9 of the bay wide, 1.6 m out from the wall, sloping down, 3.3 m up
+                let x = BLD_R - 0.8, y = 3.3, z = -sb, rx = 0, ry = 0, rz = 0.32;
+                if (hit) {
+                  const f = fly(age, -(4 + 9 * r2), 3 + 6 * r3, -(r3 - 0.5) * 6, y);
+                  x += f.x; y = f.y; z += f.z;
+                  rz = 0.32 + (r2 - 0.5) * 9 * f.t; rx = (r3 - 0.5) * 7 * f.t; ry = r1 * 4 * f.t;
+                  if (f.landed) { rz = 0.05; rx = 0; }
+                }
+                e.set(rx, ry, rz); q.setFromEuler(e);
+                awn.setMatrixAt(na, m4.compose(p.set(x, y, z + s), q, sc.set(1.6, 1, bw * 0.9)));
+                awn.setColorAt(na, c.set(AW_COL[Math.floor(r2 * AW_COL.length)]));
+                na++;
+              } else if (r1 > 0.82 && ns < 200) {
+                // a blade sign sticking out from the wall
+                let x = BLD_R - 0.65, y = 5.2, z = -sb, rx = 0, ry = 0, rz = 0;
+                if (hit) {
+                  const f = fly(age, -(3 + 7 * r2), 2 + 5 * r3, -(r3 - 0.5) * 5, y);
+                  x += f.x; y = f.y; z += f.z;
+                  rx = (r2 - 0.5) * 10 * f.t; ry = (r3 - 0.5) * 8 * f.t; rz = 6 * f.t * (r1 - 0.8);
+                  if (f.landed) { rx = Math.PI / 2; rz = 0; }
+                }
+                e.set(rx, ry, rz); q.setFromEuler(e);
+                signs.setMatrixAt(ns, m4.compose(p.set(x, y, z + s), q, sc.set(1, 0.9, 1.2)));
+                signs.setColorAt(ns, c.set(AW_COL[Math.floor(r3 * AW_COL.length)]).offsetHSL(0, 0, 0.1));
+                ns++;
+              }
+            }
+          }
+        }
+      }
+      dust.end();
+      awn.count = na; signs.count = ns;
+      for (const m of [awn, signs]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+    },
+  };
+}
+
 export function makeFx(sceneYou, sceneWorld) {
   const wake = makeWake(sceneYou);
   const caps = makeCaps(sceneYou);
   const debris = makeDebris(sceneWorld);
   const streamers = makeStreamers(sceneYou);
   const steam = makeSteam(sceneYou);
-  return { wake, caps, debris, streamers, steam };
+  const street = makeStreetFx(sceneWorld);
+  return { wake, caps, debris, streamers, steam, street };
 }

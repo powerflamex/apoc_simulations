@@ -70,6 +70,8 @@ const LOOK = /* glsl */ `
     float wh = gh(id.x * 7.0 + id.y * 131.0 + seed * 17.0 + face * 5.0);
     vec2 bc = blastHere(cc);
     float brk = step((0.1 + 0.4 * wh) * 6894.76, bc.x);
+    // the instant it bursts: a flash of shattering glass (a wave running along the walls just behind you)
+    float burst = brk * exp(-max(bc.y, 0.0) / 0.06) * (1.0 - far * 0.5);
     float brkFar = clamp((pk / 6894.76 - 0.1) / 0.4, 0.0, 1.0);
     brk = mix(brk, brkFar, max(far, mot));
     float blown = smoothstep(4.0, 7.0, pk / 6894.76);
@@ -147,6 +149,7 @@ const LOOK = /* glsl */ `
       col = mix(col, vec3(0.16, 0.14, 0.12) * (0.7 + 0.5 * gn2(q * 0.5)), blown * 0.45);
       totalEmissiveRadiance *= 1.0 - 0.8 * blown;
     }
+    totalEmissiveRadiance += vec3(2.6, 2.7, 2.9) * burst * max(win, 0.35 * ok) * (0.6 + 0.8 * h21(id * 5.3 + seed));
     diffuseColor.rgb = col;
     if (abs(vON.y) > 0.5) diffuseColor.rgb = base * 0.5 + 0.04 * h21(floor(vWP.xz * 0.5));
   }

@@ -115,7 +115,8 @@ export const V_LIFT = vAtTimes(V_ORB / WALK);          // 13.75: you weigh nothi
 export const V_1PC = vAtTimes(SC * 0.01);              // 25.0
 export const V_LAP1 = tPass(LAP);                      // 29.5: once round the Earth
 export const V_C = 40.3;                               // light speed: the counter stops
-export const T_WHITE = 46.55;                          // full white
+export const V_SPACE = 40.45;                          // under the slam's white, the camera is out in space
+export const T_WHITE = 43.75;                          // full white
 export const T_SWITCH = Math.round((T_WHITE + 0.2) * 60) / 60;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 
@@ -158,23 +159,17 @@ export function lineAt(v) {
 
 // captions: after the title has gone; 'step' = a named step (a hit in the sound)
 export const CAPTIONS = [
-  { t0: 3.2, t1: 4.9, text: 'To you, every car looks parked.' },
   { t0: 5.15, t1: 7.0, step: V_SOUND, text: 'The boom smashes every window you pass.' },
-  { t0: 7.15, t1: 9.25, step: 7.2, text: 'The air behind you goes off like a bomb.' },
-  { t0: 9.4, t1: 11.0, step: 9.5, text: 'The air in front of you hits 4,600°F.' },
-  { t0: 11.15, t1: 12.6, step: 11.0, text: 'You run straight out across the sea.' },
-  { t0: 12.7, t1: 13.65, text: 'Every stride, you weigh less.' },
-  { t0: 13.8, t1: 15.9, step: 13.8, text: 'At 17,700 mph you weigh nothing.' },
-  { t0: 16.05, t1: 18.3, text: 'Only the air pushing down stops you flying off.' },
-  { t0: 18.45, t1: 20.9, step: 18.5, text: 'The air you hit turns to white-hot plasma.' },
-  { t0: 21.05, t1: 23.6, step: 22.6, text: 'You outrun the Sun. It sets behind you.' },
-  { t0: 25.1, t1: 27.9, step: 25.0, text: 'Every second: the blast of 23 of the biggest bombs ever.' },
-  { t0: 28.4, t1: 29.9, step: 28.3, text: 'Sunrise. Sunset.' },
-  { t0: 30.05, t1: 32.6, step: 30.0, text: 'Once round the whole Earth every 2 seconds.' },
-  { t0: 32.8, t1: 35.2, text: 'Days and nights blur into one.' },
-  { t0: 37.0, t1: 39.9, step: 37.0, text: 'Every second: more than the asteroid that killed the dinosaurs.' },
-  { t0: 40.45, t1: 43.0, step: V_C, text: "You'll never be 1 trillion times faster." },
-  { t0: 43.15, t1: 45.9, text: 'Push harder and you only get heavier.' },
+  { t0: 9.6, t1: 11.0, step: 9.5, text: 'The air in front of you hits 4,600°F.' },
+  { t0: 13.8, t1: 15.6, step: 13.8, text: 'At 17,700 mph you weigh nothing.' },
+  { t0: 16.2, t1: 18.2, text: 'Only the air pressing down keeps you low.' },
+  { t0: 22.6, t1: 24.95, step: 22.6, text: 'You outrun the Sun. It sets behind you.' },
+  { t0: 25.15, t1: 27.6, step: 25.0, text: 'Every second: the blast of 23 of the biggest bombs ever.' },
+  { t0: 30.0, t1: 32.4, step: 30.0, text: 'Once round the whole Earth every 2 seconds.' },
+  { t0: 33.2, t1: 35.6, text: 'Ahead of you: the fire from your last laps.' },
+  { t0: 36.8, t1: 39.6, step: 37.0, text: 'Every second: more than the asteroid that killed the dinosaurs.' },
+  { t0: 40.55, t1: 42.0, step: V_C, text: "You'll never be 1 trillion times faster." },
+  { t0: 42.1, t1: 43.45, text: 'Your path: one ring of fire round the Earth.' },
 ];
 export const STEPS = CAPTIONS.filter((c) => c.step !== undefined).map((c) => c.step);
 export function captionAt(v) {
@@ -210,7 +205,7 @@ export function state(v) {
   s.dist = distAt(v);
   s.weight = weightAt(v);
   s.title = 1 - smooth(2.7, 3.1, v);
-  s.flash = Math.pow(smooth(T_WHITE - 1.1, T_WHITE, v), 1.5);
+  s.flash = Math.pow(smooth(T_WHITE - 0.6, T_WHITE, v), 1.5);
   // the slam: the counter hits light speed
   s.slam = v >= V_C ? Math.exp(-(v - V_C) / 0.35) : 0;
   s.slamOn = smooth(V_C, V_C + 0.15, v);
