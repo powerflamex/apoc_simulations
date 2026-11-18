@@ -2480,6 +2480,74 @@ Which planet's weather would you last longest in? 👇
 Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 7.8`: the Mars dust wall towering over the sea and the packed beach under a butterscotch sky, you with the blue-and-white umbrella in front; "WHAT IF EARTH HAD / Mars / weather?")
 
 
+## Next Short. What if asteroids of every size hit your city? — `week 9/asteroid-sizes/out/asteroid-sizes_v4_1080x1920_60fps_tiktok.mp4`
+
+47.7 s, loops. A picker Short with one viewpoint the whole video: your phone held up over a packed hilltop terrace (stone
+steps down to a glass railing), looking over a big city and its bay on a clear morning, the Sun behind you. Six asteroids, each
+a real object, all aimed at the same spot downtown, 1.5 miles (2.4 km) in front of you. Under the title a bar of six slots, each
+asteroid drawn next to the thing it is as big as (a house, a jumbo jet, a skyscraper, Mount Everest, Texas, the Moon: the finish
+line); its cursor steps right at every white-out. Counter: THE ASTEROID'S SIZE racing up (feet, then miles), one line under it.
+Every stop: the rock is already in the sky as the white clears, it hits within ~2 s, then its blast comes at you and the white
+it brings is the wipe to the next size; the city is whole again each time. The crowd reacts at every stop (arms up, pointing,
+filming, shielding their eyes from the flash, ducking with arms over their heads, couples holding on). What you see, in order:
+0:00 HOUSE, 60 FT (racing up on frame 0): a blinding white fireball with a flaming tail already crossing the sky over the
+city, the crowd shielding their eyes, a scream. 0:01 it flares and bursts high up, leaving a glowing cloud and a smoke trail.
+0:02 its boom sweeps in across the city: windows burst and glitter, downtown first, then nearer ("RUSSIA, 2013: 1,500 HURT BY
+GLASS"). 0:03.5 it reaches the terrace: the glass railing bursts toward you, everyone ducks, white.
+0:04 JUMBO JET, 200 FT: a bigger fireball streaking down; 0:05.6 it bursts over downtown (a flash, a fireball that boils into a
+ring of dark smoke); 0:06-0:09 the towers round ground zero tip over one after another as a ring of dust races out over the
+city, windows glittering as it passes ("SIBERIA, 1908: 80 MILLION TREES FLATTENED"); 0:12 the dust wall reaches you, white.
+0:12 SKYSCRAPER, 1,100 FT: a burning rock coming in low from beyond the bay; 0:14 it hits downtown: a crater opens and a curtain
+of rock and dust rises from its edge, swallowing the towers ("A CRATER 3 MILES WIDE"), the debris rolls out to the hill, white.
+0:21 EVEREST, 6 MILES ("BIGGER THAN MOUNT EVEREST"): a rock bigger than a mountain fills the sky from the left, glowing cracks,
+the sky catching fire round it; 0:22.7 it lands; its fireball rises over the city and fills the sky ("THE ONE THAT KILLED THE
+DINOSAURS"), the city burns and is swept away as the fire rolls in, white.
+0:29 TEXAS, 580 MILES ("SIZE OF TEXAS", "oh my god"): a grey cratered world, whole, over the skyline; in 2 s it fills the sky;
+the bay steams ("THE BAY BOILS AWAY"); 0:31.5 its underside comes down on the towers and crushes them; fire blows out from under
+it toward you, its underside cracking, white.
+0:38 THE MOON, 2,159 MILES ("SIZE OF THE MOON", a "nooo"): the Moon with its dark seas, growing to fill the sky; the bay heaps up
+toward it ("ITS PULL LIFTS THE SEA"), glowing cracks run over it; 0:41 it touches the towers and presses down; the ground melts
+into glowing cracks, a wall of molten rock and fire races at you under it ("EARTH TURNS TO LAVA"); 0:46.6 white; it clears onto
+frame 0.
+
+The numbers (`physics.mjs`, the top of `src/timeline.js`). Stops 1-4 from the Imperial College "Impact: Earth!" calculator
+(Collins, Melosh & Marcus 2005), run for 4 km from ground zero: 1) 18 m (59 ft) stony rock at 19 km/s, 18° (Chelyabinsk's
+numbers): bursts 32 km (20 miles) up, 0.43 Mt; 0.18 psi here, "glass windows may shatter" (real 2013: ~1,500 hurt, mostly by
+glass; 7,200 buildings damaged). 2) 60 m (200 ft) at 15 km/s (Tunguska): bursts 8.7 km up, 8.2 Mt; 6.6 psi, 208 mph: "multistory
+wall-bearing buildings will collapse" (real 1908: ~80 million trees flattened over 830 sq mi). 3) 340 m (1,100 ft, Apophis' size)
+at 12.6 km/s: 1,200 Mt, a crater 4.8 km (3.0 miles) wide, quake 6.7, 192 psi. 4) 10 km (6.2 miles) at 20 km/s (Chicxulub):
+6.8e7 Mt, crater 120 km wide, "your position is inside the fireball". 5) Ceres, 939 km (583 mi): a disc that size covers
+267,000 sq mi, Texas 268,600; at 15 km/s it carries 1.1e29 J, 29x what it takes to boil every ocean away. 6) The Moon,
+3,475 km (2,159 mi): ~5e30 J at 12 km/s, enough to melt rock weighing ~40% of Earth (a magma ocean); the calculator errors at
+this size. Sizes: a 747 is 231 ft long; the Empire State Building 1,250 ft to its roof; Everest 5.5 miles high.
+Honest notes: time is sped up between and slowed down after each hit (the real blasts take 30 s to a few minutes to cross 1.5
+miles; the Texas- and Moon-size ones would crush everything in a fraction of a second, shown here over ~5 s); the approaches of
+the two biggest are sped up (~60x). The two airbursts are drawn much lower in the sky than real (20 and 5.4 miles up) so they
+show in the frame, and the jet-size fireball smaller. The skyscraper-size rock is drawn 2.2x wider. The calculator says the
+skyscraper-size impact at 12.6 km/s makes no fireball (its flash is drawn modest; its debris curtain is the main thing). The
+Moon would start to crack inside ~9,500 km (the Roche limit) and its pull would raise tides ~100,000x today's long before it
+landed; the heap of water and the cracks are drawn, not modelled. The house-size rock bursts far beyond the city (its boom takes
+~1.5 min to arrive; here ~2 s).
+
+**YouTube title (67 chars)**
+What if asteroids of every size hit your city? ☄️ #whatif #asteroid
+
+**YouTube description**
+Six asteroids, from a house to the Moon. All hit the same spot downtown. You watch from a hilltop 1.5 miles away.
+
+60 ft (a house): like Russia in 2013. The boom breaks every window. 1,500 people were hurt by glass.
+200 ft (a jumbo jet): like Siberia in 1908. It bursts over downtown and the towers fall.
+1,100 ft (a skyscraper): a crater 3 miles wide.
+6 miles (bigger than Everest): the one that killed the dinosaurs. The sky turns to fire.
+580 miles (Texas): the bay boils away.
+2,159 miles: the Moon. Earth turns to lava.
+
+At which size would you still make it? 👇
+
+#whatif #asteroid #space #simulation
+
+Cover: `week 9/asteroid-sizes/out/asteroid-sizes_v4_cover.png` (`node render.mjs --cover 38.75`: the Moon, with its dark seas, filling the sky over the downtown skyline and the bay, the packed terrace below with arms up; "WHAT IF ASTEROIDS OF / every size / hit your city?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
