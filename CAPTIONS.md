@@ -2417,31 +2417,36 @@ Cover: `week 9/planet-stand/out/planet-stand_v4_cover.png` (`node render.mjs --c
 
 ## Next Short. What if Earth had other planets' weather? — `week 9/planet-weather/out/planet-weather_v4_1080x1920_60fps_tiktok.mp4`
 
-47.0 s, loops. The fourth "picker" (planet picker had the channel's best curve, 84% at 0:30): one packed beach (Santa Monica,
+45.2 s, loops. The fourth "picker" (planet picker had the channel's best curve, 84% at 0:30): one packed beach (Santa Monica,
 the pier and its Ferris wheel on the right, ~1,200 people, ~200 beach umbrellas), one camera spot the whole video, just behind
-YOU holding a big blue-and-white umbrella. Every ~6.8 s the weather swaps to another world's in one quick wipe (a bright seam
-sweeps right to left); the beach and the crowd stay, each stop starts fresh. The umbrella is the running gag: something
-different happens to it at every stop. Under the title a bar of six worlds; its cursor steps right at every wipe, Neptune is
-the finish line. Counter: THE TEMPERATURE ON YOUR BEACH, racing to each world's; the one line under it names the weather.
-What you see, in order:
-0:00 Jupiter: a towering storm wall in Jupiter's cream, rust and brown bands over the sea, lightning flickering inside it and
-striking the sea, the crowd pointing and backing away, the owner's scream, the counter racing down from a sunny 75°F to
--166°F. 0:01 a bolt hits the sea right in front of the pier, thunder cracks. 0:03 a bolt hits YOUR umbrella: a white flash,
-sparks, the canopy charred and holed and smoking ("Lightning hits your umbrella"); the people near you turn to look; 0:05 the
-rain sweeps in, hands on heads. 0:06.6 Mars: a butterscotch sky, -85°F; a towering red dust wall rolls in off the sea; 0:09 it
-swallows the crowd by the water, then you, everything turns red with dust; 0:11 the dust thins and frost spreads over the sand,
-the crowd and your umbrella ("Then everything freezes"). 0:13.4 Venus: a sulfur-yellow sky, 867°F; at once the sea boils and
-steams, the air shimmers, everyone shields their face; 0:16 your umbrella bursts into flames and burns away to its bare ribs
-while you hold it out at arm's length ("Your umbrella bursts into flames"); umbrellas and towels burn all over the beach.
-0:20.2 Titan: a dim orange haze, -290°F; centimetre-wide drops of methane drift down in slow motion and splash slowly on your
-umbrella, you hold out a hand to catch them; 0:23 with a boom the sea freezes solid from the shore out, the waves frozen where
-they stood ("The sea freezes solid"). 0:27 Saturn: a pale gold sky streaming sideways, 1,100 mph winds; at once your umbrella
-snaps inside out, towels, chairs and umbrellas fly, sand streams across the beach; 0:30 it's torn out of your hand and gone
-("Your umbrella: gone"); people are knocked flat and dragged. 0:33.8 Neptune, the finale: a deep blue sky, white methane-ice
-streaks racing past, a double sonic boom; at once your umbrella shreds to bare ribs; 0:35-0:38 the whole crowd is knocked
-down and blown away tumbling (FASTER THAN SOUND); 0:39 the Ferris wheel and the end of the pier are torn off; 0:41 the bare
-umbrella yanks you off your feet and carries you away ("It takes you with it"); 0:43 the empty, frozen beach whites out;
-0:45.8 full white, which clears onto frame 0 (the loop).
+YOU holding a big blue-and-white umbrella. Every ~7 s (Titan ~4.6 s) the weather swaps to another world's in one quick wipe (a
+bright seam sweeps right to left); the beach and the crowd stay, each stop starts fresh. At every stop the first hit lands
+within ~1 s of the wipe and a bigger beat ~3 s in; the crowd reacts at every stop; the umbrella is the running gag. Under the
+title a bar of six worlds; its cursor steps right at every wipe, Neptune is the finish line. Counter: THE TEMPERATURE ON YOUR
+BEACH, racing to each world's; the one line under it names the weather (captions sit low, only two of them).
+What you see, in order (Nov 18 rework after the owner's review: Mars, Titan, crowd reactions, text):
+0:00 Jupiter: a towering storm wall in Jupiter's cream, rust and brown bands over the sea, lightning, the crowd pointing, the
+owner's scream, the counter racing down from a sunny 75°F to -166°F. 0:00.1 a bolt hits the sea in front of the pier: everyone
+ducks, then most of the beach turns and runs, crouching under their arms. 0:03.3 a bolt hits YOUR umbrella: a white flash,
+sparks, the canopy charred and holed and smoking; the people next to you jump back ("Lightning hits your umbrella", low in the
+frame); 0:05 the rain sweeps in. 0:06.6 Mars: a butterscotch sky, -85°F, and at the wipe a red dust wall already towers behind
+the pier and the Ferris wheel; 0:07 it swallows the pier and the wheel, 0:07.9 the crowd by the water (people run, then drop
+into a crouch as it reaches them), 0:08.1 you. 0:08.1-0:09.4 inside it: you a dark shape with the dust streaming past in
+ribbons. 0:09.4 the dust drops out of the air, everything coated red under a dark dusky sky; 0:09.6 a white frost front races
+up the beach from the water to you, the crowd frozen into white statues as it passes, the sea icing over out from the shore,
+your umbrella and you frosted white by 0:10.4. 0:13.4 Venus: a sulfur-yellow sky, 867°F; your umbrella is smoking from the
+wipe, the sea boils, the air shimmers, everyone throws their arms over their faces and runs from the sea; 0:14.2 your umbrella
+bursts into flames and burns to its bare ribs while you hold it out at arm's length; umbrellas and towels burn all over the
+beach; 0:16.3 with a boom the sea boils off, its level falling, and a wall of steam towers up off the bay. 0:20.4 Titan: a dim
+orange haze, -290°F, slow methane drops; a freeze front races in from the horizon across the sea, wave by wave through the
+surf (0:22.6 it hits the shore with a boom); the crowd runs and is frozen mid-stride into white statues as it catches them,
+then you; 0:23.6 your frozen umbrella cracks and shatters like glass, the shards raining onto the frozen sand. 0:25 Saturn: a
+pale gold sky streaming sideways, 1,100 mph winds; at once your umbrella snaps inside out and the whole crowd is knocked flat
+(by 0:27) and slides and rolls along the sand; 0:27.9 the umbrella is torn out of your hand and gone. 0:32 Neptune, the
+finale: a deep blue sky, white methane-ice streaks, a double sonic boom; at once your umbrella shreds to bare ribs; 0:33-0:35
+everyone is knocked down and blown away tumbling (FASTER THAN SOUND); 0:37 the Ferris wheel and the pier are torn off; 0:39
+the bare umbrella yanks you off your feet and carries you away to the right ("It takes you with it"); 0:41 the empty, frozen
+beach whites out; 0:44 full white, which clears onto frame 0 (the loop).
 
 The numbers (also at the top of `src/timeline.js`). Temperatures: NASA's Planetary Fact Sheet, mean temperature (for the gas
 giants, at the 1-bar level, about the air pressure at a beach): Jupiter -110°C (-166°F), Mars -65°C (-85°F), Venus 464°C
@@ -2450,15 +2455,18 @@ storm bigger than Earth" (the Great Red Spot, twice as wide as Earth; NASA); lig
 storms that cover much of the planet", a dusty sky (NASA), "butterscotch" (Viking and Pathfinder, NASA/JPL); Viking 2
 photographed frost on the ground. Venus: "hot enough to melt lead" (NASA; lead melts at 621°F), its sky "some shade of sulfur
 yellow" (NASA, from the Venera landers). Titan: methane rain (NASA); drops up to ~9.5 mm falling ~1.6 m/s against ~9.2 m/s for
-rain on Earth: about 6x slower (Lorenz 1993, "The life, death and afterlife of a raindrop on Titan"). Saturn: winds of 500 m/s
-(~1,100 mph) at the equator (NASA). Neptune: "our solar system's windiest world", winds "more than 1,200 miles per hour"
-(NASA); on Earth that is faster than sound (767 mph at sea level).
-Honest notes: everything is sped up to seconds (the sea would take far longer to boil or freeze; the dust wall moves faster than
-Mars's real storms). Real 1,100-1,200 mph winds would strip the beach at once; Saturn is drawn milder than Neptune so the finale
-builds. The storm wall is coloured like Jupiter's cloud bands (its real storms are far bigger than this wall). Titan's daylight
-is ~100x fainter than ours, drawn as a dim dusk. Venus's sulfuric acid rain evaporates ~30 km up, so none is shown landing.
-"Diamond rain" on Saturn is left out: it's a 2013 conference idea about its deep interior, not its weather. About 9 in 10
-people hit by lightning survive. NASA's own Venus page says ~872°F (others "about 900°F"); the fact sheet's 867°F is used.
+rain on Earth: about 6x slower (Lorenz 1993, "The life, death and afterlife of a raindrop on Titan"). At -290°F rubber and most
+plastics are far below their glass transition and go glass-brittle (the liquid-nitrogen demo, -321°F, shatters rubber tubing
+"like glass": U. Michigan Materials Science). Saturn: winds of 500 m/s (~1,100 mph) at the equator (NASA). Neptune: "our solar
+system's windiest world", winds "more than 1,200 miles per hour" (NASA); on Earth that is faster than sound (767 mph at sea level).
+Honest notes: everything is sped up to seconds (the sea would take far longer to boil off or freeze; the dust wall and the frost
+move far faster than on Mars). Real 1,100-1,200 mph winds would strip the beach at once; Saturn is drawn milder (everyone flat
+and sliding) than Neptune (everything gone) so the finale builds. The storm wall is coloured like Jupiter's cloud bands (its real
+storms are far bigger than this wall). Titan's daylight is ~100x fainter than ours, drawn as a dim dusk. Woven nylon might only
+go stiff at -290°F rather than shatter; the umbrella here is iced over (frost from the air), and it's the frozen shell that
+shatters. Venus's sulfuric acid rain evaporates ~30 km up, so none is shown landing. "Diamond rain" on Saturn is left out: it's a
+2013 conference idea about its deep interior, not its weather. About 9 in 10 people hit by lightning survive. NASA's own Venus
+page says ~872°F (others "about 900°F"); the fact sheet's 867°F is used.
 
 **YouTube title (60 chars)**
 What if Earth had other planets' weather? 🌪️ #whatif #space
@@ -2468,16 +2476,16 @@ You're on a packed beach with an umbrella. Every few seconds, Earth gets another
 
 Jupiter: storms bigger than Earth. Lightning hits your umbrella.
 Mars: a dust storm swallows the beach, then everything freezes at -85°F.
-Venus: 867°F, hot enough to melt lead. The sea boils and your umbrella bursts into flames.
-Titan: methane rain falling 6x slower than rain on Earth. The sea freezes solid at -290°F.
-Saturn: 1,100 mph winds. Your umbrella is gone.
+Venus: 867°F, hot enough to melt lead. Your umbrella bursts into flames and the sea boils away.
+Titan: -290°F. The sea freezes solid, people freeze mid-step, and your umbrella shatters like glass.
+Saturn: 1,100 mph winds knock everyone flat. Your umbrella is gone.
 Neptune: winds over 1,200 mph, faster than sound. It takes you with it.
 
 Which planet's weather would you last longest in? 👇
 
 #whatif #space #planets #weather #simulation
 
-Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 7.8`: the Mars dust wall towering over the sea and the packed beach under a butterscotch sky, you with the blue-and-white umbrella in front; "WHAT IF EARTH HAD / Mars / weather?")
+Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 7.65`: the red Mars dust wall filling the sky right behind the packed, colourful crowd at the water, you with the blue-and-white umbrella in front; "WHAT IF EARTH HAD / Mars / weather?")
 
 
 ## Next Short. What if asteroids of every size hit your city? — `week 9/asteroid-sizes/out/asteroid-sizes_v4_1080x1920_60fps_tiktok.mp4`

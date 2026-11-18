@@ -2,7 +2,7 @@
 //   parts.add(x, y, z, size, vx, vy, vz, kind, r, g, b, a, seed)
 // kinds: 0 a soft round blob (dust, steam, spray), 1 a streak drawn out along its velocity (rain, blown sand, ice;
 // uShutter s of motion), 2 a drop (a clear ball with a bright rim and a highlight: Titan's methane rain), 3 a spark or
-// glint (added light), 4 a chip of stuff tumbling (scraps of cloth, sand clods, ice).
+// glint (added light), 4 a chip of stuff tumbling (scraps of cloth, sand clods, ice), 5 a shard (the frozen umbrella).
 import * as THREE from 'three';
 
 export function makeParts(scene, max = 9000) {
@@ -66,9 +66,14 @@ export function makeParts(scene, max = 9000) {
           a *= exp(-r * r * 6.0);
           gl_FragColor = vec4(c * a, 0.0);
           return;
-        } else {
+        } else if (vKind < 4.5) {
           if (max(abs(p.x), abs(p.y)) > 0.92) discard;
           c *= 0.8 + 0.3 * (0.5 + 0.5 * p.y);
+        } else {
+          // a shard of something frozen: a sliver of a triangle, a bright edge that catches the light
+          float e = min(p.y + 0.5, 1.0 - 1.732 * abs(p.x) - p.y);
+          if (e < 0.0) discard;
+          c *= 0.75 + 0.35 * (0.5 + 0.5 * p.y) + 0.8 * (1.0 - smoothstep(0.0, 0.12, e));
         }
         gl_FragColor = vec4(c * a, a);
       }`,

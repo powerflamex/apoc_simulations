@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { groundY, CAM0 } from './layout.js';
 import { H, HEAT_GLSL } from './heat.js';
 
-export const GU = { uTime: { value: 0 }, uStream: { value: 0 }, uWindD: { value: new THREE.Vector2(0, -1) }, uScorchG: { value: 0 } };
+export const GU = { uTime: { value: 0 }, uStream: { value: 0 }, uWindD: { value: new THREE.Vector2(0, -1) }, uScorchG: { value: 0 }, uRime: { value: 0.85 } };
 
 export function makeGround(scene) {
   const NR = 420, NA = 600, R0 = 0.6, R1 = 60000;
@@ -43,7 +43,7 @@ export function makeGround(scene) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         ${HEAT_GLSL}
-        uniform float uTime; uniform float uStream; uniform vec2 uWindD; uniform float uScorchG;
+        uniform float uTime; uniform float uStream; uniform vec2 uWindD; uniform float uScorchG; uniform float uRime;
         varying vec3 vWP; varying vec3 vWN;
         float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float n21(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -83,13 +83,17 @@ export function makeGround(scene) {
           diffuseColor.rgb = dusted(diffuseColor.rgb, nn);
           roughnessFactor = mix(roughnessFactor, 0.6, uWetK);
           // rime: patchy, sparkling, the wet sand frozen grey-white
-          float fr = uFrost * (0.7 + 0.3 * fbm2(vWP.xz * 1.7));
+          float fF = frostFront(vWP);
+          float fr = uFrost * fF * (0.7 + 0.3 * fbm2(vWP.xz * 1.7));
+          // the racing edge of a frost front: a bright crust of new crystals
+          float edgeF = uFrost * fF * (1.0 - smoothstep(0.0, 3.0, dot(vWP.xz - uCamXZ, uFwdXZ) - uFrostF)) * step(-1e4, uFrostF);
           vec3 rime = vec3(0.86, 0.91, 0.97) * (0.92 + 0.12 * n21(vWP.xz * 9.0));
-          diffuseColor.rgb = mix(diffuseColor.rgb, rime, fr * 0.85 * step(-0.3, vWP.y));
+          diffuseColor.rgb = mix(diffuseColor.rgb, rime, fr * uRime * smoothstep(0.35, 0.65, fbm2(vWP.xz * 0.9) + 0.5 * uRime) * step(-0.3, vWP.y));
           roughnessFactor = mix(roughnessFactor, 0.55, fr);
+          totalEmissiveRadiance += vec3(0.5, 0.6, 0.75) * edgeF * (0.6 + 0.4 * n21(vWP.xz * 6.0)) * step(-0.3, vWP.y);
         }`);
   };
-  mat.customProgramCacheKey = () => 'weather-ground-v1';
+  mat.customProgramCacheKey = () => 'weather-ground-v2';
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = true;
   mesh.frustumCulled = false;

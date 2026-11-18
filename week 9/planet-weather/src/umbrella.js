@@ -5,6 +5,7 @@
 //   uBend   ribs bent and snapped every which way            uShred  the fabric torn away in ragged pieces (Neptune)
 //   uBurn   burnt away from the rim inward, a glowing edge   uScorch charred and holed round the top (lightning)
 //   uFrost / uDust / uWet: rime, red Martian dust, a wet sheen
+//   uCrack  frozen stiff, cracks running through it         uShatter it breaks into shards like glass (Titan)
 import * as THREE from 'three';
 
 const NR = 16, NA = 96;
@@ -48,6 +49,20 @@ float cn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   float c = fract(sin(dot(i + vec2(0,1), vec2(127.1, 311.7))) * 43758.5453), d = fract(sin(dot(i + vec2(1,1), vec2(127.1, 311.7))) * 43758.5453);
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }
 float cf(vec2 p) { return cn(p) * 0.55 + cn(p * 2.3 + 4.0) * 0.3 + cn(p * 5.1 + 9.0) * 0.15; }
+// angular shards: (distance to the nearest cell point, how close to a crack between cells, the shard's own number)
+vec3 shard(float r, float a) {
+  vec2 x = vec2(a * 3.0, r * 5.5);
+  vec2 n = floor(x), f = fract(x);
+  float d1 = 8.0, d2 = 8.0; vec2 id = vec2(0.0);
+  for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+    vec2 g = vec2(float(i), float(j));
+    vec2 o = vec2(fract(sin(dot(n + g, vec2(127.1, 311.7))) * 43758.5453), fract(sin(dot(n + g, vec2(269.5, 183.3))) * 43758.5453));
+    vec2 rr = g + o - f;
+    float d = max(abs(rr.x), abs(rr.y)) * 0.6 + length(rr) * 0.4;
+    if (d < d1) { d2 = d1; d1 = d; id = n + g; } else if (d < d2) d2 = d;
+  }
+  return vec3(d1, d2 - d1, fract(sin(dot(id, vec2(12.9898, 78.233))) * 43758.5453));
+}
 // what's left of the cloth at (r, a): < 0 means burnt or torn away
 float clothLeft(float r, float a) {
   float pa = mod(a, 6.2831853 / 8.0) / (6.2831853 / 8.0);
@@ -55,7 +70,8 @@ float clothLeft(float r, float a) {
   float burn = (1.15 - uBurn * 1.4 + 0.2 * (cf(vec2(a * 2.2, r * 3.0)) - 0.5)) - r;
   float tear = cf(vec2(a * 3.3 + 2.0, r * 5.0)) + 0.35 * (1.0 - mid) - uShred * 1.25;
   float hole = cf(vec2(a * 4.0, r * 7.0) + 11.0) - 0.08 - 0.3 * uScorch * (1.0 - 0.5 * smoothstep(0.2, 0.8, r)) + 0.5 * step(uScorch, 0.01);
-  return min(burn, min(tear, hole));
+  float sh = uShatter > 0.0 ? shard(r, a).z - uShatter * 1.12 + 0.1 * (1.0 - r) : 1.0;
+  return min(min(burn, sh), min(tear, hole));
 }
 `;
 
@@ -63,6 +79,7 @@ export function makeUmbrella(scene) {
   const U = {
     uFlip: { value: 0 }, uFlut: { value: 0 }, uBend: { value: 0 }, uShred: { value: 0 }, uBurn: { value: 0 }, uScorch: { value: 0 },
     uFrost: { value: 0 }, uDust: { value: 0 }, uWet: { value: 0 }, uT: { value: 0 }, uWindL: { value: new THREE.Vector3() },
+    uCrack: { value: 0 }, uShatter: { value: 0 },
   };
   // ---- the canopy grid ----
   const ra = new Float32Array((NR + 1) * (NA + 1) * 2), pos = new Float32Array((NR + 1) * (NA + 1) * 3);
@@ -93,7 +110,7 @@ export function makeUmbrella(scene) {
     Object.assign(sh.uniforms, U);
     vertCanopy(sh);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec2 vRA; uniform float uFrost; uniform float uDust; uniform float uWet; uniform float uBurn; uniform float uScorch; uniform float uShred; uniform float uT;\n${NOISE}`)
+      .replace('#include <common>', `#include <common>\nvarying vec2 vRA; uniform float uFrost; uniform float uDust; uniform float uWet; uniform float uBurn; uniform float uScorch; uniform float uShred; uniform float uT; uniform float uCrack; uniform float uShatter;\n${NOISE}`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float left = clothLeft(vRA.x, vRA.y);
         if (left < 0.0) discard;
@@ -109,27 +126,34 @@ export function makeUmbrella(scene) {
           float ch = uScorch * smoothstep(0.35, 0.8, n + 0.55 * (1.0 - r));
           c = mix(c, vec3(0.05, 0.04, 0.035), clamp(ch, 0.0, 1.0));
           c = mix(c, vec3(0.06, 0.045, 0.035), (1.0 - smoothstep(0.0, 0.12, left)) * step(0.001, uBurn));
-          // rime, dust, wet
-          c = mix(c, vec3(0.86, 0.92, 1.0), uFrost * (0.55 + 0.45 * n));
+          // dust, then rime over it, wet
           c = mix(c, vec3(0.62, 0.3, 0.15) * (0.8 + 0.4 * n), uDust * smoothstep(0.2, 0.7, n + 0.5 * uDust));
+          c = mix(c, vec3(0.86, 0.92, 1.0), uFrost * (0.55 + 0.45 * n));
           c *= 1.0 - 0.28 * uWet;
+          // frozen stiff: dark cracks running between the shards, a glassy glint along them
+          if (uCrack > 0.0) {
+            vec3 sv = shard(r, a);
+            float line = 1.0 - smoothstep(0.0, 0.035, sv.y);
+            float grown = step(sv.z * 0.8, uCrack);
+            c = mix(c, vec3(0.1, 0.16, 0.26), line * grown * 0.9);
+          }
           diffuseColor.rgb = c;
         }`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.25, uWet);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         totalEmissiveRadiance += vec3(4.0, 1.3, 0.25) * (1.0 - smoothstep(0.0, 0.035, left)) * step(0.001, uBurn) * (0.7 + 0.3 * sin(uT * 40.0 + vRA.y * 9.0));`);
   };
-  cMat.customProgramCacheKey = () => 'umb-canopy-1';
+  cMat.customProgramCacheKey = () => 'umb-canopy-2';
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     vertCanopy(sh);
     sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', '').replace(/vec3 objectNormal;[\s\S]*?#endif/, '');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec2 vRA; uniform float uBurn; uniform float uScorch; uniform float uShred;\n${NOISE}`)
+      .replace('#include <common>', `#include <common>\nvarying vec2 vRA; uniform float uBurn; uniform float uScorch; uniform float uShred; uniform float uShatter;\n${NOISE}`)
       .replace('void main() {', 'void main() {\n if (clothLeft(vRA.x, vRA.y) < 0.0) discard;');
   };
-  depth.customProgramCacheKey = () => 'umb-depth-1';
+  depth.customProgramCacheKey = () => 'umb-depth-2';
   const canopy = new THREE.Mesh(cGeo, cMat);
   canopy.customDepthMaterial = depth;
   canopy.castShadow = true; canopy.receiveShadow = true; canopy.frustumCulled = false;

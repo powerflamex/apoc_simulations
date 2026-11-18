@@ -47,10 +47,10 @@ composer.setSize(RW, RH);
 const mix = new ShaderPass({
   uniforms: { tA: { value: null }, tB: { value: null }, uW: { value: 0 }, uExpA: { value: 1 }, uExpB: { value: 1 },
     uShimA: { value: 0 }, uShimB: { value: 0 }, uT: { value: 0 }, uAspect: { value: W / H_ },
-    uVeilA: { value: new THREE.Vector4(1, 1, 1, 0) }, uVeilB: { value: new THREE.Vector4(1, 1, 1, 0) } },
+    uVeilA: { value: new THREE.Vector4(1, 1, 1, 0) }, uVeilB: { value: new THREE.Vector4(1, 1, 1, 0) }, uStrA: { value: 0 }, uStrB: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tA, tB; uniform float uW, uExpA, uExpB, uShimA, uShimB, uT, uAspect; uniform vec4 uVeilA, uVeilB;
+    uniform sampler2D tA, tB; uniform float uW, uExpA, uExpB, uShimA, uShimB, uT, uAspect, uStrA, uStrB; uniform vec4 uVeilA, uVeilB;
     varying vec2 vUv;
     float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -62,6 +62,16 @@ const mix = new ShaderPass({
       vec2 q = vec2(uv.x * 30.0, uv.y * 70.0 - uT * 7.0);
       return uv + k * m * 0.0022 * vec2(n(q) - 0.5, n(q + 17.0) - 0.5);
     }
+    // dust streaming past the lens in ragged horizontal ribbons (Mars, inside the storm): lighter and darker bands
+    vec3 streaks(vec3 col, vec3 vc, float k) {
+      if (k <= 0.0) return col;
+      vec2 q = vec2(vUv.x * 1.6 - uT * 2.6, vUv.y * 26.0 + 2.0 * n(vec2(vUv.x * 3.0 - uT * 1.5, 0.0)));
+      float a = n(q) * 0.6 + n(q * vec2(2.7, 1.9) + 9.0) * 0.4;
+      float b = n(q * vec2(0.6, 0.5) + 31.0);
+      col = mix(col, vc * 1.25, k * smoothstep(0.5, 0.85, a) * 0.7);
+      col = mix(col, vc * 0.45, k * smoothstep(0.55, 0.85, b) * 0.35);
+      return col;
+    }
     void main() {
       // the wipe's edge sweeps right to left, leaning a little; the new weather comes in on the right
       float s = vUv.x + (vUv.y - 0.5) * 0.22 / uAspect;
@@ -69,8 +79,8 @@ const mix = new ShaderPass({
       vec3 col;
       // a veil (dust, white-out) close round you, thicker toward the edges and the bottom of the frame
       float vg = 0.75 + 0.5 * length(vUv - vec2(0.5, 0.55)) + 0.2 * (n(vUv * vec2(6.0, 11.0) + vec2(uT * 2.0, 0.0)) - 0.5);
-      if (uW <= 0.0 || s < E) { col = texture2D(tA, shim(vUv, uShimA)).rgb * uExpA; col = mix(col, uVeilA.rgb, clamp(uVeilA.a * vg, 0.0, 1.0)); }
-      else { col = texture2D(tB, shim(vUv, uShimB)).rgb * uExpB; col = mix(col, uVeilB.rgb, clamp(uVeilB.a * vg, 0.0, 1.0)); }
+      if (uW <= 0.0 || s < E) { col = texture2D(tA, shim(vUv, uShimA)).rgb * uExpA; col = mix(col, uVeilA.rgb, clamp(uVeilA.a * vg, 0.0, 1.0)); col = streaks(col, uVeilA.rgb, uStrA); }
+      else { col = texture2D(tB, shim(vUv, uShimB)).rgb * uExpB; col = mix(col, uVeilB.rgb, clamp(uVeilB.a * vg, 0.0, 1.0)); col = streaks(col, uVeilB.rgb, uStrB); }
       if (uW > 0.0 && uW < 1.0) {
         float d = abs(s - E);
         col += vec3(1.4, 1.25, 1.0) * (exp(-d * 260.0) * 3.0 + exp(-d * 40.0) * 0.5);
@@ -143,10 +153,10 @@ function update(v, cover = -1) {
     oa = drawSide(s.a, v, rtA, 0);
     const ob = drawSide(s.b, v, rtB, s.snap);
     mix.uniforms.uW.value = s.w; mix.uniforms.uExpB.value = ob.exp; mix.uniforms.uShimB.value = ob.shimmer;
-    mix.uniforms.uVeilB.value.set(...ob.veil);
+    mix.uniforms.uVeilB.value.set(...ob.veil); mix.uniforms.uStrB.value = ob.streak || 0;
   }
   mix.uniforms.uExpA.value = oa.exp; mix.uniforms.uShimA.value = oa.shimmer; mix.uniforms.uT.value = v;
-  mix.uniforms.uVeilA.value.set(...oa.veil);
+  mix.uniforms.uVeilA.value.set(...oa.veil); mix.uniforms.uStrA.value = oa.streak || 0;
   finish.uniforms.uAb.value = s.snap * 0.7 + (oa.jolt || 0) * 0.5;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uPick.value = window.__cover ? 0 : (1 - s.flash);
@@ -171,7 +181,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [45, 41, 36, 33.5, 30, 27, 23, 20.1, 16, 13.4, 10, 6.7, 3.3, 0]) renderFrame(t);   // compile everything once
+  for (const t of [44, 40, 35, 32.1, 28, 25.1, 23.6, 21, 16.3, 13.5, 10, 8, 6.7, 3.3, 0]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world, state, comp: () => comp };

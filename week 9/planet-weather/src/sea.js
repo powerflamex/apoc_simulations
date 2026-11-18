@@ -1,7 +1,8 @@
 // The sea: a polar grid around the camera (fine near, coarse far). Breakers roll in through the surf as real geometry,
 // white where they break; small travelling waves on top, each faded once it is finer than a pixel. It mirrors the sky.
 // Each world's weather: uChop (storm waves and whitecaps), uBoil (Venus: the whole sea churning white and steaming),
-// uFreeze (Titan, Neptune: ice spreading out from the shore, the waves frozen where they stood), uTear (Saturn,
+// uFreeze (Mars: ice spreading out from the shore), uFzIn (Titan: a freeze front racing in from the horizon, each wave
+// frozen where it stood as the front goes over it), uLevel (Venus: the sea boiling away, its level falling), uTear (Saturn,
 // Neptune: the surface torn into white streaks running downwind), uBody (the water's own colour).
 import * as THREE from 'three';
 import { SHELF, CAM0 } from './layout.js';
@@ -11,6 +12,7 @@ const SHELF_GLSL = SHELF.map(([a, h], i) => (i === 0 ? '' : `if (o <= ${f1(a)}) 
 
 const COMMON = /* glsl */ `
 uniform float uTime; uniform float uWaveT; uniform float uFrozenT; uniform float uChop; uniform float uFreeze; uniform float uFreezeR;
+uniform float uLevel; uniform float uFzIn; uniform float uFzT0; uniform float uFzDur; uniform float uFzO0; uniform float uFzP;
 float h2(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
@@ -20,8 +22,25 @@ float shelf(float o) {
   return 400.0 + (o - 100000.0) * 0.004;
 }
 float bedY(vec2 p) { float o = -p.x; return o <= 0.0 ? 2.2 * pow(clamp(-o / 50.0, 0.0, 1.0), 0.9) : -shelf(o); }
-// how frozen at p: the ice front runs out from the shore (uFreezeR metres), ragged
-float iceAt(vec2 p) { float o = -p.x; return uFreeze * (1.0 - smoothstep(-20.0, 20.0, o - uFreezeR * (0.85 + 0.3 * n2(p * 0.004)))); }
+// how frozen at p: the ice front runs out from the shore (uFreezeR metres), ragged; or (uFzIn) a front racing in from
+// the horizon: o_f(t) = uFzO0 (1 - u)^uFzP, u = (t - uFzT0) / uFzDur, everything beyond it frozen
+float fzFront() { return uFzO0 * pow(1.0 - clamp((uWaveT - uFzT0) / uFzDur, 0.0, 1.0), uFzP); }
+float iceAt(vec2 p) {
+  float o = -p.x;
+  float a = uFreeze * (1.0 - smoothstep(-20.0, 20.0, o - uFreezeR * (0.85 + 0.3 * n2(p * 0.004))));
+  float rag = 1.0 + 0.25 * (n2(p * 0.01) - 0.5);
+  float b = uFzIn * smoothstep(-2.0, 2.0, o - fzFront() * rag);
+  return max(a, b);
+}
+// the wave clock where it froze: the waves stop where they stood the moment the front went over them
+float waveT(vec2 p, float ice) {
+  if (uFzIn > 0.5) {
+    float o = max(-p.x, 0.0);
+    float tp = uFzT0 + uFzDur * (1.0 - pow(clamp(o / uFzO0, 0.0, 1.0), 1.0 / uFzP));
+    return ice > 0.5 ? min(uWaveT, tp) : uWaveT;
+  }
+  return mix(uWaveT, uFrozenT, step(0.5, ice));
+}
 float breakH(vec2 p, float depth, float t, out float f) {
   float A = (1.05 + 0.9 * uChop) * smoothstep(11.0 + 4.0 * uChop, 3.5, depth) * smoothstep(0.1, 1.4, depth);
   float o = -p.x;
@@ -39,11 +58,11 @@ ${COMMON}
 varying vec3 vWP;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  float depth = -bedY(wp.xz);
+  float depth = -bedY(wp.xz) - uLevel;
   float f;
   float ice = iceAt(wp.xz);
-  float t = mix(uWaveT, uFrozenT, step(0.5, ice));
-  wp.y = depth > 0.0 ? breakH(wp.xz, depth, t, f) : 0.0;
+  float t = waveT(wp.xz, ice);
+  wp.y = (depth > 0.0 ? breakH(wp.xz, depth, t, f) : 0.0) - uLevel;
   vWP = wp.xyz;
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
@@ -75,13 +94,13 @@ vec3 waveN(vec2 p, float dist, float t, float amp) {
 void main() {
   vec2 p = vWP.xz;
   float bed = bedY(p);
-  float depth = -bed;
+  float depth = -bed - uLevel;
   if (depth < -0.02) discard;
   vec3 V = normalize(vWP - cameraPosition);
   float dist = length(vWP - cameraPosition);
   float px = uPx * dist;
   float ice = iceAt(p);
-  float t = mix(uWaveT, uFrozenT, step(0.5, ice));
+  float t = waveT(p, ice);
   float f, fa, fb;
   float e = max(0.3, px);
   float h0 = breakH(p, depth, t, f);
@@ -131,6 +150,10 @@ void main() {
     iceC = mix(iceC, sky * 0.9, 0.1 + 0.2 * F);
     iceC *= 1.0 - 0.35 * max(cr, cr2 * 0.7) * (1.0 - smoothstep(0.5, 3.0, px));
     iceC = mix(iceC, foamC * 1.1, surf * 0.6);
+    if (uFzIn > 0.5) {
+      float dF = -p.x - fzFront();
+      iceC = mix(iceC, vec3(1.0, 1.02, 1.05) * (uAmbC * 0.6 + 0.25), exp(-max(dF, 0.0) / (6.0 + 0.004 * dist)) * 0.9);
+    }
     col = mix(col, iceC, ice);
   }
   col = mix(col, uHazeC, 1.0 - exp(-dist * uHazeD));
@@ -142,6 +165,7 @@ export function makeSea(scene) {
   const C = (r = 1, g = 1, b = 1) => ({ value: new THREE.Color(r, g, b) });
   const u = {
     uTime: { value: 0 }, uWaveT: { value: 0 }, uFrozenT: { value: 0 }, uChop: { value: 0 }, uFreeze: { value: 0 }, uFreezeR: { value: 0 },
+    uLevel: { value: 0 }, uFzIn: { value: 0 }, uFzT0: { value: 0 }, uFzDur: { value: 1 }, uFzO0: { value: 1000 }, uFzP: { value: 1 },
     uSun: { value: new THREE.Vector3(0, 0.5, 1) }, uSunI: { value: 0 }, uSunCol: C(), uSkyHi: C(0.3, 0.5, 0.8), uSkyLo: C(0.75, 0.8, 0.88),
     uPx: { value: 0.0006 }, uDirC: C(), uAmbC: C(), uBody: C(0.012, 0.06, 0.085), uHazeC: C(0.8, 0.85, 0.9), uHazeD: { value: 0.00005 },
     uBoil: { value: 0 }, uTear: { value: 0 }, uWindD: { value: new THREE.Vector2(0, -1) }, uFlash: { value: 0 },

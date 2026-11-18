@@ -1,5 +1,6 @@
 // When things happen inside each stop (seconds after that stop's wipe starts), shared by the picture and the sound.
-import { smooth, clamp } from './util.js';
+// Every stop: the first hit within ~1 s of its wipe, a second, bigger beat ~3 s in.
+import { smooth, clamp, lerp } from './util.js';
 import { LAND } from './timeline.js';
 
 // Jupiter (its wipe is at -1.6 s, so frame 0 is 1.6 s in): lightning. who: 'far' (in the storm wall), 'sea' (into the
@@ -13,6 +14,7 @@ export const STRIKES = [
   { t: 6.15, who: 'sea', seed: 0.67, x: -95, z: -28 },
   { t: 7.3, who: 'sea', seed: 0.79, x: -120, z: -60 },
 ];
+export const JUP_RUN = 1.9;            // after the first strike in the sea the crowd turns and runs
 export const JUP_RAIN = 6.4;           // the rain curtain reaches the beach
 export const strikeK = (tt, t) => {    // a strike's brightness: leader, the return stroke, two re-strikes
   const d = tt - t;
@@ -20,15 +22,38 @@ export const strikeK = (tt, t) => {    // a strike's brightness: leader, the ret
   if (d < 0) return 0.25 * (1 + d / 0.06);
   return Math.exp(-d / 0.05) + 0.7 * Math.exp(-Math.max(0, d - 0.12) / 0.04) * (d > 0.12 ? 1 : 0) + 0.45 * Math.exp(-Math.max(0, d - 0.26) / 0.04) * (d > 0.26 ? 1 : 0);
 };
-// Mars: the dust wall's distance from the camera (m): it rolls in from ~330 m out, slowing as it nears, and swallows you at ~3.6 s
-export const marsR = (tt) => 3 + 330 * Math.pow(Math.max(0, 1 - tt / 3.65), 1.6);
-export const MARS_FROST = 4.3;          // the dust thins and the frost comes
-// Venus: the umbrella catches fire
-export const VEN_FIRE = 2.6;
-// Titan: the sea starts to freeze from the shore
-export const TIT_FREEZE = 2.9;
-// Saturn: your umbrella flips inside out, then is torn from your hand
-export const SAT_FLIP = 0.35, SAT_RIP = 2.85;
+
+// Mars: the dust wall's distance from the camera (m). At the wipe it already towers behind the pier (240 m out, the
+// Ferris wheel is ~195 m); it swallows the pier at ~0.6 s, the crowd by the water at ~1.1 s and you at ~1.5 s.
+export const MARS_R0 = 240;
+export const marsR = (tt) => 3 + (MARS_R0 - 3) * (1 - smooth(0.1, 1.55, tt));
+// when the wall reaches something f metres ahead of the camera (the inverse of marsR)
+export function marsHit(f) {
+  const s = clamp(1 - (f - 3) / (MARS_R0 - 3));
+  const x = 0.5 - Math.sin(Math.asin(1 - 2 * s) / 3);
+  return 0.1 + 1.45 * x;
+}
+export const MARS_IN = 1.5;            // you're inside it
+export const MARS_CLEAR = 2.75;        // the dust drops out of the air
+export const MARS_FROST = 3.0;         // the frost front sets off from the waterline and races up the beach to you
+export const marsFrostF = (tt) => 34 - 42 * Math.pow(clamp((tt - MARS_FROST) / 1.15), 0.85);   // (distance ahead of the camera)
+
+// Venus: the umbrella is smoking at the wipe and bursts into flames; then the sea boils off in a wall of steam
+export const VEN_FIRE = 0.8;
+export const VEN_STEAM = 2.9;
+export const venLevel = (tt) => 4.2 * smooth(VEN_STEAM - 0.3, VEN_STEAM + 2.6, tt);    // the sea's fall (m)
+
+// Titan: a freeze front races in from the horizon across the sea, wave by wave through the surf, then up the beach
+// to you; the frozen umbrella shatters
+export const TIT_FZ0 = 0.15, TIT_FZDUR = 2.1, TIT_FZO0 = 2500, TIT_FZP = 3.5;
+export const titSeaFront = (tt) => TIT_FZO0 * Math.pow(1 - clamp((tt - TIT_FZ0) / TIT_FZDUR), TIT_FZP);   // metres out from the shore
+export const TIT_SHORE = TIT_FZ0 + TIT_FZDUR;                                                            // it reaches the shore
+export const titBeachF = (tt) => (tt < TIT_SHORE ? 1e5 : 24 - 30 * clamp((tt - TIT_SHORE) / 0.7));      // then up the beach (f)
+export const TIT_RUN = 1.0;             // the crowd sees it coming and runs
+export const TIT_SHATTER = 3.2;
+
+// Saturn: your umbrella flips inside out; everyone is knocked flat and slides; the umbrella is torn from your hand
+export const SAT_FLIP = 0.35, SAT_KNOCK = 0.35, SAT_RIP = 2.85;
 // Neptune: the umbrella shreds; you're lifted off your feet; the pier and wheel go; the white-out
 export const NEP_SHRED = 0.25, NEP_LIFT = 7.0, NEP_PIER = 5.0;
 export const nepWhite = (tt) => smooth(9.3, 12.0, tt);

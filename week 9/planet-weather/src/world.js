@@ -16,10 +16,10 @@ import { makeUmbrella, GRIP, RAD } from './umbrella.js';
 import { makeYou } from './you.js';
 import { FX } from './fx.js';
 import { H, patchHeat } from './heat.js';
-import { PEOPLE, personPose } from './people.js';
+import { PEOPLE, personPose, titFrontF } from './people.js';
 import { landY, groundY, CAM0, CAM_FWD, CAM_RIGHT, YOU, FACE_YAW, LIFEGUARD } from './layout.js';
 import { STOPS, LAND } from './timeline.js';
-import { STRIKES, strikeK, JUP_RAIN, marsR, MARS_FROST, VEN_FIRE, TIT_FREEZE, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './sched.js';
+import { STRIKES, strikeK, JUP_RAIN, marsR, MARS_IN, MARS_CLEAR, MARS_FROST, marsFrostF, VEN_FIRE, VEN_STEAM, venLevel, TIT_FZ0, TIT_FZDUR, TIT_FZO0, TIT_FZP, TIT_SHORE, TIT_RUN, TIT_SHATTER, titSeaFront, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './sched.js';
 import { smooth, clamp, lerp, wobble, DEG } from './util.js';
 
 const F = new THREE.Vector3(CAM_FWD.x, 0, CAM_FWD.z), RT = new THREE.Vector3(CAM_RIGHT.x, 0, CAM_RIGHT.z), UP = new THREE.Vector3(0, 1, 0);
@@ -125,7 +125,7 @@ export function makeWorld(scene) {
     let apex = APEX0.clone(), down = DOWN0.clone(), spin = 0.2, held = true, flying = null;
     const U = umb.U;
     U.uFlip.value = 0; U.uFlut.value = 0.15; U.uBend.value = 0; U.uShred.value = 0; U.uBurn.value = 0; U.uScorch.value = 0;
-    U.uFrost.value = 0; U.uDust.value = 0; U.uWet.value = 0; U.uT.value = tt;
+    U.uFrost.value = 0; U.uDust.value = 0; U.uWet.value = 0; U.uT.value = tt; U.uCrack.value = 0; U.uShatter.value = 0;
     FX.uFrost.value = 0; FX.uDust.value = 0; FX.uScorch.value = 0; FX.uHeat.value = 0; FX.uBurn.value = 0;
     let windL = 0;
     if (key === 'jupiter') {
@@ -146,9 +146,11 @@ export function makeWorld(scene) {
       const R = marsR(tt);
       const hit = smooth(9, 3.5, R);
       U.uFlut.value = 0.3 + 1.1 * hit; windL = 0.3 + 1.0 * hit;
-      U.uDust.value = 0.85 * smooth(2.8, 4.0, tt); FX.uDust.value = 0.35 * smooth(3.0, 4.2, tt);
-      const fr = smooth(MARS_FROST, MARS_FROST + 1.3, tt);
-      U.uFrost.value = 0.85 * fr; FX.uFrost.value = 0.22 * fr;
+      U.uDust.value = 0.85 * smooth(MARS_IN - 0.2, MARS_IN + 0.9, tt); FX.uDust.value = 0.4 * smooth(MARS_IN, MARS_IN + 1.0, tt);
+      // the frost front reaches you (4 m ahead of the camera)
+      const tYou = MARS_FROST + 1.15 * Math.pow(30 / 42, 1 / 0.85);
+      const fr = smooth(tYou - 0.1, tYou + 0.2, tt);
+      U.uFrost.value = 0.95 * fr; FX.uFrost.value = 0.42 * fr;
       U.uFlut.value *= 1 - 0.8 * fr; windL *= 1 - 0.7 * fr;
       q.head = [lerp(-0.2, 0.35, hit), lerp(0, 0.5, hit)];
       q.hunch = 0.25 * hit + 0.1 * fr; q.sink = 0.05 * hit;
@@ -160,8 +162,9 @@ export function makeWorld(scene) {
       q.head = [lerp(-0.2, 0.3, k), lerp(0, -0.35, k)];
       q.holdL = youLocal(0.04, lerp(1.0, 1.66, k), lerp(0.1, 0.24, k), new THREE.Vector3()); q.poleL = youLocal(0.5, 1.0, -0.1, new THREE.Vector3()); q.curlL = 0.5;
       q.hunch = 0.15 * k;
-      const b = smooth(VEN_FIRE, VEN_FIRE + 3.2, tt);
-      U.uBurn.value = b;
+      const b = smooth(VEN_FIRE, VEN_FIRE + 2.6, tt);
+      U.uBurn.value = Math.max(b, 0.06 * smooth(VEN_FIRE - 0.05, VEN_FIRE + 0.1, tt));
+      U.uDust.value = 0.35 * smooth(0, VEN_FIRE, tt);            // (scorching brown before it catches)
       // you hold the burning umbrella out at arm's length, leaning away from it
       const away = smooth(VEN_FIRE + 0.2, VEN_FIRE + 0.9, tt);
       apex.add(new THREE.Vector3(-0.42 * away, 0.08 * away, 0.38 * away)); down.add(new THREE.Vector3(0.25 * away, 0, -0.32 * away)).normalize();
@@ -169,13 +172,21 @@ export function makeWorld(scene) {
       windL = 0.05;
       U.uFlut.value = 0.08;
     } else if (key === 'titan') {
-      const k = smooth(0.3, 0.9, tt);
-      const fr = smooth(TIT_FREEZE, TIT_FREEZE + 1.2, tt);
-      q.head = [lerp(-0.3, -0.75, k * (1 - fr)) + 0.25 * fr, -0.25 * fr];
-      // a hand out, palm up, catching drops; then hugging yourself in the cold
-      q.holdL = youLocal(lerp(0.22, 0.5, k * (1 - fr)), lerp(1.0, 1.28, k) - 0.1 * fr, lerp(0.1, 0.42, k * (1 - fr)), new THREE.Vector3()); q.poleL = youLocal(0.6, 0.9, -0.1, new THREE.Vector3()); q.curlL = 0.15 + 0.6 * fr;
-      U.uWet.value = smooth(0.4, 1.5, tt); U.uFrost.value = 0.5 * fr; FX.uFrost.value = 0.18 * fr;
-      U.uFlut.value = 0.05;
+      const k = smooth(0.2, 0.7, tt);
+      // the front reaches you (4 m ahead of the camera); the frozen umbrella cracks, then shatters
+      const tYou = TIT_SHORE + 0.7 * (20 / 30);
+      const fr = smooth(tYou - 0.12, tYou + 0.15, tt);
+      const sh = smooth(TIT_SHATTER, TIT_SHATTER + 0.1, tt);
+      const fl = Math.exp(-Math.max(0, tt - TIT_SHATTER) / 0.5) * smooth(TIT_SHATTER - 0.02, TIT_SHATTER + 0.05, tt);
+      q.head = [lerp(-0.3, -0.75, k * (1 - smooth(TIT_RUN, TIT_RUN + 0.5, tt))) + 0.25 * fr + 0.35 * fl, -0.25 * fr];
+      // a hand out, palm up, catching drops; then seeing the front coming; flinching from the shards
+      const look = smooth(TIT_RUN, TIT_RUN + 0.5, tt);
+      q.holdL = youLocal(lerp(0.22, 0.5, k * (1 - look)) + 0.1 * fl, lerp(1.0, 1.28, k) + 0.35 * fl, lerp(0.1, 0.42, k * (1 - look)), new THREE.Vector3()); q.poleL = youLocal(0.6, 0.9, -0.1, new THREE.Vector3()); q.curlL = 0.15 + 0.6 * look;
+      q.hunch = 0.15 * look + 0.25 * fl; q.sink = 0.05 * fl;
+      U.uWet.value = smooth(0.4, 1.5, tt) * (1 - fr); U.uFrost.value = fr; FX.uFrost.value = 0.55 * fr;
+      U.uCrack.value = smooth(tYou + 0.15, TIT_SHATTER - 0.05, tt); U.uShatter.value = sh; U.uBend.value = 0.3 * sh;
+      U.uFlut.value = 0.05 * (1 - fr);
+      apex.add(new THREE.Vector3(0.03 * Math.sin(tt * 53) * fl, -0.06 * fl, 0));
     } else if (key === 'saturn') {
       const k = smooth(0.0, 0.3, tt);
       U.uFlip.value = smooth(SAT_FLIP, SAT_FLIP + 0.16, tt);
@@ -183,14 +194,14 @@ export function makeWorld(scene) {
       U.uBend.value = 0.25 * smooth(1.2, 2.6, tt);
       q.roll = -0.2 * k; q.sink = 0.1 * k; q.hunch = 0.2 * k; q.head = [0.25 * k, 0.5 * k];
       q.holdL = youLocal(0.06, 1.62, 0.24, new THREE.Vector3()); q.poleL = youLocal(0.5, 1.0, -0.1, new THREE.Vector3()); q.curlL = 0.5;
-      // the wind drags the umbrella down to your right; then it's gone
+      // the wind drags the umbrella down to your right (kept low, clear of the text); then it's gone, sideways
       const drag = k + 0.3 * smooth(1.5, 2.8, tt);
-      apex.add(new THREE.Vector3(-0.45 * drag + 0.05 * Math.sin(tt * 13), -0.12 * drag, 0.05 * Math.sin(tt * 17)));
-      down.add(new THREE.Vector3(0.55 * drag, 0, 0)).normalize();
+      apex.add(new THREE.Vector3(-0.5 * drag + 0.05 * Math.sin(tt * 13), -0.3 * drag, 0.05 * Math.sin(tt * 17)));
+      down.add(new THREE.Vector3(0.7 * drag, 0, 0)).normalize();
       if (tt > SAT_RIP) {
         const t = tt - SAT_RIP;
         held = false;
-        flying = { t, acc: 30, vmax: 70, up: 2.6, spinK: 8 };
+        flying = { t, acc: 45, vmax: 70, up: 0.45, spinK: 8 };
         // your hand flies after it, then drops
         const reach = Math.exp(-t / 0.7);
         q.holdR = youLocal(-0.55 - 0.15 * (1 - reach), 1.55 + 0.25 * reach, 0.18, new THREE.Vector3()); q.poleR = youLocal(-0.6, 0.9, -0.2, new THREE.Vector3()); q.curlR = 0.25;
@@ -228,7 +239,7 @@ export function makeWorld(scene) {
       if (held === 'hang') {
         const t = flying.t;
         const t2 = Math.max(0, t - 1.1);
-        apexW.addScaledVector(RT, 0.22 * t * t + 7 * t2 * t2).y += 0.6 * t * t + 4 * t2 * t2;
+        apexW.addScaledVector(RT, 0.3 * t * t + 9 * t2 * t2).y += 0.2 * t * t + 1.6 * t2 * t2;      // (off to the right, under the text)
         downW.lerp(new THREE.Vector3(0, -1, 0), smooth(0, 0.4, t)).add(RT.clone().multiplyScalar(-0.35 * smooth(0, 0.5, t))).normalize();
       }
       umb.group.position.copy(apexW);
@@ -264,14 +275,16 @@ export function makeWorld(scene) {
     sun, hemi, sky, sea, walls, crowd, props, you, umb, parts, smoke, fire, glows, bolts,
     setStop(i, v, camera) {
       const st = STOPS[i], key = st.key, tt = v - st.land, L = LOOK[key];
-      const out = { exp: L.exp, shimmer: 0, veil: [1, 1, 1, 0], shake: 0, jolt: 0 };
+      const out = { exp: L.exp, shimmer: 0, veil: [1, 1, 1, 0], shake: 0, jolt: 0, streak: 0 };
+      let lit = null;                     // (the wheel's lights: null = the stop's default)
       fire.begin(); smoke.begin(); glows.begin(); bolts.begin(); parts.begin();
       parts.mat.uniforms.uT.value = v;
       // ---- reset the shared weather on surfaces ----
       H.uFrost.value = 0; H.uDust.value = 0; H.uWetK.value = 0; H.uCharK.value = 1;
       H.uTK.value = 300; H.uAmbK.value = 300; H.uTKP.value = 300; H.uAmbKP.value = 300; H.uGlowGain.value = 0;
       H.uSunW.value.copy(SUN_DIR);
-      GU.uTime.value = v; GU.uStream.value = 0; GU.uScorchG.value = 0; GU.uWindD.value.set(RT.x, RT.z);
+      H.uFrostF.value = -1e5; H.uFrostAll.value = 0; H.uCamXZ.value.set(camera.position.x, camera.position.z); H.uFwdXZ.value.set(F.x, F.z);
+      GU.uTime.value = v; GU.uStream.value = 0; GU.uScorchG.value = 0; GU.uWindD.value.set(RT.x, RT.z); GU.uRime.value = 0.85;
       // ---- the sky ----
       const s = sky.u;
       s.uTop.value.setRGB(...L.top); s.uLow.value.setRGB(...L.low); s.uHaze.value.setRGB(...L.haze); s.uHazeK.value = L.hazeK;
@@ -294,7 +307,7 @@ export function makeWorld(scene) {
       su.uSkyHi.value.setRGB(...L.cDark).lerp(C3(L.top), 1 - L.cloud); su.uSkyLo.value.setRGB(...L.haze);
       su.uDirC.value.setRGB(...L.sun).multiplyScalar(L.sunI); su.uAmbC.value.setRGB(...L.hSky).multiplyScalar(L.hI);
       su.uBody.value.setRGB(...L.body); su.uHazeC.value.setRGB(...L.fog); su.uHazeD.value = L.fogD * 0.8;
-      su.uBoil.value = 0; su.uTear.value = 0; su.uWindD.value.set(RT.x, RT.z); su.uFlash.value = 0;
+      su.uBoil.value = 0; su.uTear.value = 0; su.uWindD.value.set(RT.x, RT.z); su.uFlash.value = 0; su.uLevel.value = 0; su.uFzIn.value = 0;
       su.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / 1920;
       // ---- walls off by default ----
       for (const w of walls) { w.u.uAlpha.value = 0; w.mesh.visible = false; w.u.uC.value.copy(camera.position).setY(0); w.u.uB0.value = BEAR; w.u.uT.value = tt; w.u.uLean.value = 0; w.u.uScale.value = 1; }
@@ -379,61 +392,103 @@ export function makeWorld(scene) {
         box(500, 2.2, tt, 2, 40, 0.05, 1.5, 0, 14, 0, (x, y, z, j) => parts.add(x, y, z, 0.01, RT.x * 14, 0, RT.z * 14, 1, 0.75, 0.62, 0.48, 0.25 * (1 - rain), hash(j, 5)));
         out.shake = 0.15 + 0.35 * rain;
       } else if (key === 'mars') {
+        // the dust wall: at the wipe it already towers behind the pier and the wheel; it swallows them, then the crowd
+        // by the water, then you
         const R = marsR(tt);
         const w = walls[0];
-        const inside = smooth(9, 3.0, R);                  // 0 before it reaches you, 1 once you're in it
-        w.mesh.visible = R > 2.5;
-        w.u.uKind.value = 1; w.u.uR.value = Math.max(R, 2.5); w.u.uSpan.value = 1.55; w.u.uH.value = 150; w.u.uTop.value = 1; w.u.uAlpha.value = 1 - smooth(8, 3, R);
-        w.u.uLit.value.setRGB(0.95, 0.56, 0.32); w.u.uDark.value.setRGB(0.26, 0.1, 0.04); w.u.uHazeC.value.setRGB(...L.haze); w.u.uHazeK.value = 0.06;
-        w.u.uScale.value = 0.35 + 0.65 * smooth(5, 200, R);
-        // the dust: thick around you once it's here, thinning as the frost comes
-        const thin = smooth(MARS_FROST - 0.2, MARS_FROST + 1.2, tt);
-        const dust = inside * (1 - 0.8 * thin);
-        scene.fog.color.setRGB(0.66, 0.38, 0.2);
-        scene.fog.density = L.fogD + 0.075 * dust;
-        out.veil = [0.62, 0.34, 0.17, 0.45 * dust];
-        sun.intensity *= 1 - 0.75 * dust; hemi.intensity *= 1 - 0.25 * dust;
+        const inside = smooth(11, 4, R);                   // 0 before it reaches you, 1 once you're in it
+        w.mesh.visible = R > 4.5;
+        w.u.uKind.value = 1; w.u.uR.value = R; w.u.uSpan.value = 1.55; w.u.uH.value = 128; w.u.uTop.value = 1; w.u.uAlpha.value = smooth(4.5, 11, R);
+        w.u.uLit.value.setRGB(0.98, 0.5, 0.24); w.u.uDark.value.setRGB(0.17, 0.065, 0.025); w.u.uHazeC.value.setRGB(...L.haze); w.u.uHazeK.value = 0.04;
+        w.u.uScale.value = 0.3 + 0.7 * smooth(5, 200, R);
+        lit = 0.35 * smooth(200, 230, R);                     // (the wheel's lights go out as the dust takes it)
+        // inside: thick dust you can still see a few metres through (you and the people nearest are dark shapes),
+        // streaming past; then it drops out of the air, leaving everything coated red under a dim, dusky sky
+        const clear = smooth(MARS_CLEAR, MARS_CLEAR + 0.6, tt);
+        const dust = inside * (1 - 0.88 * clear);
+        const DC = [0.74, 0.43, 0.22];
+        scene.fog.color.setRGB(...DC).lerp(new THREE.Color(0.5, 0.32, 0.2), clear);
+        scene.fog.density = L.fogD + 0.046 * dust + 0.006 * clear;
+        out.veil = [DC[0], DC[1], DC[2], 0.08 * dust];
+        out.streak = 0.5 * dust;
+        sun.intensity *= (1 - 0.93 * dust) * (1 - 0.5 * clear); hemi.intensity *= (1 - 0.72 * dust) * (1 - 0.35 * clear);
+        const skyK = Math.max(dust, 0);
+        s.uTop.value.lerp(C3(DC), skyK).lerp(new THREE.Color(0.27, 0.15, 0.1), clear); s.uLow.value.lerp(C3(DC), skyK).lerp(new THREE.Color(0.6, 0.38, 0.24), clear);
+        s.uHaze.value.lerp(C3(DC), skyK).lerp(new THREE.Color(0.56, 0.36, 0.23), clear); s.uCloud.value = L.cloud * (1 - skyK);
+        su.uSkyLo.value.lerp(new THREE.Color(0.5, 0.33, 0.22), clear);
         // a rolling foot of dust where the wall meets the sand (puffs along its front)
-        if (R > 3) for (let j = 0; j < 110; j++) {
+        if (R > 16) for (let j = 0; j < 120; j++) {
           const a = hash(j, 6.6), b = hash(j, 7.7);
           const l = (a * 2 - 1) * (R * 0.75 + 4);
-          const ph = (tt * 0.8 + b) % 1;
-          const p = toW(R - 1 - 4 * ph, l, 0);
-          p.y = landY(p.x) + 0.5 + ph * 5;
-          smoke.puff(p.x, p.y, p.z, 2 + 4 * ph + R * 0.03, 0.5 * Math.sin(Math.PI * ph) * smooth(2.5, 8, R), 0.45 + 0.3 * b, 0, a);
+          const ph = (tt * 1.1 + b) % 1;
+          const p = toW(Math.max(R - 1 - 5 * ph, 12), l, 0);
+          p.y = landY(p.x) + 0.5 + ph * 6;
+          smoke.puff(p.x, p.y, p.z, Math.min(2 + 5 * ph + R * 0.035, 0.4 * (R - 6)), 0.55 * Math.sin(Math.PI * ph) * smooth(16, 30, R), 0.35 + 0.3 * b, 0, a);
         }
-        // dust streaming past, red-brown
-        const n = Math.round(600 + 1800 * inside);
-        box(n, 3.3, tt, 0.6, 45, 0, 7, 0, 18, 0.5, (x, y, z, j, f, d) => {
-          const near = f < R ? 1 : 0.3;
-          parts.add(x, y, z, 0.02 + 0.02 * d, RT.x * (14 + 10 * d), 0.5, RT.z * (14 + 10 * d), 1, 0.7, 0.42, 0.24, (0.12 + 0.35 * inside) * near * (1 - 0.7 * thin), d);
+        // clouds of dust racing past through the crowd once you're in it (they never hide you: none nearer than 6 m)
+        for (let j = 0; j < 46; j++) {
+          const a = hash(j, 4.1), b = hash(j, 4.7), c = hash(j, 5.3);
+          const f = 6 + 26 * Math.pow(a, 1.3), hw = f * TANH * 1.3;
+          const l = wrapTo((b * 2 - 1) * hw + tt * (16 + 10 * c), -hw, hw);
+          const p = toW(f, l, 0);
+          smoke.puff(p.x, landY(p.x) + 0.4 + 2.5 * c, p.z, 1.6 + 2.2 * c + f * 0.05, 0.2 * dust, 0.25 + 0.2 * c, 0, a);
+        }
+        // dust streaming past in streaks, darker and lighter
+        const n = Math.round(400 + 1100 * dust);
+        box(n, 3.3, tt, 2.6, 40, 0, 6, 0, 22, 0.4, (x, y, z, j, f, d) => {
+          const near = f < R ? 1 : 0.25;
+          const sh = 0.55 + 0.7 * hash(j, 3.9);
+          parts.add(x, y, z, 0.01 + 0.016 * d, RT.x * (18 + 12 * d), 0.4, RT.z * (18 + 12 * d), 1, 0.72 * sh, 0.42 * sh, 0.22 * sh, (0.08 + 0.22 * dust) * near, d);
         });
-        // sand on the move before it, dust settling on everything after
-        H.uDust.value = 0.65 * smooth(2.6, 4.2, tt);
-        GU.uStream.value = 0.5 * smooth(0, 1.5, tt) * (1 - thin);
-        // the frost
-        H.uFrost.value = 0.85 * smooth(MARS_FROST, MARS_FROST + 1.4, tt);
+        // sand on the move before it, dust settling on everything once it's through
+        H.uDust.value = 0.7 * smooth(MARS_IN - 0.6, MARS_IN + 0.6, tt);
+        GU.uStream.value = 0.5 * smooth(0, 1.0, tt) * (1 - clear);
+        // the frost: a white front racing up the beach from the water to you, everything it passes frozen white;
+        // the sea icing over out from the shore
+        const fF = marsFrostF(tt);
+        H.uFrost.value = smooth(MARS_FROST - 0.05, MARS_FROST + 0.15, tt); H.uFrostF.value = fF; H.uFrostAll.value = 0.95; GU.uRime.value = 0.42;
+        out.exp *= 1 + 0.3 * clear;
         su.uChop.value = 0.6;
-        // frost sparkles near you
-        if (thin > 0) box(260, 8.8, 0, 1, 14, 0.02, 0.06, 0, 0, 0, (x, y, z, j, f, d) => { const tw = Math.max(0, Math.sin(tt * 3 + d * 40)); parts.add(x, landY(x) + 0.03, z, 0.012, 0, 0, 0, 3, 1.5, 1.7, 2.0, thin * tw * tw * 0.6, d); });
-        out.shake = 0.1 + 0.5 * inside * (1 - thin);
+        const fz = tt - MARS_FROST;
+        if (fz > 0) { su.uFreeze.value = 1; su.uFreezeR.value = 420 * Math.pow(smooth(0, 1.8, fz), 1.2); su.uFrozenT.value = st.land + MARS_FROST; }
+        // ice mist along the front and glints behind it
+        if (fz > 0 && fF > -6) for (let j = 0; j < 70; j++) {
+          const a = hash(j, 2.6), ph = (tt * 2.2 + hash(j, 2.9)) % 1;
+          const f = Math.max(fF + 0.5, 3.8), hw = f * TANH * 1.25;
+          const p = toW(f + ph * 1.5, (a * 2 - 1) * hw, 0);
+          parts.add(p.x, landY(p.x) + 0.1 + ph * 0.6, p.z, 0.25 + 0.5 * ph + f * 0.02, 0, 0.3, 0, 0, 0.8, 0.86, 0.92, 0.32 * Math.sin(Math.PI * ph) * smooth(4, 10, f), a);
+        }
+        if (fz > 0) box(320, 8.8, 0, 1, 18, 0.02, 0.06, 0, 0, 0, (x, y, z, j, f, d) => {
+          if (f < fF) return;
+          const tw = Math.max(0, Math.sin(tt * 3 + d * 40));
+          parts.add(x, landY(x) + 0.03, z, 0.014, 0, 0, 0, 3, 1.6, 1.8, 2.1, tw * tw * 0.7, d);
+        });
+        out.shake = 0.12 + 0.55 * dust + 0.25 * smooth(0.3, 1.2, tt) * (1 - inside);
+        out.jolt = 0.4 * Math.exp(-Math.abs(tt - MARS_IN) / 0.15);
       } else if (key === 'venus') {
-        const k = smooth(0.05, 1.2, tt);
+        const k = smooth(0.0, 0.6, tt);
         su.uBoil.value = k; su.uChop.value = 0.4;
-        // the whole sea steaming: a near bank and a far one
+        // ~3 s in the sea boils off: its level falls (the sea floor comes out, steaming) and a wall of steam towers up
+        // off the whole bay
+        const lev = venLevel(tt), stK = smooth(VEN_STEAM - 0.2, VEN_STEAM + 1.4, tt);
+        su.uLevel.value = lev;
         const w0 = walls[0], w1 = walls[1];
         w0.mesh.visible = w1.mesh.visible = true;
-        w0.u.uKind.value = 2; w0.u.uR.value = 120 - 40 * smooth(0, 6, tt); w0.u.uSpan.value = 1.5; w0.u.uH.value = 70; w0.u.uTop.value = 0.25 + 0.75 * smooth(0.2, 2.5, tt); w0.u.uAlpha.value = 0.95 * k;
-        w0.u.uLit.value.setRGB(1.05, 1.0, 0.88); w0.u.uDark.value.setRGB(0.82, 0.74, 0.58); w0.u.uHazeC.value.setRGB(...L.fog); w0.u.uHazeK.value = 0.15; w0.u.uY0.value = -2;
-        w1.u.uKind.value = 2; w1.u.uR.value = 700; w1.u.uSpan.value = 1.5; w1.u.uH.value = 520; w1.u.uTop.value = 0.3 + 0.7 * smooth(0.3, 3, tt); w1.u.uAlpha.value = 0.95 * k;
-        w1.u.uLit.value.setRGB(1.05, 0.97, 0.82); w1.u.uDark.value.setRGB(0.85, 0.72, 0.5); w1.u.uHazeC.value.setRGB(...L.fog); w1.u.uHazeK.value = 0.4; w1.u.uY0.value = -5;
-        // steam boiling off the shallows right in front of you
-        for (let j = 0; j < 220; j++) {
+        w0.u.uKind.value = 2; w0.u.uR.value = 105 - 25 * smooth(0, 6, tt); w0.u.uSpan.value = 1.5; w0.u.uH.value = 35; w0.u.uTop.value = 0.3 + 0.7 * smooth(0.1, 1.5, tt); w0.u.uAlpha.value = 0.75 * k;
+        w0.u.uLit.value.setRGB(1.05, 1.0, 0.88); w0.u.uDark.value.setRGB(0.8, 0.72, 0.56); w0.u.uHazeC.value.setRGB(...L.fog); w0.u.uHazeK.value = 0.12; w0.u.uY0.value = -2 - lev;
+        // the steam wall: billowing up off the bay, white on top, grey underneath, churning upward
+        w1.u.uKind.value = 1; w1.u.uR.value = 330 - 80 * stK; w1.u.uSpan.value = 1.55; w1.u.uH.value = 25 + 115 * Math.pow(stK, 0.8); w1.u.uTop.value = 1;
+        w1.u.uAlpha.value = smooth(VEN_STEAM - 0.4, VEN_STEAM + 0.2, tt) + 0.6 * k * (1 - smooth(VEN_STEAM - 0.4, VEN_STEAM + 0.2, tt));
+        w1.u.uLit.value.setRGB(1.25, 1.18, 1.02); w1.u.uDark.value.setRGB(0.42, 0.37, 0.3); w1.u.uHazeC.value.setRGB(...L.fog); w1.u.uHazeK.value = 0.12; w1.u.uY0.value = -3 - lev;
+        w1.u.uScale.value = 1.3; w1.u.uT.value = tt * 2.2;
+        // steam boiling off the shallows right in front of you, then off the sea floor as the water goes
+        for (let j = 0; j < 150; j++) {
           const a = hash(j, 9.1), b = hash(j, 9.7);
           const ph = (tt * (0.35 + 0.2 * b) + a) % 1;
-          const p = toW(25 + 70 * Math.pow(b, 1.3), (a * 2 - 1) * (12 + 30 * b), 0);
-          smoke.puff(p.x, 0.5 + ph * (8 + 14 * b), p.z, 2 + ph * 7, 0.45 * k * Math.sin(Math.PI * ph), 1.0, 0, a);
+          const p = toW(28 + 70 * Math.pow(b, 1.3) + lev * 10 * b, (a * 2 - 1) * (12 + 30 * b), 0);
+          smoke.puff(p.x, groundY(p.x) + 0.5 + ph * (6 + 10 * b), p.z, 1.6 + ph * 5, 0.32 * k * Math.sin(Math.PI * ph), 1.0, 0, a);
         }
+        if (stK > 0) { out.jolt = 0.5 * Math.exp(-Math.abs(tt - VEN_STEAM) / 0.2); out.shake = 0.35 * stK; }
         // the heat: everything scorches (the sand doesn't burn, it bleaches)
         const T = lerp(300, 737, smooth(0, 2.4, tt));
         H.uTK.value = T; H.uAmbK.value = T; H.uTKP.value = T; H.uAmbKP.value = T;
@@ -441,19 +496,28 @@ export function makeWorld(scene) {
         out.shimmer = 1.6 * smooth(0.0, 0.8, tt);
         scene.fog.density = L.fogD * (1 + 1.2 * smooth(0.5, 5, tt));
         // your umbrella: smoking, then flames along its burning edge, embers flying up
-        const b = smooth(VEN_FIRE, VEN_FIRE + 3.2, tt);
-        const pre = smooth(0.8, VEN_FIRE, tt) * (1 - smooth(VEN_FIRE + 2.5, VEN_FIRE + 3.5, tt));
-        for (let j = 0; j < 26; j++) {
-          const ph = (tt * 0.8 + j / 26) % 1, a = hash(j, 3.9);
-          const pt = umb.canopyPoint(v3, 0.5 + 0.5 * a, a * 40);
-          smoke.puff(pt.x + ph * 0.3, pt.y + 0.05 + ph * 1.8, pt.z, 0.06 + ph * 0.4, 0.3 * pre * Math.sin(Math.PI * ph), 0.2, 0.3 * b, a);
+        // your umbrella: smoking from the moment the heat hits, in flames at ~0.8 s, burning down to its ribs
+        const b = smooth(VEN_FIRE, VEN_FIRE + 2.6, tt);
+        const fk = smooth(VEN_FIRE - 0.05, VEN_FIRE + 0.15, tt) * (1 - smooth(VEN_FIRE + 1.9, VEN_FIRE + 2.4, tt));
+        const pre = smooth(0.0, 0.25, tt) * (1 - smooth(VEN_FIRE + 2.0, VEN_FIRE + 3.0, tt));
+        for (let j = 0; j < 30; j++) {
+          const ph = (tt * 0.9 + j / 30) % 1, a = hash(j, 3.9);
+          const pt = umb.canopyPoint(v3, 0.35 + 0.65 * a, a * 40);
+          smoke.puff(pt.x + ph * 0.3, pt.y + 0.05 + ph * 1.8, pt.z, 0.06 + ph * 0.45, 0.42 * pre * Math.sin(Math.PI * ph), 0.25, 0.3 * fk, a);
         }
-        if (b > 0 && b < 0.999) {
+        // the moment it catches: a burst of flame right across the canopy
+        const burst = Math.exp(-Math.max(0, tt - VEN_FIRE) / 0.25) * smooth(VEN_FIRE - 0.03, VEN_FIRE + 0.05, tt);
+        if (burst > 0.02) for (let j = 0; j < 22; j++) {
+          const a = hash(j, 5.9) * 6.28, r = 0.2 + 0.8 * hash(j, 6.9);
+          const pt = umb.canopyPoint(v3, r, a);
+          fire.add(pt.x, pt.y, pt.z, 0.3, 0.35 + 0.4 * hash(j, 7.9), burst, 0.5 + j * 0.09);
+        }
+        if (fk > 0) {
           const edge = Math.max(0.05, 1.15 - b * 1.4);
           for (let j = 0; j < 28; j++) {
             const a = (j / 28) * Math.PI * 2 + 0.1 * Math.sin(tt * 3 + j);
             const pt = umb.canopyPoint(v3, Math.min(1, edge + 0.04 * Math.sin(j * 2.3)), a);
-            fire.add(pt.x, pt.y - 0.02, pt.z, 0.22, 0.28 + 0.2 * Math.abs(Math.sin(j * 1.7 + tt * 4)), Math.sin(Math.PI * Math.min(1, b * 1.15)) * 0.95, 0.3 + j * 0.07);
+            fire.add(pt.x, pt.y - 0.02, pt.z, 0.24, 0.32 + 0.22 * Math.abs(Math.sin(j * 1.7 + tt * 4)), fk * 0.95, 0.3 + j * 0.07);
           }
           for (let j = 0; j < 60; j++) {
             const a = hash(j, 2.2), ph = (tt * (0.7 + 0.5 * a) + hash(j, 2.9)) % 1;
@@ -464,29 +528,64 @@ export function makeWorld(scene) {
         // embers and ash over the beach once things burn
         box(400, 4.4, tt, 2, 60, 0, 12, 0, 1.5, 1.6, (x, y, z, j, f, d) => parts.add(x, y, z, 0.03, 0.5, 1.6, 0, 3, 2.6, 0.9, 0.25, 0.5 * smooth(VEN_FIRE, VEN_FIRE + 2, tt) * Math.max(0, Math.sin(tt * 5 + d * 30)), d));
       } else if (key === 'titan') {
-        // the sea freezes out from the shore
-        const fz = tt - TIT_FREEZE;
-        su.uFreeze.value = fz > 0 ? 1 : 0;
-        su.uFreezeR.value = fz > 0 ? 4500 * Math.pow(smooth(0, 2.4, fz), 1.6) + 40 * smooth(0, 0.25, fz) : 0;
-        su.uFrozenT.value = st.land + TIT_FREEZE;
-        su.uChop.value = 0.15;
-        H.uWetK.value = 0.7 * smooth(0.5, 2, tt);
-        H.uFrost.value = 0.45 * smooth(TIT_FREEZE, TIT_FREEZE + 1.5, tt);
-        // ice cracking white at the front as it runs out
-        if (fz > 0 && fz < 3) for (let j = 0; j < 60; j++) {
-          const a = hash(j, 1.3), ph = (fz * 2 + a) % 1;
-          const p = toW(24 + su.uFreezeR.value * (0.9 + 0.2 * a), (a * 2 - 1) * (10 + su.uFreezeR.value * 0.5), 0);
-          if (su.uFreezeR.value < 400) smoke.puff(p.x, 0.3 + ph * 2, p.z, 0.6 + ph * 2.5, 0.3 * Math.sin(Math.PI * ph) * smooth(3, 0, fz), 0.95, 0, a);
+        // a freeze front races in from the horizon across the sea, each wave freezing where it stood as it goes over,
+        // then up the beach: everything it passes (people mid-stride, you, your umbrella) frozen white
+        su.uFzIn.value = 1; su.uFzT0.value = st.land + TIT_FZ0; su.uFzDur.value = TIT_FZDUR; su.uFzO0.value = TIT_FZO0; su.uFzP.value = TIT_FZP;
+        su.uChop.value = 0.25;
+        H.uWetK.value = 0.6 * smooth(0.3, 1.5, tt) * (1 - smooth(TIT_SHORE, TIT_SHORE + 0.8, tt));
+        const fF = titFrontF(tt);
+        H.uFrost.value = 1; H.uFrostF.value = fF; H.uFrostAll.value = 1; GU.uRime.value = 0.7;
+        // a wall of ice mist boiling up along the front as it runs in
+        const oF = titSeaFront(tt);
+        if (tt > TIT_FZ0 && fF > -6) for (let j = 0; j < 90; j++) {
+          const a = hash(j, 1.3), ph = (tt * 1.8 + hash(j, 1.9)) % 1;
+          const f = Math.max(fF, 3.8) + ph * (1.5 + fF * 0.03);
+          const hw = f * TANH * 1.3;
+          const p = toW(f, (a * 2 - 1) * hw, 0);
+          const sz = 0.5 + f * 0.035;
+          parts.add(p.x, Math.max(groundY(p.x), 0) + sz * (0.3 + 1.6 * ph), p.z, sz * (1 + 1.5 * ph), 0, 0.5, 0, 0, 0.85, 0.83, 0.8, 0.45 * Math.sin(Math.PI * ph) * (oF > 0 ? smooth(1800, 300, oF) : 1), a);
         }
-        // the drops: up to a centimetre across, falling ~1.6 m/s (6x slower than rain on Earth), lit amber
-        const rk = smooth(0.0, 0.8, tt);
-        frust(1100, 7.1, tt, 0.3, 10, 0.3, -1.6, (x, y, z, j, f, d) => {
-          const r = 0.004 + 0.001 * d;                     // (up to a centimetre across)
-          parts.add(x, y, z, r * (1 + f * 0.03), 0, -1.6, 0, 2, 0.42, 0.27, 0.14, rk, d);
+        // the drops: up to a centimetre across, falling ~1.6 m/s (6x slower than rain on Earth), amber: short streaks
+        const rk = smooth(0.0, 0.5, tt) * (1 - 0.6 * smooth(TIT_SHATTER, TIT_SHATTER + 0.5, tt));
+        frust(520, 7.1, tt, 1.4, 12, 0.25, -1.6, (x, y, z, j, f, d) => {
+          parts.add(x, y, z, 0.007 + 0.003 * d + f * 0.0006, 0, -1.6 * 1.7, 0, 1, 0.3, 0.17, 0.07, 0.9 * rk, d);
         });
-        box(700, 7.9, tt, 14, 60, 0.2, 14, 0, 0.35, -1.6, (x, y, z, j, f, d) => parts.add(x, y, z, 0.012 + 0.002 * f, 0, -1.6, 0, 2, 0.42, 0.27, 0.14, 0.8 * rk, d));
-        // splashes on your umbrella: slow-motion crowns that rise and fall back
-        for (let j = 0; j < 26; j++) {
+        box(700, 7.9, tt, 12, 60, 0.2, 14, 0, 0.35, -1.6, (x, y, z, j, f, d) => parts.add(x, y, z, 0.012 + 0.002 * f, 0, -1.6 * 1.7, 0, 1, 0.3, 0.17, 0.07, 0.75 * rk, d));
+        // the shatter: the frozen canopy bursts into shards that fly off and rain down onto the sand, glinting
+        const shT = tt - TIT_SHATTER;
+        if (shT > 0) {
+          for (let j = 0; j < 150; j++) {
+            const a = hash(j, 3.1) * 6.28, r = 0.2 + 0.8 * Math.sqrt(hash(j, 3.7));
+            const t0 = 0.08 * hash(j, 4.3), t = shT - t0;
+            if (t <= 0) continue;
+            const c = umb.canopyPoint(v3, r, a);
+            const cx0 = c.x, cy0 = c.y, cz0 = c.z;
+            const ctr = umb.at(v2, 0, -0.1, 0);
+            const ox = cx0 - ctr.x, oz = cz0 - ctr.z, ol = Math.hypot(ox, oz) || 1;
+            const sp = 1.5 + 2.8 * hash(j, 5.1);
+            const vx = ox / ol * sp + RT.x * 1.5, vz = oz / ol * sp + RT.z * 1.5, vy = 0.2 + 1.1 * hash(j, 5.7);
+            const gy = landY(cx0 + vx * t) + 0.02;
+            let y = cy0 + vy * t - 4.9 * t * t;
+            const landed = y <= gy;
+            if (landed) y = gy;
+            const tl = landed ? Math.min(t, (vy + Math.sqrt(Math.max(0, vy * vy + 19.6 * (cy0 - gy)))) / 9.8) : t;
+            const blue = Math.floor((a / (Math.PI / 4)) + 0.5) % 2 === 0;
+            const sh = 0.75 + 0.5 * hash(j, 6.1);
+            parts.add(cx0 + vx * tl, y, cz0 + vz * tl, 0.035 + 0.05 * hash(j, 6.7), landed ? 0 : vx, landed ? 0 : vy - 9.8 * t, landed ? 0 : vz, 5,
+              (blue ? 0.42 : 0.92) * sh, (blue ? 0.55 : 0.95) * sh, (blue ? 0.85 : 1.0) * sh, 1, hash(j, 7.3));
+          }
+          // a burst of glitter, and ice dust hanging in the air
+          for (let j = 0; j < 70; j++) {
+            const a = hash(j, 8.3) * 6.28, r = hash(j, 8.7);
+            const c = umb.canopyPoint(v3, 0.3 + 0.7 * r, a);
+            const t = shT, sp = 2 + 3 * hash(j, 9.3);
+            parts.add(c.x + Math.cos(a) * sp * t, c.y + 0.5 * t - 3 * t * t, c.z + Math.sin(a) * sp * t, 0.012, 0, 0, 0, 3, 2.2, 2.4, 2.8, Math.exp(-t / 0.35), hash(j, 9.9));
+          }
+          out.jolt = 0.6 * Math.exp(-shT / 0.12);
+        }
+        out.shake = 0.08 + 0.3 * Math.exp(-Math.abs(tt - TIT_SHORE) / 0.3);
+        // splashes on your umbrella: slow-motion crowns that rise and fall back (until it freezes)
+        if (tt < TIT_SHORE + 0.5) for (let j = 0; j < 26; j++) {
           const period = 0.9 + 0.5 * hash(j, 6.1);
           const ph = (tt + hash(j, 6.3) * period) % period / period;
           const r0 = 0.25 + 0.7 * hash(j, 6.5), a0 = hash(j, 6.7) * 6.28 + Math.floor((tt + hash(j, 6.3) * period) / period) * 2.1;
@@ -494,7 +593,7 @@ export function makeWorld(scene) {
           for (let m = 0; m < 7; m++) {
             const ang = m / 7 * 6.28 + j, sp = 0.18 + 0.06 * hash(m, j);
             const t = ph * 0.55;
-            parts.add(c.x + Math.cos(ang) * sp * t, c.y + 0.01 + 0.9 * t - 3 * t * t, c.z + Math.sin(ang) * sp * t, 0.0075, 0, 0, 0, 2, 0.42, 0.27, 0.14, rk * (1 - ph), m);
+            parts.add(c.x + Math.cos(ang) * sp * t, c.y + 0.01 + 0.9 * t - 3 * t * t, c.z + Math.sin(ang) * sp * t, 0.009, 0, 0, 0, 0, 0.8, 0.52, 0.25, rk * (1 - ph), m);
           }
         }
       } else if (key === 'saturn' || key === 'neptune') {
@@ -539,7 +638,7 @@ export function makeWorld(scene) {
       }
 
       // ---- surfaces, props, people, you ----
-      props.frame(key, tt, { fire, smoke, parts, glows, cam: camera });
+      props.frame(key, tt, { fire, smoke, parts, glows, cam: camera, lit });
       PEOPLE.forEach((p, j) => crowd.pose(j, personPose(p, key, tt)));
       crowd.commit();
       bolts.end(camera);

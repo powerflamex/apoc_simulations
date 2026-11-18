@@ -1,10 +1,10 @@
 // "What if Earth had other planets' weather?" — the story as functions of VIDEO time v (seconds; STORY_START = 0).
 // One packed beach (Santa Monica, the pier and its Ferris wheel on the right), one camera spot the whole video: just
-// behind YOU, holding a blue-and-white umbrella. Every ~6.7 s the weather swaps to another world's in one quick wipe;
-// the beach and the crowd stay, and each stop starts fresh (a whole umbrella again). The umbrella is the running gag:
-// lightning hits it (Jupiter), dust buries it and frost locks it (Mars), it bursts into flames (Venus), slow-motion
-// drops splash on it while the sea freezes (Titan), it flips inside out and is torn away (Saturn), and it shreds and
-// carries you off (Neptune). A picker bar of the six worlds sits under the title (Neptune, the last slot, is the finish
+// behind YOU, holding a blue-and-white umbrella. Every ~7 s (Titan ~4.6 s) the weather swaps to another world's in one
+// quick wipe; the beach and the crowd stay, and each stop starts fresh (a whole umbrella again). At every stop the first
+// hit lands within ~1 s of the wipe and a bigger beat ~3 s in (sched.js). The umbrella is the running gag: lightning
+// hits it (Jupiter), dust buries it and frost locks it (Mars), it bursts into flames (Venus), it freezes and shatters
+// like glass (Titan), it flips inside out and is torn away (Saturn), and it shreds and carries you off (Neptune). A picker bar of the six worlds sits under the title (Neptune, the last slot, is the finish
 // line); the counter is the temperature on your beach, racing to each world's; one line under it names the weather.
 //
 // The numbers (checked Nov 17, 2026):
@@ -19,7 +19,8 @@
 //     (NASA, from the Venera landers). (Its sulfuric acid rain evaporates ~30 km up, so none is shown landing.)
 //   - Titan: methane rain (NASA); drops up to ~9.5 mm (Earth's max ~6.5 mm) falling ~1.6 m/s against ~9.2 m/s on Earth:
 //     about 6x slower (Lorenz 1993, "The life, death and afterlife of a raindrop on Titan"); sunlight ~100x fainter
-//     (NASA); at -290°F the sea freezes.
+//     (NASA); at -290°F the sea freezes. At that cold rubber and most plastics go glass-brittle (the classic
+//     liquid-nitrogen demo, -321°F, shatters rubber tubing: U. Michigan MSE); the iced-over umbrella shatters.
 //   - Saturn: winds up to 500 m/s (1,600 ft/s, ~1,100 mph) at the equator (NASA, "Saturn: Facts"). ("Diamond rain" is
 //     only a 2013 conference hypothesis about the deep interior, so it's left out.)
 //   - Neptune: "our solar system's windiest world", winds "more than 1,200 miles per hour" (NASA, "Neptune: Facts").
@@ -36,9 +37,9 @@ export const STOPS = [
   { key: 'jupiter', name: 'JUPITER', land: -1.6, f: -166, lines: [[-9, 'JUPITER: STORMS BIGGER THAN EARTH']] },
   { key: 'mars', name: 'MARS', land: 6.6, f: -85, lines: [[0.12, 'MARS: PLANET-WIDE DUST STORMS']] },
   { key: 'venus', name: 'VENUS', land: 13.4, f: 867, lines: [[0.12, 'VENUS: HOT ENOUGH TO MELT LEAD']] },
-  { key: 'titan', name: 'TITAN', land: 20.2, f: -290, lines: [[0.12, 'TITAN: SLOW-MOTION METHANE RAIN']] },
-  { key: 'saturn', name: 'SATURN', land: 27.0, f: -220, lines: [[0.12, 'SATURN: 1,100 MPH WINDS']] },
-  { key: 'neptune', name: 'NEPTUNE', land: 33.8, f: -328, lines: [[0.12, 'NEPTUNE: 1,200 MPH WINDS'], [3.2, 'FASTER THAN SOUND']] },
+  { key: 'titan', name: 'TITAN', land: 20.4, f: -290, lines: [[0.12, 'TITAN: METHANE RAIN, DEEP FREEZE']] },
+  { key: 'saturn', name: 'SATURN', land: 25.0, f: -220, lines: [[0.12, 'SATURN: 1,100 MPH WINDS']] },
+  { key: 'neptune', name: 'NEPTUNE', land: 32.0, f: -328, lines: [[0.12, 'NEPTUNE: 1,200 MPH WINDS'], [3.2, 'FASTER THAN SOUND']], until: 6.85 },
 ];
 STOPS.forEach((s, i) => { s.i = i; });
 export const ST = Object.fromEntries(STOPS.map((s) => [s.key, s]));
@@ -49,13 +50,10 @@ export const T_END = LAND.neptune + 12.0;          // the white is full
 export const T_SWITCH = Math.round((T_END + 0.3) * 60) / 60;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 
-// captions: [from, to, text] (video time; never under the title, never with a popup)
+// captions: [from, to, text] (video time), low in the frame (only the one line sits under the counter); only where
+// the picture alone could be missed: the strike is over in a blink, and the last one is the punchline
 export const CAPTIONS = [
-  [LAND.jupiter + 5.5, LAND.mars - 0.15, 'Lightning hits your umbrella'],
-  [LAND.mars + 4.3, LAND.venus - 0.15, 'Then everything freezes'],
-  [LAND.venus + 3.1, LAND.titan - 0.15, 'Your umbrella bursts into flames'],
-  [LAND.titan + 3.4, LAND.saturn - 0.15, 'The sea freezes solid'],
-  [LAND.saturn + 3.0, LAND.neptune - 0.15, 'Your umbrella: gone'],
+  [LAND.jupiter + 5.3, LAND.mars - 0.15, 'Lightning hits your umbrella'],
   [LAND.neptune + 7.45, T_END - 1.3, 'It takes you with it'],
 ];
 export function captionAt(v) {
@@ -97,7 +95,7 @@ export function lineAt(v) {
   const i = stopAt(v), st = STOPS[i];
   const nx = STOPS[i + 1];
   const dt = v - st.land;
-  const end = (nx ? nx.land : T_END) - st.land;
+  const end = Math.min((nx ? nx.land : T_END) - st.land, st.until ?? 1e9);
   let cur = null, t0 = 0, t1 = end;
   for (let j = 0; j < st.lines.length; j++) {
     const [a, text] = st.lines[j];

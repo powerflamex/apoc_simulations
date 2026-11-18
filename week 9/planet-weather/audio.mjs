@@ -3,11 +3,12 @@
 // An action-weather topic, so the sound is the weather itself (a wind / roar bed, no music), changing with each wipe:
 //   Jupiter: a storm roar, thunder at every strike (a bright crack, then a long rumble), a huge crack and an electric
 //     buzz when your umbrella is hit, then the rain hissing in; the owner's scream (sfx/scream.mp3) in the first second.
-//   Mars: the dust wall's roar swelling as it comes, sand hissing once you're inside it, then a thin cold wind and
-//     the soft tinkle of frost.
-//   Venus: a deep whoomp of heat, the sea hissing and bubbling into steam, your umbrella going up with a whoosh and
-//     crackling.
-//   Titan: quiet and heavy: big slow drops plopping on the umbrella; the sea freezing with booms, groans and cracks.
+//   Mars: the dust wall's roar swelling as it comes, a thump as it hits you, sand hissing inside it, then a thin cold
+//     wind and a crackling sweep of frost racing up the beach.
+//   Venus: a deep whoomp of heat, the sea hissing and bubbling, your umbrella going up with a whoosh and crackling,
+//     then the sea boiling off with a roar of steam.
+//   Titan: quiet and heavy: big slow drops plopping on the umbrella; the freeze front crackling in across the sea, a
+//     boom as it hits the shore, your frozen umbrella shattering like glass and its shards tinkling down.
 //   Saturn: a howling gale, the umbrella snapping inside out and flapping, then tearing away.
 //   Neptune: a double sonic boom, a roar far louder than anything before, the cloth shredding, the pier crashing,
 //     a rush as you're lifted, and the roar peaking into the white.
@@ -19,7 +20,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STOPS, LAND, T_END } from './src/timeline.js';
-import { STRIKES, JUP_RAIN, marsR, MARS_FROST, VEN_FIRE, TIT_FREEZE, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './src/sched.js';
+import { STRIKES, JUP_RAIN, marsR, MARS_IN, MARS_CLEAR, MARS_FROST, VEN_FIRE, VEN_STEAM, TIT_FZ0, TIT_SHORE, TIT_SHATTER, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './src/sched.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -57,11 +58,12 @@ export function makeSoundtrack(outFile) {
   }
   // random event lists (deterministic)
   const evts = (t0, t1, rate, rr) => { const o = []; let t = t0; while (t < t1) { t += -Math.log(1 - rr() * 0.999) / rate; if (t < t1) o.push([t, rr(), rr()]); } return o; };
-  const frostTinks = evts(LAND.mars + MARS_FROST, LAND.venus, 9, rng(5));
+  const frostTinks = [...evts(LAND.mars + MARS_FROST, LAND.mars + MARS_FROST + 1.3, 60, rng(5)), ...evts(LAND.mars + MARS_FROST + 1.3, LAND.venus, 9, rng(15))];
   const bubbles = evts(LAND.venus + 0.2, LAND.titan, 26, rng(6));
   const crackles = evts(LAND.venus + VEN_FIRE, LAND.titan, 38, rng(7));
-  const plops = evts(LAND.titan + 0.3, LAND.saturn, 7, rng(8));
-  const iceCracks = evts(LAND.titan + TIT_FREEZE, LAND.saturn, 5, rng(9));
+  const plops = evts(LAND.titan + 0.3, LAND.titan + TIT_SHORE + 0.5, 7, rng(8));
+  const iceCracks = [...evts(LAND.titan + TIT_FZ0 + 0.3, LAND.titan + TIT_SHORE + 0.6, 22, rng(9)), ...evts(LAND.titan + TIT_SHORE + 0.6, LAND.saturn, 4, rng(19))];
+  const shards = evts(LAND.titan + TIT_SHATTER + 0.25, LAND.titan + TIT_SHATTER + 1.4, 45, rng(10));
   const wipes = lands.slice(1);
 
   // every call site gets its own filter (a filter run twice in one sample would run at double speed)
@@ -106,14 +108,20 @@ export function makeSoundtrack(outFile) {
     if (gM > 0.001) {
       const tt = v - LAND.mars;
       const Rd = marsR(tt);
-      const near = smooth(330, 6, Rd);
-      const thin = smooth(MARS_FROST - 0.2, MARS_FROST + 1.4, tt);
-      const roar = flt('fWind27', 'SVF').run(w1, 180 + 600 * near, 0.6).lp * (0.6 + 0.8 * near) * (1 - 0.6 * thin);
-      const hiss = flt('fHiss8', 'SVF').run(w2, 4200, 0.8).bp * 0.5 * smooth(8, 3, Rd) * (1 - 0.8 * thin);
-      const cold = flt('fWhistle9', 'SVF').run(w3, 950 + 80 * Math.sin(tt * 0.7), 0.06).bp * 0.14 * thin;
+      const near = smooth(240, 6, Rd);
+      const thin = smooth(MARS_CLEAR, MARS_CLEAR + 0.8, tt);
+      const roar = flt('fWind27', 'SVF').run(w1, 180 + 600 * near, 0.6).lp * (0.7 + 1.0 * near) * (1 - 0.7 * thin);
+      const hiss = flt('fHiss8', 'SVF').run(w2, 3600, 0.8).bp * 0.5 * smooth(10, 4, Rd) * (1 - 0.85 * thin);
+      const cold = flt('fWhistle9', 'SVF').run(w3, 950 + 80 * Math.sin(tt * 0.7), 0.06).bp * 0.16 * thin;
+      // the wall hitting you: a deep thump under the roar
+      const hi = tt - MARS_IN + 0.1;
+      const thump = hi > 0 ? Math.sin(TAU * (40 + 30 * Math.exp(-hi * 6)) * hi) * env(hi, 0.02, 0.4) * 0.8 : 0;
+      // the frost racing up the beach: a rushing crackle that sweeps toward you
+      const fs = tt - MARS_FROST;
+      const sweep = flt('fFrostSweep', 'SVF').run(w1, 2600 + 1800 * clamp(fs / 1.2), 0.7).bp * (fs > 0 ? env(fs, 0.6, 0.5) : 0) * 0.35;
       let tk = 0;
       for (const [t, a, b] of frostTinks) { const d = v - t; if (d >= 0 && d < 0.3) tk += Math.sin(TAU * (2400 + 2200 * a) * d) * env(d, 0.002, 0.06) * (0.03 + 0.03 * b); }
-      l += gM * (roar + hiss + cold + tk); r += gM * (roar * 0.95 + hiss * 0.9 + cold * 0.8 + tk * 0.7);
+      l += gM * (roar + hiss + cold + tk + thump + sweep); r += gM * (roar * 0.95 + hiss * 0.9 + cold * 0.8 + tk * 0.7 + thump + sweep * 0.9);
     }
     // ===================== Venus =====================
     const gV = gainOf(2, v);
@@ -130,7 +138,12 @@ export function makeSoundtrack(outFile) {
       let cr = 0;
       for (const [t, a] of crackles) { const d = v - t; if (d >= 0 && d < 0.03) cr += (R2() * 2 - 1) * env(d, 0.003, 0.006) * (0.12 + 0.3 * a); }
       const crS = flt('fCrackle13', 'SVF').run(cr, 2600, 0.8).lp * 1.1;
-      l += gV * (whoomp + steam + bub + roar + crS); r += gV * (whoomp + steam * 0.92 + bub * 0.8 + roar * 0.95 + crS * 1.1);
+      // the sea boiling off: a deep boom and a huge rising roar of steam
+      const se = tt - VEN_STEAM;
+      const sBoom = se > 0 ? Math.sin(TAU * (36 + 30 * Math.exp(-se * 5)) * se) * env(se, 0.03, 0.8) * 0.9 : 0;
+      const sRoar = flt('fSteamRoar', 'SVF').run(w1, 900 + 1400 * smooth(0, 2, se), 0.6).bp * smooth(-0.1, 0.6, se) * (1 - 0.4 * smooth(2, 4, se)) * 0.7
+        + flt('fSteamLow', 'SVF').run(w2, 160, 0.7).lp * smooth(-0.1, 0.5, se) * 1.6;
+      l += gV * (whoomp + steam + bub + roar + crS + sBoom + sRoar); r += gV * (whoomp + steam * 0.92 + bub * 0.8 + roar * 0.95 + crS * 1.1 + sBoom + sRoar * 0.95);
     }
     // ===================== Titan =====================
     const gT = gainOf(3, v);
@@ -145,14 +158,20 @@ export function makeSoundtrack(outFile) {
         const s = Math.sin(TAU * (520 - 300 * Math.min(1, d / 0.07)) * d) * env(d, 0.003, 0.07) * (0.13 + 0.08 * b);
         const [ql, qr] = pan(a * 1.4 - 0.7); pl += s * ql; pr += s * qr;
       }
-      // the freeze: a deep boom as the ice sets off, groans and cracks running out across it
-      const fz = tt - TIT_FREEZE;
-      const boom = fz > -0.01 ? Math.sin(TAU * (38 + 25 * Math.exp(-fz * 4)) * fz) * env(fz, 0.01, 0.9) * 1.0 : 0;
-      const groan = flt('fGroan15', 'SVF').run(w2, 140 + 90 * Math.sin(tt * 1.3), 0.08).bp * 0.1 * smooth(TIT_FREEZE, TIT_FREEZE + 0.5, tt) * (0.5 + 0.5 * Math.sin(tt * 2.1));
+      // the freeze: a boom as the front sets off far out, cracks racing in (louder as it nears), a big boom at the shore
+      let boom = 0;
+      for (const [t0, g] of [[TIT_FZ0, 0.6], [TIT_SHORE, 1.1]]) { const fz = tt - t0; if (fz > -0.01) boom += Math.sin(TAU * (38 + 25 * Math.exp(-fz * 4)) * fz) * env(fz, 0.01, 0.8) * g; }
+      const groan = flt('fGroan15', 'SVF').run(w2, 140 + 90 * Math.sin(tt * 1.3), 0.08).bp * 0.12 * smooth(TIT_FZ0, TIT_FZ0 + 0.5, tt) * (0.5 + 0.5 * Math.sin(tt * 2.1));
+      const nearK = 0.3 + 0.7 * smooth(TIT_FZ0, TIT_SHORE, tt);
       let ic = 0;
-      for (const [t, a] of iceCracks) { const d = v - t; if (d >= 0 && d < 0.4) ic += (R2() * 2 - 1) * env(d, 0.003, 0.03 + 0.05 * a) * 0.35 + Math.sin(TAU * (90 + 60 * a) * d) * env(d, 0.004, 0.18) * 0.25; }
+      for (const [t, a] of iceCracks) { const d = v - t; if (d >= 0 && d < 0.4) ic += ((R2() * 2 - 1) * env(d, 0.003, 0.03 + 0.05 * a) * 0.35 + Math.sin(TAU * (90 + 60 * a) * d) * env(d, 0.004, 0.18) * 0.25) * nearK; }
       const icS = flt('fCrack16', 'SVF').run(ic, 1800, 0.7).lp;
-      l += gT * (drone + air + pl + boom + groan + icS); r += gT * (drone + air + pr + boom + groan * 0.9 + icS * 0.9);
+      // the umbrella shattering: a bright smash of glass, then the shards tinkling down onto the frozen sand
+      const sd = tt - TIT_SHATTER;
+      const smash = sd > -0.005 ? (flt('fSmash', 'SVF').run(w3, 3000, 0.8).bp * env(sd, 0.008, 0.13) * 0.75 + flt('fSmashLo', 'SVF').run(w1, 700, 0.8).bp * env(sd, 0.008, 0.09) * 0.8) : 0;
+      let tink = 0;
+      for (const [t, a, b] of shards) { const d = v - t; if (d >= 0 && d < 0.25) tink += Math.sin(TAU * (2800 + 3600 * a) * d) * env(d, 0.001, 0.04 + 0.03 * b) * (0.05 + 0.05 * b); }
+      l += gT * (drone + air + pl + boom + groan + icS + smash + tink); r += gT * (drone + air + pr + boom + groan * 0.9 + icS * 0.9 + smash * 0.95 + tink * 0.8);
     }
     // ===================== Saturn and Neptune: the winds =====================
     for (const k of [4, 5]) {

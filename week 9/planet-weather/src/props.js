@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { UMBRELLAS, TOWELS, CHAIRS, LIFEGUARD, PIER, WHEEL, landY, groundY, CAM0, CAM_FWD, CAM_RIGHT } from './layout.js';
 import { patchHeat } from './heat.js';
-import { STRIKES, marsR, VEN_FIRE, NEP_PIER } from './sched.js';
+import { STRIKES, marsR, marsHit, VEN_FIRE, NEP_PIER } from './sched.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
@@ -194,7 +194,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
         const kb = clamp((tt - t0) / 3.0);
         const left = 1 - smooth(0.35, 1, kb);
         // flapping in the gusts (Mars: once the dust reaches it)
-        const gust = (J ? 0.5 + 0.5 * Math.sin(tt * 1.3 + u.seed * 9) : 0) + (M ? smooth(-0.4, 0.2, tt - 3.65 * (1 - Math.pow(Math.max(0, (u.f - 3) / 330), 1 / 1.6))) : 0);
+        const gust = (J ? 0.5 + 0.5 * Math.sin(tt * 1.3 + u.seed * 9) : 0) + (M ? smooth(-0.4, 0.2, tt - marsHit(u.f)) : 0);
         let tilt = u.tilt + gust * 0.08 * Math.sin(tt * 9 + u.seed * 20), flip = 0;
         let fx = 0, fy = 0, spin = 0, poleGone = false;
         if (S || N) {
@@ -318,7 +318,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
         }
       }
       // the wheel's lights (in the darker worlds)
-      const lit = T || N || J ? 1 : 0.35;
+      const lit = k.lit ?? (T || N || J ? 1 : 0.35);
       if (!(N && tt > NEP_PIER)) {
         wheel.updateMatrixWorld();
         for (let i = 0; i < 40; i++) {
