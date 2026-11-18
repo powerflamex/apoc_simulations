@@ -261,6 +261,17 @@
       "env": {
         "PORT": "5293"
       }
+    },
+    {
+      "name": "fast-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 9/fast-trillion/server.mjs"
+      ],
+      "port": 5311,
+      "env": {
+        "PORT": "5311"
+      }
     }
   ]
 }

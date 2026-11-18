@@ -2548,6 +2548,78 @@ At which size would you still make it? 👇
 
 Cover: `week 9/asteroid-sizes/out/asteroid-sizes_v4_cover.png` (`node render.mjs --cover 38.75`: the Moon, with its dark seas, filling the sky over the downtown skyline and the bay, the packed terrace below with arms up; "WHAT IF ASTEROIDS OF / every size / hit your city?")
 
+## Next Short. What if you were 1 trillion times faster? — `week 9/fast-trillion/out/fast-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+47.6 s, loops. One continuous shot, no cuts, in real time (one second of video is one second for you): you sprint down a
+busy avenue and keep getting faster. The counter is TIMES FASTER than walking (3 mph), racing from frame 0, with one line
+under it naming what you are as fast as. The twist and the finish line: you can never reach a trillion; light speed stops
+the counter at 223,538,876x (0:40.3) and it turns gold, "NOTHING GOES FASTER". What you see, in order:
+0:00 you sprinting over your shoulder down the bike lane, people on the sidewalk beside you, traffic, a cheetah running
+level with you (23x = 70 mph, "AS FAST AS A CHEETAH"), the title, the counter racing; a gasp and a scream from the
+sidewalk. By 0:01.5 you've left the cheetah behind. 0:02.9 77x, "AS FAST AS A RACE CAR"; 0:03.2 "To you, every car looks
+parked." 0:04.4 the camera swings round you; 0:05 256x, the speed of sound: a cloud collar flashes round your shoulders,
+the boom; "The boom smashes every window you pass."  0:06.4 the camera is in front of you looking back down the avenue: dust
+and glass erupt behind you, the windows go dark, cars rock; 0:06.9 "FASTER THAN A JET OR A BULLET"; 0:07.2 "The air
+behind you goes off like a bomb." 0:09.1 "FASTER THAN ANY PLANE EVER"; 0:09.5 the air in front of you glows, "The air in front of you hits 4,600°F."
+The camera swings back behind you: 0:11 the avenue ends at the sea and you run straight out across it ("You run straight
+out across the sea."), your strides get longer and floatier ("Every stride, you weigh less."); 0:13.8 the camera at your
+side: "AS FAST AS THE SPACE STATION", your feet leave the water, "At 17,700 mph you weigh nothing."; you lean into the air
+and fly, white-hot, flames pouring off you. 0:16 "Only the air pushing down stops you flying off." The camera in front of
+you looking back over the sea: "FASTER THAN ANY HUMAN EVER", "AS FAST AS EARTH CIRCLES THE SUN", 0:18.5 "The air you
+hit turns to white-hot plasma."; 0:21 "FASTER THAN ANY SPACECRAFT"; 0:22.6 the Sun sinks behind you, "You outrun the Sun. It sets
+behind you." 0:25 night, your fire lighting the sea, "1% OF LIGHT SPEED", "Every second: the blast of 23 of the biggest
+bombs ever." 0:28 the camera behind you again: the Sun rises ahead, "Sunrise. Sunset."; 0:29.5 once round the Earth;
+0:30 "Once round the whole Earth every 2 seconds."; day and night flicker faster and faster; "10% OF LIGHT SPEED" (0:31),
+"Days and nights blur into one." (once you lap the Earth faster than ~2 times a second the sky settles into
+one steady twilight instead of strobing); 0:35 the world ahead turns blue-white, the edges dark red; "HALF THE SPEED OF LIGHT" (0:35.6);
+0:37 "Every second: more than the asteroid that killed the dinosaurs."; "90%", "99% OF LIGHT SPEED"; 0:40.3 the counter
+slams to a stop at 223,538,876x and turns gold, "NOTHING GOES FASTER"; "You'll never be 1 trillion times faster."; "Push
+harder and you only get heavier."; the light ahead grows to full white at 0:46.6, which clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): walking 3 mph; light 670,616,629 mph = 223,538,876x. Cheetah 70 mph
+(23x); race car ~230 mph (77x); sound 767 mph (256x); SR-71 2,193 mph (731x) and rifle bullets ~1,700-2,200 mph; X-15
+4,520 mph (1,507x, the fastest plane ever flown); the space station 17,500 mph (5,833x); Apollo 10, the fastest humans,
+24,791 mph (8,264x); Earth round the Sun 66,600 mph (22,200x); Parker Solar Probe 430,000 mph (143,333x). The blast: the
+energy you push into the air per metre is 1/2 rho CdA v^2 (CdA 0.7 m^2 running, 0.15 m^2 flying head first), so the air
+along your path goes off like a line of explosive (overpressure from a line-blast fit, arriving r/343 s after you pass):
+every window from 0:05 (0.1-0.5 psi), people knocked down from 0:05.7 (2 psi), the near walls blown in from 0:09
+(5 psi). The blast lasts only milliseconds, so its push on a car is small (~1 m/s at 0:07, ~5 m/s at 0:10): cars rock
+and slide, and are only thrown once it tops ~20 psi (the next lane from ~0:08.6), by which time you're far past (so the
+owner's "cars thrown aside by 0:07" was toned down to what the physics backs). At Mach 6.6 the air piled up in front of you is 2,800 K = 4,600°F. Your
+weight on the curved Earth is g(1 - v^2/gR): zero at 17,700 mph (orbit speed at the ground), so you'd float off; you only
+stay low by leaning into the air, which pushes down on you (as capsules back from the Moon did at 25,000 mph). 1% of
+light speed: rho A v^3 = 4.9e18 W = 1,160 megatons of TNT a second = 23 Tsar Bombas (50 Mt). One lap of the Earth
+(40,075 km) takes 2 s at 0:30 and 0.13 s at light speed (7.5 laps a second). 70% of light speed: rho A v (gamma - 1) c^2 =
+1.4e24 W, more than the highest estimate for the dinosaur asteroid (1.3e24 J) every second. The glow at 0:07 was moved to 0:09.5: at Mach 3 the air at your face is ~1,000°F but doesn't
+glow. Laps with day and night flickering happen in real time only near light speed (one lap takes 85 min at the space
+station's speed, 13 s at 1% of light speed). Honest notes: you are unharmed (only your speed changes; no human could push off the ground past ~0:01); the fireball and flames are drawn
+so you stay visible inside them (the real plasma would be blinding); at these speeds a car or person takes ~half a second
+to visibly fly, by which time you're a kilometre past, so the look-back shows the dust and glass right behind you; the setting Sun is drawn ~3x its real size; the land and sea you pass on the laps are a
+simplified Earth; mass can only get closer and closer to light speed, so the counter stopping at exactly 223,538,876x is
+rounded.
+
+**YouTube title (89 chars)**
+What if you were 1 trillion times faster? Light speed stops you first 🔥 #whatif #physics
+
+**YouTube description**
+You start sprinting as fast as a cheetah: 23 times faster than walking (3 mph).
+77x: as fast as a race car.
+256x: the speed of sound. The boom smashes every window you pass.
+Faster than a jet or a rifle bullet: the air behind you goes off like a bomb.
+1,500x: faster than any plane ever. The air in front of you hits 4,600°F and glows.
+5,900x (17,700 mph): you weigh nothing. Your feet leave the sea, and only the air pushing down keeps you from flying off into space.
+The air you hit turns to white-hot plasma, and you outrun the Sun.
+1% of light speed: every second, the blast of 23 of the biggest bombs ever.
+Then once round the whole Earth every 2 seconds, faster and faster.
+70% of light speed: every second, more energy than the asteroid that killed the dinosaurs.
+Light speed: 223,538,876 times faster than walking. Nothing goes faster, so you can never be 1 trillion times faster.
+
+How fast would you go before you stopped? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 9/fast-trillion/out/fast-trillion_v4_cover.png` (`node render.mjs --cover 18.5`: you flying head first over the sea, white-hot, flames streaming off you, the horizon behind; "WHAT IF YOU WERE / 1 trillion / times faster?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
