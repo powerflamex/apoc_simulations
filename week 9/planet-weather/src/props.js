@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { UMBRELLAS, TOWELS, CHAIRS, LIFEGUARD, PIER, WHEEL, landY, groundY, CAM0, CAM_FWD, CAM_RIGHT } from './layout.js';
 import { patchHeat } from './heat.js';
-import { STRIKES, marsR, marsHit, VEN_FIRE, NEP_PIER } from './sched.js';
+import { STRIKES, marsR, marsHit, VEN_FIRE, NEP_PIER, satFrontT } from './sched.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
@@ -17,6 +17,9 @@ const hide = new THREE.Matrix4().makeScale(0, 0, 0);
 const tmpC = new THREE.Color(), WET = new THREE.Color(0, 0, 0);
 const blown = (t, acc, vmax) => (t <= 0 ? 0 : t < vmax / acc ? 0.5 * acc * t * t : vmax * vmax / (2 * acc) + vmax * (t - vmax / acc));
 const fOf = (x, z) => (x - CAM0.x) * CAM_FWD.x + (z - CAM0.z) * CAM_FWD.z;
+// Saturn: half of everything goes in the first gust, the rest when the second gust's front reaches it
+const angOf = (x, z) => Math.atan2((x - CAM0.x) * CAM_RIGHT.x + (z - CAM0.z) * CAM_RIGHT.z, fOf(x, z));
+const satT = (x, z, seed, early) => (seed < 0.5 ? early : satFrontT(angOf(x, z)) + 0.15 * (seed - 0.5));
 
 export function makeProps(scene, { plainMat, shadowy }) {
   const charred = (m, key, burnK = 1) => patchHeat(m, key, { burnK });
@@ -200,7 +203,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
         if (S || N) {
           const tf = S ? 0.2 + u.seed * 0.7 : 0.02 + u.seed * 0.25;
           flip = smooth(tf, tf + 0.12, tt);
-          const tr = S ? 0.7 + u.seed * 3.4 : 0.15 + u.seed * 0.9;
+          const tr = S ? satT(u.x, u.z, u.seed, 0.6 + u.seed * 3.0) : 0.15 + u.seed * 0.9;
           if (tt > tr) { const fl = fly(tt - tr, u.seed, S ? 35 : 90, S ? 70 : 200, S ? 2.2 : 4); fx = fl.d; fy = fl.y; spin = fl.spin; }
           poleGone = N && tt > 1.2 + u.seed * 2.5;
         }
@@ -238,7 +241,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
       towelAt.forEach((t, i) => {
         let fx = 0, fy = 0, spin = 0;
         if ((S || N) && t.f > 9) {
-          const tf = (S ? 0.15 + t.seed * 1.6 : 0.02 + t.seed * 0.4) + (t.near ? 0.1 : 0);
+          const tf = (S ? satT(t.x, t.z, t.seed, 0.15 + t.seed * 2.4) : 0.02 + t.seed * 0.4) + (t.near ? 0.1 : 0);
           if (tt > tf) { const fl = fly(tt - tf, t.seed, S ? 40 : 100, S ? 60 : 200, S ? 1.6 : 3); fx = fl.d; fy = fl.y; spin = fl.spin * 1.6; }
         } else if (J || M) {
           spin = 0; fy = 0;
@@ -259,7 +262,7 @@ export function makeProps(scene, { plainMat, shadowy }) {
       CHAIRS.forEach((c, i) => {
         let fx = 0, fy = 0, spin = 0;
         if ((S || N) && (c.x - CAM0.x) * CAM_FWD.x + (c.z - CAM0.z) * CAM_FWD.z > 9) {
-          const tf = S ? 0.6 + c.seed * 3 : 0.1 + c.seed * 0.8;
+          const tf = S ? satT(c.x, c.z, c.seed, 0.6 + c.seed * 3.2) : 0.1 + c.seed * 0.8;
           if (tt > tf) { const fl = fly(tt - tf, c.seed, S ? 20 : 80, S ? 30 : 180, S ? 0.6 : 2.5); fx = fl.d; fy = fl.y; spin = fl.spin; }
         }
         if (fx > 900) { chairs.setMatrixAt(i, hide); return; }

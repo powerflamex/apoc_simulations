@@ -19,6 +19,7 @@ import { H, patchHeat } from './heat.js';
 import { PEOPLE, personPose, titFrontF } from './people.js';
 import { landY, groundY, CAM0, CAM_FWD, CAM_RIGHT, YOU, FACE_YAW, LIFEGUARD } from './layout.js';
 import { STOPS, LAND } from './timeline.js';
+import { SAT_GUST0, SAT_SWEEP, SAT_DOWN, satFrontT } from './sched.js';
 import { STRIKES, strikeK, JUP_RAIN, marsR, MARS_IN, MARS_CLEAR, MARS_FROST, marsFrostF, VEN_FIRE, VEN_STEAM, venLevel, TIT_FZ0, TIT_FZDUR, TIT_FZO0, TIT_FZP, TIT_SHORE, TIT_RUN, TIT_SHATTER, titSeaFront, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './sched.js';
 import { smooth, clamp, lerp, wobble, DEG } from './util.js';
 
@@ -30,6 +31,10 @@ const hash = (i, s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.54
 const wrapTo = (x, a, b) => a + ((((x - a) % (b - a)) + (b - a)) % (b - a));
 const blown = (t, acc, vmax) => (t <= 0 ? 0 : t < vmax / acc ? 0.5 * acc * t * t : vmax * vmax / (2 * acc) + vmax * (t - vmax / acc));
 const C3 = (a) => new THREE.Color(a[0], a[1], a[2]);
+// Saturn's rings from its cloud tops: you stand at 55 deg north on the oblate planet (equatorial radius 60,268 km, polar
+// 54,364 km), looking toward the equator; uRingO is that point in the planet's frame (1000 km), uRingG its latitude
+const RING_G = 55 * Math.PI / 180;
+const RING_O = (() => { const a = 60.268, b = 54.364, N = a * a / Math.hypot(a * Math.cos(RING_G), b * Math.sin(RING_G)); return [N * Math.cos(RING_G), N * (b * b) / (a * a) * Math.sin(RING_G)]; })();
 
 // ---- how each world looks ----
 // sky: top / low / haze colours, haze strength, cloud cover and its lit / dark colours, streak (stretched by wind);
@@ -43,8 +48,8 @@ const LOOK = {
     sun: [1.0, 0.82, 0.52], sunI: 1.3, hSky: [1.0, 0.84, 0.52], hGnd: [0.78, 0.58, 0.32], hI: 1.6, fog: [0.96, 0.78, 0.44], fogD: 0.0022, exp: 0.82, body: [0.08, 0.08, 0.05], smoke: [1.2, 1.1, 0.92] },
   titan: { top: [0.3, 0.16, 0.06], low: [0.56, 0.33, 0.13], haze: [0.62, 0.38, 0.16], hazeK: 0.95, cloud: 0.55, cLit: [0.62, 0.4, 0.2], cDark: [0.18, 0.1, 0.05], streak: 0.3, cScale: 1,
     sun: [1.0, 0.72, 0.42], sunI: 0.35, hSky: [0.8, 0.52, 0.28], hGnd: [0.42, 0.27, 0.13], hI: 1.0, fog: [0.52, 0.31, 0.13], fogD: 0.0019, exp: 1.25, body: [0.03, 0.025, 0.015], smoke: [0.9, 0.62, 0.36] },
-  saturn: { top: [0.6, 0.53, 0.38], low: [0.93, 0.85, 0.63], haze: [0.95, 0.87, 0.65], hazeK: 0.8, cloud: 0.75, cLit: [1.0, 0.96, 0.82], cDark: [0.72, 0.62, 0.44], streak: 7, cScale: 1,
-    sun: [1.0, 0.93, 0.76], sunI: 2.7, hSky: [0.92, 0.84, 0.64], hGnd: [0.66, 0.56, 0.38], hI: 1.3, fog: [0.9, 0.81, 0.6], fogD: 0.0011, exp: 0.85, body: [0.03, 0.06, 0.06], smoke: [1.15, 1.0, 0.75] },
+  saturn: { top: [0.05, 0.042, 0.034], low: [0.24, 0.19, 0.12], haze: [0.34, 0.28, 0.19], hazeK: 0.75, cloud: 0.32, cLit: [0.62, 0.55, 0.42], cDark: [0.16, 0.13, 0.09], streak: 7, cScale: 1,
+    sun: [1.0, 0.93, 0.76], sunI: 2.7, hSky: [0.92, 0.84, 0.64], hGnd: [0.66, 0.56, 0.38], hI: 1.2, fog: [0.36, 0.3, 0.2], fogD: 0.0011, exp: 0.88, body: [0.03, 0.06, 0.06], smoke: [1.15, 1.0, 0.75] },
   neptune: { top: [0.01, 0.03, 0.15], low: [0.06, 0.17, 0.48], haze: [0.13, 0.27, 0.58], hazeK: 0.6, cloud: 0.6, cLit: [0.85, 0.93, 1.0], cDark: [0.22, 0.33, 0.62], streak: 10, cScale: 1.4,
     sun: [0.75, 0.86, 1.0], sunI: 0.9, hSky: [0.38, 0.52, 0.98], hGnd: [0.16, 0.24, 0.48], hI: 1.55, fog: [0.16, 0.3, 0.62], fogD: 0.0014, exp: 1.2, body: [0.005, 0.02, 0.07], smoke: [0.85, 0.95, 1.15] },
 };
@@ -202,10 +207,22 @@ export function makeWorld(scene) {
         const t = tt - SAT_RIP;
         held = false;
         flying = { t, acc: 45, vmax: 70, up: 0.45, spinK: 8 };
-        // your hand flies after it, then drops
+        // your hand flies after it; then the gust throws you down onto your knees, arms over your head, and drags you
         const reach = Math.exp(-t / 0.7);
         q.holdR = youLocal(-0.55 - 0.15 * (1 - reach), 1.55 + 0.25 * reach, 0.18, new THREE.Vector3()); q.poleR = youLocal(-0.6, 0.9, -0.2, new THREE.Vector3()); q.curlR = 0.25;
         q.head = [0.1, -0.7 * smooth(0, 0.4, t)];
+        const kd = smooth(SAT_DOWN, SAT_DOWN + 0.22, tt), td = tt - SAT_DOWN;
+        if (kd > 0) {
+          const drag = Math.min(blown(td, 9, 3.2), 1.05) + 0.04 * Math.sin(tt * 9) * smooth(0.5, 1, td);
+          you.root.position.addScaledVector(RT, drag);
+          you.root.position.y = landY(you.root.position.x + 0) + 0.0;
+          you.root.rotateOnWorldAxis(F, 0.42 * kd * (1 - 0.6 * smooth(0.35, 1.0, td)) + 0.05 * Math.sin(tt * 7) * smooth(0.6, 1.2, td));
+          you.root.updateMatrixWorld(true);
+          q.sink = lerp(q.sink || 0, 0.47, kd); q.hunch = lerp(q.hunch || 0, 0.62, kd); q.roll = lerp(q.roll || 0, 0.1, kd);
+          q.head = [lerp(0.1, 0.5, kd), -0.3 * kd];
+          q.holdR = youLocal(-0.16, lerp(1.6, 1.38, kd), 0.3, new THREE.Vector3()); q.poleR = youLocal(-0.6, 1.3, -0.1, new THREE.Vector3()); q.curlR = 0.6;
+          q.holdL = youLocal(0.16, lerp(1.62, 1.38, kd), 0.3, new THREE.Vector3()); q.poleL = youLocal(0.6, 1.3, -0.1, new THREE.Vector3()); q.curlL = 0.6;
+        }
       }
     } else if (key === 'neptune') {
       const k = smooth(0.0, 0.25, tt);
@@ -294,6 +311,7 @@ export function makeWorld(scene) {
       const cloudV = key === 'saturn' ? 420 : key === 'neptune' ? 600 : key === 'jupiter' ? 30 : key === 'mars' ? 25 : 6;
       s.uDrift.value.set(-RT.x * cloudV * tt, -RT.z * cloudV * tt);
       s.uFlash.value = 0; s.uT.value = v;
+      s.uRingK.value = 0;
       // ---- light ----
       sun.color.setRGB(...L.sun); sun.intensity = L.sunI;
       hemi.color.setRGB(...L.hSky); hemi.groundColor.setRGB(...L.hGnd); hemi.intensity = L.hI;
@@ -310,7 +328,7 @@ export function makeWorld(scene) {
       su.uBoil.value = 0; su.uTear.value = 0; su.uWindD.value.set(RT.x, RT.z); su.uFlash.value = 0; su.uLevel.value = 0; su.uFzIn.value = 0;
       su.uPx.value = (2 * Math.tan((camera.fov * DEG) / 2)) / 1920;
       // ---- walls off by default ----
-      for (const w of walls) { w.u.uAlpha.value = 0; w.mesh.visible = false; w.u.uC.value.copy(camera.position).setY(0); w.u.uB0.value = BEAR; w.u.uT.value = tt; w.u.uLean.value = 0; w.u.uScale.value = 1; }
+      for (const w of walls) { w.u.uAlpha.value = 0; w.mesh.visible = false; w.u.uC.value.copy(camera.position).setY(0); w.u.uB0.value = BEAR; w.u.uT.value = tt; w.u.uLean.value = 0; w.u.uScale.value = 1; w.u.uSweep.value = 9; }
       smoke.mat.uniforms.uLight.value.setRGB(...L.smoke);
       smoke.mat.uniforms.uSun.value.copy(SUN_DIR);
       let flash = 0;
@@ -616,12 +634,36 @@ export function makeWorld(scene) {
         const w0 = walls[0], w1 = walls[1];
         w0.mesh.visible = w1.mesh.visible = true;
         w0.u.uKind.value = 3; w0.u.uR.value = N ? 70 : 90; w0.u.uSpan.value = 1.5; w0.u.uH.value = N ? 14 : 8; w0.u.uTop.value = 1; w0.u.uAlpha.value = (N ? 0.75 : 0.5) * k; w0.u.uSpeed.value = N ? 520 : 300;
+        if (!N) {
+          // the second gust: a wall of blown sand racing across the beach from the left, through the crowd, past you
+          const g = tt - SAT_GUST0;
+          w0.u.uR.value = 22; w0.u.uH.value = 3 + 7 * smooth(0, 0.5, g) - 3 * smooth(1.2, 3, g); w0.u.uSpeed.value = 420;
+          w0.u.uAlpha.value = g > 0 ? 0.85 * smooth(0, 0.15, g) * (1 - 0.55 * smooth(0.7, 2.5, g)) : 0;
+          w0.u.uSweep.value = -0.3 + SAT_SWEEP * g;
+          w0.u.uLit.value.setRGB(1.05, 0.9, 0.66); w0.u.uDark.value.setRGB(0.62, 0.5, 0.33);
+        }
         w0.u.uLit.value.setRGB(...(N ? [0.8, 0.86, 0.95] : [1.0, 0.9, 0.7])); w0.u.uDark.value.setRGB(...(N ? [0.45, 0.52, 0.7] : [0.78, 0.66, 0.46])); w0.u.uHazeC.value.setRGB(...L.fog); w0.u.uHazeK.value = 0.1;
-        w1.u.uKind.value = 3; w1.u.uR.value = N ? 380 - 340 * smooth(6.5, 12, tt) : 500; w1.u.uSpan.value = 1.5; w1.u.uH.value = N ? 60 + 180 * smooth(6, 12, tt) : 45; w1.u.uTop.value = 1;
-        w1.u.uAlpha.value = (N ? 0.7 + 0.3 * smooth(7.5, 11, tt) : 0.55) * k; w1.u.uSpeed.value = N ? 700 : 420;
+        w1.u.uKind.value = 3; w1.u.uR.value = N ? 380 - 340 * smooth(6.5, 12, tt) : 500; w1.u.uSpan.value = 1.5; w1.u.uH.value = N ? 60 + 180 * smooth(6, 12, tt) : 16; w1.u.uTop.value = 1;
+        w1.u.uAlpha.value = (N ? 0.7 + 0.3 * smooth(7.5, 11, tt) : 0.4) * k; w1.u.uSpeed.value = N ? 700 : 420;
         w1.u.uLit.value.setRGB(...(N ? [0.92, 0.96, 1.0] : [1.0, 0.97, 0.88])); w1.u.uDark.value.setRGB(...(N ? [0.55, 0.65, 0.85] : [0.85, 0.78, 0.62])); w1.u.uHazeC.value.setRGB(...L.fog); w1.u.uHazeK.value = 0.15;
         scene.fog.density = L.fogD + (N ? 0.006 + 0.03 * nepWhite(tt) : 0.0025) * k;
         out.shake = (N ? 0.8 : 0.5) * k + (N ? 0.6 * smooth(NEP_LIFT, NEP_LIFT + 1, tt) : 0);
+        if (!N) {
+          // Saturn's rings in the sky from the moment the wipe lands
+          s.uRingK.value = 1; s.uRingO.value.set(RING_O[0], RING_O[1]); s.uRingG.value = RING_G; s.uRingSq.value = 2.8; s.uRingFwd.value.set(F.x, F.z); s.uRingI.value = 1.12;
+          // the second gust: sand blasting past the lens, the camera knocked about, the air thick with it after
+          const g = tt - satFrontT(0);
+          out.jolt = Math.max(out.jolt, 0.8 * Math.exp(-Math.abs(tt - SAT_DOWN) / 0.12));
+          out.shake += 0.6 * Math.exp(-Math.max(0, g) / 1.2) * smooth(-0.1, 0.1, g);
+          out.veil = [0.62, 0.52, 0.36, 0.2 * smooth(-0.05, 0.15, g) * (1 - 0.6 * smooth(0.6, 2.5, g))];
+          out.streak = 0.55 * smooth(-0.05, 0.15, g) * (1 - 0.5 * smooth(0.8, 3, g));
+          scene.fog.density += 0.004 * smooth(0, 0.5, g);
+          box(1400, 9.4, tt, 1.5, 40, 0, 3, 0, 60, 0.6, (x, y, z, j, f, d) => {
+            const ang = Math.atan2((x - cx) * RT.x + (z - cz) * RT.z, (x - cx) * F.x + (z - cz) * F.z);
+            const on = smooth(-0.05, 0.1, tt - satFrontT(ang));
+            parts.add(x, y, z, 0.008 + 0.01 * d, RT.x * 60, 0.6, RT.z * 60, 1, 0.9, 0.78, 0.56, 0.4 * on, d);
+          });
+        }
         if (N) {
           H.uFrost.value = 0.55 * smooth(0.5, 3.0, tt);
           // shreds of your umbrella torn off downwind

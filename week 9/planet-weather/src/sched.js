@@ -52,8 +52,15 @@ export const titBeachF = (tt) => (tt < TIT_SHORE ? 1e5 : 24 - 30 * clamp((tt - T
 export const TIT_RUN = 1.0;             // the crowd sees it coming and runs
 export const TIT_SHATTER = 3.2;
 
-// Saturn: your umbrella flips inside out; everyone is knocked flat and slides; the umbrella is torn from your hand
-export const SAT_FLIP = 0.35, SAT_KNOCK = 0.35, SAT_RIP = 2.85;
+// Saturn: your umbrella flips inside out; everyone is knocked flat and slides. Then the second, bigger gust: a wall of
+// sand sweeps across the beach from left to right (SAT_GUST0 .. +0.5 s across the frame); where it hits it rips your
+// umbrella from your hand and throws you to your knees, rolls the crowd along the sand and tears loose everything left
+export const SAT_FLIP = 0.35, SAT_KNOCK = 0.35;
+export const SAT_GUST0 = 2.5, SAT_SWEEP = 1.2;     // the front's start, and its speed across the wall sheet (uv per s)
+// when the front reaches something at angle a (radians, + to the right of the camera's forward)
+export const satFrontT = (a) => SAT_GUST0 + (a / 1.5 + 0.3) / SAT_SWEEP;
+export const SAT_RIP = satFrontT(-0.13) + 0.03;    // (you stand 0.13 rad left of centre)
+export const SAT_DOWN = SAT_RIP + 0.05;
 // Neptune: the umbrella shreds; you're lifted off your feet; the pier and wheel go; the white-out
 export const NEP_SHRED = 0.25, NEP_LIFT = 7.0, NEP_PIER = 5.0;
 export const nepWhite = (tt) => smooth(9.3, 12.0, tt);

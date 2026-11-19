@@ -9,7 +9,8 @@
 //     then the sea boiling off with a roar of steam.
 //   Titan: quiet and heavy: big slow drops plopping on the umbrella; the freeze front crackling in across the sea, a
 //     boom as it hits the shore, your frozen umbrella shattering like glass and its shards tinkling down.
-//   Saturn: a howling gale, the umbrella snapping inside out and flapping, then tearing away.
+//   Saturn: a howling gale, the umbrella snapping inside out and flapping; then the second gust roaring across from
+//     left to right, tearing the umbrella away, a thud as you're thrown down.
 //   Neptune: a double sonic boom, a roar far louder than anything before, the cloth shredding, the pier crashing,
 //     a rush as you're lifted, and the roar peaking into the white.
 // Every wipe: a whoosh and a deep hit; the picker clicks as its cursor locks on.
@@ -20,7 +21,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STOPS, LAND, T_END } from './src/timeline.js';
-import { STRIKES, JUP_RAIN, marsR, MARS_IN, MARS_CLEAR, MARS_FROST, VEN_FIRE, VEN_STEAM, TIT_FZ0, TIT_SHORE, TIT_SHATTER, SAT_FLIP, SAT_RIP, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './src/sched.js';
+import { STRIKES, JUP_RAIN, marsR, MARS_IN, MARS_CLEAR, MARS_FROST, VEN_FIRE, VEN_STEAM, TIT_FZ0, TIT_SHORE, TIT_SHATTER, SAT_FLIP, SAT_RIP, SAT_GUST0, SAT_DOWN, NEP_SHRED, NEP_LIFT, NEP_PIER, nepWhite } from './src/sched.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -185,7 +186,7 @@ export function makeSoundtrack(outFile) {
       const howl = flt('fWhistle17' + k, 'SVF').run(w2, (Nn ? 1100 : 820) + 380 * Math.sin(tt * 2.3) + 200 * Math.sin(tt * 5.1), 0.09).bp * 0.32 * on;
       const howl2 = flt('fWhistle218' + k, 'SVF').run(w3, (Nn ? 1700 : 1350) + 400 * Math.sin(tt * 1.4 + 2), 0.12).bp * 0.18 * on;
       let sub = flt('fSub19' + k, 'OnePole').run(w2) * (Nn ? 3.0 : 1.6) * on;
-      let s = 0;
+      let s = 0, gustL = 0, gustR = 0;
       if (!Nn) {
         // the umbrella: snaps inside out (a soft thump and a slap of cloth), flaps, tears away
         const fl = tt - SAT_FLIP;
@@ -194,6 +195,15 @@ export function makeSoundtrack(outFile) {
         s += flt('fFlap21' + k, 'SVF').run(w1, 900, 1.2).bp * flap * 0.25;
         const rp = tt - SAT_RIP;
         s += flt('fTear22' + k, 'SVF').run(w2, 1600 + 2000 * clamp(rp / 0.3), 0.6).bp * (rp > 0 && rp < 0.35 ? 1 : 0) * 0.9 * env(rp, 0.03, 0.2) * 1.2;
+        // the second gust: a roar that sweeps across from the left, then a thud as you go down
+        const gg = tt - SAT_GUST0;
+        if (gg > -0.05) {
+          const gr = flt('fGust2' + k, 'SVF').run(w3, 260 + 900 * clamp(gg / 0.5), 0.6).lp * env(gg, 0.3, 1.6) * 1.5;
+          const [gl, gR] = pan(-0.8 + 1.6 * clamp(gg / 0.5));
+          gustL = gr * gl; gustR = gr * gR;
+          const dd = tt - SAT_DOWN;
+          s += dd > 0 ? Math.sin(TAU * (55 + 30 * Math.exp(-dd * 9)) * dd) * env(dd, 0.006, 0.18) * 0.7 : 0;
+        }
       } else {
         // a double boom as it hits; the cloth shredding; the pier going; the rush as you're lifted; the roar to the white
         for (const d0 of [0, 0.12]) { const d = tt - d0; s += Math.sin(TAU * (34 + 40 * Math.exp(-d * 8)) * d) * env(d, 0.004, 0.35) * 1.4; }
@@ -205,8 +215,8 @@ export function makeSoundtrack(outFile) {
         sub *= 1 + 1.2 * nepWhite(tt);
       }
       const swell = Nn ? 1 + 1.3 * nepWhite(tt) : 1;
-      l += g * ((roar + howl + sub) * swell + howl2 * 0.6 + s);
-      r += g * ((roar * 0.95 + howl * 0.8 + sub) * swell + howl2 + s * 0.9);
+      l += g * ((roar + howl + sub) * swell + howl2 * 0.6 + s + gustL);
+      r += g * ((roar * 0.95 + howl * 0.8 + sub) * swell + howl2 + s * 0.9 + gustR);
     }
     // ===================== every wipe: a whoosh across (right to left, like the wipe) and a deep hit =====================
     for (const t of wipes) {

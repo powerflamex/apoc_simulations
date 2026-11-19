@@ -14,7 +14,7 @@
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
 import { landY, UMBRELLAS, LIFEGUARD, CAM0, CAM_FWD, CAM_RIGHT, YOU, FACE_YAW, PIER } from './layout.js';
-import { STRIKES, JUP_RAIN, JUP_RUN, marsHit, marsFrostF, TIT_RUN, TIT_SHORE, titSeaFront, titBeachF, SAT_KNOCK } from './sched.js';
+import { STRIKES, JUP_RAIN, JUP_RUN, marsHit, marsFrostF, TIT_RUN, TIT_SHORE, titSeaFront, titBeachF, SAT_KNOCK, satFrontT } from './sched.js';
 
 const TOPS = [0xffffff, 0x222222, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4, 0x8e44ad, 0xd5d5d5, 0x16a085, 0xf2f2f2, 0xe8e2d0, 0xc0392b, 0x2e86c1, 0xff8c1a, 0x1abc9c];
 const PANTS = [0x1b2631, 0x2c3e50, 0x5d6d7e, 0xd5c4a1, 0x4a6fa5, 0x212121, 0x7f8c8d, 0xe8e2d0, 0xc0392b, 0x2e86c1];
@@ -250,8 +250,20 @@ export function personPose(p, key, tt) {
         // sliding and rolling along the sand (the ones by the lens just go down and skid a little)
         const sl = blown(tt - tDown, 4, 2.2 + 2.2 * p.g4) * (0.25 + 0.75 * smooth(6, 12, p.f));
         side += sl;
-        o.roll += sl * (0.25 + 0.3 * p.g3) * (p.g1 < 0.5 ? 1 : -1);
+        o.yaw += sl * (0.08 + 0.1 * p.g3) * (p.g1 < 0.5 ? 1 : -1);          // (spun round flat on the sand)
+        o.roll += 0.25 * Math.sin(sl * 1.4 + p.ph);
         o.armL = 1.6 + 0.3 * Math.sin(tt * 9 + p.ph); o.armR = 1.5 + 0.3 * Math.sin(tt * 8 + p.ph * 2);
+        // the second gust: as its front reaches them they're bowled over and over along the sand, a few metres, bouncing
+        const tg = satFrontT(Math.atan2(p.l, p.f)) + p.d * 0.15;
+        if (tt > tg) {
+          const near = 0.3 + 0.7 * smooth(6, 12, p.f);
+          const ex = Math.min(blown(tt - tg, 16, 6 + 3 * p.g1), 3 + 5 * p.g2) * near;
+          side += ex;
+          o.yaw += ex * (0.25 + 0.3 * p.g3) * (p.g1 < 0.5 ? 1 : -1);
+          o.roll += 0.5 * Math.sin(ex * 1.6 + p.ph) * (1 - smooth(1.5, 3, tt - tg));
+          o.pitch += 0.2 * Math.sin(ex * 1.3 + p.ph);
+          o.y0bump = 0.35 * Math.abs(Math.sin(ex * 1.1 + p.ph)) * (1 - smooth(1.2, 2.5, tt - tg)) * near;
+        }
       }
       o.y += 0.12 * down;
     }
@@ -269,7 +281,8 @@ export function personPose(p, key, tt) {
       }
     }
     o.x += CAM_RIGHT.x * side; o.z += CAM_RIGHT.z * side;
-    o.y = landY(o.x) + 0.12 * down + lift;
+    o.y = landY(o.x) + 0.12 * down + lift + (o.y0bump || 0);
+    o.y0bump = 0;
     return o;
   }
   return o;

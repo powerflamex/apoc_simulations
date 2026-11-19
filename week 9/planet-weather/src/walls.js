@@ -26,7 +26,7 @@ precision highp float;
 varying vec2 vP; varying vec2 vUV;
 uniform float uKind; uniform float uT; uniform float uH; uniform float uAlpha; uniform float uTop; uniform float uRain; uniform float uSpeed;
 uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uC4; uniform vec3 uLit; uniform vec3 uDark;
-uniform float uFlash; uniform vec2 uFlashP; uniform vec3 uFlashCol; uniform vec3 uHazeC; uniform float uHazeK; uniform float uScale;
+uniform float uFlash; uniform vec2 uFlashP; uniform vec3 uFlashCol; uniform vec3 uHazeC; uniform float uHazeK; uniform float uScale; uniform float uSweep;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float n21(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
@@ -105,7 +105,7 @@ void main() {
     col = mix(uDark, uLit, 0.6 + 0.4 * n);
   }
   col = mix(col, uHazeC, uHazeK);
-  a = clamp(a, 0.0, 1.0) * uAlpha * side;
+  a = clamp(a, 0.0, 1.0) * uAlpha * side * (1.0 - smoothstep(uSweep - 0.04, uSweep + 0.01, vUV.x + 0.03 * (fbm3(vec2(vP.y / 3.0, uT * 2.0)) - 0.5)));
   if (a < 0.003) discard;
   gl_FragColor = vec4(col, a);
 }`;
@@ -129,7 +129,7 @@ export function makeWall(scene, order = 2) {
     uKind: { value: 0 }, uR: { value: 5000 }, uB0: { value: 0.2 }, uSpan: { value: 1.4 }, uH: { value: 3000 }, uY0: { value: 0 }, uC: { value: new THREE.Vector3() },
     uLean: { value: 0 }, uT: { value: 0 }, uAlpha: { value: 0 }, uTop: { value: 1 }, uRain: { value: 0 }, uSpeed: { value: 0 }, uScale: { value: 1 },
     uC1: C(1, 1, 1), uC2: C(1, 1, 1), uC3: C(1, 1, 1), uC4: C(1, 1, 1), uLit: C(1, 1, 1), uDark: C(0.2, 0.2, 0.2),
-    uFlash: { value: 0 }, uFlashP: { value: new THREE.Vector2() }, uFlashCol: C(0.8, 0.85, 1), uHazeC: C(0.5, 0.5, 0.5), uHazeK: { value: 0 },
+    uFlash: { value: 0 }, uFlashP: { value: new THREE.Vector2() }, uFlashCol: C(0.8, 0.85, 1), uHazeC: C(0.5, 0.5, 0.5), uHazeK: { value: 0 }, uSweep: { value: 9 },
   };
   const mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
   mesh.frustumCulled = false;

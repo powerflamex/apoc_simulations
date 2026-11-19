@@ -2441,8 +2441,12 @@ beach; 0:16.3 with a boom the sea boils off, its level falling, and a wall of st
 orange haze, -290°F, slow methane drops; a freeze front races in from the horizon across the sea, wave by wave through the
 surf (0:22.6 it hits the shore with a boom); the crowd runs and is frozen mid-stride into white statues as it catches them,
 then you; 0:23.6 your frozen umbrella cracks and shatters like glass, the shards raining onto the frozen sand. 0:25 Saturn: a
-pale gold sky streaming sideways, 1,100 mph winds; at once your umbrella snaps inside out and the whole crowd is knocked flat
-(by 0:27) and slides and rolls along the sand; 0:27.9 the umbrella is torn out of your hand and gone. 0:32 Neptune, the
+dark gold-brown sky streaming sideways and, from the moment the wipe lands, Saturn's rings in it: a huge arch of thin bands
+from horizon to horizon behind the pier and the Ferris wheel, the dark Cassini gap near its top; 1,100 mph winds; at once your
+umbrella snaps inside out and the whole crowd is knocked flat (by 0:27) and slides along the sand; 0:27.5 the second, bigger
+gust: a wall of sand sweeps across the beach from the left, 0:27.7 it tears the umbrella out of your hand and throws you to
+your knees, dragging you downwind, arms over your head; the crowd is bowled along the sand and a second wave of beach
+umbrellas, chairs and towels tears loose and flies past; the sand settles and the rings come back. 0:32 Neptune, the
 finale: a deep blue sky, white methane-ice streaks, a double sonic boom; at once your umbrella shreds to bare ribs; 0:33-0:35
 everyone is knocked down and blown away tumbling (FASTER THAN SOUND); 0:37 the Ferris wheel and the pier are torn off; 0:39
 the bare umbrella yanks you off your feet and carries you away to the right ("It takes you with it"); 0:41 the empty, frozen
@@ -2457,12 +2461,19 @@ photographed frost on the ground. Venus: "hot enough to melt lead" (NASA; lead m
 yellow" (NASA, from the Venera landers). Titan: methane rain (NASA); drops up to ~9.5 mm falling ~1.6 m/s against ~9.2 m/s for
 rain on Earth: about 6x slower (Lorenz 1993, "The life, death and afterlife of a raindrop on Titan"). At -290°F rubber and most
 plastics are far below their glass transition and go glass-brittle (the liquid-nitrogen demo, -321°F, shatters rubber tubing
-"like glass": U. Michigan Materials Science). Saturn: winds of 500 m/s (~1,100 mph) at the equator (NASA). Neptune: "our solar
+"like glass": U. Michigan Materials Science). Saturn: winds of 500 m/s (~1,100 mph) at the equator (NASA); ring radii from NASA's Saturnian Rings Fact Sheet (C ~74,700-
+92,000 km, B to ~117,500, the Cassini Division to ~122,300, A to ~136,800 with the Encke gap at ~133,400, F ~140,000; Saturn's
+radius 60,268 km at the equator, 54,364 at the poles). Neptune: "our solar
 system's windiest world", winds "more than 1,200 miles per hour" (NASA); on Earth that is faster than sound (767 mph at sea level).
 Honest notes: everything is sped up to seconds (the sea would take far longer to boil off or freeze; the dust wall and the frost
 move far faster than on Mars). Real 1,100-1,200 mph winds would strip the beach at once; Saturn is drawn milder (everyone flat
 and sliding) than Neptune (everything gone) so the finale builds. The storm wall is coloured like Jupiter's cloud bands (its real
-storms are far bigger than this wall). Titan's daylight is ~100x fainter than ours, drawn as a dim dusk. Woven nylon might only
+storms are far bigger than this wall). Titan's daylight is ~100x fainter than ours, drawn as a dim dusk. Saturn's rings are not weather: they're
+what Saturn's sky looks like. They're drawn as seen from its cloud tops at 55° north, by tracing each pixel down to the ring
+plane at the real radii: there they stand as an arch ~100° wide from horizon to horizon and ~12° high, the bright B ring
+low, the Cassini gap, then the A ring. The phone-shaped view is only 37° wide, so the arch is squeezed sideways (~2.8x) to fit
+both ends in; its height and bands are true. The sky is darkened so the rings show (Saturn's real daytime sky would be a
+paler haze). Woven nylon might only
 go stiff at -290°F rather than shatter; the umbrella here is iced over (frost from the air), and it's the frozen shell that
 shatters. Venus's sulfuric acid rain evaporates ~30 km up, so none is shown landing. "Diamond rain" on Saturn is left out: it's a
 2013 conference idea about its deep interior, not its weather. About 9 in 10 people hit by lightning survive. NASA's own Venus
@@ -2478,14 +2489,14 @@ Jupiter: storms bigger than Earth. Lightning hits your umbrella.
 Mars: a dust storm swallows the beach, then everything freezes at -85°F.
 Venus: 867°F, hot enough to melt lead. Your umbrella bursts into flames and the sea boils away.
 Titan: -290°F. The sea freezes solid, people freeze mid-step, and your umbrella shatters like glass.
-Saturn: 1,100 mph winds knock everyone flat. Your umbrella is gone.
+Saturn: its rings arch across the sky while 1,100 mph winds knock everyone flat and rip your umbrella away.
 Neptune: winds over 1,200 mph, faster than sound. It takes you with it.
 
 Which planet's weather would you last longest in? 👇
 
 #whatif #space #planets #weather #simulation
 
-Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 7.65`: the red Mars dust wall filling the sky right behind the packed, colourful crowd at the water, you with the blue-and-white umbrella in front; "WHAT IF EARTH HAD / Mars / weather?")
+Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 26.4`: Saturn's rings arching across a dark sky behind the pier and the Ferris wheel, the crowd being blown off its feet, your umbrella inside out in front; "WHAT IF EARTH HAD / Saturn / weather?")
 
 
 ## Next Short. What if asteroids of every size hit your city? — `week 9/asteroid-sizes/out/asteroid-sizes_v4_1080x1920_60fps_tiktok.mp4`
