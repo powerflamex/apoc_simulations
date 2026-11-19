@@ -894,3 +894,17 @@ List counts: shrink trillion 520K, planet picker 343K, Earth falls 113K, men van
   typical. Earlier Shorts near that 12-hour count ended day one at 42.0K, 42.7K and 72.1K.
 - Only one Short went up on Nov 18. Waiting: planet weather (rendered Nov 17, rings on Saturn asked for), fast trillion (needs the destruction
   pass), scream trillion (flat picture after 0:20 and a flat roar; fix prompt given Nov 18).
+
+## Nov 19 morning read (~8:25 AM ET; exact views from each video's page)
+| Short | 1 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:03 / 0:07 / 0:10 / 0:15 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| asteroid sizes | 6,807 | 17,409 | 28,695 | | | 59.0K (22 h) | 21.8K-53.9K | 67.3% | not out |
+| heavy trillion | 3,072 | 23,793 | 59,724 | 112,321 | | 138.9K (43 h) | 34.1K-71.1K | 62.8% | 132 / 111 / 100 / 83 / 76 / **66** / 60 |
+| planet stand | 1,550 | 12,149 | 24,985 | 42,671 | 57,405 | 57.8K (48 h) | 38.1K-74.0K | 61.2% | 122 / 97 / 88 / 79 / 72 / **66** / 60 |
+- Asteroid sizes doubled between hour 12 and hour 22 (28.7K -> 59.0K) and is above YouTube's typical range: the third-best start since Nov 10
+  after shrink and heavy trillion.
+- Heavy trillion and planet stand both hold 66% at 0:30, yet made 112K and 43K on day one. With dino asteroid (71%, 34K) that is three Shorts
+  in a week where the 0:30 number did not sort day-one views. Heavy trillion keeps far more people early (100% at 0:10 against 88%).
+- Re-renders watched (Nov 18 night): planet weather now has Saturn's rings across the sky; scream trillion breaks something new and closer at
+  every step and its soundtrack has quiet between the hits (bed about -27 dB, hits -12 to -17, the 1 trillion hit -7); fast trillion goes
+  through a ship, a tower and a mountain, but 0:30-0:40 is still ten seconds of one hazy road view.
