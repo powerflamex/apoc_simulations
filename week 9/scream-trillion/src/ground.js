@@ -2,6 +2,7 @@
 // street 110 m up with its crosswalks, concrete sidewalks with curbs. Dust settles on everything once things blow.
 import * as THREE from 'three';
 import { RW, FX, CZ, CW, YOU } from './layout.js';
+import { PEEL } from './debris.js';
 import { CU } from './city.js';
 
 export const GU = {
@@ -67,6 +68,16 @@ export function makeGround(scene) {
           if (ax > ${f(FX + 0.5)} && dz > ${f(CW + 5.5)}) c *= 0.7;
         }
         // the crater under you: jagged cracks out from your feet, rings of them, a dark broken middle
+        // the road where its asphalt has peeled off (debris.js: each cell lifts at ~20 psi, its own +-15%): bare dirt
+        if (road && uL > 10.0) {
+          float cx = floor((P.x - (${f(PEEL.x0)})) / ${f(PEEL.cw)}), cz = floor((P.y - (${f(PEEL.z0)})) / ${f(PEEL.cl)});
+          if (cx >= 0.0 && cx < ${f(PEEL.nx)} && cz >= 0.0 && cz < ${f(PEEL.nz)}) {
+            vec3 cc = vec3(${f(PEEL.x0)} + (cx + 0.5) * ${f(PEEL.cw)}, 0.1, ${f(PEEL.z0)} + (cz + 0.5) * ${f(PEEL.cl)});
+            float hh = fract((cx * 7.0 + cz * 13.0 + 1000.0) * 0.61803398);
+            float pkc = 2.874 * pow(10.0, uL * 0.5) / max(length(vec2(distance(cc.xz, uMouth.xz), 1.5)), 0.5);
+            if (pkc >= ${f(PEEL.thr)} * (0.85 + 0.3 * hh)) c = vec3(0.17, 0.13, 0.1) * (0.7 + 0.5 * gn(P * 3.0)) * (0.8 + 0.2 * gn(P * 0.7));
+          }
+        }
         if (uCrack > 0.0) {
           vec2 Q = P - vec2(${f(YOU.x)}, ${f(YOU.z)});
           float rq = length(Q), aq = atan(Q.y, Q.x);

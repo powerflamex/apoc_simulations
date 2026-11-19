@@ -5,7 +5,7 @@
 // (floors x window bays x depth slices) drawn with the same shader, so their walls keep their windows; at ~5 psi a
 // chunk is blown away from you (5 psi: most buildings collapse), and the chunks it held up fall. All of it is a pure function of video time.
 import * as THREE from 'three';
-import { BLD, SIGNS, AWNINGS, MOUTH } from './layout.js';
+import { BLD, SIGNS, AWNINGS, MOUTH, FX } from './layout.js';
 import { logMult, timeOfPressure, peakPa, P_BLOW, PSI } from './timeline.js';
 import { CAM } from './layout.js';
 import { rng, smooth, clamp } from './util.js';
@@ -287,9 +287,29 @@ export const DUST = [];        // [t, x, y, z, size] puffs where chunks break aw
     const b = c.below;
     c.pile = b && b.tS < b.tB - 1.5 ? (b.pile || 0) + b.hs * 0.7 : 0;
   }
+  // the building beside you: its street wall, above the shops, doesn't blow in like the rest. Its ground floor is
+  // knocked in away from you, so the floors above lose their footing and come down OUTWARD, onto the sidewalk and the
+  // street right in front of you and the camera (0:21, at 100 billion x). (Not the bit straight over you.)
+  for (const c of CHUNKS) {
+    const b = BLD[c.b];
+    if (!(b.x > 0 && Math.abs(b.x - b.w / 2 - FX) < 0.6 && b.z - b.d / 2 < 8 && b.z + b.d / 2 > -16)) continue;
+    // (only the part ahead of you, never the bit over you or beside/behind the camera, whose path is up and back)
+    if (c.rc[0] - c.rs[0] / 2 > -b.w / 2 + 0.1 || c.w[1] < 5.5 || c.w[2] > -3.2 || c.w[2] < -18 || c.rs[0] > 6.5) continue;
+    c.peel = true;
+    c.dep = c.tB = 20.95 + 0.07 * (c.w[1] / 3.5) + 0.25 * c.rnd3 + 0.03 * Math.abs(c.w[2]);
+    c.tS = Infinity;
+  }
   for (const c of CHUNKS) {
     if (!Number.isFinite(c.dep)) continue;
     const Lk = Number.isFinite(c.tB) ? logMult(c.tB) : 0;
+    if (c.peel) {
+      // (toppling outward off the wall and down onto the sidewalk along its foot, on the right of the picture)
+      c.kick = [-(0.8 + 1.4 * c.rnd), 0.3 + 0.8 * c.rnd2, (c.rnd3 - 0.5) * 0.8];
+      c.axis = new THREE.Vector3(0, (c.rnd3 - 0.5) * 0.2, 1).normalize(); c.spin = 0.55 + 0.25 * c.rnd2;
+      c.hs = Math.min(...c.rs) * 0.45;
+      DUST.push([c.dep + 1.6, 11 - 6 * c.rnd, 2, c.w[2], 5]);
+      continue;
+    }
     // the kick: straight away from you, faster the more power there is when it goes
     let dx = c.w[0] - MOUTH.x, dz = c.w[2] - MOUTH.z;
     // (anything level with the camera or behind it goes into the block instead, never past the lens)
@@ -321,11 +341,8 @@ export const TOWERS = [];
     if (!(t < 44.4)) continue;
     // tip away from you, slewing toward the middle of the street (a tower falls the way it's weakest: across its
     // narrow side), so from your end of the street you see it go over instead of only shrinking away
-    let ux = dx / dh - 0.75 * Math.sign(b.x), uz = dz / dh;
-    { const l = Math.hypot(ux, uz); ux /= l; uz /= l; }
-    const ext = Math.abs(ux) * b.w / 2 + Math.abs(uz) * b.d / 2;
     const T = 1.15 * Math.sqrt(2 * b.h / 9.81);
-    TOWERS.push({ b, t, r, T, ux, uz, px: b.x + ux * ext, pz: b.z + uz * ext, axis: new THREE.Vector3(uz, 0, -ux) });
+    TOWERS.push({ b, t, r, T, dx: dx / dh, dz: dz / dh });
   }
   // (their strengths, all within 1.7-2.8 psi, are picked so the falls come one every ~2.3 s from 0:30, nearest first)
   TOWERS.sort((a, b) => a.r - b.r);
@@ -335,6 +352,15 @@ export const TOWERS = [];
     T.thr = thr;
   });
   TOWERS.sort((a, b) => a.t - b.t);
+  // every other one, from the second, falls back toward you: the blast knocks its lower floors out away from you and
+  // the top comes down the other way, across the street toward your end of it
+  TOWERS.forEach((T, k) => {
+    const b = T.b, back = k % 2 === 1;
+    let ux = (back ? -T.dx : T.dx) - 0.75 * Math.sign(b.x), uz = back ? -T.dz : T.dz;
+    const l = Math.hypot(ux, uz); ux /= l; uz /= l;
+    const ext = Math.abs(ux) * b.w / 2 + Math.abs(uz) * b.d / 2;
+    Object.assign(T, { back, ux, uz, px: b.x + ux * ext, pz: b.z + uz * ext, axis: new THREE.Vector3(uz, 0, -ux) });
+  });
   console.log(`city: ${TOWERS.length} towers fall at ${TOWERS.map((t) => t.t.toFixed(1)).join(' ')}`);
 }
 export function towerAngle(T, v) { const t = v - T.t; return t <= 0 ? 0 : t >= T.T ? Math.PI / 2 * 0.985 : Math.PI / 2 * 0.985 * Math.pow(t / T.T, 2.2); }

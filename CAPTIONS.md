@@ -2288,24 +2288,32 @@ Cover: `week 8/heavy-trillion/out/heavy-trillion_v4_cover.png` (`node render.mjs
 
 47.5 s, loops. One busy downtown shopping street at midday, one continuous shot, no cuts. Reworked Nov 16 after the owner's
 review (an early picture that changes every 2 s, you alive, the camera easing back, towers falling, a hard white ending,
-a counter twice as big). The counter: the decibels (1 m from you) and TIMES LOUDER over the racing number, with the finish
+a counter twice as big), and again Nov 18 (it felt samey: a new, bigger, closer break at every step from 0:20, one
+longer camera move, and a soundtrack with room in it). The counter: the decibels (1 m from you) and TIMES LOUDER over the racing number, with the finish
 line on the one line under it, 1,000,000,000,000x. "Times louder" counts sound power: every 10x adds 10 decibels. What you
 see, in order: 0:00 you screaming 2.3 m from the camera, leaning into it, fists clenched, head shaking (a real scream, its
-attack on frame 0, heard for one second; by 0:01.7 it has sunk into a deep roar with no voice in it that steps up with
-every jump of the counter; owner, Nov 17), the air rippling out from your mouth, people round you and the cafe's customers behind its glass wall
+attack on frame 0, heard for one second, then sinking into a deep roar with no voice in it; from 0:04.4 the real scream
+comes back in ~1 s bursts at every jump of the counter, each deeper, rougher and echoing longer down the street; between
+them the roar sits ~12 dB down so each break is heard on its own), the air rippling out from your mouth, people round you and the cafe's customers behind its glass wall
 already clapping their hands over their ears, the title, the counter racing; a ring of force leaves you at every step.
 0:02.5 1,000x (130 dB, pain): the people nearest you turn and stagger away holding their ears, the cafe customers get up
 and stumble off. 0:03.4 10,000x: "A jet engine, 100 feet away." 0:04.7 1,000,000x: the cafe's whole glass wall bursts
 across the frame, shards flying past the camera, car alarms start; "The glass next to you bursts." 0:06 200 million x:
-windows burst and rain down the street; "Windows burst up and down the street." From 0:05 the camera eases back and up
-(by 0:40 you're about half the size, a little right of centre, the street readable behind you). 0:08.6 1 billion x
+windows burst and rain down the street; "Windows burst up and down the street." From 0:05 one continuous camera move, no cuts:
+to 0:24 a little back and up with the lens narrowing so you stay large, then up and back over the street until the whole
+street and the skyline are in view at the end. 0:08.6 1 billion x
 (190 dB): the people next to you are knocked flat; "190 decibels: the loudest sound air can carry." 0:11 a white shock
 shell and a ring of dust race out from you, the pavement cracks into a crater under your feet, your hoodie and hair whip;
 "Any louder, and it's not sound anymore. It's a shock wave." 0:14 "People are thrown off their feet." 0:17.5 "Cars flip.
-Lamp posts bend." 0:21 "The building next to you blows apart." 0:24.5 "Walls across the street cave in." 0:28 "The whole
-block is coming apart." From 0:30 a tower down the street topples every ~2.3 s, farther each time (0:30.4, 0:32.7, 0:35,
-0:37.2, 0:39.5); "And you're still screaming." "Towers down the street start to fall." "Windows break over a mile away."
-0:41 1 trillion x (220 dB): one huge ring races down the street to the horizon; "1 trillion times louder: 30 tons of TNT.
+Lamp posts bend." From 0:19 the pavement round your crater
+tears up and slabs fly out in every direction, some past the lens. 0:21 the wall of the building next to you comes down
+outward in big pieces onto the sidewalk beside the camera; "The building next to you blows apart." 0:24.5 "Walls
+across the street cave in." 0:28 the street's asphalt peels up in a wave running out from you, cars flying up the
+street; "The whole block is coming apart." From 0:30 a tower down the street topples every ~2.3 s, every other one
+falling back toward you (0:30.4, 0:32.7, 0:35, 0:37.2, 0:39.5); "And you're still screaming." "Towers down the street
+start to fall." 0:37 a ring of dust spreads out across the whole skyline; "Windows break over a mile away." 0:40.4 half a
+second of near silence; 0:41 1 trillion x (220 dB), the biggest hit: one huge ring races down the street and buries the
+skyline in a wall of dust; "1 trillion times louder: 30 tons of TNT.
 Every second." 0:42.9 its echo off the far towers rushes back up the street as a white wall and hits the camera: hard
 white at 0:44.6, held; it clears onto frame 0.
 
@@ -2316,11 +2324,14 @@ ordinary windows at ~0.15-0.5 psi. The loudest undistorted sound in air is ~191 
 into a shock. People are knocked over at ~2 psi; cars shoved at ~3 psi, overturned at ~5 psi; most buildings collapse at
 ~5 psi (83 m = 270 ft at 1 trillion x). Towers: the push is steady, not a millisecond blast; 2 psi = 14 kPa is ~5x the
 strongest wind a tower is built for (a 70 m/s hurricane, ~3 kPa), so the towers out to ~190 m topple (each given a strength
-of 1.8-2.4 psi). Beyond ~200 m they stand. 1 trillion x = 1.26e11 W = 30 tons of TNT (4.184e9 J per ton) every second; 0.2
+of 1.8-2.4 psi); a tower falls back toward you when its lower floors are knocked out away from you. Beyond ~200 m they
+stand. The wall beside you: its ground floor is blown in, so the floors above come down outward. Pavement is torn up at
+~30 psi (3-6 m from you, 0:19-0:25), asphalt at ~20 psi (5-21 m, 0:19-0:41). 1 trillion x = 1.26e11 W = 30 tons of TNT (4.184e9 J per ton) every second; 0.2
 psi reaches ~2 km (1.2 miles). Honest notes: "times louder" is power (perceived loudness only doubles per 10 dB); the
 pressures use plain sound physics far past where it strictly holds (an order-of-magnitude estimate); a sound wave pushes and
 pulls, so glass flies both ways; the rings, ripples, white shells and the final echo are drawn slower than real sound so they
-can be seen; the last ring does not flatten the far towers (it breaks their windows), and its echo is a reflection off them;
+can be seen; the last ring does not flatten the far towers (it breaks their windows; it is its dust that swallows the skyline), and
+its echo is a reflection off them;
 you are unharmed (only your scream changes); people are low-poly figures.
 
 **YouTube title (93 chars)**
@@ -2441,12 +2452,8 @@ beach; 0:16.3 with a boom the sea boils off, its level falling, and a wall of st
 orange haze, -290°F, slow methane drops; a freeze front races in from the horizon across the sea, wave by wave through the
 surf (0:22.6 it hits the shore with a boom); the crowd runs and is frozen mid-stride into white statues as it catches them,
 then you; 0:23.6 your frozen umbrella cracks and shatters like glass, the shards raining onto the frozen sand. 0:25 Saturn: a
-dark gold-brown sky streaming sideways and, from the moment the wipe lands, Saturn's rings in it: a huge arch of thin bands
-from horizon to horizon behind the pier and the Ferris wheel, the dark Cassini gap near its top; 1,100 mph winds; at once your
-umbrella snaps inside out and the whole crowd is knocked flat (by 0:27) and slides along the sand; 0:27.5 the second, bigger
-gust: a wall of sand sweeps across the beach from the left, 0:27.7 it tears the umbrella out of your hand and throws you to
-your knees, dragging you downwind, arms over your head; the crowd is bowled along the sand and a second wave of beach
-umbrellas, chairs and towels tears loose and flies past; the sand settles and the rings come back. 0:32 Neptune, the
+pale gold sky streaming sideways, 1,100 mph winds; at once your umbrella snaps inside out and the whole crowd is knocked flat
+(by 0:27) and slides and rolls along the sand; 0:27.9 the umbrella is torn out of your hand and gone. 0:32 Neptune, the
 finale: a deep blue sky, white methane-ice streaks, a double sonic boom; at once your umbrella shreds to bare ribs; 0:33-0:35
 everyone is knocked down and blown away tumbling (FASTER THAN SOUND); 0:37 the Ferris wheel and the pier are torn off; 0:39
 the bare umbrella yanks you off your feet and carries you away to the right ("It takes you with it"); 0:41 the empty, frozen
@@ -2461,19 +2468,12 @@ photographed frost on the ground. Venus: "hot enough to melt lead" (NASA; lead m
 yellow" (NASA, from the Venera landers). Titan: methane rain (NASA); drops up to ~9.5 mm falling ~1.6 m/s against ~9.2 m/s for
 rain on Earth: about 6x slower (Lorenz 1993, "The life, death and afterlife of a raindrop on Titan"). At -290°F rubber and most
 plastics are far below their glass transition and go glass-brittle (the liquid-nitrogen demo, -321°F, shatters rubber tubing
-"like glass": U. Michigan Materials Science). Saturn: winds of 500 m/s (~1,100 mph) at the equator (NASA); ring radii from NASA's Saturnian Rings Fact Sheet (C ~74,700-
-92,000 km, B to ~117,500, the Cassini Division to ~122,300, A to ~136,800 with the Encke gap at ~133,400, F ~140,000; Saturn's
-radius 60,268 km at the equator, 54,364 at the poles). Neptune: "our solar
+"like glass": U. Michigan Materials Science). Saturn: winds of 500 m/s (~1,100 mph) at the equator (NASA). Neptune: "our solar
 system's windiest world", winds "more than 1,200 miles per hour" (NASA); on Earth that is faster than sound (767 mph at sea level).
 Honest notes: everything is sped up to seconds (the sea would take far longer to boil off or freeze; the dust wall and the frost
 move far faster than on Mars). Real 1,100-1,200 mph winds would strip the beach at once; Saturn is drawn milder (everyone flat
 and sliding) than Neptune (everything gone) so the finale builds. The storm wall is coloured like Jupiter's cloud bands (its real
-storms are far bigger than this wall). Titan's daylight is ~100x fainter than ours, drawn as a dim dusk. Saturn's rings are not weather: they're
-what Saturn's sky looks like. They're drawn as seen from its cloud tops at 55° north, by tracing each pixel down to the ring
-plane at the real radii: there they stand as an arch ~100° wide from horizon to horizon and ~12° high, the bright B ring
-low, the Cassini gap, then the A ring. The phone-shaped view is only 37° wide, so the arch is squeezed sideways (~2.8x) to fit
-both ends in; its height and bands are true. The sky is darkened so the rings show (Saturn's real daytime sky would be a
-paler haze). Woven nylon might only
+storms are far bigger than this wall). Titan's daylight is ~100x fainter than ours, drawn as a dim dusk. Woven nylon might only
 go stiff at -290°F rather than shatter; the umbrella here is iced over (frost from the air), and it's the frozen shell that
 shatters. Venus's sulfuric acid rain evaporates ~30 km up, so none is shown landing. "Diamond rain" on Saturn is left out: it's a
 2013 conference idea about its deep interior, not its weather. About 9 in 10 people hit by lightning survive. NASA's own Venus
@@ -2489,14 +2489,14 @@ Jupiter: storms bigger than Earth. Lightning hits your umbrella.
 Mars: a dust storm swallows the beach, then everything freezes at -85°F.
 Venus: 867°F, hot enough to melt lead. Your umbrella bursts into flames and the sea boils away.
 Titan: -290°F. The sea freezes solid, people freeze mid-step, and your umbrella shatters like glass.
-Saturn: its rings arch across the sky while 1,100 mph winds knock everyone flat and rip your umbrella away.
+Saturn: 1,100 mph winds knock everyone flat. Your umbrella is gone.
 Neptune: winds over 1,200 mph, faster than sound. It takes you with it.
 
 Which planet's weather would you last longest in? 👇
 
 #whatif #space #planets #weather #simulation
 
-Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 26.4`: Saturn's rings arching across a dark sky behind the pier and the Ferris wheel, the crowd being blown off its feet, your umbrella inside out in front; "WHAT IF EARTH HAD / Saturn / weather?")
+Cover: `week 9/planet-weather/out/planet-weather_v4_cover.png` (`node render.mjs --cover 7.65`: the red Mars dust wall filling the sky right behind the packed, colourful crowd at the water, you with the blue-and-white umbrella in front; "WHAT IF EARTH HAD / Mars / weather?")
 
 
 ## Next Short. What if asteroids of every size hit your city? — `week 9/asteroid-sizes/out/asteroid-sizes_v4_1080x1920_60fps_tiktok.mp4`

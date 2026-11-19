@@ -15,6 +15,7 @@ import { makeGround, GU } from './ground.js';
 import { makeCity, CU, hazed, DUST, TOWERS, towerAngle } from './city.js';
 import { makeTraffic } from './traffic.js';
 import { makeProps } from './props.js';
+import { makeDebris } from './debris.js';
 import { makeGlass } from './glass.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
@@ -54,6 +55,7 @@ makeGround(scene);
 const city = makeCity(scene, ctx);
 const glass = makeGlass(scene);
 const props = makeProps(scene, ctx, glass);
+const debris = makeDebris(scene, ctx);
 const traffic = makeTraffic(scene, ctx);
 const glows = makeGlows(scene, 800);
 const smoke = makeSmoke(scene, 1100);
@@ -189,6 +191,22 @@ const C = (a) => tmpC.setRGB(a[0], a[1], a[2]);
 const SUN_EL = 58, SUNDIR = (() => { const el = SUN_EL * DEG, az = 182 * DEG; return new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)); })();
 const kickAt = (v) => { let k = 0; HITS.forEach((t, n) => { const dt = v - t; if (dt > -0.05 && dt < 1.5) k = Math.max(k, smooth(-0.05, 0.04, dt) * Math.exp(-Math.max(dt, 0) / 0.35) * (0.25 + 0.06 * n)); }); return k; };
 const P = {};
+// the camera's keys: [time, x, y, z, yaw, pitch, fov]
+const CAMK = [[-2, CAM.x, CAM.y, CAM.z, 3.2, 9.5, 56], [5, CAM.x, CAM.y, CAM.z, 3.2, 9.5, 56], [24, 8.25, 2.15, 3.9, 0.6, 4.0, 49],
+  [36, 7.9, 4.6, 7.6, -1.5, -5.0, 57], [44.6, 7.6, 6.6, 10.6, -2.0, -9.0, 63], [48, 7.6, 6.6, 10.6, -2.0, -9.0, 63]];
+const camSpl = [1, 2, 3, 4, 5, 6].map((j) => {
+  const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = 0; m[n - 1] = 0;
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (2 * d[i - 1] * d[i]) / (d[i - 1] + d[i]);
+  return (t) => {
+    if (t <= x[0]) return y[0]; if (t >= x[n - 1]) return y[n - 1];
+    let i = 0; while (t > x[i + 1]) i++;
+    const h = x[i + 1] - x[i], s = (t - x[i]) / h;
+    return (2 * s ** 3 - 3 * s ** 2 + 1) * y[i] + (s ** 3 - 2 * s ** 2 + s) * h * m[i] + (-2 * s ** 3 + 3 * s ** 2) * y[i + 1] + (s ** 3 - s ** 2) * h * m[i + 1];
+  };
+});
+const camKey = (j, v) => camSpl[j](v);
 function update(v, cover = -1) {
   const s = state(v);
   const white = Math.max(s.flash, cover);
@@ -220,13 +238,16 @@ function update(v, cover = -1) {
   you.head.localToWorld(mouthV.set(0, 0.041, 0.09));
   // ---- the camera: one shot; from 0:05 it eases back and up (you end about half the size, off-centre, the street
   //      readable behind you); a shake that grows with the power ----
-  const cx0 = clamp((v - 5) / 35, 0, 1), ce = smooth(0, 1, cx0) * 0.55 + (1 - Math.pow(1 - cx0, 2.2)) * 0.45;
-  const pos = new THREE.Vector3(lerp(CAM.x, 7.85, ce), lerp(CAM.y, 2.9, ce), lerp(CAM.z, 4.55, ce));
-  const yaw = lerp(3.2, -2.5, ce) * DEG, pitch = lerp(9.5, -3.5, ce) * DEG;
+  //      0:05-0:24 a little back and up, the lens narrowing so you stay large; 0:24-0:44 up and back over the street,
+  //      wider, until the whole street and the skyline are in view, you small at the bottom
+  const C3 = (a) => camKey(a, v);
+  const pos = new THREE.Vector3(C3(0), C3(1), C3(2));
+  const yaw = C3(3) * DEG, pitch = C3(4) * DEG;
+  const ce = clamp((v - 5) / 39, 0, 1);
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
   camera.position.copy(pos);
   camera.lookAt(tv.copy(pos).add(dir));
-  camera.fov = 56 + 4 * ce;
+  camera.fov = C3(5);
   const shake = 0.0015 + s.kick * 0.012 + 0.0006 * Math.max(0, s.L - 8) + 0.004 * smooth(V_RING, V_RING + 0.3, v) + 0.02 * smooth(V_BACK, V_WHITE, v);
   camera.rotation.x += wobble(v * 43, 3) * shake; camera.rotation.y += wobble(v * 47, 4) * shake; camera.rotation.z += wobble(v * 39, 6) * shake * 0.5;
   camera.updateProjectionMatrix();
@@ -269,6 +290,7 @@ function update(v, cover = -1) {
   city.frame(v, s);
   glass.frame(v);
   props.frame(v, s);
+  debris.frame(v);
   traffic.frame(v, s, glows);
   // dust where chunks break away: a puff that swells and drifts off, away from you
   for (const [t0, x, y, z, sz] of DUST) {
@@ -300,6 +322,26 @@ function update(v, cover = -1) {
     if (ti > 0) for (let i = 0; i < 14; i++) {
       const f = i / 13, d = b.h * f;
       smoke.puff(T.px + T.ux * d + Math.sin(i * 3.1) * 6, 4 + 10 * ((i * 0.37) % 1) + 2.5 * ti, T.pz + T.uz * d + Math.cos(i * 2.3) * 6, 10 + 8 * ((i * 0.53) % 1) + 4 * ti, 0.85 * smooth(0, 0.3, ti) * (1 - smooth(3, 7, ti)), 0.74, 0, (i * 0.29) % 1);
+    }
+  }
+  // 0:37: a ring of dust spreads out across the whole skyline (the falling towers' dust and everything the shock
+  // wave picks up, carried out on it)
+  if (v > 36.9 && v < 45) {
+    const t = v - 36.9;
+    for (let i = 0; i < 70; i++) {
+      const a = -Math.PI / 2 + (((i * 0.618) % 1) - 0.5) * 2.4, h = (i * 0.377) % 1;
+      const R = 110 + 120 * t * (0.85 + 0.3 * ((i * 0.29) % 1));
+      smoke.puff(MOUTH.x + Math.cos(a) * R, 12 + 70 * h, MOUTH.z + Math.sin(a) * R, 18 + 22 * h + 3 * t, 0.62 * smooth(0, 0.6, t) * (1 - smooth(5, 8, t)), 0.78, 0, h);
+    }
+  }
+  // 1 trillion: the blast ring races out over the skyline and buries it in a wall of dust (the far towers lose every
+  // window; it is the dust that swallows them)
+  if (v > V_RING) {
+    const t = v - V_RING;
+    for (let i = 0; i < 60; i++) {
+      const a = -Math.PI / 2 + (((i * 0.618) % 1) - 0.5) * 1.6, h = (i * 0.377) % 1;
+      const R = 240 + 420 * Math.min(t, 2.2) * (0.85 + 0.3 * ((i * 0.29) % 1));
+      smoke.puff(MOUTH.x + Math.cos(a) * R, 10 + 150 * h * Math.min(1, t / 1.2), MOUTH.z + Math.sin(a) * R, 40 + 50 * h, 0.85 * smooth(0, 0.4, t), 0.86, 0, h);
     }
   }
   // the echo: the last ring bounced off the far towers comes back up the street, a wall of white, at the camera
