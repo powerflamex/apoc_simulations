@@ -877,3 +877,20 @@ List counts: meteor storm 33.3K, star incoming 45.0K, oceans 99.5K, solar storm 
   Fast trillion after its rework still shows almost no destruction up close (owner's call too): a far dust puff on the avenue, empty sea and land,
   13 s of two glowing lines on the laps. Scream trillion: the same framing from 0:20 to 0:44, and the soundtrack sits at one loudness from 0:06
   to 0:44 (about 12 dB louder than shrink trillion's); owner finds it boring without the scream.
+
+## Nov 18 evening read (~9:50 PM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | YouTube's "typical" | Stayed | 0:30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| asteroid sizes (`Y7gyr6dxMWc`) | Nov 18, ~10 AM | 6,807 | 12,404 | 17,409 | 28,508 | | | 28.5K (12 h) | 15.3K-30.7K | 66.4% | not out |
+| heavy trillion | Nov 17, 1:30 PM | 3,072 | 11,751 | 23,793 | 59,724 | 112,320 | | 127.4K (32 h) | 31.4K-65.1K | 63.1% | not out |
+| planet stand | Nov 17, 8 AM | 1,550 | 6,492 | 12,149 | 24,985 | 42,671 | | 51.6K (38 h) | 34.4K-68.5K | 61.6% | not out |
+| trillion seconds | Nov 16, 1 PM | | | 9,252 | 26,045 | 72,118 | 95,179 | 97.4K (57 h) | 39.0K-63.2K | 60.9% | 70% |
+| dino asteroid | Nov 16, 7 AM | | | 8,716 | 20,955 | 34,266 | 49,714 | 57.2K (63 h) | 43.9K-81.4K | 65.0% | 71% |
+List counts: shrink trillion 520K, planet picker 343K, Earth falls 113K, men vanish 31K, meteor storm 36K, star incoming 47K.
+- Heavy trillion 112.3K on day one, second only to shrink (117.6K) this month. Day-one views since Nov 10, best first: shrink 117.6K, heavy
+  112.3K, planet picker 82.4K, trillion seconds 72.1K, Earth falls 62.6K, Sun black hole 55.8K. All three trillion Shorts are in the top four.
+  Every trillion title posted so far (five) has passed 95K.
+- Asteroid sizes (posted after its fix pass) had the biggest first hour in these tables (6,807; shrink 4,495), then slowed: 28.5K at 12 h, inside
+  typical. Earlier Shorts near that 12-hour count ended day one at 42.0K, 42.7K and 72.1K.
+- Only one Short went up on Nov 18. Waiting: planet weather (rendered Nov 17, rings on Saturn asked for), fast trillion (needs the destruction
+  pass), scream trillion (flat picture after 0:20 and a flat roar; fix prompt given Nov 18).
