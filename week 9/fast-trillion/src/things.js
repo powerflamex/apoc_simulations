@@ -1,8 +1,8 @@
-// Real things in your path after the city, each placed where you reach it at a speed where it can still be seen
+// Real things in your path after the avenue, each placed where you reach it at a speed where it can still be seen
 // coming (an object is in view from the horizon/haze until it flashes past):
-//   sailboats (0:11-0:12, 4-5 km/s), a ferry (0:12, 4.8 km/s), an airliner you overtake as if it were parked
-//   (0:12.6: it flies 250 m/s, you 5,600), a cruise ship (0:15.9, 15 km/s), an island (0:17.6, 29 km/s),
-//   the coast and a city (0:19.6-0:19.9, 85-100 km/s), a mountain range (0:20.8-0:21.6, 190-260 km/s).
+//   sailboats (0:11-0:12.3, 4-5 km/s), a ferry, an airliner you overtake as if it were parked (0:11.55: it flies
+//   250 m/s, you 4,200), ships and a cruise ship (0:15-0:16.5), an island and an archipelago (0:16.2-0:17.7).
+//   The container ship you go through, the coastal city and the mountain are in wrecks.js.
 // All in render space (you at the origin, running toward -z): a thing at distance s along your path sits at
 // z = -(s - you), dropped by the curve of the Earth (d^2 / 2R).
 import * as THREE from 'three';
@@ -11,7 +11,7 @@ import { SEA_Y, hh } from './avenue.js';
 import { SU } from './surface.js';
 
 // a lit material with the sea's distance haze
-function seaMat(color, rough = 0.8, extra = {}) {
+export function seaMat(color, rough = 0.8, extra = {}) {
   const m = new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0, ...extra });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uHaze = SU.uHaze; sh.uniforms.uHazeD = SU.uHazeD;
@@ -30,7 +30,7 @@ function seaMat(color, rough = 0.8, extra = {}) {
   return m;
 }
 // rows of lit windows (ships, towers)
-function windowTex(cols, rows, lit = 0.5) {
+export function windowTex(cols, rows, lit = 0.5) {
   const cv = document.createElement('canvas');
   cv.width = 256; cv.height = 256;
   const g = cv.getContext('2d');
@@ -46,34 +46,20 @@ function windowTex(cols, rows, lit = 0.5) {
 }
 
 // ---- the list (s in metres along your path; x across; for the airliner a cruise speed) ----
-const SAILS = [10900, 11350, 11800, 12200, 12650, 13100, 13550, 14000, 14600, 15200].map((s, i) => ({ s, x: (i % 2 ? 1 : -1) * (9 + 26 * hh(i, 71)), yaw: (hh(i, 72) - 0.5) * 1.2, k: hh(i, 73) }));
+const SAILS = [10900, 11350, 11800, 12200, 12650, 13100, 13550, 14000, 14600, 15150].map((s, i) => ({ s, x: (i % 2 ? 1 : -1) * (9 + 26 * hh(i, 71)), yaw: (hh(i, 72) - 0.5) * 1.2, k: hh(i, 73) }));
 const FERRY = { s: 14800, x: -32 };
-const PLANE = { s0: 17400 - 250 * 12.6, v: 250, x: 22, y: 75 };
+const PLANE = { s0: 12320 - 250 * 11.55, v: 250, x: 22, y: 75 };
 const CRUISE = { s: 49500, x: 160 };
 const SHIPS = [{ s: 36000, x: -90 }, { s: 43000, x: 120 }, { s: 57000, x: -80 }, { s: 64000, x: 140 }];
-const ISLAND = { s: 84500, x: -1100, r: 2200, h: 480 };
+const ISLAND = { s: 62000, x: -3700, r: 2200, h: 480 };   // (every island's shore stays clear of your path: flying through one strobes)
 const ISLES = [];
-for (let i = 0; i < 26; i++) ISLES.push({ s: 70000 + 105000 * (i / 26) + 3000 * hh(i, 101), x: (i % 2 ? 1 : -1) * (350 + 1500 * hh(i, 102)), r: 300 + 1400 * hh(i, 103), h: 60 + 380 * hh(i, 104) });
-export const COAST_S = 190000;           // the land starts here (surface.js uses the same)
+for (let i = 0; i < 18; i++) { const r = 300 + 1400 * hh(i, 103); ISLES.push({ s: 52000 + 36000 * (i / 18) + 1500 * hh(i, 101), x: (i % 2 ? 1 : -1) * (1.6 * r + 250 + 1500 * hh(i, 102)), r, h: 60 + 380 * hh(i, 104) }); }
+export const COAST_S = 90000;            // the land starts here (surface.js uses the same)
 export const LAND_END_S = 900000;        // and the next ocean here
-const CITY = [];
-for (let i = 0; i < 160; i++) {
-  const side = hh(i, 81) < 0.6 ? 1 : -1;
-  CITY.push({ s: 192000 + 24000 * hh(i, 82), x: side * (150 + 1400 * Math.pow(hh(i, 83), 1.5)), h: 40 + 260 * Math.pow(hh(i, 84), 2.2), w: 30 + 40 * hh(i, 85) });
-}
-const PEAKS = [];
-// (steep peaks either side of a valley: each one's foot stays clear of your path, so you fly between them, not through)
-for (let i = 0; i < 90; i++) {
-  const side = i % 2 ? 1 : -1;
-  const h = 1600 + 2800 * hh(i, 93), r = h * (0.85 + 0.45 * hh(i, 94));
-  PEAKS.push({ s: 285000 + 345000 * hh(i, 91), x: side * (1.3 * r + 250 + 2200 * hh(i, 92)), h, r });
-}
-
 // what passes you and where (for the soundtrack's whooshes): [s, loudness, kind 0 boat/ship 1 island 2 tower 3 peak]
 export const PASSES = [
   ...SAILS.map((b) => [b.s, 0.5, 0]), [FERRY.s, 0.8, 0], [CRUISE.s, 1, 0], ...SHIPS.map((sh) => [sh.s, 0.8, 0]),
-  [ISLAND.s, 1, 1], ...ISLES.map((c) => [c.s, 0.4 + c.h / 600, 1]), ...CITY.filter((c, i) => i % 4 === 0).map((c) => [c.s, 0.5, 2]),
-  ...PEAKS.map((m) => [m.s, 0.3 + m.h / 6000, 3]),
+  [ISLAND.s, 1, 1], ...ISLES.map((c) => [c.s, 0.4 + c.h / 600, 1]),
 ];
 export const PLANE_PASS_S = PLANE.s0;   // (it flies 250 m/s: you pass it when distAt(t) = PLANE.s0 + 250 t)
 export const PLANE_V = PLANE.v;
@@ -143,27 +129,6 @@ export function makeThings(scene) {
   add(isl);
   const beach = add(new THREE.Mesh(new THREE.CylinderGeometry(1.08, 1.1, 0.02, 48), seaMat(0xd9c79a, 0.95)));
   const isles = add(new THREE.InstancedMesh(isl.geometry, isl.material, ISLES.length));
-  // the coastal city: towers with windows
-  const towerT = windowTex(8, 30, 0.45);
-  const towers = add(new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), seaMat(0xffffff, 0.5, { map: towerT }), CITY.length));
-  const cc = new THREE.Color();
-  CITY.forEach((c, i) => towers.setColorAt(i, cc.setHSL(0.58 + 0.05 * hh(i, 86), 0.12, 0.55 + 0.25 * hh(i, 87))));
-  // the mountains: ridged cones with snow on top
-  const mtG = new THREE.ConeGeometry(1, 1, 40, 10, true);
-  {
-    const p = mtG.attributes.position, col = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i) + 0.5, z = p.getZ(i), a = Math.atan2(z, x);
-      const ridge = 1 + 0.3 * Math.abs(Math.sin(a * 4 + 0.5)) - 0.15 + 0.1 * Math.sin(a * 11 + y * 6);
-      p.setXYZ(i, x * ridge, y, z * ridge);
-      const snow = y > 0.62 ? 1 : y > 0.5 ? (y - 0.5) / 0.12 : 0;
-      const rock = [0.36, 0.33, 0.3], sn = [0.95, 0.96, 1.0];
-      col.set(rock.map((r, j) => r + (sn[j] - r) * snow), i * 3);
-    }
-    mtG.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    mtG.computeVertexNormals();
-  }
-  const mts = add(new THREE.InstancedMesh(mtG, seaMat(0xffffff, 0.9, { vertexColors: true }), PEAKS.length));
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   // where a thing at distance s sits now (render z), and how far the Earth's curve drops it
@@ -193,16 +158,6 @@ export function makeThings(scene) {
         isles.setMatrixAt(i, near(P.d, 90000, 5000) ? m4.compose(p.set(c.x, SEA_Y - P.drop - 3, P.z), q.setFromEuler(e.set(0, i * 2.1, 0)), sc.set(c.r, c.h, c.r * 1.5)) : zero);
       });
       isles.instanceMatrix.needsUpdate = true;
-      CITY.forEach((c, i) => {
-        const P = place(S, c.s);
-        towers.setMatrixAt(i, near(P.d, 80000, 3000) ? m4.compose(p.set(c.x, SEA_Y + 2 - P.drop, P.z), q.identity(), sc.set(c.w, c.h, c.w)) : zero);
-      });
-      towers.instanceMatrix.needsUpdate = true;
-      PEAKS.forEach((m, i) => {
-        const P = place(S, m.s);
-        mts.setMatrixAt(i, near(P.d, 300000, 20000) ? m4.compose(p.set(m.x, SEA_Y - P.drop - m.h * 0.05, P.z), q.setFromEuler(e.set(0, i * 1.3, 0)), sc.set(m.r, m.h, m.r)) : zero);
-      });
-      mts.instanceMatrix.needsUpdate = true;
     },
   };
 }

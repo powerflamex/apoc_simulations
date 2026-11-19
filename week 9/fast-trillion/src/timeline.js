@@ -158,15 +158,17 @@ export function lineAt(v) {
 }
 
 // captions: after the title has gone; 'step' = a named step (a hit in the sound)
+// (each one about something wrecked is on screen only while that wreck is)
 export const CAPTIONS = [
-  { t0: 5.15, t1: 7.0, step: V_SOUND, text: 'The boom smashes every window you pass.' },
-  { t0: 9.6, t1: 11.0, step: 9.5, text: 'The air in front of you hits 4,600°F.' },
-  { t0: 13.8, t1: 15.6, step: 13.8, text: 'At 17,700 mph you weigh nothing.' },
-  { t0: 16.2, t1: 18.2, text: 'Only the air pressing down keeps you low.' },
+  { t0: 6.75, t1: 8.6, step: V_SOUND, text: 'The boom smashes every window you pass.' },
+  { t0: 9.6, t1: 10.9, step: 9.5, text: 'The air in front of you hits 4,600°F.' },
+  { t0: 13.85, t1: 15.5, step: 13.8, text: 'At 17,700 mph you weigh nothing.' },
+  { t0: 18.3, t1: 19.3, text: 'Through a tower: 200 tons of TNT.' },
+  { t0: 20.45, t1: 21.7, text: 'Through a mountain: 5 megatons.' },
   { t0: 22.6, t1: 24.95, step: 22.6, text: 'You outrun the Sun. It sets behind you.' },
   { t0: 25.15, t1: 27.6, step: 25.0, text: 'Every second: the blast of 23 of the biggest bombs ever.' },
-  { t0: 30.0, t1: 32.4, step: 30.0, text: 'Once round the whole Earth every 2 seconds.' },
-  { t0: 33.2, t1: 35.6, text: 'Ahead of you: the fire from your last laps.' },
+  { t0: 30.0, t1: 32.2, step: 30.0, text: 'Once round the whole Earth every 2 seconds.' },
+  { t0: 33.7, t1: 35.8, text: 'Every lap melts the ground deeper.' },
   { t0: 36.8, t1: 39.6, step: 37.0, text: 'Every second: more than the asteroid that killed the dinosaurs.' },
   { t0: 40.55, t1: 42.0, step: V_C, text: "You'll never be 1 trillion times faster." },
   { t0: 42.1, t1: 43.45, text: 'Your path: one ring of fire round the Earth.' },

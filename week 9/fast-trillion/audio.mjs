@@ -17,6 +17,7 @@ import { VIDEO_DURATION, T_SWITCH, LOOP, STEPS, V_SOUND, V_GLOW, V_SEA, V_LIFT, 
 import { rng, smooth, clamp } from './src/util.js';
 import { PASSES, PLANE_PASS_S, PLANE_V } from './src/things.js';
 import { HOME_PASSES } from './src/corridor.js';
+import { HITS } from './src/wrecks.js';
 import { tPass, V_SPACE } from './src/timeline.js';
 
 const SR = 48000;
@@ -80,6 +81,7 @@ export function makeSoundtrack(outFile) {
   const stepLP = new OnePole(110), stepLP2 = new OnePole(160), pawLP = new OnePole(260), boomLP = new OnePole(70), boomLP2 = new OnePole(120);
   const glassF = new SVF(), splashF = new SVF(), whooF = [new SVF(), new SVF()], subLP = new OnePole(45), slamLP = new OnePole(90);
   const bellPh = new Float64Array(3), choirPh = new Float64Array(6);
+  const hitLP = new OnePole(85), hitLP2 = new OnePole(140), crackF = new SVF();
   // footsteps: your gait (same cadence as the picture: ~5 steps/s at frame 0 up to 8, fewer as you weigh less)
   const steps = [], paws = [], whoosh = [], tinkles = [];
   {
@@ -155,6 +157,16 @@ export function makeSoundtrack(outFile) {
       if (dj > -1.2 && dj < 0.8) { const e = smooth(-1.2, -0.05, dj) * Math.exp(-Math.max(dj, 0) / 0.15); const x = whooF[0].run(white(), 900 + 600 * smooth(-1.2, 0, dj), 0.8).bp * e * 0.35; l += x; r += x * 0.8; } }
     // --- each time you pass home: a deep thud (until laps blur together) ---
     for (const hp of HOME_PASSES) { const dh = t - hp; if (dh > -0.01 && dh < 1.5 && hp < 34) { const x = Math.sin(TAU * 46 * dh) * env(dh, 0.008, 0.25) * 0.12; l += x; r += x; } }
+    // --- what you go through (the ship, the tower, the mountain): a crack, a huge low boom and its rolling rumble ---
+    for (const h of HITS) {
+      const dh = t - h.t;
+      if (dh > -0.01 && dh < 3.5) {
+        const low = hitLP2.run(hitLP.run(white() * 3 * env(dh, 0.004, 0.7) + Math.sin(TAU * (50 - 14 * Math.min(dh, 1)) * dh) * 2.2 * env(dh, 0.008, 1.1)));
+        const crack = crackF.run(white(), 1800, 0.7).bp * env(dh, 0.0015, 0.06) * 0.6;
+        const x = (low * 0.55 + crack) * h.k;
+        l += x; r += x;
+      }
+    }
     // --- the ring of fire from space: a deep roar swelling into the white ---
     { const ru = smooth(V_SPACE, V_SPACE + 0.8, t) * (1 - smooth(T_WHITE, T_WHITE + 0.4, t)); if (ru > 0) { const x = (rum[0].y + rum[1].y) * 0.0 + Math.sin(TAU * 41 * t) * 0.05 * ru + Math.sin(TAU * 55.3 * t) * 0.03 * ru; l += x; r += x; } }
     // --- the sonic boom: a double thump (the N-wave), then the glass ---

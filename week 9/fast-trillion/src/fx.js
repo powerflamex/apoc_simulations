@@ -242,7 +242,7 @@ function makeDebris(scene) {
                   let x = BLD_R - 0.1 - out * t, y = wy + (r2 - 0.4) * 1.2 + (1 + 2 * r3) * t - 0.5 * G * t * t;
                   const z = -(ws + (r1 - 0.5) * cw * 0.8) - fwd * t;
                   if (y < 0.02) { y = 0.02; x = Math.max(CURB_R - 0.5, x); }
-                  const size = iy < 0 ? 0.12 + 0.25 * r3 * r3 : 0.09 + 0.16 * r3 * r3;
+                  const size = iy < 0 ? 0.2 + 0.4 * r3 * r3 : 0.16 + 0.32 * r3 * r3;
                   e.set(r1 * 6 + t * (r2 - 0.5) * 18, r2 * 6 + t * 7, r3 * 6 + t * (r1 - 0.5) * 14);
                   if (y <= 0.021) e.set(-Math.PI / 2, r1 * 6, 0);
                   q.setFromEuler(e);
@@ -390,7 +390,7 @@ const V_SEA_FX = V_SEA;
 //      its place on the avenue (a hash of its slot) and starts when the blast reaches it (timeline.js blastAt). ----
 const AW_COL = [0xc0392b, 0x1f6f4a, 0x2c4f8a, 0xe0a030, 0x6b2d5c, 0x1b1b1b, 0xd35400, 0x2e8b8b];
 function makeStreetFx(scene) {
-  const dust = makeSmoke(scene, 1400);
+  const dust = makeSmoke(scene, 3200, { noBlur: true });
   const G = 9.81;
   const awGeo = new THREE.BoxGeometry(1, 0.07, 1).translate(0, 0, 0);
   const awMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
@@ -420,7 +420,9 @@ function makeStreetFx(scene) {
         dust.mat.uniforms.uTime.value = v;
         const a = Math.max(-30, s - 950), b = Math.min(s + 5, PLAZA);
         // dust out of the buildings on your side (every 7 m), off the road (every 9 m), out of the far side (every 11 m)
-        const rows = [[4.5, 6.3, 6.5, 0], [5, -2.5, 3.0, 1], [6, 2.5, 3.0, 1], [9, -28.8, 29, 2]];
+        // (the road rows are dense near you: the blast front is a cone with its tip at you, so the road right behind your
+        //  feet is hit first, then the walls a few dozen metres back)
+        const rows = [[3.4, 6.3, 6.5, 0], [3.0, -2.5, 3.0, 1], [3.4, 2.5, 3.0, 1], [7, -28.8, 29, 2]];
         for (const [step, x0, r0, kind] of rows) {
           for (let k = Math.floor(a / step); k * step < b; k++) {
             const sk = k * step + hh(k, kind + 40) * step;
@@ -429,17 +431,41 @@ function makeStreetFx(scene) {
             const psi = B.pa / PSI;
             if (v < B.t || psi < (kind === 1 ? 0.6 : 0.25)) continue;
             const age = v - B.t, r1 = hh(k, kind + 41), r2 = hh(k, kind + 42);
-            // the blast throws it out at once (a burst in the first ~0.15 s), then it billows slowly
-            const grow = 0.55 * (1 - Math.exp(-age / 0.12)) + 0.45 * (1 - Math.exp(-age / 1.5));
-            const strength = clamp(psi / 3, 0.4, 1.6);
+            // the blast throws it out at once (most of it in the first ~0.05 s), then it billows slowly
+            const grow = 0.6 * (1 - Math.exp(-age / 0.04)) + 0.4 * (1 - Math.exp(-age / 1.2));
+            const strength = clamp(psi / 3, 0.5, 1.6);
             const out = kind === 0 ? -1 : kind === 2 ? 1 : (r1 - 0.5) * 2;
             const x = x0 + out * (1.5 + 5 * strength) * (1 - Math.exp(-age / 1.4));
-            const y = kind === 1 ? 0.8 + 2.5 * grow : 3 + 9 * r1 + 2 * grow;
-            const rad = (kind === 1 ? 2.8 : 3.4) + (7 + 7 * r2) * strength * grow;
-            const al = 0.7 * smooth(0, 0.03, age) * (1 - smooth(5, 9, age));
-            dust.puff(x, y, -sk + s, rad, al, 0.3 + 0.15 * r2, 0, r1 * 9 + kind);
-            if (kind === 0 && r2 < 0.55) dust.puff(x - 1.0, 1.2 + 1.5 * grow, -sk + s + 2, rad * 0.8, al, 0.26, 0, r2 * 7);
+            const y = kind === 1 ? 0.9 + 3.2 * grow : 3 + 9 * r1 + 2 * grow;
+            const rad = (kind === 1 ? 2.4 : 3.0) + (6 + 6 * r2) * strength * grow;
+            const al = 0.85 * smooth(0, 0.008, age) * (1 - smooth(5, 9, age));
+            dust.puff(x, y, -sk + s, rad, al, 0.2 + 0.13 * r2, 0, r1 * 9 + kind);
+            if (kind === 0 && r2 < 0.7) dust.puff(x - 1.0, 1.2 + 1.5 * grow, -sk + s + 2, rad * 0.8, al, 0.2, 0, r2 * 7);
           }
+        }
+        // the shock front itself, close behind you: a V of dust thrown up off the road and the sidewalks, starting at your
+        // feet and opening out to the walls (each strip lights up when the cone reaches it: r / 343 s after you pass)
+        {
+          const xs = [-25, -21, -17, -13.5, -10, -7, -4.5, 4.4];
+          const na0 = Math.max(-30, s - 160);
+          xs.forEach((x0, ix) => {
+            const r0 = Math.abs(x0);
+            const step = 2.6 + 0.06 * r0;
+            for (let k = Math.floor(na0 / step); k * step < s; k++) {
+              const sk = k * step + hh(k, 70 + ix) * step;
+              const B = blastAt(sk, r0);
+              const psi = B.pa / PSI;
+              if (v < B.t || psi < 0.4) continue;
+              const age = v - B.t, r1 = hh(k, 71 + ix), r2 = hh(k, 90 + ix);
+              const grow = 0.65 * (1 - Math.exp(-age / 0.035)) + 0.35 * (1 - Math.exp(-age / 1.0));
+              const strength = clamp(psi / 3, 0.5, 1.5);
+              const rad = 1.6 + (3.2 + 3.5 * r2) * strength * grow;
+              const x = x0 + (r1 - 0.5) * 1.5 + Math.sign(x0) * 2.5 * grow;
+              const y = 0.5 + 2.4 * grow + 0.6 * r1;
+              const al = 0.8 * smooth(0, 0.006, age) * (1 - smooth(4, 8, age));
+              dust.puff(x, y, -sk + s, rad, al, 0.18 + 0.14 * r2, 0, r1 * 11 + ix);
+            }
+          });
         }
         // awnings over the shop fronts on your side, and blade signs, ripped off from ~0.8 psi
         const k0 = Math.floor((a - XST0) / XST) - 1, k1 = Math.floor((b + 400 - XST0) / XST) + 1;

@@ -107,3 +107,58 @@ export function makeCorridor(scene) {
     },
   };
 }
+
+// The fire you leave behind you (seen while the camera looks back, 0:23-0:27.6): the air along your path goes off
+// as you pass and its blast spreads as R = (E'/rho)^(1/4) sqrt(age), age = how long ago you passed = distance
+// behind you / your speed. So behind you lies a channel of fire that starts at your feet and widens to the horizon:
+// at 1% of light speed ~30 m wide 3 km back, ~90 m at 30 km. Two walls of fire, the hottest (white-yellow) nearest you.
+export function makeTrail(scene) {
+  const geo = new THREE.PlaneGeometry(1, 1, 1, 260);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uK: { value: 1 }, uA: { value: 0 }, uScroll: { value: 0 }, uSide: { value: 1 } },
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+    blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+    vertexShader: /* glsl */ `uniform float uK; uniform float uSide; varying vec2 vQ;
+      void main() {
+        // along: 0 .. 60 km behind you, packed toward you (where the walls change fastest)
+        float along = 60000.0 * pow(uv.y, 2.2) + 0.5;
+        float W = uK * sqrt(along);
+        float up = uv.x;
+        vec3 p = vec3(uSide * W * (1.0 + 0.2 * up), ${SEA_Y.toFixed(2)} + up * W * 0.9, along);
+        p.y -= along * along / ${(2 * R_EARTH).toFixed(1)};
+        vQ = vec2(up, along);
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: /* glsl */ `uniform float uA; uniform float uScroll; varying vec2 vQ;
+      ${NOISE}
+      void main() {
+        float up = vQ.x, along = vQ.y;
+        float sc = log(max(along, 20.0)) * 3.0 - uScroll;
+        float n = cn(vec2(up * 6.0, sc)) * 0.6 + cn(vec2(up * 15.0 + 3.0, sc * 1.8)) * 0.4;
+        float edge = 0.45 + 0.35 * cn(vec2(up * 2.0 + 7.0, sc * 1.3));
+        float fire = 1.0 - smoothstep(edge - 0.08, edge + 0.05, up);
+        float hot = exp(-along / 2500.0);
+        vec3 fc = mix(vec3(1.25, 0.32, 0.05), vec3(1.6, 1.15, 0.6), hot) * (0.45 + 0.9 * n * n);
+        vec3 sm = vec3(0.05, 0.035, 0.03) + vec3(0.6, 0.18, 0.04) * exp(-max(up - edge, 0.0) * 7.0);
+        vec3 col = mix(sm, fc, fire);
+        float a = clamp(fire + (1.0 - fire) * 0.75, 0.0, 1.0) * (1.0 - smoothstep(0.85, 1.0, up)) * uA * smoothstep(1.0, 12.0, along);
+        gl_FragColor = vec4(col, a);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  const walls = [-1, 1].map((sd) => { const m = new THREE.Mesh(geo, mat.clone()); m.material.uniforms.uSide.value = sd; m.frustumCulled = false; m.renderOrder = 3; scene.add(m); return m; });
+  return {
+    walls,
+    frame(v, vel, on) {
+      for (const w of walls) {
+        const u = w.material.uniforms;
+        w.visible = on > 0.001;
+        // W = (E'/rho)^(1/4) sqrt(z / vel), E' = 1/2 rho CdA v^2 (CdA 0.15)
+        u.uK.value = Math.pow(0.5 * 0.15 * vel * vel, 0.25) / Math.sqrt(Math.max(vel, 1));
+        u.uA.value = on; u.uScroll.value = v * 2.5;
+      }
+    },
+  };
+}

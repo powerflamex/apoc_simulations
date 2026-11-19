@@ -149,7 +149,7 @@ const LOOK = /* glsl */ `
       col = mix(col, vec3(0.16, 0.14, 0.12) * (0.7 + 0.5 * gn2(q * 0.5)), blown * 0.45);
       totalEmissiveRadiance *= 1.0 - 0.8 * blown;
     }
-    totalEmissiveRadiance += vec3(2.6, 2.7, 2.9) * burst * max(win, 0.35 * ok) * (0.6 + 0.8 * h21(id * 5.3 + seed));
+    totalEmissiveRadiance += vec3(1.5, 1.55, 1.65) * burst * max(win, 0.35 * ok) * (0.6 + 0.8 * h21(id * 5.3 + seed));
     diffuseColor.rgb = col;
     if (abs(vON.y) > 0.5) diffuseColor.rgb = base * 0.5 + 0.04 * h21(floor(vWP.xz * 0.5));
   }

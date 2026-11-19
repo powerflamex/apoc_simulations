@@ -11,13 +11,17 @@ const NOISE = /* glsl */ `
   float fbm(vec3 p) { float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * noise3(p); p = p * 2.07 + 3.1; a *= 0.5; } return s; }
 `;
 
-export function makeSmoke(scene, max = 2600) {
+export function makeSmoke(scene, max = 2600, opts = {}) {
   const geo = new THREE.IcosahedronGeometry(1, 2);
   const aP = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4);   // alpha, shade, glow, seed
   geo.setAttribute('aP', aP);
   const mat = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 }, uLight: { value: new THREE.Color(1, 1, 1) }, uSun: { value: new THREE.Vector3(0, 1, 0) } },
     transparent: true, depthWrite: false,
+    // (opts.noBlur: lower the target's alpha where it covers, so the depth motion blur leaves it alone: dust carried
+    //  along by the air behind the shock moves slower than the street it hangs over)
+    ...(opts.noBlur ? { blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+      blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor } : {}),
     vertexShader: /* glsl */ `attribute vec4 aP; uniform float uTime; varying vec4 vP; varying vec3 vN; varying vec3 vView; varying vec3 vObj; varying float vNear;
       #include <common>
       #include <logdepthbuf_pars_vertex>

@@ -24,7 +24,8 @@ import { makeCheetah, cheetahAhead } from './cheetah.js';
 import { makeSurface, SU } from './surface.js';
 import { makeFx } from './fx.js';
 import { makeThings } from './things.js';
-import { makeCorridor, corridorW } from './corridor.js';
+import { makeWrecks, hitFlash } from './wrecks.js';
+import { makeCorridor, corridorW, makeTrail } from './corridor.js';
 import { makeSpace, EARTH_C } from './space.js';
 import { makeOverlay } from './overlay.js';
 import { SEA_Y } from './avenue.js';
@@ -77,7 +78,9 @@ you.root.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; o.castShadow 
 const cheetah = makeCheetah(scene);
 const fx = makeFx(scene, scene);
 const things = makeThings(scene);
+const wrecks = makeWrecks(scene);
 const corridor = makeCorridor(scene);
+const trail = makeTrail(scene);
 let space = null;   // (made in boot: it loads the Earth's maps)
 const L1 = [you.root, cheetah.group, fx.wake.mesh, fx.caps.cap, fx.caps.cap2, fx.caps.vap, fx.streamers.mesh, fx.steam.smoke.mesh];
 // you and the cheetah are in both layers (they cast shadows on the world in pass 1, invisibly)
@@ -244,20 +247,43 @@ const CAMK = [
   [3.5, 20, 2.9, 0.7, 9, 0.05, -0.6, 60],
   [4.7, 95, 3.4, 1.3, 4, -0.4, 0.0, 60],
   [5.5, 122, 3.4, 1.5, 8, -1.5, 0.0, 60],
-  [6.6, 168, 3.3, 1.7, 22, -4.0, 2.6, 60],
-  [9.1, 171, 3.6, 2.0, 26, -4.6, 2.8, 60],
+  // the avenue behind you: the blast front, raised so the street behind you opens up
+  [6.6, 168, 5.2, 3.0, 12, -1.4, 1.6, 62],
+  [9.1, 171, 5.6, 3.3, 13, -1.5, 1.8, 62],
+  // out over the sea: the container ship coming at you
   [10.6, 6, 3.2, 1.05, 80, -1.2, 0.0, 60],
-  [12.2, 4, 3.1, 1.0, 80, -1.2, 0.0, 60],
-  [13.3, -78, 3.3, -0.3, 3, -0.3, 0.0, 60],
-  [14.9, -96, 3.8, 0.1, 3, -0.2, 0.0, 60],
-  [15.8, -5, 6.2, 1.2, 120, -8.0, 0.0, 36],
-  [21.8, -4, 6.4, 1.25, 120, -8.0, 0.0, 36],
-  [23.0, -164, 3.0, 1.5, 60, -12.0, -5.0, 62],
-  [25.3, -165, 3.0, 1.5, 60, -12.0, -5.0, 62],
-  [26.6, -352, 3.3, 1.45, 60, -1.0, 0.0, 62],
-  [36.0, -356, 3.2, 1.3, 60, -0.6, 0.0, 64],
-  [40.3, -357, 3.1, 1.2, 60, -0.6, 0.0, 84],
-  [47, -358, 3.1, 1.2, 60, -0.6, 0.0, 84],
+  [11.3, 5, 3.4, 1.1, 300, -0.5, 0.0, 50],
+  [12.3, 4, 3.6, 1.2, 600, 2.0, 0.0, 42],
+  // through it: swing round with a long lens to look back at it breaking
+  [12.52, 180, 30, 1.5, 1800, -20, 0, 18],
+  [13.3, 180, 45, 1.5, 5000, -40, 0, 9],
+  // your feet leave the water
+  [13.8, 282, 3.3, -0.3, 3, -0.3, 0.0, 60],
+  [14.9, 264, 3.8, 0.1, 3, -0.2, 0.0, 60],
+  // behind you again: ships, islands, the coast city coming
+  [15.8, 355, 6.2, 1.2, 120, -8.0, 0.0, 36],
+  [16.9, 356, 6.3, 1.25, 400, -6.0, 0.0, 30],
+  [17.95, 357, 6.4, 1.3, 2000, 0.0, 0.0, 24],
+  // through the tower: look back at it blowing apart, the blocks along your path coming down behind it
+  [18.22, 180, 60, 1.2, 6500, 60, 0, 9],
+  [18.6, 180, 60, 1.2, 22000, 190, 0, 5],
+  [19.15, 180, 60, 1.2, 45000, 250, 0, 4],
+  // round again: the mountain in your path
+  [19.5, 357, 6.4, 1.3, 20000, 0.0, 0.0, 26],
+  [20.0, 358, 6.4, 1.3, 6000, 0.0, 0.0, 28],
+  // through it: look back at the peak bursting, sinking behind the curve of the Earth as you race away
+  [20.42, 180, 80, 0.5, 60000, 1260, 0, 10],
+  [21.0, 180, 80, 0.5, 120000, 1300, 0, 7],
+  [21.4, 180, 80, 0.5, 200000, 800, 0, 6],
+  // the Sun setting behind you, then the fire you leave behind you at night
+  [23.0, 196, 3.0, 1.5, 60, -12.0, -5.0, 62],
+  [25.3, 195, 4.5, 3.0, 120, -10.0, -3.0, 58],
+  [27.4, 192, 5.0, 3.5, 150, -10.0, -2.0, 56],
+  // behind you for the laps
+  [28.3, 8, 3.3, 1.45, 60, -1.0, 0.0, 62],
+  [36.0, 4, 3.2, 1.3, 60, -0.6, 0.0, 64],
+  [40.3, 3, 3.1, 1.2, 60, -0.6, 0.0, 84],
+  [47, 2, 3.1, 1.2, 60, -0.6, 0.0, 84],
 ];
 function camKey(v, j) { return keys(CAMK.map((k) => [k[0], k[j]]), v); }
 
@@ -284,6 +310,7 @@ const GT = (() => {
 // ---------- update ----------
 const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3(), sunD = new THREE.Vector3(), head = new THREE.Vector3(), tmpC = new THREE.Color();
 const prevCam = new THREE.PerspectiveCamera();
+prevCam.rotation.order = 'YXZ';   // (same as the camera's, or the blur sees the shake as a big jump)
 function camPose(v, cam) {
   const yy = youY(v);
   const A = tmpV2.set(0, yy + 1.05, 0);
@@ -303,7 +330,7 @@ function camPose(v, cam) {
 function spaceCam(v, cam) {
   const e = smooth(V_SPACE, T_WHITE - 0.3, v), e2 = smooth(V_SPACE, V_SPACE + 1.6, v);
   const alt = 4500e3 * Math.pow(26000 / 4500, e);
-  const d1 = new THREE.Vector3(0.12, 1, 0.25).normalize(), d2 = new THREE.Vector3(0.38, 0.55, 0.75).normalize();
+  const d1 = new THREE.Vector3(0.12, 1, 0.25).normalize(), d2 = new THREE.Vector3(0.17, 0.55, 0.82).normalize();
   const dir = d1.clone().lerp(d2, e2).normalize();
   cam.position.copy(EARTH_C).addScaledVector(dir, R_EARTH + alt);
   const top = EARTH_C.clone().add(new THREE.Vector3(0, R_EARTH, 0));
@@ -373,22 +400,29 @@ function update(v, cover = -1) {
   CU.uSun.value.copy(sunD); CU.uSkyHi.value.setRGB(...sc.zen); CU.uSkyLo.value.setRGB(...sc.hor); CU.uSunCol.value.setRGB(...sc.sun);
   CU.uHaze.value.setRGB(...sc.hor.map((x) => x * 0.95)); CU.uHazeD.value = 2600;
   SU.uSun.value.copy(sunD); SU.uSkyHi.value.setRGB(...sc.zen); SU.uSkyLo.value.setRGB(...sc.hor); SU.uSunCol.value.setRGB(...sc.sun); SU.uDay.value = day;
-  SU.uHaze.value.setRGB(...sc.hor.map((x) => x * 0.95)); SU.uHazeD.value = lerp(9000, 40000, smooth(14, 22, v));
+  SU.uHaze.value.setRGB(...sc.hor.map((x) => x * 0.95)); SU.uHazeD.value = lerp(9000, 40000, smooth(14, 22, v)) * (1 + 1.2 * smooth(16.5, 18, v) * (1 - smooth(21.5, 23, v)));
   // your fire: the air piled up in front of you glows from Mach ~6 and is white-hot by orbit speed; brighter still
   const glow = smooth(V_GLOW - 0.6, V_GLOW + 0.8, v), hot = smooth(V_GLOW + 0.5, V_LIFT, v), blaze = smooth(V_LIFT, V_1PC, v);
   const fireI = glow * 6 + hot * 30 + blaze * 110 + smooth(V_1PC, V_C, v) * 160;
   const fireC = tmpV.set(1.0, lerp(0.42, 0.85, hot), lerp(0.12, 0.7, hot + blaze * 0.5));
   fire.color.setRGB(fireC.x, fireC.y, fireC.z);
   fire.intensity = fireI;
-  { const k = Math.min(fireI * 0.004, 0.7); SU.uFire.value.setRGB(fireC.x * k, fireC.y * k * 0.8, fireC.z * k * 0.6); }
+  // (the pool of your light on the sea reads as a white oval through a long lens from far off: dimmed there)
+  { const k = Math.min(fireI * 0.004, 0.7) * (1 - 0.85 * smooth(7, 18, camKey(v, 2))); SU.uFire.value.setRGB(fireC.x * k, fireC.y * k * 0.8, fireC.z * k * 0.6); }
   SU.uFireR.value = 6 + 14 * blaze;
   // ---- the sea / Earth under you ----
   surface.frame({ s: S, dz: Math.max(dS * SHUT, vel * 0.12 * smooth(24, 27, v)), v, camX: camera.position.x, camZ: camera.position.z, y: SEA_Y, visible: S > CITY_END - 4000 });
   SU.uTrench.value = smooth(V_SEA + 0.3, V_SEA + 1.5, v);
+  SU.uFoamK.value = 1 - 0.7 * smooth(7, 18, camKey(v, 2));
   const inSpace = v >= V_SPACE;
   things.frame(v, S, v > V_SEA - 0.6 && v < 23.0);
+  wrecks.frame(v, S, !inSpace, 0.45 + 0.55 * day);
   const homeFlash = corridor.frame(v, S, Math.max(dS * SHUT, vel * 0.12), day, v > 29.4 && !inSpace ? 1 : 0);
   SU.uCanyon.value = smooth(29.5, 30.3, v) * (inSpace ? 0 : 1); SU.uCW.value = Math.max(corridorW(v), 1);
+  SU.uTK.value = smooth(32.3, 33.8, v); SU.uTW.value = lerp(50, 450, smooth(33, 40, v));
+  // the fire behind you, seen while the camera looks back from 0:23 to 0:27.6
+  trail.frame(v, vel, smooth(22.2, 23.2, v) * (1 - smooth(27.9, 28.5, v)));
+  SU.uFresh.value = smooth(22.5, 23.5, v) * (1 - smooth(27.6, 28.4, v));
   // the smoke of your earlier laps hangs over the canyon: a dark sky, glowing orange low down where the fire is
   {
     const c = SU.uCanyon.value * 0.88;
@@ -432,7 +466,8 @@ function update(v, cover = -1) {
   {
     const C = fx.caps;
     // the cap of shocked air in front of you (ahead of your chest running, ahead of your head flying)
-    const capA = glow * (1 - fly) * smooth(0.2, 0.7, -Math.cos(camKey(v, 1) * DEG));
+    // (not from far off through a long lens: it would cover you and what's behind you)
+    const capA = glow * (1 - fly) * smooth(0.2, 0.7, -Math.cos(camKey(v, 1) * DEG)) * (1 - smooth(7, 18, camKey(v, 2)));
     C.cap.visible = capA > 0.001; C.cap2.visible = false;
     const capPos = tmpV.set(0, yy + lerp(1.1, 1.0, fly), lerp(-0.3, -1.0, fly));
     C.cap.position.copy(capPos); C.cap2.position.copy(capPos).add(tmpV2.set(0, 0, -0.06));
@@ -455,9 +490,11 @@ function update(v, cover = -1) {
   // ---- the camera ----
   camPose(v, camera);
   const kick = (() => { let k = 0; for (const t of [V_SOUND, V_C]) { const dt = v - t; if (dt > -0.03 && dt < 1.2) k = Math.max(k, Math.exp(-Math.max(dt, 0) / 0.3)); } return k; })();
-  const shake = 0.0012 + 0.0025 * smooth(V_SOUND, V_SOUND + 1, v) + 0.004 * glow + 0.004 * blaze + 0.02 * kick;
-  camera.rotation.x += wobble(v * 13, 1) * shake + wobble(v * 0.4, 2) * 0.004;
-  camera.rotation.y += wobble(v * 11, 3) * shake * 0.8 + wobble(v * 0.33, 4) * 0.004;
+  // (the shake is scaled to the lens: a long lens would magnify it into a jitter)
+  const lensK = clamp(camera.fov / 60, 0.08, 1.4);
+  const shake = (0.0012 + 0.0025 * smooth(V_SOUND, V_SOUND + 1, v) + 0.004 * glow + 0.004 * blaze + 0.02 * kick) * lensK;
+  camera.rotation.x += wobble(v * 13, 1) * shake + wobble(v * 0.4, 2) * 0.004 * lensK;
+  camera.rotation.y += wobble(v * 11, 3) * shake * 0.8 + wobble(v * 0.33, 4) * 0.004 * lensK;
   camera.rotation.z += wobble(v * 9, 5) * shake * 0.6;
   camera.near = S > CITY_END + 200 ? 0.6 : 0.25;
   camera.far = S > CITY_END + 200 ? (v > 15 ? 500000 : 90000) : 30000;
@@ -478,7 +515,7 @@ function update(v, cover = -1) {
   // where the camera was 1/60 s ago (for the motion blur)
   if (inSpace) spaceCam(v - SHUT / 60, prevCam); else camPose(v - SHUT / 60, prevCam);
   prevCam.aspect = camera.aspect; prevCam.near = camera.near; prevCam.far = camera.far;
-  { const vp = v - SHUT / 60; prevCam.rotation.x += wobble(vp * 13, 1) * shake + wobble(vp * 0.4, 2) * 0.004; prevCam.rotation.y += wobble(vp * 11, 3) * shake * 0.8 + wobble(vp * 0.33, 4) * 0.004; }
+  { const vp = v - SHUT / 60; prevCam.rotation.x += wobble(vp * 13, 1) * shake + wobble(vp * 0.4, 2) * 0.004 * lensK; prevCam.rotation.y += wobble(vp * 11, 3) * shake * 0.8 + wobble(vp * 0.33, 4) * 0.004 * lensK; prevCam.rotation.z += wobble(vp * 9, 5) * shake * 0.6; }
   prevCam.updateProjectionMatrix();
   prevCam.updateMatrixWorld();
   prevCam.matrixWorldInverse.copy(prevCam.matrixWorld).invert();
@@ -501,7 +538,7 @@ function update(v, cover = -1) {
   B.uRel.value = smooth(35, V_C, v) * (inSpace ? 0 : 1);
   F.uSpot.value = 0;
   // the slam: a hard white hit that covers the cut out to space
-  F.uSlam.value = Math.min(2.6, s.slam * 2.6) + 0.8 * homeFlash;
+  F.uSlam.value = Math.min(2.6, s.slam * 2.6) + 0.8 * homeFlash + 1.6 * hitFlash(v);
   F.uAb.value = 0.15 + 0.6 * kick + 0.5 * blaze;
   F.uWhite.value = white;
   F.uTitle.value = window.__cover ? 0 : s.title;

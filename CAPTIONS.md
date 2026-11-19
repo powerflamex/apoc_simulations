@@ -2580,62 +2580,76 @@ Cover: `week 9/asteroid-sizes/out/asteroid-sizes_v4_cover.png` (`node render.mjs
 
 ## Next Short. What if you were 1 trillion times faster? — `week 9/fast-trillion/out/fast-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
-44.8 s, loops. One continuous shot in real time (one second of video is one second for you): you sprint down a busy
-avenue and keep getting faster. The counter is TIMES FASTER than walking (3 mph), racing from frame 0, with one line
-under it naming what you are as fast as. The twist and the finish line: you can never reach a trillion; light speed
-stops the counter at 223,538,876x (0:40.3). Reworked Nov 17 after the owner's review (the city's blast didn't read, the
-sea and the laps were empty, the ending was 6 s of a still frame). What you see, in order:
+44.8 s, loops. One continuous shot in real time (one second of video is one second for you), no cuts: the camera swings
+round you to look back. You sprint down a busy avenue and keep getting faster. The counter is TIMES FASTER than walking
+(3 mph), racing from frame 0, with one line under it naming what you are as fast as. The twist and the finish line: you
+can never reach a trillion; light speed stops the counter at 223,538,876x (0:40.3). Second rework Nov 18 (owner: "not
+enough destruction"): for each thing you wreck, ~1 s seeing it come, the hit, ~1 s looking back at what is left. In order:
 0:00 you sprinting down the bike lane, seen over your shoulder, people on the sidewalk beside you, traffic, a cheetah
 level with you ("AS FAST AS A CHEETAH"), the title, the counter racing; a gasp and a scream from the sidewalk. 0:01-0:04
-you overtake the cars beside you as if they were parked and leave the cheetah behind ("AS FAST AS A RACE CAR"). 0:05 the
-camera at your side: a cloud collar flashes round your shoulders at the speed of sound, "The boom smashes every window
-you pass." 0:06.6-0:10 the camera in front of you looks back down the avenue: a wave of bursting windows runs along the
-walls right behind you, brown dust pours out of every building and fills the street, awnings and shop signs are ripped
-off and tumble, people are knocked flat, cars rock and slide ("FASTER THAN A JET OR A BULLET", "FASTER THAN ANY PLANE
-EVER"); 0:09.5 the air in front of you glows, "The air in front of you hits 4,600°F." 0:11 the avenue ends at the sea and
-you run straight out across it; sailboats flash past, a ferry, then an airliner you overtake as if it were parked
-(0:12.6). 0:13.8 the camera at your side: your feet leave the water, "At 17,700 mph you weigh nothing."; you lean into
-the air and fly, white-hot, flames pouring off you; "Only the air pressing down keeps you low." From 0:15.8 the view from
-behind you with a long lens, so you see what's coming: ships and a cruise ship, an archipelago of islands (0:16.6-0:19.4),
-the coast and a city's towers (0:19.6), then a valley between snowy peaks (0:20.3-0:21.9) ("AS FAST AS EARTH CIRCLES THE SUN", "FASTER
-THAN ANY SPACECRAFT"). 0:22.6 the camera swings round to look back: "You outrun the Sun. It sets behind you." 0:25 night
-over land, the towns' lights streaking under you, "1% OF LIGHT SPEED", "Every second: the blast of 23 of the biggest bombs
-ever." 0:28 the Sun rises ahead; 0:29.5 you pass home: once round the Earth. From 0:30 you fly down a canyon of fire under a sky black
-with smoke, its floor charred and streaked with burning lines, the blasts of your earlier laps still spreading, wider every lap (half-width 2 km at 0:30, 9 km at 0:35, 20 km at
-light speed), a flash along it each time you pass home (until laps blur together); "Once round the whole Earth every 2
-seconds." "Ahead of you: the fire from your last laps." Day and night blur into one twilight; 0:35 the canyon ahead turns
-into a blue-white tunnel of light, the edges red; "Every second: more than the asteroid that killed the dinosaurs." 0:40.3 the counter slams to a
-stop at 223,538,876x and turns gold ("NOTHING GOES FASTER") with a hard white hit; out of the white the camera is in
-space, pulling back from the planet: your track is one ring of fire round the whole Earth. "You'll never be 1 trillion
-times faster." "Your path: one ring of fire round the Earth." Full white at 0:43.75, which clears onto frame 0.
+you overtake the cars beside you as if they were parked and leave the cheetah behind. 0:05 the camera at your side: a
+cloud collar flashes round your shoulders at the speed of sound. 0:06.6-0:10 the camera rises in front of you and looks
+back down the avenue: the shock front is a V right behind you, dust thrown up off the road from your feet out to the
+walls, windows bursting along both walls, glass pouring down, awnings and signs ripped off, people knocked flat, cars
+shoved ("The boom smashes every window you pass."); 0:09.5 the air in front of you glows, "The air in front of you hits
+4,600°F." 0:11 the avenue ends at the sea; sailboats, a ferry, an airliner you pass under as if it were parked (0:11.55),
+then a container ship broadside dead ahead. 0:12.3 you go straight through it (a white hit); the camera swings round
+with a long lens: the ship broken in two, folding into a V, a fireball out of its middle, containers thrown into the
+air, the sea thrown up both sides. 0:13.8 the camera at your side: your feet leave the water, "At 17,700 mph you weigh
+nothing."; you fly, white-hot. From 0:15.8 behind you: ships, islands, then a coastal city's towers rising ahead, a
+tower in your path. 0:18.0 through its foot (a white hit); the camera swings round: the skyline behind you with the tower
+in a fireball and a wall of fire and dust along your path where the blocks come down, "Through a tower: 200 tons of TNT."
+0:19.5 round again: a snowy mountain dead ahead. 0:20.1 through it (a white hit); looking back: glowing cracks run up its
+slopes, fire jets out of your channel, the summit bursts and throws rock, "Through a mountain: 5 megatons.", the whole
+mountain sinking behind the curve of the Earth as you race away. 0:22.6 the Sun sets behind you, "You outrun the Sun. It
+sets behind you." 0:23-0:27.6 at night, still looking back: a channel of fire behind you to the horizon, the ground
+burning, "1% OF LIGHT SPEED", "Every second: the blast of 23 of the biggest bombs ever." 0:28 the camera swings behind
+you, the Sun rises ahead over untouched land; 0:29.5 once round the Earth. From 0:30 the ground ahead is what your last
+lap left: a canyon of fire under a sky black with smoke, the land burning, the sea boiling white, "Once round the whole
+Earth every 2 seconds."; from 0:33.8 a glowing trench of molten rock along your path, wider every lap, "Every lap melts
+the ground deeper."; 0:35 the canyon ahead turns into a blue-white tunnel of light, "Every second: more than the asteroid
+that killed the dinosaurs." 0:40.3 the counter slams to a stop at 223,538,876x and turns gold ("NOTHING GOES FASTER")
+with a hard white hit; out of the white the camera is in space: your track is one bright ring of fire round the Earth,
+down through Europe and Africa, shock clouds billowing out from it and a belt of fires spreading across the land on both
+sides. "You'll never be 1 trillion times faster." "Your path: one ring of fire round the Earth." Full white at 0:43.75,
+which clears onto frame 0.
 
-The numbers (also at the top of `src/timeline.js`, `corridor.js`, `space.js`): walking 3 mph; light 670,616,629 mph =
-223,538,876x. Cheetah 70 mph (23x); race car ~230 mph (77x); sound 767 mph (256x); SR-71 2,193 mph (731x) and rifle
-bullets ~1,700-2,200 mph; X-15 4,520 mph (1,507x, the fastest plane ever flown); the space station 17,500 mph (5,833x);
-Apollo 10, the fastest humans, 24,791 mph (8,264x); Earth round the Sun 66,600 mph (22,200x); Parker Solar Probe
-430,000 mph (143,333x). The blast: the energy you push into the air per metre is 1/2 rho CdA v^2 (CdA 0.7 m^2 running,
-0.15 m^2 flying head first), so the air along your path goes off like a line of explosive (overpressure from a line-blast
-fit, arriving r/343 s after you pass): every window from 0:05 (0.1-0.5 psi), people knocked down from 0:05.7 (2 psi), the
-near walls blown in from 0:09 (5 psi). The blast lasts only milliseconds, so its push on a car is small (~1 m/s at 0:07,
-~5 m/s at 0:10): cars rock and slide; they are only thrown once it tops ~20 psi. At Mach 6.6 the air piled up in front of
-you is 2,800 K = 4,600°F. Your weight on the curved Earth is g(1 - v^2/gR): zero at 17,700 mph (orbit speed at the ground),
-so you'd float off; you only stay low by leaning into the air, which pushes down on you (as capsules back from the Moon
-did at 25,000 mph). The things at sea are placed where you reach them at a speed where they can still be seen coming
-(sailboats at 4 km/s, the airliner at 5.6 km/s while it flies 0.25 km/s, islands at 30-80 km/s, the coast at 85 km/s,
-mountains at 200 km/s). 1% of light speed: rho A v^3 = 4.9e18 W = 1,160 megatons of TNT a second = 23 Tsar Bombas (50 Mt).
-One lap of the Earth (40,075 km) takes 2 s at 0:30 and 0.13 s at light speed (7.5 laps a second). The canyon: each pass's
-blast spreads as R = (E'/rho)^(1/4) sqrt(age); ahead of you the widest of your earlier passes is 2-20 km (0:30-0:40).
-70% of light speed: rho A v (gamma - 1) c^2 = 1.4e24 W, more than the highest estimate for the dinosaur asteroid
-(1.3e24 J) every second. At 0.995 c each metre of your track takes ~35 megatons every 0.13 s: one ring of burning air round
-the planet (its blast ~19 km across within a second). The glow at 0:07 was moved to 0:09.5 (at Mach 3 the air is ~1,000°F
-but doesn't glow); laps with day and night happen in real time only near light speed. Honest notes: you are unharmed
-(only your speed changes); the fireball and flames are drawn so you stay visible inside them; at these speeds things only
-visibly fly once you're far past, so the look-back shows the instant effects (glass, dust, people going down) behind you;
-the setting Sun is drawn ~3x its real size; the ring's glow from space is drawn wider than its real ~40 km so it reads;
-the land and sea on the laps are a simplified Earth; the real detail of the canyon flashes past in millionths of a second, so its
-streaks of fire and burning lines are drawn rushing at you far slower than real, and the smoke over it is drawn; the flash each time you pass home stands for the city streaking by
-in a fraction of a frame; mass can only get closer and closer to light speed, so the counter stopping at exactly
-223,538,876x is rounded.
+The numbers (also at the top of `src/timeline.js`, `wrecks.js`, `corridor.js`, `space.js`): walking 3 mph; light
+670,616,629 mph = 223,538,876x. Cheetah 70 mph (23x); race car ~230 mph (77x); sound 767 mph (256x); SR-71 2,193 mph
+(731x) and rifle bullets ~1,700-2,200 mph; X-15 4,520 mph (1,507x); the space station 17,500 mph (5,833x); Apollo 10,
+the fastest humans, 24,791 mph (8,264x); Earth round the Sun 66,600 mph (22,200x); Parker Solar Probe 430,000 mph
+(143,333x). The energy you dump per metre is the drag on you, 1/2 rho CdA v^2 (CdA 0.7 m^2 running, 0.15 m^2 flying head
+first), in whatever you go through. In the air it's a line of explosive (overpressure from a line-blast fit, arriving
+r/343 s after you pass): the front is a cone with its tip at you, so the road right behind your feet is hit first, the
+walls 13-40 m back (windows from 0.1-0.5 psi, people down at 2 psi, near walls blown in at 5 psi; cars only shoved: the
+blast lasts milliseconds). The container ship (0:12.3, 3,900x = 5.3 km/s): ~12,000 kg of hull, cargo and ballast per m^2
+across its 51 m beam = ~1.2e11 J = ~30 tons of TNT inside the hull at the waterline: enough to break its back (a 300 kg
+torpedo warhead under the keel does); the deck load in the middle is thrown 100+ m; the 100,000 t ship itself only
+breaks and folds. The tower (0:18.0, 27,000x = 36 km/s): 42 m through its foot at ~200 kg/m^3 = ~8e11 J = ~200 t of
+TNT; your wake through the air is ~29 kg of TNT per metre: >10 psi within ~40 m of your path (blocks come down), 5 psi at
+60 m, 2 psi at 130 m, arriving 0.1-0.4 s after you pass (3-15 km behind you). The mountain (0:20.1, 83,000x = 111 km/s):
+~9.1 km of rock through its foot = ~2.3e16 J = ~5 megatons along a channel 1-3 km under its slopes, like a deep
+cratering shot: fire jets from both ends at once, the slopes crack, the summit is heaved up at ~100-300 m/s. At Mach 6.6
+the air in front of you is 2,800 K = 4,600°F. Your weight on the curved Earth is g(1 - v^2/gR): zero at 17,700 mph, so
+you only stay low by leaning into the air (as capsules back from the Moon did). 1% of light speed: rho A v^3 = 4.9e18 W =
+1,160 megatons a second = 23 Tsar Bombas (50 Mt); the fire behind you spreads as R = (E'/rho)^(1/4) sqrt(age): ~30 m
+wide 3 km back, ~90 m at 30 km. One lap of the Earth takes 2 s at 0:30 and 0.13 s at light speed (7.5 laps a second).
+On the laps the ground ahead is what your last pass left: its heat ignites land for tens to hundreds of km, the sea
+boils, the canyon walls are the widest earlier blast (2-20 km); at 0:34 each pass dumps ~88 kilotons per metre, enough to
+melt a channel hundreds of metres wide (drawn 100 m wide growing to 900 m). 70% of light speed: rho A v (gamma - 1) c^2 =
+1.4e24 W, more than the highest estimate for the dinosaur asteroid (1.3e24 J) every second. At 0.995 c each metre of
+your track takes ~35 megatons every 0.13 s: one ring of burning air round the planet; in the last 3 s its shock spreads
+~70 km (drawn out to ~200 km) and its heat sets the land on fire ~1,000 km either side (everything in sight of the
+fireball rising off the track).
+Honest notes: you are unharmed (only your speed changes), and so is the camera going through the same holes; the fireball
+and flames are drawn so you stay visible inside them; the look-backs are long-lens shots from 30-80 m in front of you;
+at 36 km/s the blocks along your path only come down 3-15 km behind you, so the look-back shows them as a wall of fire
+and dust in the skyline rather than close up; your own city's skyline can't be shown on each lap (at those speeds you
+pass it in a ten-thousandth of a second, far less than one frame), so each pass of home is the flash along the canyon;
+the setting Sun is drawn ~3x its real size; the land and sea on the laps are a simplified Earth, and the canyon's
+streaks of fire and burning lines are drawn rushing at you far slower than real (their real detail goes by in
+millionths of a second); the ring and the shock clouds from space are drawn wider than real so they read; mass can only
+get closer and closer to light speed, so the counter stopping at exactly 223,538,876x is rounded.
 
 **YouTube title (89 chars)**
 What if you were 1 trillion times faster? Light speed stops you first 🔥 #whatif #physics
@@ -2643,13 +2657,14 @@ What if you were 1 trillion times faster? Light speed stops you first 🔥 #what
 **YouTube description**
 You start sprinting as fast as a cheetah: 23 times faster than walking (3 mph).
 77x: cars look parked.
-256x: the speed of sound. The boom smashes every window you pass, and your blast throws dust down the whole street behind you.
+256x: the speed of sound. Your boom smashes every window you pass and throws a wall of dust down the street behind you.
 1,500x: faster than any plane ever. The air in front of you hits 4,600°F and glows.
-You run out across the sea and overtake an airliner as if it were parked.
-5,900x (17,700 mph): you weigh nothing. Your feet leave the water, and only the air pushing down keeps you from flying off into space.
-Islands, a coast, a city and mountains flash past, and you outrun the Sun.
-1% of light speed: every second, the blast of 23 of the biggest bombs ever.
-Then once round the whole Earth every 2 seconds, down a canyon of fire you left on your last lap.
+3,900x: you run straight through a container ship. Like 30 tons of TNT inside it: it breaks in two.
+5,900x (17,700 mph): you weigh nothing. Your feet leave the water; only the air pushing down keeps you low.
+27,000x: through a skyscraper (200 tons of TNT), and your wake brings down the blocks along your path.
+83,000x: through a mountain. 5 megatons. The peak bursts.
+1% of light speed: every second, the blast of 23 of the biggest bombs ever, and a trail of fire behind you.
+Once round the whole Earth every 2 seconds: the ground ahead still burning from your last lap, the sea boiling, then a glowing trench of molten rock.
 70% of light speed: every second, more energy than the asteroid that killed the dinosaurs.
 Light speed: 223,538,876 times faster than walking. Nothing goes faster, so you can never be 1 trillion times faster. Your path is one ring of fire round the Earth.
 
@@ -2657,7 +2672,7 @@ How fast would you go before you stopped? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 9/fast-trillion/out/fast-trillion_v4_cover.png` (`node render.mjs --cover 31.6`: you flying head first down the canyon of fire your earlier laps left, burning lines on the black ground running to the horizon, walls of fire and smoke either side; "WHAT IF YOU WERE / 1 trillion / times faster?")
+Cover: `week 9/fast-trillion/out/fast-trillion_v4_cover.png` (`node render.mjs --cover 34`: you flying head first down a glowing trench of molten rock between walls of fire and smoke under a black sky; "WHAT IF YOU WERE / 1 trillion / times faster?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
