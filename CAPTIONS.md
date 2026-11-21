@@ -2866,6 +2866,69 @@ At which number would you have started running? 👇
 
 Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --cover 18.2`: you white-hot in a street of molten road, the building beside you glowing with every room on fire, burning cars and trees up the street; "WHAT IF YOU WERE / 1 trillion / times hotter?")
 
+## Next Short. What if you were 1 trillion times stronger? — `week 9/strong-trillion/out/strong-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+47.25 s, loops. Same formula as heavy/shrink/fast trillion: you (orange hoodie), one counter (TIMES STRONGER) racing to
+1,000,000,000,000x, one continuous shot with no cuts, something new and bigger every 4-6 s. The one line under the
+counter says what you can lift at that number. Not punch-10x again (that was one wall, blasts, cuts to aerials and
+space): here you pick up real things on a cruise-ship plaza on a harbor and throw them, and the cost shows under your
+feet. In order:
+0:00 you, big in frame, a blue car over your head on one hand; a red bus at the stop, the cruise ship's decks and the
+mountain across the harbor behind; people backing away filming; a crowd gasp; title, 42x, "YOU CAN LIFT: A CAR".
+0:01 you toss the car over your shoulder; it lands on its roof behind you. 0:02.7 you get under the bus's side and lift
+it over your head ("A city bus: 15 tons."), 0:04.5 throw it up the street end over end; it lands and tumbles by 0:06.5
+(a different picture from frame 0 by 0:05). 0:08 the container truck, over your head; the pavement cracks under you
+("A loaded truck: 40 tons.", "Your shoes crack the concrete."); 0:10.5 thrown into the cruise ship's hull: it clangs and
+crumples onto the quay. 0:12 two bounds to the jumbo jet; 0:13.3 under its nose, you lift it by the nose wheel, your feet
+sinking into a cracked crater ("A jumbo jet: 440 tons."); 0:15.9 thrown into the ship's decks: a fireball, and it stays
+wedged there, burning. 0:18.7 at the quay edge you grab the ship's hull; it shudders and can't move until the counter
+reaches a cruise ship (0:20.7), then comes up out of the harbor, water pouring off its red hull, its ends sagging and
+breaking off ("A cruise ship: 110,000 tons.", "The ground can't hold you up."); 0:22.85 thrown across the harbor, the
+burning jet still in it; it lands on the far shore. 0:23.3-0:26.8 three bounds to the glass tower; you rip it off its base,
+it tilts away ("A skyscraper: 365,000 tons."), 0:30.7 thrown across the harbor; it lands on the far shore and breaks
+up in dust. 0:33.2 one jump across the harbor, the camera chasing you ("One jump across the harbor."); 0:36.2 you land at
+the mountain's foot in the forest. You dig in; rockfalls, cracks running up its face, the ground caving in round you
+("It breaks where you grab it."). 0:41.4 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN": its foot comes up, 0:41.75 you
+throw it: it lifts off (sky under it) and flies off ("50 billion tons. A mountain a mile high."), 0:43.5 it lands ~3 km
+away; a wall of dust rises and closes in; hard white at 0:45.55, which clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): at 1x you lift 100 lb, so the counter x 100 lb is what you can lift
+(tons = US tons of 2,000 lb). Car ~3,300 lb = 33x; 40-ft city bus ~30,000 lb (15 tons) = 300x; loaded semi 80,000 lb
+(40 tons, the US legal limit) = 800x; Boeing 747-400 at max take-off 875,000 lb (~440 tons) = 8,750x (empty it's
+~394,000 lb, which you pass at ~12 s); biggest cruise ships ~100,000 metric tons displacement = 220 million lb
+(110,000 tons) = 2,200,000x; Empire State Building ~365,000 tons = 7,300,000x; 10 of them 73,000,000x, 1,000 of them
+7,300,000,000x; 1e12 x 100 lb = 50 billion tons = ~17 km^3 of rock (2,700 kg/m^3): a peak about a mile (1.6 km) high on
+a base ~8 x 4.5 km (Everest is ~3x heavier). The ship only starts to rise when the counter reaches its weight, and the
+mountain's foot only when you can lift about half of it (~5e11x, 0:40.2: tipping it about its far edge). Under your
+shoes (~0.06 m^2): the bus ~2.3 MPa (paving cracks), the truck ~6 MPa, the jet 30-65 MPa (more than concrete's ~30-40
+MPa), the ship ~16 GPa (80x what granite can take).
+Honest notes: from the jet on, really your feet would punch down into the ground like a nail; the video shows the ground
+caving in round you instead, so you stay in sight. A throw from a ~2 m push only goes far once you're many times stronger
+than the thing's weight; the counter keeps climbing while you hold each one, but the throws are drawn longer and faster
+than that allows, and the mountain's flight (~3 km in under 2 s) is sped up a lot (a real one would take minutes). The
+bounds between things and the ~290 m jump across the harbor are within what legs this strong could do. The jet is lifted
+from its nose wheel as one stiff piece (in reality it would bend and the nose gear would snap); the plaza puts a jumbo jet,
+a cruise terminal and a tower side by side to fit one shot.
+
+**YouTube title (90 chars, emoji counted as 2)**
+What if you were 1 trillion times stronger? You could throw a mountain 💪 #whatif #physics
+
+**YouTube description**
+At 1x you can lift 100 lb over your head. Everything below is 100 lb times the counter.
+33x: a car, with one hand.
+300x: a city bus (15 tons). You throw it up the street.
+800x: a loaded truck (40 tons). Your shoes crack the concrete.
+8,750x: a jumbo jet (440 tons). You throw it into a cruise ship.
+2,200,000x: the cruise ship itself (110,000 tons), straight out of the harbor. The ground caves in under you.
+7,300,000x: a skyscraper (365,000 tons), ripped off its base.
+1,000,000,000,000x: 50 billion tons. A mountain a mile high.
+
+What would you lift first? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 10`: you holding the loaded container truck over your head, the pavement cracking under you, the jumbo jet and the cruise ship behind; "WHAT IF YOU WERE / 1 trillion / times stronger?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
