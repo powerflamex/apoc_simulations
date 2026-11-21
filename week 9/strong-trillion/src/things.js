@@ -259,7 +259,7 @@ export function makeShip() {
     const half = SHIP.beam / 2, D = SHIP.draft, FB = 12;      // draft below the waterline, freeboard to the main deck
     // the hull's plan: full beam, a pointed bow in the first piece (x < -100), a rounded stern in the last
     const plan = (x) => {
-      if (x < -105) { const t = (x + 150) / 45; return half * Math.sqrt(Math.max(0.0, 1 - (1 - t) * (1 - t))) ; }
+      if (x < -105) { const t = (x + 150) / 45; return half * Math.pow(Math.max(t, 0), 0.75); }   // a sharp V bow
       if (x > 138) { const t = (150 - x) / 12; return half * (0.75 + 0.25 * Math.sqrt(Math.max(0, t))); }
       return half;
     };

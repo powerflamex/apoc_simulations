@@ -40,7 +40,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
   };
   // a burst of chunks thrown from (x, y, z) at t0: n pieces, speed v, size s, colour; they bounce once and lie still
   const BURSTS = [];
-  const burst = (t0, x, y, z, n, v, s, c, o = {}) => BURSTS.push({ t0, x, y, z, n, v, s, c, seed: R() * 1000, up: o.up ?? 0.8, dir: o.dir || null, spread: o.spread ?? 1, floor: o.floor ?? null, life: o.life ?? 6 });
+  const burst = (t0, x, y, z, n, v, s, c, o = {}) => BURSTS.push({ floorY: o.floor, t0, x, y, z, n, v, s, c, seed: R() * 1000, up: o.up ?? 0.8, dir: o.dir || null, spread: o.spread ?? 1, floor: o.floor ?? null, life: o.life ?? 6 });
   // the touchdowns of your bounds: small cracks of dust and chunks
   const TOUCH = [];
   for (const [t0, t1, a, b, kind, nb] of MOVES) {
@@ -53,19 +53,18 @@ export function makeFx(scene, ctx, { smoke, glows }) {
     }
   }
   // what breaks when: pavement at each crater, glass when the bus and truck crash, metal and glass at the ship
-  const pave = [0.6, 0.57, 0.53];
-  for (const [sp, t0, t1, r, d, reach] of CRATERS) burst(t0 + 0.05, sp.x, 0.1, sp.z, Math.round(10 + r * 9), 1.5 + r * 0.9, 0.12 + r * 0.05, pave, { up: 1.2 });
-  for (const t of TOUCH) burst(t.t, t.x, 0.05, t.z, 14, 3, 0.18, pave, { up: 1.4 });
+  const pave = [0.42, 0.4, 0.37];
+  for (const [sp, t0, t1, r, d, reach] of CRATERS) burst(t0 + 0.05, sp.x, 0.1, sp.z, Math.round(10 + r * 6), 1.5 + r * 0.9, 0.08 + r * 0.018, pave, { up: 1.2 });
+  for (const t of TOUCH) burst(t.t, t.x, 0.05, t.z, 14, 3, 0.11, pave, { up: 1.4 });
   burst(B.carLand, -2.2, 0.6, -14.5, 30, 3.5, 0.05, [0.7, 0.8, 0.85], { up: 0.6 });                 // the car's glass
   burst(B.busLand, -11, 0.8, -50.5, 70, 6, 0.08, [0.75, 0.85, 0.9], { up: 0.7 });                  // the bus's windows
   burst(B.busLand, -11, 0.4, -50.5, 30, 4, 0.3, [0.16, 0.16, 0.17], { up: 1.1 });                   // asphalt
-  burst(B.truckHit, 6.2, 6.5, -95, 60, 8, 0.35, [0.82, 0.4, 0.12], { up: 0.5, dir: [0, 0, 1] });   // the container's sheet metal
-  burst(B.truckHit, 6.2, 6.5, -96, 50, 7, 0.25, [0.1, 0.14, 0.24], { up: 0.5, dir: [0, 0, 1] });   // the hull's plates
-  burst(B.jetHit, 40, 33, -92, 160, 14, 0.45, [0.92, 0.92, 0.9], { up: 0.7, dir: [0, 0.2, 1] });   // the jet and the decks
-  burst(B.towerGrab + 0.6, TOWER.x - 18, 2, SPOT.tower.z, 60, 4, 0.4, [0.55, 0.6, 0.66], { up: 1.2 });   // the tower's base floors
-  burst(B.towerUp, TOWER.x - 18, 4, SPOT.tower.z, 50, 5, 0.6, [0.45, 0.55, 0.65], { up: 1.0 });
+  burst(B.truckHit, 7.5, SEA_Y + 0.5, -116, 90, 14, 0.35, [0.92, 0.95, 0.97], { up: 1.6, floor: SEA_Y });   // the truck's splash
+  burst(B.jetHit, 40, 32, -150, 160, 14, 0.45, [0.92, 0.92, 0.9], { up: 0.7, dir: [-1, 0.2, 0] });   // the jet and the decks
+  burst(B.towerGrab + 0.6, 112, 2, -50, 50, 5, 0.22, [0.4, 0.45, 0.5], { up: 1.2 });   // the tower's base floors
+  burst(B.towerUp - 1.0, 120, 3, -58, 50, 7, 0.3, [0.35, 0.42, 0.5], { up: 1.0 });
   // glass glints when the tower comes away: pieces from its lower floors
-  burst(B.towerUp + 0.2, TOWER.x, 30, TOWER.z, 120, 6, 0.35, [0.6, 0.72, 0.82], { up: 0.2 });
+  burst(B.towerUp - 0.6, 150, 60, -88, 120, 6, 0.35, [0.6, 0.72, 0.82], { up: 0.2 });
 
   const ripple = [];
   return {
@@ -93,7 +92,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
           if (b.dir) { vx = vx * 0.5 + b.dir[0] * sp; vy += b.dir[1] * sp; vz = vz * 0.5 + b.dir[2] * sp; }
           const s = b.s * (0.4 + 0.9 * rr());
           // fall to the ground (or the water) and stop
-          const yg = b.y > 3 && Math.abs(b.z - QUAY_Z) < 6 ? (rr() < 0.5 ? SEA_Y : 0) : 0;
+          const yg = b.floorY !== undefined ? b.floorY : b.y > 3 && Math.abs(b.z - QUAY_Z) < 6 ? (rr() < 0.5 ? SEA_Y : 0) : 0;
           const tLand = (vy + Math.sqrt(vy * vy + 2 * G * Math.max(0.01, b.y - yg))) / G;
           const tt = Math.min(t, tLand);
           const x = b.x + vx * tt + (t > tLand ? vx * 0.15 * (1 - Math.exp(-(t - tLand) * 4)) : 0);
@@ -118,24 +117,33 @@ export function makeFx(scene, ctx, { smoke, glows }) {
             0.55 * smooth(0, 0.15, t) * (1 - smooth(life * 0.45, life, t)), shade, 0, f);
         }
       };
-      for (const [sp, t0, t1, r, d, reach] of CRATERS) if (r > 1 && sp !== SPOT.ship && sp !== SPOT.tower) dustRing(t0, sp.x, sp.z, r * 0.8, 10 + Math.round(r * 2), 0.25 + r * 0.22, 3 + r * 0.3);
+      for (const [sp, t0, t1, r, d, reach] of CRATERS) if (r > 1 && sp !== SPOT.ship && sp !== SPOT.tower && sp !== SPOT.jet) dustRing(t0, sp.x, sp.z, r * 0.8, 10 + Math.round(r * 2), 0.25 + r * 0.22, 3 + r * 0.3);
       for (const t of TOUCH) dustRing(t.t, t.x, t.z, 0.4, 8, 0.6, 2.5);
       dustRing(B.carLand, -2.4, -14.8, 1.0, 10, 0.7, 3);
       dustRing(B.busLand, -11, -50.5, 3, 18, 1.4, 5);
       dustRing(B.busLand + 0.9, -12, -60, 3, 14, 1.2, 4);
-      dustRing(B.truckHit + 0.9, 5, -88, 4, 16, 1.6, 5);
+      // the truck's splash: a column of white water and a ring of spray
+      {
+        const t = v - B.truckHit;
+        if (t > 0 && t < 4) for (let i = 0; i < 30; i++) {
+          const f = (i * 0.618) % 1, a = i * 2.4, r = 2 + 9 * (1 - Math.exp(-t * 2)) * (0.5 + f);
+          smoke.puff(7.5 + Math.cos(a) * r, SEA_Y + 1 + 14 * f * Math.sin(Math.min(1, t * 1.2) * Math.PI * 0.9), -116 + Math.sin(a) * r, 2 + 2.5 * f + t, 0.8 * smooth(0, 0.08, t) * (1 - smooth(1.6, 4, t)), 1.0, 0, f);
+        }
+      }
 
       // ---- the ship: water pouring off it as it rises; the splash where it was; the crash on the far shore ----
       {
         const t = v - (B.shipGrab + 1.6);
         if (t > 0 && t < 6) {
-          const k = smooth(0, 1.2, t) * (1 - smooth(2.6, 5.5, t));
-          const lifted = Math.min(9.8, 9.8 * smooth(0, 1.4, t));
-          for (let i = 0; i < 90; i++) {
-            const f = (i * 0.618) % 1, xx = -130 + 260 * (i / 90);
-            const zz = SHIP.z + 3.2 * smooth(0, 1.4, t) + (i % 3 ? 18.5 : -18.5);
-            const fall = ((t * 1.3 + f) % 1);
-            smoke.puff(xx, lerp(SEA_Y + lifted - 7, SEA_Y + 0.3, fall * fall), zz + (i % 3 ? 1 : -1) * 1.5 * fall, 1.3 + 1.6 * f + 1.5 * fall, 0.45 * k * (1 - fall * 0.5), 1.0, 0, f);
+          const k = smooth(0, 0.6, t) * (1 - smooth(2.4, 3.4, t));
+          const Ms = o.shipMs;
+          for (let i = 0; Ms && i < 80; i++) {
+            const f = (i * 0.618) % 1, lx = -145 + 290 * (i / 80);
+            const M = Ms[lx < -50 ? 0 : lx < 60 ? 1 : 2];
+            const src = new THREE.Vector3(lx, -7 + 10 * f, (i % 2 ? 1 : -1) * 14).applyMatrix4(M);
+            if (src.y < SEA_Y + 1) continue;
+            const fall = ((t * 1.1 + f) % 1);
+            smoke.puff(src.x + (f - 0.5) * 3, lerp(src.y, SEA_Y + 0.5, fall * fall), src.z, 1.5 + 2.5 * f + 2 * fall + src.y * 0.03, 0.5 * k * (1 - fall * 0.5), 1.0, 0, f);
           }
           // the hole the ship leaves in the water fills back in: a ring of foam spreading
         }
@@ -145,7 +153,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
             const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
             const xx = -290 + 300 * (i / 70);
             const r = 10 + 60 * (1 - Math.exp(-tl * 0.9)) * (0.5 + f);
-            smoke.puff(xx, 8 + 30 * g * (1 - Math.exp(-tl * 1.2)) + 3 * tl, -398 + (g - 0.5) * 60 + r * 0.3, 10 + 14 * f + 4 * tl, 0.7 * smooth(0, 0.2, tl) * (1 - smooth(4, 9, tl)), i % 3 ? 0.68 : 0.95, 0, f);
+            smoke.puff(xx, 12 + 30 * g * (1 - Math.exp(-tl * 1.2)) + 3 * tl, -566 + (g - 0.5) * 60 - r * 0.3, 10 + 14 * f + 4 * tl, 0.7 * smooth(0, 0.2, tl) * (1 - smooth(4, 9, tl)), i % 3 ? 0.68 : 0.95, 0, f);
           }
         }
       }
@@ -159,7 +167,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
           for (let i = 0; i < 26; i++) {
             const f = (i * 0.618) % 1, g = (i * 0.377) % 1, a = i * 2.4;
             const r = (4 + 22 * (1 - Math.exp(-t * 2.5))) * (0.4 + 0.6 * f);
-            smoke.puff(jp.x + Math.cos(a) * r, jp.y + r * 0.5 * (g - 0.3) + 4 * t, jp.z + 6 + Math.sin(a) * r * 0.6, 6 + 10 * g * (1 - Math.exp(-t * 2)) + 2 * t,
+            smoke.puff(jp.x + 14 + Math.cos(a) * r * 0.6, jp.y + r * 0.5 * (g - 0.3) + 4 * t, jp.z + Math.sin(a) * r, 6 + 10 * g * (1 - Math.exp(-t * 2)) + 2 * t,
               0.85 * smooth(0, 0.08, t) * (1 - smooth(1.6, 3.5, t)), 0.18, 1.1 * fb * (1.0 - g) + 0.15, f);
           }
           // smoke rising from where it burns (rides with the ship)
@@ -181,7 +189,22 @@ export function makeFx(scene, ctx, { smoke, glows }) {
         if (t > 0 && t < 9) for (let i = 0; i < 50; i++) {
           const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
           const d = 285 * (i / 50);
-          smoke.puff(185 + d * 0.94 + (f - 0.5) * 30, 6 + 40 * g * (1 - Math.exp(-t)) + 4 * t, -392 - d * 0.34 + (g - 0.5) * 40, 14 + 12 * f + 5 * t, 0.75 * smooth(0, 0.25, t) * (1 - smooth(5, 9, t)), 0.66, 0, f);
+          smoke.puff(205 + d * 0.97 + (f - 0.5) * 30, 10 + 40 * g * (1 - Math.exp(-t)) + 4 * t, -530 - d * 0.25 + (g - 0.5) * 40, 14 + 12 * f + 5 * t, 0.75 * smooth(0, 0.25, t) * (1 - smooth(5, 9, t)), 0.66, 0, f);
+        }
+      }
+      // ---- in the wide shots: a bright glow round you and a ring of dust at your feet, sized to stay findable ----
+      {
+        const d = o.camDist || 0, k = smooth(25, 70, d);
+        if (k > 0) {
+          const Y = o.you;
+          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(1.5, 0.09 * d), 6 * k, 4.2 * k, 2.2 * k);
+          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(0.6, 0.03 * d), 12 * k, 11 * k, 9 * k);
+          const R = Math.max(3, 0.03 * d);
+          for (let i = 0; i < 22; i++) {
+            const a = (i / 22) * Math.PI * 2 + v * 0.4, f = (i * 0.618) % 1;
+            const rr = R * (0.85 + 0.3 * f) * (0.9 + 0.1 * Math.sin(v * 3 + i));
+            smoke.puff(Y.x + Math.cos(a) * rr, o.yy + 0.3 * R * (0.4 + 0.4 * f), Y.z + Math.sin(a) * rr, R * 0.28 * (0.7 + 0.5 * f), 0.7 * k, 0.97, 0, f);
+          }
         }
       }
       // ---- the leap's landing: a ring of dust and sand ----
@@ -191,11 +214,11 @@ export function makeFx(scene, ctx, { smoke, glows }) {
         const lift = smooth(B.mtnGrab + 0.3, B.mtnUp, v);
         if (v > B.mtnGrab && v < B.mtnLand + 3) {
           // dust along the foot, where it tears from the ground
-          const k = smooth(B.mtnGrab + 0.3, B.mtnGrab + 2, v) * (1 - smooth(B.mtnThrow + 0.6, B.mtnThrow + 2.5, v));
+          const k = smooth(B.mtnGrab + 0.3, B.mtnGrab + 2, v) * (1 - smooth(B.mtnUp - 0.6, B.mtnUp + 0.2, v));
           for (let i = 0; i < 40; i++) {
             const f = (i * 0.618) % 1, x = SPOT.mtn.x - 260 + 520 * (i / 40);
             const zf = MTN.z + MTN.rz * Math.sqrt(Math.max(0, 1 - Math.pow((x - MTN.x) / MTN.rx, 2)));
-            smoke.puff(x, 3 + 8 * f + 4 * lift, zf - 6 - 10 * f, 6 + 8 * f + 6 * lift, 0.55 * k, 0.6, 0, f);
+            smoke.puff(x, 3 + 6 * f + 3 * lift, zf - 8 - 10 * f, 4 + 6 * f + 3 * lift, 0.5 * k, 0.62, 0, f);
           }
           // rockfalls down the face (dust plumes sliding down)
           for (let i = 0; i < 24; i++) {

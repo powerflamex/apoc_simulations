@@ -28,12 +28,12 @@ export const LB0 = 100;                         // what you can lift at x1 (lb)
 export const B = {
   carToss: 1.0, carLand: 1.75,
   busGrab: 2.75, busUp: 4.0, busThrow: 4.55, busLand: 6.45,
-  truckGrab: 8.0, truckUp: 9.6, truckThrow: 10.55, truckHit: 11.75,
+  truckGrab: 8.0, truckUp: 9.6, truckThrow: 10.55, truckHit: 11.9,
   jetGrab: 13.3, jetUp: 14.9, jetThrow: 15.9, jetHit: 17.1,
-  shipGrab: 19.0, shipUp: 22.0, shipThrow: 22.85, shipLand: 25.0,
+  shipGrab: 19.0, shipUp: 22.3, shipThrow: 23.2, shipLand: 25.3,
   towerGrab: 27.2, towerUp: 30.0, towerThrow: 30.7, towerLand: 32.6,
   leap: 33.2, leapLand: 36.2,
-  mtnGrab: 36.8, mtnUp: 41.4, mtnThrow: 41.75, mtnLand: 43.5,
+  mtnGrab: 36.8, mtnUp: 41.4, mtnThrow: 41.95, mtnLand: 43.7,
 };
 export const V_TRILLION = 41.4;
 export const V_WHITE = 45.55;                   // the dust wall reaches the camera: hard white

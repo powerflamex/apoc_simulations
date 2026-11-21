@@ -104,8 +104,8 @@ export function makeSoundtrack(outFile) {
         o += fs_[i].run(white(), fc, 0.04).bp * (1 - i * 0.2);
       }
       // creaks: sparse soft pops through a resonance
-      const pop = GR() < 0.0009 * (0.4 + k) ? 30 : 0;
-      o += cr.run(white() * pop, base * 3.1, 0.15).bp * 0.08;
+      const pop = GR() < 0.0025 * (0.4 + k) ? 30 : 0;
+      o += cr.run(white() * pop, base * 3.1, 0.15).bp * 0.25;
       o *= e * g;
       return [o, o];
     });
@@ -163,7 +163,7 @@ export function makeSoundtrack(outFile) {
 
   // ---------------- the hits ----------------
   // the crowd's gasp in the first second (and in the loop's lead-in it's the run-up to it)
-  const clips = [['gasp.mp3', 0, 1.6, 0.06, 0.6, 1, 0.1], ['omg.mp3', 0, 1.8, B.busThrow + 0.15, 0.32, 1, -0.4]];
+  const clips = [['gasp.mp3', 0, 1.6, 0.0, 1.15, 1, 0.1], ['scream.mp3', 0.1, 0.9, 0.3, 0.55, 1.12, -0.35], ['omg.mp3', 0, 1.8, B.busThrow + 0.15, 0.45, 1, -0.4]];
   for (const [name, ss, len, t0, gain, rate, pan] of clips) {
     const c = loadClip(name, ss, len + 0.2);
     if (!c) continue;
@@ -175,41 +175,29 @@ export function makeSoundtrack(outFile) {
     }
   }
   // the car
-  groan(-0.9, B.carToss + 0.1, 0.05, 520, 2);
+  groan(-0.9, B.carToss + 0.1, 0.16, 520, 2);
   whoosh(B.carToss - 0.05, 0.25, 300, 1400, 0.7, -0.3);
-  crash(B.carLand, 0.55, 1500, 0.25, -0.2); glass(B.carLand + 0.02, 0.35, 8, -0.2);
+  crash(B.carLand, 0.55, 1500, 0.25, -0.2); glass(B.carLand + 0.02, 0.35, 8, -0.2); boom(B.carLand, 0.35, 70, 0.35);
   crash(B.carLand + 0.5, 0.22, 900, 0.2, -0.3);
   // the bus
-  groan(B.busGrab, B.busThrow + 0.1, 0.11, 230, 3);
+  groan(B.busGrab, B.busThrow + 0.1, 0.3, 230, 3);
   crack(B.busGrab + 0.6, 0.12);
   whoosh(B.busThrow - 0.05, 0.4, 200, 900, 1.2, -0.4);
-  crash(B.busLand, 0.75, 1100, 0.35, -0.3); glass(B.busLand + 0.03, 0.4, 12, -0.3); boom(B.busLand, 0.25, 55, 0.5);
+  crash(B.busLand, 0.75, 1100, 0.35, -0.3); glass(B.busLand + 0.03, 0.4, 12, -0.3); boom(B.busLand, 0.5, 58, 0.55);
   crash(B.busLand + 0.55, 0.35, 700, 0.3, -0.3); crash(B.busLand + 1.05, 0.2, 500, 0.3, -0.3);
   // the truck
-  groan(B.truckGrab, B.truckThrow + 0.1, 0.13, 160, 3);
+  groan(B.truckGrab, B.truckThrow + 0.1, 0.34, 160, 3);
   crack(B.truckGrab + 0.5, 0.22); crack(B.truckUp, 0.18);
   whoosh(B.truckThrow - 0.05, 0.45, 160, 700, 1.4, 0.0);
-  // it clangs into the ship's hull: a metal boom with a long ring, then it drops onto the quay
-  {
-    const t = B.truckHit, f = [new SVF(), new SVF(), new SVF()], rv = new Reverb(31);
-    add(t, 3.2, (dt) => {
-      const ex = env(dt, 0.002, 0.04) * white() * 6;
-      let o = 0;
-      [97, 151, 233].forEach((fq, i) => { o += f[i].run(ex, fq, 0.012).bp * (0.6 - i * 0.15); });
-      o = o * env(dt, 0.002, 1.1) * 0.55;
-      const w = rv.run(o * 0.5, 0.86);
-      return [o + w * 0.5, o + w * 0.5];
-    });
-    crash(t, 0.8, 1300, 0.3, 0); boom(t, 0.35, 48, 0.6);
-    crash(t + 0.85, 0.45, 800, 0.35, 0);
-  }
+  // it lands in the harbor: a boom and a big splash
+  boom(B.truckHit, 0.65, 50, 0.7); splash(B.truckHit, 0.9, 1.0); crash(B.truckHit, 0.4, 900, 0.3, 0);
   // the jet: a hollow metal groan, the throw (a rush), the explosion against the ship and the fire
-  groan(B.jetGrab, B.jetThrow + 0.1, 0.14, 120, 4);
+  groan(B.jetGrab, B.jetThrow + 0.1, 0.38, 120, 4);
   crack(B.jetGrab + 0.4, 0.3); crack(B.jetUp + 0.2, 0.25);
   whoosh(B.jetThrow - 0.05, 0.6, 140, 600, 1.3, 0.2);
   {
     const t = B.jetHit;
-    boom(t, 0.95, 38, 1.1); crash(t, 0.9, 1800, 0.5, 0.1); glass(t + 0.05, 0.3, 14, 0.2);
+    boom(t, 0.8, 40, 1.0); crash(t, 0.9, 1800, 0.5, 0.1); glass(t + 0.05, 0.3, 14, 0.2);
     // the fire's roar and crackle until the ship is thrown
     const f = new SVF(), cr = new SVF();
     add(t, B.shipThrow + 0.5 - t, (dt) => {
@@ -219,7 +207,7 @@ export function makeSoundtrack(outFile) {
     });
   }
   // the ship: the hull's deep groan as it comes up, water pouring off it, the throw, the crash on the far shore
-  groan(B.shipGrab, B.shipThrow + 0.2, 0.2, 55, 4);
+  groan(B.shipGrab, B.shipThrow + 0.2, 0.5, 55, 4);
   crack(B.shipGrab + 0.6, 0.45); crack(B.shipGrab + 2.0, 0.35);
   crash(B.shipGrab + 1.4, 0.35, 400, 0.8, 0.3); crash(B.shipGrab + 2.4, 0.3, 350, 0.8, -0.4);      // the end pieces breaking off
   {
@@ -227,13 +215,13 @@ export function makeSoundtrack(outFile) {
     add(B.shipGrab + 0.5, B.shipThrow - B.shipGrab + 1.2, (dt) => { const k = smooth(0, 1.5, dt) * (1 - smooth(3.6, 4.6, dt)); const o = f.run(white(), 1800, 0.6).lp * k * 0.5; return [o, o]; });
   }
   whoosh(B.shipThrow - 0.1, 0.7, 70, 300, 2.2, 0);
-  boom(B.shipLand, 1.1, 32, 1.6); crash(B.shipLand, 0.95, 900, 0.9, -0.2); splash(B.shipLand + 0.05, 0.6, 1.4);
+  boom(B.shipLand, 0.95, 32, 1.6); crash(B.shipLand, 0.95, 900, 0.9, -0.2); splash(B.shipLand + 0.05, 0.6, 1.4);
   // the tower: a structural groan, the base floors crushing, glass, the throw, the crash across the harbor
-  groan(B.towerGrab, B.towerThrow + 0.2, 0.2, 70, 4);
+  groan(B.towerGrab, B.towerThrow + 0.2, 0.5, 70, 4);
   crack(B.towerGrab + 0.5, 0.55); crash(B.towerGrab + 0.6, 0.45, 600, 0.6, 0.2);
   glass(B.towerUp + 0.2, 0.45, 26, 0.1);
   whoosh(B.towerThrow - 0.1, 0.7, 60, 260, 2.0, 0.3);
-  boom(B.towerLand, 1.15, 30, 1.6);
+  boom(B.towerLand, 1.1, 29, 1.7);
   for (let k = 0; k < 5; k++) crash(B.towerLand + k * 0.22, 0.85 - 0.12 * k, 700 - 80 * k, 0.9, 0.3);
   // your bounds: a thump and a crack at each touchdown
   for (const [t0, t1, a, b, kind, nb] of MOVES) {
@@ -241,7 +229,7 @@ export function makeSoundtrack(outFile) {
     if (kind === 'bound' || kind === 'leap') boom(t0 + (kind === 'leap' ? 0 : 0.12 * (t1 - t0)), kind === 'leap' ? 0.55 : 0.25, 55, 0.3);
   }
   // the leap's landing
-  boom(B.leapLand, 0.9, 42, 0.8); crack(B.leapLand, 0.55); crash(B.leapLand, 0.5, 700, 0.5, 0);
+  boom(B.leapLand, 0.85, 40, 0.8); crack(B.leapLand, 0.55); crash(B.leapLand, 0.5, 700, 0.5, 0);
   // the mountain: rock grinding and tearing while you lift it, cracks, then the launch
   {
     const f = [new SVF(), new SVF()], lp = new OnePole(60);
@@ -257,7 +245,7 @@ export function makeSoundtrack(outFile) {
     add(B.mtnUp - 0.2, B.mtnLand - B.mtnUp + 0.3, (dt) => { const k = dt / (B.mtnLand - B.mtnUp + 0.3); const o = fl.run(white(), 120 + 500 * Math.sin(Math.PI * k), 0.6).lp * Math.sin(Math.PI * Math.min(1, k * 1.1)) * 0.9; return [o, o]; });
     boom(B.mtnThrow, 0.9, 30, 1.0);
     // the landing: the biggest boom of the video, and the dust wall's roar rising into the white
-    boom(B.mtnLand, 1.5, 24, 2.0); crash(B.mtnLand, 1.1, 500, 1.4, 0);
+    boom(B.mtnLand, 1.6, 24, 2.2); crash(B.mtnLand, 1.1, 500, 1.4, 0);
     const wf = new SVF();
     add(B.mtnLand, T_SWITCH + 0.6 - B.mtnLand, (dt) => {
       const t = B.mtnLand + dt;
@@ -269,10 +257,19 @@ export function makeSoundtrack(outFile) {
     boom(V_WHITE - 0.02, 0.8, 34, 0.9);
   }
 
+  // your running footsteps between things (heavy: the pavement cracks a little at each)
+  for (const [t0, t1, , , kind] of MOVES) if (kind === 'jog' || kind === 'run') for (let t = t0 + 0.12; t < t1 - 0.05; t += kind === 'jog' ? 0.3 : 0.26) { boom(t, 0.22, 70, 0.12); crack(t, 0.1); }
+  // people shouting and screaming as they run (a band-passed noise crowd, rising after each throw)
+  {
+    const f = [new SVF(), new SVF(), new SVF()];
+    add(0.2, 12, (dt) => { const t = 0.2 + dt; const e = (0.5 + 0.5 * Math.sin(t * 3.3)) * (0.6 * (1 - smooth(1.0, 2.0, t)) + smooth(1.4, 2.0, t) * (1 - smooth(10, 12, t))) * 0.5; let o = 0; [700, 1100, 1600].forEach((fc, i) => { o += f[i].run(white(), fc * (1 + 0.15 * Math.sin(t * (2 + i))), 6).bp; }); o *= e; return [o * 0.9, o]; });
+  }
+  for (const t of [20.95, 28.0, 40.0]) whoosh(t, 0.55, 60, 420, 1.4, 0);
+  for (const t of [22.6, 29.9, 41.3]) whoosh(t, 0.45, 80, 520, 0.8, 0);
   // ---------------- the mix ----------------
   const rms = (A, Bq, t0, t1) => { let e = 0, c = 0; for (let n = idx(t0); n < idx(t1); n++) { e += A[n] * A[n] + Bq[n] * Bq[n]; c += 2; } return Math.sqrt(e / c); };
   const hitR = rms(L, R, 1, 44), bedR = rms(BL, BR, 1, 44);
-  const gBed = (hitR / bedR) * Math.pow(10, -11 / 20);
+  const gBed = (hitR / bedR) * Math.pow(10, -6 / 20);
   const ML = new Float32Array(N), MR = new Float32Array(N);
   for (let n = 0; n < N; n++) { ML[n] = L[n] + BL[n] * gBed; MR[n] = R[n] + BR[n] * gBed; }
   const M = Math.round(VIDEO_DURATION * SR), o0 = Math.round(-T0 * SR), sw = Math.round(T_SWITCH * SR), xf = Math.round(0.35 * SR);
@@ -286,8 +283,21 @@ export function makeSoundtrack(outFile) {
     }
     OL[n] = l; OR[n] = r;
   }
+  // a slow leveler: lifts the quiet stretches between hits toward the hits (half the gap in dB, at most +10 dB),
+  // a 60 ms attack / 600 ms release so it never pumps or clicks
+  {
+    let ms = 0; for (let n = 0; n < M; n++) ms += OL[n] * OL[n] + OR[n] * OR[n];
+    const T = Math.sqrt(ms / (2 * M)) * 1.4;
+    const aA = 1 - Math.exp(-1 / (0.06 * SR)), aR = 1 - Math.exp(-1 / (0.6 * SR));
+    let env = T, g = 1;
+    const G = new Float32Array(M);
+    for (let n = 0; n < M; n++) { const x = Math.sqrt((OL[n] * OL[n] + OR[n] * OR[n]) / 2); const sq = x * x; env += (sq > env * env ? aA : aR) * (x - env); G[n] = Math.min(3.2, Math.max(0.6, Math.pow(T / Math.max(env, 1e-6), 0.5))); }
+    // smooth the gain itself (no fast wobble)
+    const aG = 1 - Math.exp(-1 / (0.08 * SR));
+    for (let n = 0; n < M; n++) { g += aG * (G[n] - g); OL[n] *= g; OR[n] *= g; }
+  }
   let e = 0; for (let n = 0; n < M; n++) e += OL[n] * OL[n] + OR[n] * OR[n];
-  const gl = Math.pow(10, -17.3 / 20) / Math.sqrt(e / (2 * M));
+  const gl = Math.pow(10, -12.5 / 20) / Math.sqrt(e / (2 * M));
   const ceil = Math.pow(10, -1 / 20), knee = 0.6;
   const lim = (x) => { const a = Math.abs(x); if (a <= knee) return x; return Math.sign(x) * (knee + (ceil - knee) * Math.tanh((a - knee) / (ceil - knee))); };
   for (let n = 0; n < M; n++) {

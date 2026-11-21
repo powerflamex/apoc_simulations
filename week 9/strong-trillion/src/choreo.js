@@ -39,6 +39,16 @@ function fly(a, b, t0, t1, axis, ang, g = G) {
     return { p, q, crush: a.crush || 0, dent: a.dent || 0, vel };
   };
 }
+// ballistic flight from a to b, turning from a.q to b.q
+function flyTo(a, b, t0, t1, g = G) {
+  const T = t1 - t0;
+  const vel = V3((b.p.x - a.p.x) / T, (b.p.y - a.p.y + 0.5 * g * T * T) / T, (b.p.z - a.p.z) / T);
+  return (k) => {
+    const tau = k * T;
+    const p = V3(a.p.x + vel.x * tau, a.p.y + vel.y * tau - 0.5 * g * tau * tau, a.p.z + vel.z * tau);
+    return { p, q: a.q.clone().slerp(b.q, k), crush: a.crush || 0, dent: b.dent ?? a.dent ?? 0, vel };
+  };
+}
 // after landing: slide and tumble to rest (a little bounce), crush rising fast
 function settle(a, b, bounce = 0.6) {
   return (k) => {
@@ -100,11 +110,11 @@ const trTip = { p: V3(TRUCK.x + 0.2, TRUCK_C + 0.25, TRUCK.z), q: QE(0, 0, -0.12
 const trUp = { p: V3(SPOT.truck.x, 2.12 - 1.1 + TRUCK_C, TRUCK.z), q: QE(0, 0, 0), dent: 0.7 };
 const trTurned = { p: trUp.p.clone().add(V3(0, 0.04, 0)), q: QE(0, 0, 0), dent: 0.9 };
 const trWind = { p: trUp.p.clone().add(V3(0, -0.3, 0.6)), q: QE(0.08, 0, 0), dent: 1 };
-// it hits the ship's side front first (the hull's south face is at z = -97)
-const TR_HIT = { p: V3(6.2, 6.5, -97 + 10.25 + 0.3), crush: 0.15, dent: 1 };
-const TR_AX = V3(1, 0, 0.3), TR_SP = -0.3;
+// thrown north over the quay into the harbor: a splash, and it sinks
+const TR_HIT = { p: V3(7.5, SEA_Y + 0.6, -116), crush: 0.1, dent: 1 };
+const TR_AX = V3(1, 0, 0.2), TR_SP = -0.9;
 const trHitQ = QA(TR_AX, TR_SP).multiply(trWind.q.clone());
-const TR_R = { p: V3(4.8, 1.25, -87.6), q: QE(-0.15, 0.4, -Math.PI / 2), crush: 0.75, dent: 1 };
+const TR_R = { p: V3(7.2, SEA_Y - 18, -123), q: QA(TR_AX, TR_SP - 0.5).multiply(trWind.q.clone()), crush: 0.2, dent: 1 };
 const truck = track([
   { t0: -9, t1: B.truckGrab, f: hold(trRest) },
   { t0: B.truckGrab, t1: B.truckGrab + 0.45, f: between(trRest, trTip) },
@@ -112,44 +122,44 @@ const truck = track([
   { t0: B.truckUp, t1: B.truckThrow - 0.35, f: between(trUp, trTurned) },
   { t0: B.truckThrow - 0.35, t1: B.truckThrow, f: between(trTurned, trWind) },
   { t0: B.truckThrow, t1: B.truckHit, f: fly(trWind, { p: TR_HIT.p, dent: 1 }, B.truckThrow, B.truckHit, TR_AX, TR_SP) },
-  // the crash: crumples against the hull, then drops back onto the quay on its side
-  { t0: B.truckHit, t1: B.truckHit + 1.25, f: (k) => {
-    const a = { ...TR_HIT, q: trHitQ, crush: 0.55 };
-    const t = k;
-    const p = a.p.clone().lerp(TR_R.p, easeOut(t));
-    p.y = a.p.y + (TR_R.p.y - a.p.y) * (t * t) + 1.2 * Math.sin(Math.PI * Math.min(1, t * 1.3)) * (1 - t);
-    return { p, q: a.q.clone().slerp(TR_R.q, ease(Math.min(1, t * 1.2))), crush: lerp(0.55, TR_R.crush, Math.min(1, t * 3)), dent: 1 };
-  } },
-  { t0: B.truckHit + 1.25, t1: 99, f: hold(TR_R) },
+  { t0: B.truckHit, t1: B.truckHit + 3.5, f: between({ ...TR_HIT, q: trHitQ }, TR_R, (t) => t) },
+  { t0: B.truckHit + 3.5, t1: 99, f: hold(TR_R) },
 ]);
 
-// ======================= THE SHIP (three pieces; you hold the middle one at x = 30) =======================
-// the pieces' joints: x = -50 (bow piece) and x = 60 (stern piece); the hull's south side is local z = +19
-const SH_REST = { p: V3(SHIP.x, SEA_Y, SHIP.z), q: QE(0, 0, 0) };
-// lifted: up 9.8 m and 3.2 m toward you, its near side up a little (its near bilge comes onto your hands)
-const SH_UP = { p: V3(SHIP.x, SEA_Y + 9.8, SHIP.z + 3.2), q: QE(-0.06, 0, 0), dent: 1 };
-const SH_WIND = { p: V3(SHIP.x, SEA_Y + 8.9, SHIP.z + 3.8), q: QE(-0.1, 0, 0), dent: 1 };
-// thrown across the harbor: it rolls over toward the north and lands on the far shore, west of where you'll land
-const SH_L = { p: V3(-140, 9, -392), crush: 0.2, dent: 1 };
-const SH_AX = V3(1, 0, 0), SH_SP = 2.3;
-const shLandQ = QA(SH_AX, SH_SP).multiply(SH_WIND.q.clone());
-const SH_R = { p: V3(-146, 7, -398), q: QA(SH_AX, 2.55).multiply(QE(0, 0.04, 0)), crush: 0.45, dent: 1 };
+// ======================= THE SHIP (moored bow-in; you grab its bow) =======================
+// Built along its local x (bow at -150), turned so the bow points south at the quay. You hold the bow's stem; it comes
+// up out of the water onto your hands, then you raise it like a pole: its far end swings up into the sky (38 deg),
+// daylight under its whole length. Its other two pieces hang from the bow piece, sagging at the joints.
+const SHIP_YAW = QE(0, SHIP.yaw, 0);
+const SH_REST = { p: V3(SHIP.x, SEA_Y, SHIP.z), q: SHIP_YAW.clone() };
+const SH_G = V3(-149.75, -1.5, 0);                            // the grip on the bow's stem (local)
+const SH_H = V3(SPOT.ship.x, 2.1, SPOT.ship.z - 0.8);       // your hands overhead
 const SHIP_CAN = timeOfLog(Math.log10(2.2e6));
+function shipPose(P, th) {
+  const q = SHIP_YAW.clone().multiply(QE(0, 0, th, 'XYZ'));
+  const p = P.clone().sub(SH_G.clone().applyQuaternion(q));
+  return { p, q };
+}
+const G_REST = SH_G.clone().applyQuaternion(SH_REST.q).add(SH_REST.p);
+const SH_TH = 0.66, SH_THW = 0.74;
+const SH_WIND = { ...shipPose(SH_H.clone().add(V3(0, -0.3, 0.3)), SH_THW), dent: 1 };
+const SH_L = { p: V3(-140, 16, -560), q: QE(0, 0.05, 0).multiply(QE(Math.PI * 0.92, 0, 0)), crush: 0.25, dent: 1 };
+const SH_R = { p: V3(-144, 12, -566), q: QE(0, 0.08, 0).multiply(QE(Math.PI * 0.97, 0, 0.03)), crush: 0.45, dent: 1 };
+export const SHIP_TIMES = { can: SHIP_CAN };
 const shipMid = track([
-  { t0: -9, t1: B.shipGrab, f: (k, v) => ({ p: SH_REST.p.clone().add(V3(0, 0.08 * Math.sin(v * 0.6), 0)), q: QE(0.002 * Math.sin(v * 0.5), 0, 0.0015 * Math.sin(v * 0.4)), crush: 0, dent: 0 }) },
-  // you grip it and strain: it shudders but can't move until the counter reaches a cruise ship's weight (2,200,000x)
-  { t0: B.shipGrab, t1: SHIP_CAN, f: (k, v) => ({ p: SH_REST.p.clone().add(V3(0, 0.08 * Math.sin(v * 0.6) + 0.12 * k * Math.sin(v * 23), 0.05 * k * Math.sin(v * 17))), q: QE(-0.004 * k * (1 + Math.sin(v * 13)), 0, 0.002 * k * Math.sin(v * 11)), crush: 0, dent: k }) },
-  { t0: SHIP_CAN, t1: B.shipUp, f: between({ p: SH_REST.p.clone().add(V3(0, 0.08 * Math.sin(SHIP_CAN * 0.6), 0)), q: QE(0, 0, 0), dent: 1 }, SH_UP, (t) => 1 - Math.pow(1 - t, 1.6)) },
-  { t0: B.shipUp, t1: B.shipThrow, f: between(SH_UP, SH_WIND) },
-  { t0: B.shipThrow, t1: B.shipLand, f: fly(SH_WIND, SH_L, B.shipThrow, B.shipLand, SH_AX, SH_SP, 14) },
-  { t0: B.shipLand, t1: B.shipLand + 1.6, f: settle({ ...SH_L, q: shLandQ }, SH_R, 2.5) },
+  { t0: -9, t1: B.shipGrab, f: (k, v) => ({ p: SH_REST.p.clone().add(V3(0, 0.08 * Math.sin(v * 0.6), 0)), q: SH_REST.q.clone(), crush: 0, dent: 0 }) },
+  { t0: B.shipGrab, t1: SHIP_CAN, f: (k, v) => ({ p: SH_REST.p.clone().add(V3(0.04 * k * Math.sin(v * 19), 0.08 * Math.sin(v * 0.6) + 0.15 * k * Math.sin(v * 23), 0)), q: SH_REST.q.clone().multiply(QE(0, 0, 0.002 * k * Math.sin(v * 13), 'XYZ')), crush: 0, dent: k }) },
+  { t0: SHIP_CAN, t1: SHIP_CAN + 0.55, f: (k) => { const P = G_REST.clone().lerp(SH_H, ease(k)); return { ...shipPose(P, 0.0), dent: 1 }; } },
+  { t0: SHIP_CAN + 0.55, t1: B.shipUp, f: (k) => ({ ...shipPose(SH_H, SH_TH * ease(k)), dent: 1 }) },
+  { t0: B.shipUp, t1: B.shipThrow, f: (k) => ({ ...shipPose(SH_H.clone().add(V3(0, -0.3 * ease(k), 0.3 * ease(k))), lerp(SH_TH, SH_THW, ease(k))), dent: 1 }) },
+  { t0: B.shipThrow, t1: B.shipLand, f: flyTo(SH_WIND, SH_L, B.shipThrow, B.shipLand, 12) },
+  { t0: B.shipLand, t1: B.shipLand + 1.6, f: settle(SH_L, SH_R, 2.5) },
   { t0: B.shipLand + 1.6, t1: 99, f: hold(SH_R) },
 ]);
-// the end pieces sag from their joints while it is held (they "break where you hold it"), then fly a little apart
 export function shipSag(v) {
-  const s = smooth(SHIP_CAN + 0.2, B.shipUp + 0.3, v) * 0.11 + 0.03 * smooth(B.shipUp, B.shipThrow, v);
+  const s = smooth(SHIP_CAN + 0.4, B.shipUp + 0.3, v) * 0.1 + 0.04 * smooth(B.shipUp, B.shipThrow, v);
   const fl = smooth(B.shipThrow, B.shipLand, v), set = smooth(B.shipLand, B.shipLand + 1.2, v);
-  return { bow: s * (1 - fl) + 0.22 * fl + 0.1 * set, stern: s * 0.8 * (1 - fl) + 0.18 * fl + 0.12 * set, apart: 6 * fl + 8 * set };
+  return { bow: s * (1 - fl) + 0.12 * fl + 0.08 * set, stern: s * 1.2 * (1 - fl) + 0.16 * fl + 0.1 * set, apart: 5 * fl + 7 * set };
 }
 
 // ======================= THE JET (thrown into the ship, where it stays, burning) =======================
@@ -158,11 +168,9 @@ const jRest = { p: V3(JET.x, JET_C, JET.z), q: QE(0, JET.yaw, 0) };
 const jUp = { p: V3(JET.x, JET_C + 1.0, JET.z), q: QE(0.0, JET.yaw, 0), dent: 0.8 };
 const jWind = { p: V3(JET.x + 0.4, JET_C + 0.75, JET.z), q: QE(0.0, JET.yaw, 0.02), dent: 1 };
 // it hits the ship's decks rolled ~70 deg, its north wing first, and stays wedged there (in the middle piece's frame)
-const J_AX = V3(1, 0.25, -0.15), J_SP = -1.15;
-const jHitQ = QA(J_AX, J_SP).multiply(jWind.q.clone());
-const J_HIT = { p: V3(40, 33, -87.5), crush: 0.2, dent: 1 };
-// wedged: pushed 3 m further in and down, crumpled; stored relative to the ship's middle piece at rest
-const J_STUCK = { p: V3(40, 30.5, -90.2), q: QA(V3(0, 0, 1), 0.08).multiply(jHitQ.clone()), crush: 0.75, dent: 1 };
+// it turns nose-first toward the ship and dives into its side (~30 m up, 55 m back from the bow), where it stays wedged, its tail out over the water
+const J_HIT = { p: V3(18, 33, -150), q: QE(-0.22, -Math.PI / 2, 0.25), crush: 0.2, dent: 1 };
+const J_STUCK = { p: V3(22.5, 31, -151), q: QE(-0.26, -Math.PI / 2 + 0.05, 0.3), crush: 0.75, dent: 1 };
 const shipRestM = new THREE.Matrix4().compose(SH_REST.p, SH_REST.q, V3(1, 1, 1));
 const J_LOCAL = new THREE.Matrix4().copy(shipRestM).invert().multiply(new THREE.Matrix4().compose(J_STUCK.p, J_STUCK.q, V3(1, 1, 1)));
 const jet = track([
@@ -170,8 +178,8 @@ const jet = track([
   { t0: B.jetGrab, t1: B.jetUp, f: between(jRest, jUp) },
   { t0: B.jetUp, t1: B.jetThrow - 0.3, f: (k, v) => ({ p: jUp.p.clone().add(V3(0, 0.06 * Math.sin(v * 9), 0)), q: QE(0, JET.yaw, 0.008 * Math.sin(v * 5)).multiply(QE(0.006 * Math.sin(v * 7), 0, 0)), dent: 0.8 + 0.2 * k }) },
   { t0: B.jetThrow - 0.3, t1: B.jetThrow, f: between({ p: jUp.p, q: QE(0, JET.yaw, 0), dent: 1 }, jWind) },
-  { t0: B.jetThrow, t1: B.jetHit, f: fly(jWind, J_HIT, B.jetThrow, B.jetHit, J_AX, J_SP) },
-  { t0: B.jetHit, t1: B.jetHit + 0.35, f: between({ ...J_HIT, q: jHitQ }, J_STUCK, easeOut) },
+  { t0: B.jetThrow, t1: B.jetHit, f: flyTo(jWind, J_HIT, B.jetThrow, B.jetHit) },
+  { t0: B.jetHit, t1: B.jetHit + 0.35, f: between(J_HIT, J_STUCK, easeOut) },
   // from here on it rides with the ship's middle piece
   { t0: B.jetHit + 0.35, t1: 99, f: (k, v) => {
     const s = shipMid(v);
@@ -182,53 +190,51 @@ const jet = track([
   } },
 ]);
 
-// ======================= THE TOWER (five pieces; tipped about its far bottom edge, then thrown) =======================
-// the stack's base: rotation about the tower's east bottom edge (x = TOWER.x + 18) by phi (negative: the near side up)
-const TW_PIV = V3(TOWER.x + TOWER.w / 2, 0, TOWER.z);
-function towerBase(v) {
-  // returns { M: Matrix4 of the stack's base frame, bend: per-joint extra rotation }
-  const lift = smooth(B.towerGrab + 0.2, B.towerUp, v), heave = smooth(B.towerUp, B.towerThrow, v);
-  const phi = -0.064 * lift - 0.05 * heave;
-  const M = new THREE.Matrix4().makeTranslation(TW_PIV.x, TW_PIV.y, TW_PIV.z)
-    .multiply(new THREE.Matrix4().makeRotationZ(phi))
-    .multiply(new THREE.Matrix4().makeTranslation(-TW_PIV.x, -TW_PIV.y, -TW_PIV.z));
-  return M;
+// ======================= THE TOWER (five pieces; you rip it up by its south-west corner and raise it like a pole) =======================
+const TW_C = V3(TOWER.x - TOWER.w / 2, 0, TOWER.z + TOWER.d / 2);          // the corner you grab (110, 0, -48)
+const TW_D = V3(1, 0, -1).normalize();                                     // from the corner toward the middle
+const TW_K = new THREE.Vector3().crossVectors(V3(0, 1, 0), TW_D).normalize(); // tilting about this tips the top away from you
+const TW_H = V3(TW_C.x - 0.25, 2.1, TW_C.z + 0.25);                         // your hands overhead
+const TOWER_CAN = timeOfLog(Math.log10(7.3e6));
+const TW_PH = 0.85, TW_PHW = 0.95;                                         // tipped ~49 deg, then ~54 at the wind-up
+function towerStack(P, phi) {
+  const q = QA(TW_K, phi);
+  return new THREE.Matrix4().makeTranslation(P.x, P.y, P.z).multiply(new THREE.Matrix4().makeRotationFromQuaternion(q)).multiply(new THREE.Matrix4().makeTranslation(-TW_C.x, -TW_C.y, -TW_C.z));
 }
-// flight: the stack (as one) turns about its base's middle and flies north-east across the harbor
-const TW_FLY0 = V3(TOWER.x, 0, TOWER.z);
-const TW_LAND = V3(185, 14, -392);
+function towerM(v) {
+  if (v < TOWER_CAN) return towerStack(TW_C, 0);
+  const rip = smooth(TOWER_CAN, TOWER_CAN + 0.55, v), tip = smooth(TOWER_CAN + 0.45, B.towerUp, v), wind = smooth(B.towerUp, B.towerThrow, v);
+  const P = TW_C.clone().lerp(TW_H, rip).add(V3(0, -0.3 * wind, 0.3 * wind));
+  return towerStack(P, TW_PH * tip + (TW_PHW - TW_PH) * wind);
+}
+const TW_LAND = V3(205, 14, -530);
 const TW_T = B.towerLand - B.towerThrow;
 export function towerPiece(k, v) {
   const y0 = k * 57;
+  const lift = smooth(TOWER_CAN, B.towerThrow, v);
   if (v < B.towerThrow) {
-    const M = towerBase(v);
-    // the joints open as it bends: the upper pieces lag and sway a little
-    const lift = smooth(B.towerGrab + 0.2, B.towerThrow, v);
-    const sway = (0.004 * k + 0.0015 * k * k) * lift * Math.sin(v * 3.1 + k) + 0.006 * k * lift;
-    const local = new THREE.Matrix4().makeTranslation(TOWER.x, y0, TOWER.z).multiply(new THREE.Matrix4().makeRotationZ(sway));
-    const W = M.clone().multiply(local);
+    const sway = (0.002 * k + 0.001 * k * k) * lift * Math.sin(v * 3.1 + k) + 0.004 * k * lift;
+    const W = towerM(v).multiply(new THREE.Matrix4().makeTranslation(TOWER.x, y0, TOWER.z)).multiply(new THREE.Matrix4().makeRotationFromQuaternion(QA(TW_K, sway)));
     const p = V3(), q = new THREE.Quaternion(), s = V3();
     W.decompose(p, q, s);
-    return { p, q, crush: 0, dent: k === 0 ? 0.6 + 0.4 * smooth(B.towerUp, B.towerThrow, v) : 0, crack: k === 0 ? lift : lift * 0.5 };
+    return { p, q, crush: 0, dent: k === 0 ? lift : 0, crack: k === 0 ? lift : lift * 0.5 };
   }
-  // in flight: the whole stack's base point moves on a ballistic arc while the stack topples to near horizontal
-  const tau = Math.min(v - B.towerThrow, TW_T);
-  const M0 = towerBase(B.towerThrow);
+  // in flight: the stack's base middle on a ballistic arc, the stack turning to lie on its side pointing east
+  const tau = Math.min(v - B.towerThrow, TW_T), kk = tau / TW_T;
+  const M0 = towerM(B.towerThrow);
   const base0 = V3(TOWER.x, 0, TOWER.z).applyMatrix4(M0);
+  const q0 = new THREE.Quaternion().setFromRotationMatrix(M0);
+  const qL = QE(0, 0.25, 0).multiply(QE(0, 0, -Math.PI / 2 + 0.06, 'XYZ'));
   const vel = V3((TW_LAND.x - base0.x) / TW_T, (TW_LAND.y - base0.y + 0.5 * 9 * TW_T * TW_T) / TW_T, (TW_LAND.z - base0.z) / TW_T);
   const basePos = V3(base0.x + vel.x * tau, base0.y + vel.y * tau - 0.5 * 9 * tau * tau, base0.z + vel.z * tau);
-  const kk = tau / TW_T;
-  const phi0 = -0.114;
-  const phi = phi0 + (-1.47 - phi0) * (kk * kk * (1.6 - 0.6 * kk));
-  const yawT = 0.35 * kk;
-  const qStack = QE(0, yawT, 0).multiply(QE(0, 0, phi, 'XYZ'));
-  // after landing the pieces come apart along the ground (each slides on, the joints open)
+  const qStack = q0.clone().slerp(qL, kk * kk * (3 - 2 * kk));
   const land = smooth(B.towerLand - 0.05, B.towerLand + 1.3, v);
-  const along = V3(0, y0 + 0.5 * 57 * 0 + 0, 0).applyQuaternion(qStack);
-  const p = basePos.clone().add(V3(0, y0, 0).applyQuaternion(qStack)).add(V3(Math.cos(yawT) * k * 9 * land, -k * 2 * land, -Math.sin(yawT) * k * 9 * land + (k % 2 ? 6 : -5) * land));
+  const dir = V3(0, 1, 0).applyQuaternion(qStack);
+  const p = basePos.clone().add(dir.clone().multiplyScalar(y0 + k * 9 * land)).add(V3(0, -k * 1.5 * land, (k % 2 ? 6 : -5) * land));
   const q = qStack.clone().multiply(QE((k % 2 ? 0.25 : -0.2) * land, 0, 0.12 * k * land));
-  return { p, q, crush: 0.5 * land, dent: 1, crack: 1, along };
+  return { p, q, crush: 0.5 * land, dent: 1, crack: 1 };
 }
+export const TOWER_TIMES = { can: TOWER_CAN };
 
 // ======================= THE MOUNTAIN =======================
 // lifted by its near edge about its far edge (axis along x at the far foot), then thrown: it rises, tips over away
@@ -237,19 +243,19 @@ const M_FAR = V3(MTN.x, 0, MTN.z - MTN.rz);
 const M_LEVER = 2 * MTN.rz;
 const MTN_CAN = timeOfLog(Math.log10(5e11));                                   // 4.5 km from the far foot to the near foot
 export function mountainAt(v) {
-  // its near foot can only start to come up once you can lift ~half its weight (5e11x, ~0:40.2)
-  const lift = smooth(MTN_CAN, B.mtnUp, v), heave = smooth(B.mtnUp, B.mtnThrow, v);
-  let ang = (2.3 * lift + 1.4 * heave) / M_LEVER;              // the near foot up ~3.7 m by the release
+  // its near foot can only start to come up once you can lift ~half its weight (5e11x, ~0:40.2); you heave and its
+  // near edge swings up ~500 m (its far edge still on the ground), daylight under it
+  const lift = smooth(MTN_CAN, B.mtnUp - 0.2, v), heave = smooth(B.mtnUp, B.mtnThrow, v);
+  let ang = (800 * Math.pow(lift, 1.3) + 80 * heave) / M_LEVER;
   let off = V3(0, 0, 0);
   if (v > B.mtnThrow) {
     const T = B.mtnLand - B.mtnThrow, tau = Math.min(v - B.mtnThrow, T), k = tau / T;
-    // it lifts off and flies away north (~3 km), rising to ~800 m and coming down, tipping back only a little
-    // (real time this would take minutes; drawn ~10x faster)
-    ang = ang + 0.12 * k;
+    // thrown: it lifts off and flies away north (~3 km) and lands on the horizon (real time: minutes; sped up)
+    ang = ang * (1 - 0.6 * k);
     off = V3(0, 900 * k * (1 - k) * (1 + 0.6 * (1 - k)), -3200 * Math.pow(k, 1.5) - 300 * k);
     if (v > B.mtnLand) {
       const s = smooth(B.mtnLand, B.mtnLand + 2.2, v);
-      ang += 0.06 * s; off.add(V3(0, -90 * s, -200 * s));
+      off.add(V3(0, -90 * s, -200 * s));
     }
   }
   // shake while you strain
@@ -272,14 +278,14 @@ const MOVES = [
   [5.15, 7.65, S.bus, S.truck, 'run'],
   [10.95, 13.05, S.truck, S.jet, 'bound', 2],
   [16.25, 18.75, S.jet, S.ship, 'bound', 2],
-  [23.3, 26.75, S.ship, S.tower, 'bound', 3],
+  [25.45, 27.05, S.ship, S.tower, 'bound', 3],
   [B.leap, B.leapLand, S.tower, S.mtn, 'leap', 1],
 ];
 // which way you face while standing at each place, and how you turn under a held thing: [t, yaw]
 const YAWK = [
   [-9, S.start.yaw], [1.25, S.start.yaw], [2.62, S.bus.yaw], [B.busUp, S.bus.yaw], [B.busUp + 0.35, -Math.PI],
-  [7.65, S.truck.yaw], [B.truckUp, S.truck.yaw], [B.truckUp + 0.4, Math.PI], [13.05, Math.PI], [18.75, Math.PI],
-  [26.75, S.tower.yaw], [B.towerThrow + 0.6, S.tower.yaw], [B.leap, S.tower.yaw - 0.3],
+  [7.65, S.truck.yaw], [B.truckUp, S.truck.yaw], [B.truckUp + 0.4, Math.PI], [13.05, S.jet.yaw], [B.jetThrow + 0.1, S.jet.yaw], [B.jetThrow + 0.5, Math.PI], [18.75, Math.PI], [25.45, Math.PI],
+  [27.05, S.tower.yaw], [B.towerThrow + 0.6, S.tower.yaw], [B.leap, S.tower.yaw - 0.3],
 ];
 function yawAt(v) {
   // interpolate the shortest way round between keys (the moves override this with their heading)

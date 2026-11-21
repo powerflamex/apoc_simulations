@@ -22,10 +22,11 @@ import { makeYou, FLAP } from './you.js';
 import { makePeople } from './people.js';
 import { makeFx } from './fx.js';
 import { SPOT, BUS, TRUCK, JET, SHIP, TOWER, MTN, SEA_Y, STREET, QUAY_Z } from './layout.js';
-import { thingAt, youAt, towerPiece, mountainAt, shipSag, CAR_C, BUS_C, TRUCK_C, JET_C } from './choreo.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, B, HITS, T_SWITCH, V_WHITE } from './timeline.js';
+import { thingAt, youAt, towerPiece, mountainAt, shipSag, CAR_C, BUS_C, TRUCK_C, JET_C, SHIP_TIMES, TOWER_TIMES } from './choreo.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, B, HITS, T_SWITCH, V_WHITE, timeOfLog } from './timeline.js';
+const MTN_CAN = timeOfLog(Math.log10(5e11));
 import { lerp, smooth, wobble, clamp, rng } from './util.js';
-import { CAMK } from './camera.js';
+import { camAt } from './camera.js';
 
 const W = 1080, H_PX = 1920, DEG = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -150,18 +151,6 @@ const finish = new ShaderPass({
 composer.addPass(finish);
 
 // ---------- the camera: keys [t, x, y, z, tx, ty, tz, fov], monotone cubic per channel ----------
-const camSpl = [1, 2, 3, 4, 5, 6, 7].map((j) => {
-  const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];
-  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
-  m[0] = 0; m[n - 1] = 0;
-  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (2 * d[i - 1] * d[i]) / (d[i - 1] + d[i]);
-  return (t) => {
-    if (t <= x[0]) return y[0]; if (t >= x[n - 1]) return y[n - 1];
-    let i = 0; while (t > x[i + 1]) i++;
-    const h = x[i + 1] - x[i], s = (t - x[i]) / h;
-    return (2 * s ** 3 - 3 * s ** 2 + 1) * y[i] + (s ** 3 - 2 * s ** 2 + s) * h * m[i] + (-2 * s ** 3 + 3 * s ** 2) * y[i + 1] + (s ** 3 - s ** 2) * h * m[i + 1];
-  };
-});
 const DBG_CAM = params.get('cam') ? params.get('cam').split(',').map(Number) : null;
 
 // ---------- update ----------
@@ -189,10 +178,12 @@ function update(v, cover = -1) {
   const sm = thingAt('shipMid', v);
   const sag = shipSag(v);
   {
-    // the middle piece is held; the bow and stern pieces hang from its ends, sagging
-    const Mmid = new THREE.Matrix4().compose(sm.p, sm.q, s4);
-    const piv = (x, ang, apart) => new THREE.Matrix4().makeTranslation(x + apart, -4 - Math.abs(apart) * 0.3, 0).multiply(new THREE.Matrix4().makeRotationZ(ang)).multiply(new THREE.Matrix4().makeTranslation(-x, 4, 0));
-    const Ms = [Mmid.clone().multiply(piv(SHIP_CUTS[1], sag.bow, -sag.apart)), Mmid, Mmid.clone().multiply(piv(SHIP_CUTS[2], -sag.stern, sag.apart))];
+    // you hold the bow piece; the middle and stern pieces hang from it, drooping at the joints (cracks open on top)
+    const Mbow = new THREE.Matrix4().compose(sm.p, sm.q, s4);
+    const piv = (x, ang, apart) => new THREE.Matrix4().makeTranslation(x + apart, -8.8 - Math.abs(apart) * 0.3, 0).multiply(new THREE.Matrix4().makeRotationZ(ang)).multiply(new THREE.Matrix4().makeTranslation(-x, 8.8, 0));
+    const Mmid = Mbow.clone().multiply(piv(SHIP_CUTS[1], -sag.bow, sag.apart));
+    const Ms = [Mbow, Mmid, Mmid.clone().multiply(piv(SHIP_CUTS[2], -sag.stern, sag.apart))];
+    window.__shipMs = Ms;
     ship.forEach((pc, i) => { pc.P.matrixAutoUpdate = false; pc.P.matrix.copy(Ms[i]); pc.P.matrixWorldNeedsUpdate = true; pc.DU.uCrush.value = sm.crush || 0; });
   }
   tower.forEach((pc, k) => { const st = towerPiece(k, v); place(pc, st); pc.DU.uCrush.value = st.crush || 0; });
@@ -223,7 +214,8 @@ function update(v, cover = -1) {
     const crouchDepth = L ? (L.thing === 'car' ? 0 : L.thing === 'mtn' || L.thing === 'ship' || L.thing === 'tower' ? 0.42 : 0.32) : 0;
     const cr = L ? (L.thing === 'car' ? 0 : (1 - smooth(0.25, 0.85, lk)) * smooth(0, 0.15, lk)) : 0;
     const big = L && (L.thing === 'mtn' || L.thing === 'tower' || L.thing === 'ship');
-    const crouch = big ? Math.max(cr, 0.55 * smooth(0, 0.12, lk)) : cr;
+    const canT = L ? (L.thing === 'ship' ? SHIP_TIMES.can : L.thing === 'tower' ? TOWER_TIMES.can : MTN_CAN) : 0;
+    const crouch = big ? 0.62 * smooth(0, 0.12, lk) * (1 - smooth(canT, canT + 0.55, v)) + 0.25 * (L.rel ? 0 : smooth(canT + 0.55, canT + 0.9, v) * 0) : cr;
     pose.hipY = 0.92 - crouchDepth * crouch - 0.12 * (L ? L.throwK : 0) * 0;
     pose.lean = 0.04 + 0.35 * crouch + (L ? 0.12 * L.throwK : 0);
     pose.footZ = 0.05 + 0.12 * crouch;
@@ -256,20 +248,26 @@ function update(v, cover = -1) {
         gR.copy(local(jet, 0.32, -JET_C + 1.25, JET_GEAR.nose[1] - 0.2));
         wristUp = 0.6;
       } else if (L.thing === 'ship') {
-        const rise = clamp((sm.p.y - SEA_Y) / 9.8, 0, 1);
-        const zf = Math.max(sm.p.z + 19, Y.z - 0.75);
-        const yh = lerp(0.9, 2.05, Math.max(rise, 0.25 * smooth(0, 0.3, L.k)));
-        gL.set(Y.x, yh, zf).addScaledVector(rightV, -0.3); gR.set(Y.x, yh, zf).addScaledVector(rightV, 0.3);
-        wristUp = 0.8;
+        // on the bow's stem at your hand height while you strain; the grip comes up onto your hands as it rises
+        const up = smooth(SHIP_TIMES.can, SHIP_TIMES.can + 0.55, v);
+        const hgt = 0.85 - SEA_Y;
+        const s0 = local(ship[0], -149.7, hgt, -0.25).clone(), s1 = local(ship[0], -149.7, hgt, 0.25).clone();
+        const g0 = local(ship[0], -149.75, -1.5, -0.3).clone(), g1 = local(ship[0], -149.75, -1.5, 0.3).clone();
+        gL.copy(s0.lerp(g0, up)); gR.copy(s1.lerp(g1, up));
+        wristUp = up;
       } else if (L.thing === 'tower') {
-        const st = tower[0];
-        gL.copy(local(st, -TOWER.w / 2 - 0.05, lerp(0.5, 0.45, L.k), Y.z - TOWER.z - 0.35));
-        gR.copy(local(st, -TOWER.w / 2 - 0.05, lerp(0.5, 0.45, L.k), Y.z - TOWER.z + 0.35));
-        wristUp = 0.7;
+        // on the corner of its base: low while you dig in, then the corner comes up onto your hands
+        const st = tower[0], rip = smooth(TOWER_TIMES.can, TOWER_TIMES.can + 0.55, v), hh = lerp(0.85, 0.05, rip);
+        gL.copy(local(st, -TOWER.w / 2 - 0.05, hh, TOWER.d / 2 - 0.4)); gR.copy(local(st, -TOWER.w / 2 + 0.4, hh, TOWER.d / 2 + 0.05));
+        wristUp = rip;
       } else if (L.thing === 'mtn') {
         const p = (dx) => tv.set(Y.x + dx - MTN.x, -0.2, MTN.z + MTN.rz - MTN.z + 0.1).add(new THREE.Vector3(MTN.x, 0, MTN.z)).applyMatrix4(ms.M).clone();
         gL.copy(p(0.3)); gR.copy(p(-0.3));
-        wristUp = 0.8;
+        // once its edge rises past your reach, your arms stay up, pushing
+        const top = yy + 2.12;
+        if (gL.y > top) gL.set(Y.x, top, Y.z).addScaledVector(rightV, -0.3).addScaledVector(fw, 0.35);
+        if (gR.y > top) gR.set(Y.x, top, Y.z).addScaledVector(rightV, 0.3).addScaledVector(fw, 0.35);
+        wristUp = smooth(MTN_CAN, MTN_CAN + 0.5, v);
       }
       if (L.rel) {
         // after letting go: arms follow through, up and forward
@@ -290,10 +288,11 @@ function update(v, cover = -1) {
     camera.lookAt(DBG_CAM[3], DBG_CAM[4], DBG_CAM[5]);
     camera.fov = DBG_CAM[6] || 56;
   } else {
-    const K = (j) => camSpl[j](v);
-    camera.position.set(K(0), K(1), K(2));
-    camera.lookAt(K(3), K(4), K(5));
-    camera.fov = K(6);
+    const cm = camAt(v);
+    camera.position.copy(cm.pos);
+    camera.lookAt(cm.look);
+    camera.fov = cm.fov;
+    s.camDist = cm.dist;
     const shake = (0.0012 + s.kick * 0.012 + 0.006 * smooth(B.mtnGrab, B.mtnUp, v) + 0.012 * smooth(B.mtnLand, V_WHITE, v)) * camera.fov / 56;
     camera.rotation.x += wobble(v * 43, 3) * shake; camera.rotation.y += wobble(v * 47, 4) * shake; camera.rotation.z += wobble(v * 39, 6) * shake * 0.5;
   }
@@ -305,7 +304,7 @@ function update(v, cover = -1) {
   sky.mesh.position.copy(camera.position);
   u.uSun.value.copy(SUNDIR); u.uZen.value.copy(C(sc.zen)); u.uHor.value.copy(C(sc.hor)); u.uGlow.value.copy(C(sc.glow)); u.uSunCol.value.copy(C(sc.sun));
   u.uSunI.value = 1; u.uStars.value = 0; u.uT.value = v; u.uPx.value = (camera.fov * DEG) / H_PX; u.uCloud.value = 0.75; u.uCity.value = 0;
-  GU.uHaze.value.copy(C(sc.hor)).lerp(new THREE.Color(0.78, 0.74, 0.68), 0.25 * smooth(B.towerLand, B.mtnLand, v)); GU.uHazeD.value = 5200;
+  GU.uHaze.value.copy(C(sc.hor)).lerp(new THREE.Color(0.78, 0.74, 0.68), 0.25 * smooth(B.towerLand, B.mtnLand, v)); GU.uHazeD.value = 5200 * (1 + 5 * smooth(400, 6000, s.camDist || 0));
   world.waterU.uSky.value.copy(C(sc.hor)); world.waterU.uZen.value.copy(C(sc.zen)); world.waterU.uSun.value.copy(SUNDIR); world.waterU.uSunCol.value.copy(C(sc.sun));
   world.frame(v);
   // the sun's shadow box follows the action and grows with it
@@ -325,7 +324,7 @@ function update(v, cover = -1) {
   glows.begin(camera);
   smoke.begin();
   people.frame(v, crowd, Y);
-  fx.frame(v, { you: Y, yy, js, sm, ms, bs, ts, world, camera, fireL });
+  fx.frame(v, { you: Y, yy, js, sm, ms, bs, ts, world, camera, fireL, shipMs: window.__shipMs, camDist: s.camDist || camera.position.distanceTo(you.root.position) });
   smoke.end(); glows.end();
   smoke.mat.uniforms.uTime.value = v;
   smoke.mat.uniforms.uLight.value.setRGB(1.25, 1.2, 1.1);

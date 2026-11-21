@@ -321,13 +321,20 @@ export function makeWorld(scene, ctx) {
   };
   const waterMat = new THREE.ShaderMaterial({
     uniforms: WU,
-    vertexShader: /* glsl */ `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    vertexShader: /* glsl */ `varying vec3 vW;
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
+      void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;
+      #include <logdepthbuf_vertex>
+      }`,
     fragmentShader: /* glsl */ `
       uniform float uTime; uniform vec3 uSky; uniform vec3 uZen; uniform vec3 uSun; uniform vec3 uSunCol; uniform vec3 uHaze; uniform float uHazeD;
       uniform vec4 uFoam[10];
       varying vec3 vW;
+      #include <logdepthbuf_pars_fragment>
       ${NOISE}
       void main() {
+        #include <logdepthbuf_fragment>
         vec2 p = vW.xz;
         float d = length(vW - cameraPosition);
         float px = d * 0.0012 + 0.001;
@@ -428,6 +435,7 @@ export function makeWorld(scene, ctx) {
   }
   for (let k = 0; k < 18; k++) {
     const w = 18 + 16 * R(), h = 25 + 60 * R();
+    if (30 - k * 14 < QUAY_Z + 25) { R(); R(); R(); R(); R(); continue; }   // (none out in the harbor)
     blocks.push({ x: BLD_W - 30 - 30 * R() - (k % 3) * 35, z: 30 - k * 14 + 8 * R(), w, d: 18 + 10 * R(), h, wall: [0xcfc8bd, 0xa9b4bf, 0xe0d6c4, 0x9aa3ac][Math.floor(R() * 4)], win: 0x24303c, kind: R() < 0.5 ? 0 : 1, fl: 3.3 });
   }
   // the terminal: a long low hall on the quay west of the street's end
@@ -459,10 +467,7 @@ export function makeWorld(scene, ctx) {
       parts.push(new THREE.CylinderGeometry(0.08, 0.12, 8, 8).translate(STREET.x0 - 0.6, 4, z - 11));
     }
     // the apron fence: posts and two rails, along x = 18 and z = -18
-    for (let z = -18; z > QUAY_Z + 3; z -= 3) parts.push(new THREE.BoxGeometry(0.08, 1.3, 0.08).translate(18, 0.65, z));
     for (let x = 18; x < 102; x += 3) parts.push(new THREE.BoxGeometry(0.08, 1.3, 0.08).translate(x, 0.65, -18));
-    parts.push(new THREE.BoxGeometry(0.05, 0.05, -18 - QUAY_Z - 3).translate(18, 1.25, (-18 + QUAY_Z + 3) / 2));
-    parts.push(new THREE.BoxGeometry(0.05, 0.05, -18 - QUAY_Z - 3).translate(18, 0.7, (-18 + QUAY_Z + 3) / 2));
     parts.push(new THREE.BoxGeometry(84, 0.05, 0.05).translate(60, 1.25, -18));
     parts.push(new THREE.BoxGeometry(84, 0.05, 0.05).translate(60, 0.7, -18));
     // the bus shelter on the plaza by the stop

@@ -2886,25 +2886,34 @@ Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --c
 1,000,000,000,000x, one continuous shot with no cuts, something new and bigger every 4-6 s. The one line under the
 counter says what you can lift at that number. Not punch-10x again (that was one wall, blasts, cuts to aerials and
 space): here you pick up real things on a cruise-ship plaza on a harbor and throw them, and the cost shows under your
-feet. In order:
-0:00 you, big in frame, a blue car over your head on one hand; a red bus at the stop, the cruise ship's decks and the
-mountain across the harbor behind; people backing away filming; a crowd gasp; title, 42x, "YOU CAN LIFT: A CAR".
-0:01 you toss the car over your shoulder; it lands on its roof behind you. 0:02.7 you get under the bus's side and lift
-it over your head ("A city bus: 15 tons."), 0:04.5 throw it up the street end over end; it lands and tumbles by 0:06.5
-(a different picture from frame 0 by 0:05). 0:08 the container truck, over your head; the pavement cracks under you
-("A loaded truck: 40 tons.", "Your shoes crack the concrete."); 0:10.5 thrown into the cruise ship's hull: it clangs and
-crumples onto the quay. 0:12 two bounds to the jumbo jet; 0:13.3 under its nose, you lift it by the nose wheel, your feet
-sinking into a cracked crater ("A jumbo jet: 440 tons."); 0:15.9 thrown into the ship's decks: a fireball, and it stays
-wedged there, burning. 0:18.7 at the quay edge you grab the ship's hull; it shudders and can't move until the counter
-reaches a cruise ship (0:20.7), then comes up out of the harbor, water pouring off its red hull, its ends sagging and
-breaking off ("A cruise ship: 110,000 tons.", "The ground can't hold you up."); 0:22.85 thrown across the harbor, the
-burning jet still in it; it lands on the far shore. 0:23.3-0:26.8 three bounds to the glass tower; you rip it off its base,
-it tilts away ("A skyscraper: 365,000 tons."), 0:30.7 thrown across the harbor; it lands on the far shore and breaks
-up in dust. 0:33.2 one jump across the harbor, the camera chasing you ("One jump across the harbor."); 0:36.2 you land at
-the mountain's foot in the forest. You dig in; rockfalls, cracks running up its face, the ground caving in round you
-("It breaks where you grab it."). 0:41.4 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN": its foot comes up, 0:41.75 you
-throw it: it lifts off (sky under it) and flies off ("50 billion tons. A mountain a mile high."), 0:43.5 it lands ~3 km
-away; a wall of dust rises and closes in; hard white at 0:45.55, which clears onto frame 0.
+feet. Fix pass Nov 21 (owner: "you're too small, we lose you between objects, can't tell what you're doing with the
+skyscraper and the mountain"): the camera now follows YOU, low and close with a wide lens (you fill a quarter or more
+of the frame through the car, bus and truck), stays on you as you run or bound to the next thing (which is ahead of you),
+and for the ship, the tower and the mountain it pulls back fast, side-on, until the whole thing is in frame with
+daylight under it (you at its base marked by a glow and a ring of dust), then comes straight back in on you for the
+throw. In order:
+0:00 you, big in frame, a blue car over your head on one hand; the bus beside you, the mountain across the harbor
+behind; people backing away filming; a crowd gasp and a scream; title, 42x, "YOU CAN LIFT: A CAR". 0:01 you toss the car
+over your shoulder; it lands on its roof behind you. 0:02.6 you walk to the bus, squat, grab its side and heave it over
+your head ("A city bus: 15 tons."), 0:04.5 throw it up the street end over end; we watch it land and tumble by 0:06.5.
+0:05-0:07.6 you run to the container truck (ahead of you); you squat, grab its frame, heave it overhead, the pavement
+cracking ("A loaded truck: 40 tons."); 0:10.5 thrown north over the quay: a big splash in the harbor, and it sinks
+("Your shoes crack the concrete."). 0:11-0:13 two bounds to the jumbo jet; you lift it by its nose wheel, your feet sinking
+into a crater ("A jumbo jet: 440 tons."); 0:15.9 thrown: it dives nose-first into the cruise ship's side, a fireball,
+and stays wedged there, burning. 0:16.3-0:18.8 two bounds to the quay, the ship's bow ahead of you. 0:19 you grab the
+bow's stem and strain; it can't move until the counter reaches a cruise ship (0:20.7). Then the bow comes up out of the
+water onto your hands; the camera pulls back over the harbor: the whole ship rising into the sky off your hands like a
+pole, water pouring off it, the jet burning in its side, its back half drooping ("A cruise ship: 110,000 tons."); back in
+on you, 0:23.2 thrown: it flies across the harbor and lands on the far shore ("The ground can't hold you up.").
+0:25.5-0:27 three bounds to the glass tower; you grab the corner of its base and rip it up; the camera pulls back: the
+whole tower tipped up off your hands at ~50 degrees, daylight under it ("A skyscraper: 365,000 tons."); back in, 0:30.7
+thrown across the harbor; it lands on the far shore and breaks up in dust. 0:33.2 one jump across the harbor, the
+camera chasing you ("One jump across the harbor."); 0:36.2 you land at the mountain's foot in the forest; you dig your
+hands under its foot; rockfalls, cracks up its face, the ground caving in round you ("It breaks where you grab it.").
+0:40.2 its edge comes up; the camera pulls back far to the east: the whole mountain, snow cap and all, tipping up off the
+ground with daylight under it; 0:41.4 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN"; back in on you, 0:41.95 you throw
+it: it flies off ("50 billion tons. A mountain a mile high."), 0:43.7 it lands on the horizon ~3 km away; a wall of dust
+rolls at you; hard white at 0:45.55, which clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`): at 1x you lift 100 lb, so the counter x 100 lb is what you can lift
 (tons = US tons of 2,000 lb). Car ~3,300 lb = 33x; 40-ft city bus ~30,000 lb (15 tons) = 300x; loaded semi 80,000 lb
@@ -2920,9 +2929,9 @@ Honest notes: from the jet on, really your feet would punch down into the ground
 caving in round you instead, so you stay in sight. A throw from a ~2 m push only goes far once you're many times stronger
 than the thing's weight; the counter keeps climbing while you hold each one, but the throws are drawn longer and faster
 than that allows, and the mountain's flight (~3 km in under 2 s) is sped up a lot (a real one would take minutes). The
-bounds between things and the ~290 m jump across the harbor are within what legs this strong could do. The jet is lifted
+bounds between things and the ~400 m jump across the harbor are within what legs this strong could do. The ship and the tower are held up by one end like a pole (you'd need to be anchored in the ground to hold the turning force; the cratered ground stands in for that), and the mountain's edge swings up ~800 m off your heave before you throw it. The jet is lifted
 from its nose wheel as one stiff piece (in reality it would bend and the nose gear would snap); the plaza puts a jumbo jet,
-a cruise terminal and a tower side by side to fit one shot.
+a cruise terminal and a tower side by side to fit one shot. The glow round you in the wide shots is drawn so you can be found.
 
 **YouTube title (90 chars, emoji counted as 2)**
 What if you were 1 trillion times stronger? You could throw a mountain 💪 #whatif #physics
@@ -2941,7 +2950,7 @@ What would you lift first? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 10`: you holding the loaded container truck over your head, the pavement cracking under you, the jumbo jet and the cruise ship behind; "WHAT IF YOU WERE / 1 trillion / times stronger?")
+Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 23`: you on the quay with your arms up, holding the cruise ship's red-and-navy bow over your head, the ship rising into the sky behind it, the mountain across the harbor; "WHAT IF YOU WERE / 1 trillion / times stronger?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

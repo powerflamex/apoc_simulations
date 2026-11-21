@@ -1,56 +1,136 @@
-// The camera's keys: [video time, x, y, z, look-at x, y, z, fov]. One move from frame 0 to the white: low in front of
-// you with the car overhead, then easing back and rising as each thing gets bigger, following you round the plaza, to
-// the quay and the tower (from above the crowd, so you stay in sight), chasing you over the harbor, and behind you at
-// the mountain's foot. Keys are placed relative to where you are (choreo.youAt) where the shot follows you.
-import { youAt } from './choreo.js';
-import { B } from './timeline.js';
-import { SPOT } from './layout.js';
+// The camera follows YOU, in one continuous move (owner's fix pass, Nov 21): low and close behind or beside you with a
+// wide lens, looking up at what you lift, turning with you as you run to the next thing (which is ahead of you). For the
+// three things too big to fit with you (the ship, the tower, the mountain) it pulls back fast, side-on, until the whole
+// thing is in frame with daylight under it (you at its base, marked by a glow and a ring of dust: fx.js), then comes
+// straight back in on you for the throw, and watches the flight over your shoulder.
+// Keys: [t, az (deg: where the camera is from you; 0 = south (+z), 90 = east, 180 = north), dist (m), h (m above your
+// feet), lookY (m above your feet), focus, w (0 = look at you .. 1 = look at the focus), fov].
+import * as THREE from 'three';
+import { youAt, thingAt, towerPiece, mountainAt } from './choreo.js';
+import { MTN } from './layout.js';
+import { smooth, clamp } from './util.js';
 
-export const CAMK = [];
-const abs = (t, x, y, z, tx, ty, tz, fov) => CAMK.push([t, x, y, z, tx, ty, tz, fov]);
-// relative to you: the camera at (dx, dy, dz) from your feet, looking at (tx, ty, tz) from them
-const rel = (t, dx, dy, dz, tx, ty, tz, fov) => { const y = youAt(t); CAMK.push([t, y.x + dx, dy + y.air, y.z + dz, y.x + tx, ty + y.air, y.z + tz, fov]); };
+export const KEYS = [
+  // frame 0: in front of you, low, the car overhead; the toss lands behind you
+  [-2.0, 20, 4.9, 1.0, 2.75, 'you', 0, 72],
+  [0.7, 20, 4.9, 1.0, 2.75, 'you', 0, 72],
+  [1.5, 28, 4.6, 0.9, 2.0, 'car', 0.25, 72],
+  // to the bus at your left; you lift it, the camera low behind your shoulder looking up at it
+  [2.6, 72, 4.3, 0.75, 2.4, 'bus', 0.2, 74],
+  [4.0, 70, 4.6, 0.75, 3.3, 'bus', 0.2, 76],
+  [4.55, 58, 4.6, 0.85, 3.3, 'bus', 0.25, 76],
+  // you throw it up the street: we watch it fly and land over your head
+  [5.4, 18, 4.6, 1.2, 3.0, 'bus', 0.55, 74],
+  [6.45, 6, 4.6, 1.2, 2.4, 'bus', 0.5, 74],
+  // you run to the truck (it's ahead of you); behind you as you lift it
+  [7.65, -58, 4.5, 0.9, 1.8, 'truck', 0.2, 74],
+  [8.5, -60, 4.4, 0.75, 2.4, 'truck', 0.2, 76],
+  [9.6, -60, 4.6, 0.75, 3.6, 'truck', 0.15, 76],
+  // you turn north under it and throw it into the harbor
+  [10.3, -18, 4.8, 0.9, 3.4, 'truck', 0.25, 76],
+  [11.0, -6, 5.0, 1.4, 2.6, 'truck', 0.55, 74],
+  [11.9, 0, 5.0, 1.5, 2.0, 'truck', 0.5, 74],
+  // two bounds to the jet, the camera behind you; then beside you under its nose, looking up at it
+  [12.3, -8, 6.0, 2.0, 2.0, 'jet', 0.05, 72],
+  [13.05, -50, 11.0, 1.5, 3.0, 'jet', 0.04, 76],
+  [15.3, -52, 11.0, 1.5, 3.3, 'jet', 0.04, 76],
+  [15.9, -50, 10.5, 1.6, 3.8, 'jet', 0.1, 76],
+  // it flies into the ship; then two bounds to the quay, the ship's bow ahead of you
+  [16.6, -30, 8.0, 1.6, 4.0, 'jet', 0.55, 76],
+  [17.3, -14, 6.5, 1.8, 4.0, 'jet', 0.55, 76],
+  [18.75, -40, 5.0, 1.0, 4.0, 'shipN', 0.12, 78],
+  // the ship (a): close behind you at its bow, hands digging in
+  [20.95, -24, 4.4, 0.85, 4.5, 'shipN', 0.1, 80],
+  // (b) a fast pull-back, side-on from the west: the whole ship rising into the sky off your hands
+  [21.25, -60, 40, 12, 10, 'shipN', 0.3, 66],
+  [21.6, -103, 490, 80, 60, 'ship', 0.8, 60],
+  [22.55, -103, 490, 80, 70, 'ship', 0.8, 60],
+  [22.78, -40, 60, 14, 4, 'you', 0, 68],
+  // (c) straight back in on you for the throw, then over your shoulder as it flies across the harbor
+  [22.98, -22, 6.5, 1.3, 3.2, 'you', 0, 80],
+  [23.4, 6, 6.0, 1.3, 5.0, 'shipN', 0.35, 78],
+  [25.3, 12, 5.5, 1.6, 4.0, 'ship', 0.45, 74],
+  // three bounds to the tower (ahead of you), the camera behind
+  [25.7, -70, 6.5, 2.0, 2.5, 'towerB', 0.1, 72],
+  [26.1, -118, 7.0, 1.8, 2.5, 'towerB', 0.08, 74],
+  [27.05, -132, 7.0, 1.6, 3.5, 'towerB', 0.08, 76],
+  // the tower (a): close behind you at its corner
+  [27.9, -42, 4.4, 0.85, 5.0, 'towerB', 0.1, 80],
+  // (b) pull-back side-on from over the harbor: the whole tower tipping up off your hands
+  [28.4, -80, 50, 10, 15, 'towerB', 0.3, 66],
+  [28.95, -135, 430, 55, 60, 'tower', 0.75, 60],
+  [29.85, -135, 430, 55, 70, 'tower', 0.75, 60],
+  [30.12, -70, 60, 14, 8, 'towerB', 0.2, 68],
+  // (c) back in for the throw; watch it fly across the harbor
+  [30.35, -40, 5.0, 1.0, 6.0, 'towerB', 0.2, 80],
+  [31.0, -28, 5.0, 1.3, 5.0, 'towerB', 0.45, 78],
+  [32.6, -18, 6.0, 1.6, 4.0, 'tower', 0.45, 74],
+  // the jump across the harbor: chasing you
+  [33.2, -10, 8.0, 2.0, 2.5, 'you', 0, 74],
+  [34.0, 5, 14, 4.0, 1.5, 'you', 0, 72],
+  [35.5, 6, 14, 4.0, 1.5, 'you', 0, 72],
+  [36.2, 6, 9.0, 2.5, 3.0, 'mtn', 0.05, 74],
+  // the mountain (a): close behind you at its foot, digging in
+  [37.2, 6, 4.6, 0.9, 6.0, 'mtn', 0.04, 80],
+  [39.9, 6, 4.6, 0.9, 6.0, 'mtn', 0.04, 80],
+  // (b) pull-back far to the east: the whole mountain, its snow cap, tipping up off the ground, daylight under it
+  [40.35, 30, 300, 60, 80, 'mtn', 0.7, 60],
+  [40.8, 80, 9000, 400, 700, 'mtn', 0.85, 46],
+  [41.3, 80, 9000, 400, 800, 'mtn', 0.85, 46],
+  // (c) back in on you; the throw; it flies off and lands on the horizon; the dust wall rolls at you
+  [41.6, 30, 80, 20, 10, 'you', 0, 70],
+  [41.85, 6, 6.0, 1.4, 1.6, 'you', 0, 80],
+  [42.4, 6, 7.0, 1.6, 1.2, 'mtn', 0.03, 78],
+  [43.0, 6, 7.5, 1.8, 1.8, 'mtn', 0.07, 76],
+  [43.7, 6, 7.5, 1.8, 3.5, 'mtn', 0.1, 74],
+  [47.5, 6, 7.5, 1.8, 3.5, 'mtn', 0.1, 74],
+];
 
-// the car, the bus
-abs(-2.0, 1.75, 1.05, 8.3, -0.1, 3.25, 0.0, 50);
-abs(0.6, 1.75, 1.05, 8.3, -0.1, 3.25, 0.0, 50);
-abs(2.4, 3.0, 1.4, 10.0, -4.0, 2.5, -4.0, 52);
-abs(4.2, 4.0, 1.8, 12.0, -5.0, 3.4, -5.5, 54);
-abs(6.0, 4.4, 2.4, 13.0, -8.0, 3.4, -24.0, 54);
-// the truck
-abs(7.6, -0.5, 3.0, -4.8, 10.0, 2.8, -19.0, 55);
-abs(9.8, -1.5, 3.4, -4.6, 10.0, 3.7, -19.5, 56);
-abs(11.5, -2.0, 4.6, -5.5, 6.0, 9.0, -60.0, 56);
-// the jet: from the apron south-west of you, you under its nose holding the nose wheel; then up after it
-abs(13.0, 19.6, 6.5, -29.0, 25.0, 3.6, -55.0, 58);
-abs(15.0, 19.8, 6.8, -29.5, 26.0, 4.2, -56.0, 60);
-abs(15.9, 19.8, 7.0, -29.5, 28.0, 7.0, -60.0, 60);
-abs(16.7, 20.5, 8.0, -31.0, 38.0, 24.0, -82.0, 62);
-abs(17.4, 21.0, 9.0, -32.0, 41.0, 28.0, -88.0, 62);
-// the ship: close behind you at the quay, the hull rising over you; then up after it as it flies
-abs(18.75, 44.0, 7.0, -66.0, 27.0, 12.0, -104.0, 62);
-abs(21.5, 45.0, 6.5, -67.0, 26.0, 16.0, -106.0, 64);
-abs(22.85, 45.0, 7.0, -67.0, 25.0, 18.0, -108.0, 64);
-abs(23.8, 47.0, 12.0, -64.0, -40.0, 34.0, -260.0, 62);
-abs(25.0, 55.0, 16.0, -58.0, -110.0, 22.0, -380.0, 60);
-// the tower: you at its foot, the tower rising out of the frame; tilting up after it when it goes
-abs(26.75, 89.0, 6.0, -53.0, 110.0, 14.0, -74.0, 72);
-abs(29.5, 88.5, 6.0, -52.5, 111.0, 17.0, -74.0, 74);
-abs(30.7, 88.0, 7.0, -52.0, 116.0, 34.0, -80.0, 74);
-abs(31.7, 80.0, 14.0, -46.0, 190.0, 70.0, -300.0, 64);
-abs(32.6, 82.0, 16.0, -46.0, 250.0, 30.0, -400.0, 60);
-// the leap: chasing you, behind and above, looking where you're going
-{
-  const a = SPOT.tower, b = SPOT.mtn, D = Math.hypot(b.x - a.x, b.z - a.z);
-  const fx = (b.x - a.x) / D, fz = (b.z - a.z) / D;
-  abs(33.2, a.x - fx * 17, 8.0, a.z - fz * 17, a.x + fx * 30, 5.0, a.z + fz * 30, 60);
-  for (const t of [33.7, 34.3, 34.9, 35.5]) rel(t, -fx * 20, 6.5, -fz * 20, fx * 40, 3.0, fz * 40, 60);
-  rel(B.leapLand, -fx * 22 + 4, 8.0, -fz * 22, fx * 40, 8.0, fz * 40, 60);
+// monotone cubic through one column (log space for the distance)
+const COL = (j, log = false) => {
+  const x = KEYS.map((k) => k[0]), y = KEYS.map((k) => (log ? Math.log(k[j]) : k[j])), n = x.length, d = [], m = [];
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = 0; m[n - 1] = 0;
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (2 * d[i - 1] * d[i]) / (d[i - 1] + d[i]);
+  return (t) => {
+    let r;
+    if (t <= x[0]) r = y[0]; else if (t >= x[n - 1]) r = y[n - 1];
+    else {
+      let i = 0; while (t > x[i + 1]) i++;
+      const h = x[i + 1] - x[i], s = (t - x[i]) / h;
+      r = (2 * s ** 3 - 3 * s ** 2 + 1) * y[i] + (s ** 3 - 2 * s ** 2 + s) * h * m[i] + (-2 * s ** 3 + 3 * s ** 2) * y[i + 1] + (s ** 3 - s ** 2) * h * m[i + 1];
+    }
+    return log ? Math.exp(r) : r;
+  };
+};
+const AZ = COL(1), DIST = COL(2, true), H = COL(3), LY = COL(4), W = COL(6), FOV = COL(7);
+const DEG = Math.PI / 180;
+
+function focusAt(name, v, Y, ly) {
+  const p = new THREE.Vector3();
+  switch (name) {
+    case 'car': case 'bus': case 'truck': case 'jet': return p.copy(thingAt(name, v).p);
+    case 'ship': return p.copy(thingAt('shipMid', v).p);
+    case 'shipN': { const sm = thingAt('shipMid', v); return p.set(-118, 0, 0).applyQuaternion(sm.q).add(sm.p); }
+    case 'tower': return p.copy(towerPiece(2, v).p);
+    case 'towerB': return p.copy(towerPiece(0, v).p);
+    case 'mtn': return p.set(MTN.x, 600, MTN.z).applyMatrix4(mountainAt(v).M);
+    default: return p.set(Y.x, ly + Y.air, Y.z);
+  }
 }
-// the mountain: behind you on the beach, a wide lens so you and its face both fit; at the throw it tilts up after it
-abs(37.6, SPOT.mtn.x + 7, 7.5, SPOT.mtn.z + 30, SPOT.mtn.x, 26.0, SPOT.mtn.z - 60, 76);
-abs(41.4, SPOT.mtn.x + 8, 8.0, SPOT.mtn.z + 33, SPOT.mtn.x, 30.0, SPOT.mtn.z - 65, 78);
-abs(41.9, SPOT.mtn.x + 8, 8.0, SPOT.mtn.z + 34, SPOT.mtn.x, 40.0, SPOT.mtn.z - 70, 78);
-abs(42.9, SPOT.mtn.x + 8, 10.0, SPOT.mtn.z + 36, SPOT.mtn.x, 260.0, SPOT.mtn.z - 1800, 72);
-abs(44.0, SPOT.mtn.x + 8, 10.0, SPOT.mtn.z + 36, SPOT.mtn.x, 230.0, SPOT.mtn.z - 2400, 72);
-abs(47.5, SPOT.mtn.x + 8, 10.0, SPOT.mtn.z + 36, SPOT.mtn.x, 200.0, SPOT.mtn.z - 2400, 72);
+// the camera at video time v: { pos, look, fov, dist (to you) }
+export function camAt(v) {
+  const Y = youAt(v);
+  const az = AZ(v) * DEG, d = DIST(v), h = H(v), ly = LY(v), w = clamp(W(v), 0, 1), fov = FOV(v);
+  // the rig follows your jumps only partly (no bobbing on every bound)
+  const yy = Y.air * (Y.mode === 'leap' ? 0.85 : 0.5);
+  const pos = new THREE.Vector3(Y.x + Math.sin(az) * d, yy + h, Y.z + Math.cos(az) * d);
+  const me = new THREE.Vector3(Y.x, yy + ly, Y.z);
+  let i = 0; while (i < KEYS.length - 2 && v > KEYS[i + 1][0]) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const k = smooth(a[0], b[0], v);
+  const Fa = focusAt(a[5], v, Y, ly), Fb = focusAt(b[5], v, Y, ly);
+  const F = a[5] === b[5] ? Fa : Fa.lerp(Fb, k);
+  const look = me.clone().lerp(F, w);
+  return { pos, look, fov, dist: pos.distanceTo(new THREE.Vector3(Y.x, Y.air + 1, Y.z)) };
+}

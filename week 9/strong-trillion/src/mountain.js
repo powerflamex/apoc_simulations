@@ -107,7 +107,7 @@ export function makeMountain(scene) {
         // pale scree and bare patches in the gullies
         c = mix(c, vec3(0.5, 0.47, 0.42), smoothstep(0.72, 0.9, mf(P.xz * 0.0025 + 9.0)) * (1.0 - rk) * 0.5);
         // the root (the torn rock under the ground): dark, broken
-        if (vQ.y > 0.5 || P.y < -0.5) c = vec3(0.13, 0.1, 0.08) * (0.5 + 0.5 * mn(P.xz * 0.02 + P.y * 0.05) + 0.4 * mn(P.xz * 0.2 + P.y * 0.3));
+        if (vQ.y > 0.5 || P.y < -0.5) c = mix(vec3(0.16, 0.1, 0.06), vec3(0.42, 0.3, 0.2), mn(P.xz * 0.008) * 0.6 + mn(P.xz * 0.05 + P.y * 0.05) * 0.4) * (0.55 + 0.6 * mn(P.xz * 0.3 + P.y * 0.3));
         // cracks opening up the face as you lift it: long jagged lines running up from the foot
         if (uCrack > 0.0) {
           float a = atan(P.z - ${ZP.toFixed(1)}, P.x);
@@ -120,6 +120,9 @@ export function makeMountain(scene) {
           }
           c = mix(c, vec3(0.04, 0.035, 0.03), lines * 0.95);
         }
+        // the snow cap: white above ~1,150 m, thinner on the steepest rock
+        float sn = smoothstep(1080.0, 1220.0, P.y + (n - 0.5) * 220.0) * (1.0 - smoothstep(0.75, 0.95, slope)) * step(vQ.y, 0.5);
+        c = mix(c, vec3(0.93, 0.95, 0.98) * (0.9 + 0.1 * n2), sn);
         c = mix(c, vec3(0.62, 0.57, 0.5), uDust * smoothstep(0.6, 1.0, vQ.x) * 0.6);
         diffuseColor.rgb = c;
       }`);

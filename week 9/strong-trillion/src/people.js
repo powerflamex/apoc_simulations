@@ -3,6 +3,7 @@
 // when the danger comes near them (a thing you lift or throw, you running past), they turn and run away from it on a
 // straight line, at a running pace, stopping at a safe distance. Everything they do is a function of time.
 import { rng, smooth, clamp, lerp } from './util.js';
+import { camAt } from './camera.js';
 import { SKIN, HAIR } from './crowd.js';
 import { B } from './timeline.js';
 import { SPOT, STREET, QUAY_Z, BUS, TRUCK, FAR_Z } from './layout.js';
@@ -17,7 +18,7 @@ const DANGER = [
   [B.busGrab, SPOT.bus.x, SPOT.bus.z, 14],
   [B.busLand - 0.4, -11, -54, 22],
   [B.truckGrab - 0.6, SPOT.truck.x, SPOT.truck.z, 18],
-  [B.truckHit - 0.2, 6, -92, 26],
+  [B.truckThrow + 0.3, 7, -95, 22],
   [B.jetGrab - 0.6, SPOT.jet.x, SPOT.jet.z, 40],
   [B.shipGrab - 0.8, SPOT.ship.x, SPOT.ship.z, 60],
   [B.towerGrab - 0.8, SPOT.tower.x, SPOT.tower.z, 70],
@@ -51,6 +52,8 @@ function personPos(p, v) {
     x += r.dx * d; z += r.dz * d; dist += d;
     if (t < r.dur) { run = r; ran = null; } else { run = null; ran = r; }
   }
+  // nobody runs off the quay or the beach into the water
+  if (p.beach) z = Math.min(z, FAR_Z - 1.5); else z = Math.max(z, QUAY_Z + 1.0);
   return { x, z, dist, run, ran };
 }
 
@@ -113,6 +116,19 @@ export function makePeople() {
       p.runs.push({ t0: tr, dur: 2.2 + 2.5 * R() + (r > 30 ? 2 : 0), dx, dz, sp: p.speed * (r > 30 ? 1.25 : 1) });
     }
   }
+  // leave out anyone whose path comes within 3 m of the camera (or 1.2 m of its line to you) at any moment
+  const CAMS = [];
+  for (let t = -1.0; t < 47.5; t += 0.1) { const c = camAt(t); CAMS.push([t, c.pos.x, c.pos.z, c.pos.y]); }
+  const kept = list.filter((p) => {
+    for (const [t, cx, cz, cy] of CAMS) {
+      if (cy > 12) continue;
+      const q = personPos(p, t);
+      if (Math.hypot(q.x - cx, q.z - cz) < 3.0) return false;
+    }
+    return true;
+  });
+  kept.forEach((p, i) => { p.i = i; });
+  list.length = 0; list.push(...kept);
   return {
     list,
     // pose everyone at v (crowd: the instanced figures)
