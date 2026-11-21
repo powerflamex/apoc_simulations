@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TREES, LAMPS, BENCHES, STRINGS, MASTS, COURT } from './layout.js';
-import { G, T_ON, fly, SPIN } from './timeline.js';
+import { G, T_ON, fly, SPIN, T_KIDTREE, KID_TREE } from './timeline.js';
 import { hazed } from './city.js';
 import { rng, clamp, smooth } from './util.js';
 
@@ -119,7 +119,7 @@ export function makeProps(scene, ctx) {
     const n = 11;
     for (let k = 0; k < n; k++) {
       const a = k * 2.399 + T.seed * 5, rr = T.r * (k === 0 ? 0 : 0.35 + 0.55 * ((k * 0.618) % 1)), yy = T.h + 0.8 + T.r * 0.9 * (1 - rr / T.r) * (0.7 + 0.3 * R());
-      CL.push({ tree: ti, x: T.x + Math.cos(a) * rr, y: yy, z: T.z + Math.sin(a) * rr, s: T.r * (0.42 + 0.22 * R()), out: rr / T.r, col: T.col, A: 0.12 + 0.18 * (rr / T.r) + 0.05 * R(), w: 2 * Math.PI * (0.85 + 0.35 * R()), ph: R() });
+      CL.push({ kid: !!T.kid, tree: ti, x: T.x + Math.cos(a) * rr, y: yy, z: T.z + Math.sin(a) * rr, s: T.r * (0.42 + 0.22 * R()), out: rr / T.r, col: T.col, A: 0.12 + 0.18 * (rr / T.r) + 0.05 * R(), w: 2 * Math.PI * (0.85 + 0.35 * R()), ph: R() });
     }
   });
   const clumps = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), leafMat, CL.length);
@@ -153,8 +153,15 @@ export function makeProps(scene, ctx) {
     const x = Math.cos(a) * r * 1.2, z = Math.sin(a) * r * 0.8 + 3;
     GL.push({ p: [x, 0.012, z], u: [0.03 * (R() - 0.5), 0.02 * R() * R(), 0.03 * (R() - 0.5)], rot: [Math.PI / 2 + (R() - 0.5) * 0.4, R() * 6, 0], w: [(R() - 0.5) * 0.3, (R() - 0.5) * 0.3, 0], col: [0xc86a20, 0xd8a028, 0x9a4a1c, 0xb88a3a][Math.floor(R() * 4)] });
   }
-  const leaves = new THREE.InstancedMesh(leafG, leafQ, LEAVES.length + GL.length);
-  [...LEAVES, ...GL].forEach((L, i) => leaves.setColorAt(i, new THREE.Color(L.col).multiplyScalar(0.8 + 0.4 * R())));
+  // the kid crashing into the big tree's crown: a burst of leaves and twigs out of it
+  const BURST = [];
+  for (let k = 0; k < 140; k++) {
+    const a = R() * Math.PI * 2, sp = 1 + 4 * R();
+    BURST.push({ p: [KID_TREE.x + Math.cos(a) * 0.8 * R(), KID_TREE.catch - 0.4 - 1.2 * R(), KID_TREE.z + Math.sin(a) * 0.8 * R()], u: [Math.cos(a) * sp, 0.5 + 3 * R(), Math.sin(a) * sp],
+      rot: [R() * 6, R() * 6, R() * 6], w: [(R() - 0.5) * 14, (R() - 0.5) * 14, (R() - 0.5) * 14], col: [0xd8821c, 0xe0a828, 0xb8521c][Math.floor(R() * 3)] });
+  }
+  const leaves = new THREE.InstancedMesh(leafG, leafQ, LEAVES.length + GL.length + BURST.length);
+  [...LEAVES, ...GL, ...BURST].forEach((L, i) => leaves.setColorAt(i, new THREE.Color(L.col).multiplyScalar(0.8 + 0.4 * R())));
   leaves.castShadow = false; leaves.frustumCulled = false;
   scene.add(leaves);
 
@@ -204,7 +211,9 @@ export function makeProps(scene, ctx) {
     frame(t) {
       // canopies
       CL.forEach((c, i) => {
-        const d = spring(t, c.A, c.w, 0.11);
+        let d = spring(t, c.A, c.w, 0.11);
+        // the kid landing in the crown: it's knocked down and shakes
+        if (c.kid && t > T_KIDTREE) { const s = t - T_KIDTREE, near = Math.exp(-Math.hypot(c.x - KID_TREE.x, c.z - KID_TREE.z) / 2.2); d -= near * (0.45 * (1 - Math.exp(-s / 0.05)) * Math.exp(-s / 0.7) + 0.12 * Math.exp(-s / 0.5) * Math.sin(s * 22)); }
         const sw = 0.05 * c.out * Math.sin(c.w * 0.8 * Math.max(t, 0) + c.ph * 6) * Math.min(1, Math.max(t, 0) * 2) * (t < T_ON ? 1 : Math.exp(-(t - T_ON)));
         m4.compose(p.set(c.x + sw, c.y + d, c.z + sw * 0.6), q.identity(), sc.set(c.s, c.s * 0.82, c.s));
         clumps.setMatrixAt(i, m4);
@@ -224,6 +233,12 @@ export function makeProps(scene, ctx) {
       for (const L of GL) {
         const f = fly(L.p, L.u, t, o, 0.012);
         put(o.x, o.y, o.z, L.rot[0] + L.w[0] * Math.min(t, T_ON), L.rot[1] + L.w[1] * Math.min(t, T_ON), L.rot[2]);
+      }
+      for (const L of BURST) {
+        const s = t - T_KIDTREE;
+        if (s <= 0) { put(0, -50, 0, 0, 0, 0, 0); continue; }
+        const dr = 0.35 * (1 - Math.exp(-s / 0.35));
+        put(L.p[0] + L.u[0] * dr, L.p[1] + L.u[1] * 0.3 * (1 - Math.exp(-s / 0.3)) - 1.1 * s, L.p[2] + L.u[2] * dr, L.rot[0] + L.w[0] * s, L.rot[1] + L.w[1] * s, L.rot[2] + L.w[2] * s);
       }
       leaves.instanceMatrix.needsUpdate = true;
       // festoon lights

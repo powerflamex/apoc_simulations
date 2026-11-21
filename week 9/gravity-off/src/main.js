@@ -23,7 +23,8 @@ import { makeYou } from './you.js';
 import { ck, camPos } from './camera.js';
 import { PEOPLE, personAt, poseFloat, FIGS, figAt, flail } from './people.js';
 import { BASIN } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, tOf, T_ON, T_SPLASH, V_SPLASH, V_WHITE, V_ZERO, youAt, G } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, tOf, T_ON, T_SPLASH, V_SPLASH, V_WHITE, V_ZERO, V_CRASH, T_CRASH, youAt, G } from './timeline.js';
+import { CARS, carAt } from './traffic.js';
 import { smooth, clamp, wobble, rng, lerp } from './util.js';
 
 const W = 1080, H_PX = 1920, DEG = Math.PI / 180;
@@ -55,7 +56,7 @@ const fountain = makeFountain(scene, ctx);
 const pool = makePool(scene, ctx);
 const props = makeProps(scene, ctx);
 const traffic = makeTraffic(scene, ctx);
-const smoke = makeSmoke(scene, 500);
+const smoke = makeSmoke(scene, 1400);
 const crowd = makeCrowd(scene, PEOPLE.length + pool.count, plainMat(0xffffff, 0.82), { castShadow: true });
 PEOPLE.forEach((p) => crowd.color(p.i, p.shirt, p.pants, p.skin, p.hair, p.sleeves));
 {
@@ -86,7 +87,8 @@ const FIG = FIGS.map((F) => {
 const ME = FIG[0];
 
 // ---- the splash when you land in the basin: a crown of water thrown up and out (gravity's back) ----
-const splash = makeBlobs(scene, 700);
+const splash = makeBlobs(scene, 1400);
+const DRIFTER = CARS.find((c) => c.drifter), drift9 = carAt(DRIFTER, 9, {});
 const CROWN = [];
 {
   const R = rng(7070);
@@ -204,8 +206,8 @@ function update(v, cover = -1) {
   camera.lookAt(tv.copy(pos).add(dir));
   camera.fov = ck(5, v);
   // a drifting handheld float while it's off; a jolt as everything lands
-  const land = v > V_ZERO ? smooth(V_ZERO + 4.0, V_ZERO + 5.4, v) * (1 - smooth(V_ZERO + 6, V_SPLASH, v)) : 0;
-  const shake = 0.0018 + 0.006 * land + 0.012 * smooth(V_SPLASH - 0.1, V_SPLASH + 0.4, v);
+  const jolt = (v0, k, d = 0.6) => (v > v0 ? k * Math.exp(-(v - v0) / d) : 0);
+  const shake = 0.0018 + jolt(V_ZERO, 0.02, 0.8) + jolt(V_SPLASH - 1.0, 0.006) + jolt(V_SPLASH, 0.01) + jolt(V_CRASH, 0.012, 1.0);
   camera.rotation.x += wobble(v * 0.9, 3) * 0.006 + wobble(v * 23, 7) * shake;
   camera.rotation.y += wobble(v * 0.7, 4) * 0.006 + wobble(v * 27, 8) * shake;
   camera.rotation.z += wobble(v * 0.5, 6) * 0.01;
@@ -215,24 +217,24 @@ function update(v, cover = -1) {
   const sc = skyColors(SUN_EL);
   const u = sky.uniforms;
   sky.mesh.position.copy(camera.position);
-  const fogK = s.fog * 0.45;
-  u.uSun.value.copy(SUNDIR); u.uZen.value.copy(C(sc.zen)).lerp(FOGC, fogK); u.uHor.value.copy(C(sc.hor)).lerp(FOGC, fogK); u.uGlow.value.copy(C(sc.glow)); u.uSunCol.value.copy(C(sc.sun)).multiplyScalar(1 - 0.6 * s.fog);
-  u.uSunI.value = 1 - 0.5 * s.fog; u.uStars.value = 0; u.uT.value = t * 2; u.uPx.value = (camera.fov * DEG) / H_PX; u.uCloud.value = 0.55; u.uCity.value = 0;
+  const fogK = s.fog * 0.12;
+  u.uSun.value.copy(SUNDIR); u.uZen.value.copy(C(sc.zen)).lerp(FOGC, fogK); u.uHor.value.copy(C(sc.hor)).lerp(FOGC, fogK); u.uGlow.value.copy(C(sc.glow)); u.uSunCol.value.copy(C(sc.sun)).multiplyScalar(1 - 0.15 * s.fog);
+  u.uSunI.value = 1 - 0.15 * s.fog; u.uStars.value = 0; u.uT.value = t * 2; u.uPx.value = (camera.fov * DEG) / H_PX; u.uCloud.value = 0.55; u.uCity.value = 0;
   const hi = C(sc.zen).clone(), lo = C(sc.hor).clone();
   CU.uSkyHi.value.copy(hi); CU.uSkyLo.value.copy(lo);
   CU.uHaze.value.copy(lo); CU.uHazeD.value = 1800;
   CU.uSun.value.copy(SUNDIR); CU.uSunCol.value.copy(C(sc.sun));
-  CU.uFog.value = s.fog * 0.5; CU.uFogD.value = 80; CU.uFogCol.value.copy(FOGC);
+  CU.uFog.value = s.fog * 0.22; CU.uFogD.value = 140; CU.uFogCol.value.copy(FOGC);
   CU.uTime.value = t;
   GU.uTime.value = t;
-  GU.uWet.value = smooth(T_SPLASH - 0.05, T_SPLASH + 0.25, t);
+  GU.uWet.value = smooth(6.4, 7.6, t);
   const lc = new THREE.Vector3(me.x, 0, me.z - 15);
   sunL.position.copy(SUNDIR).multiplyScalar(400).add(lc);
   sunL.target.position.copy(lc); sunL.target.updateMatrixWorld();
-  sunL.intensity = 3.4 * (1 - 0.55 * s.fog);
+  sunL.intensity = 3.4 * (1 - 0.12 * s.fog);
   sunL.color.copy(C(sc.sun)).lerp(new THREE.Color(1, 1, 1), 0.45);
-  hemi.intensity = 1.8 + 0.8 * s.fog;
-  hemi.color.copy(C(sc.zen)).multiplyScalar(2.2).lerp(new THREE.Color(0.75, 0.8, 0.95), 0.4 + 0.4 * s.fog);
+  hemi.intensity = 1.8 + 0.2 * s.fog;
+  hemi.color.copy(C(sc.zen)).multiplyScalar(2.2).lerp(new THREE.Color(0.75, 0.8, 0.95), 0.4 + 0.1 * s.fog);
   hemi.groundColor.setRGB(0.5, 0.46, 0.42);
   renderer.toneMappingExposure = 1.0;
   // ---- the world ----
@@ -249,34 +251,39 @@ function update(v, cover = -1) {
   // the crown of your splash, and a white mist off it
   splash.begin();
   smoke.begin();
-  if (t > T_SPLASH - 0.08) {
-    const sx = me.x, sz = me.z;
+  const crown = (sx, sz, ts, K, r0) => {
+    if (t < ts - 0.08 || t > ts + 2.5) return;
     for (const c of CROWN) {
-      const s2 = t - T_SPLASH - c.t0; if (s2 <= 0) continue;
-      const rr = 0.35 + c.sp * s2, yy = BASIN.water + c.up * s2 - 0.5 * G * s2 * s2;
+      const s2 = t - ts - c.t0; if (s2 <= 0) continue;
+      const rr = r0 + c.sp * K * s2, up = c.up * K, yy = BASIN.water + up * s2 - 0.5 * G * s2 * s2;
       if (yy < BASIN.water - 0.05) continue;
-      splash.add(sx + Math.cos(c.a) * rr, yy, sz + Math.sin(c.a) * rr, Math.cos(c.a) * c.sp, c.up - G * s2, Math.sin(c.a) * c.sp, c.r, c.r * 2.2);
+      splash.add(sx + Math.cos(c.a) * rr, yy, sz + Math.sin(c.a) * rr, Math.cos(c.a) * c.sp, up - G * s2, Math.sin(c.a) * c.sp, c.r * (0.7 + 0.5 * K), c.r * 2.2);
     }
     for (let k = 0; k < 24; k++) {
-      const a = (k / 24) * Math.PI * 2, s2 = Math.max(0, t - T_SPLASH);
-      smoke.puff(sx + Math.cos(a) * (0.4 + 2.5 * s2), 0.3 + 3 * s2 * (0.5 + 0.5 * ((k * 0.37) % 1)), sz + Math.sin(a) * (0.4 + 2.5 * s2), 0.4 + 1.6 * s2, 0.55 * smooth(0, 0.05, s2), 1.0, 0, (k * 0.61) % 1);
+      const a = (k / 24) * Math.PI * 2, s2 = Math.max(0, t - ts);
+      smoke.puff(sx + Math.cos(a) * (r0 + 2.5 * K * s2), 0.3 + 3 * K * s2 * (0.5 + 0.5 * ((k * 0.37) % 1)), sz + Math.sin(a) * (r0 + 2.5 * K * s2), (0.4 + 1.0 * s2) * K, 0.45 * smooth(0, 0.05, s2) * (1 - smooth(0.25, 0.9, s2)), 1.0, 0, (k * 0.61) % 1);
     }
-  }
+  };
+  crown(drift9.x, drift9.z, drift9.tl, 1.35, 1.6);
+  crown(me.x, me.z, T_SPLASH, 1.0, 0.35);
+  // the waterfall off the roof hitting the square, and the fountain's water coming down everywhere
+  for (const [x, z, age] of pool.SPLASH) smoke.puff(x, 0.4 + 2.5 * (age - 2.2), z + 0.6, 0.9 + 2.5 * Math.max(0, age - 2.2), 0.5, 1.0, 0, (x * 0.37) % 1);
+  for (const [x, y, z, a] of fountain.HITS) if (Math.hypot(x - camera.position.x, z - camera.position.z) > 3) smoke.puff(x, y + 0.1 + 0.9 * a, z, 0.12 + 0.5 * a, 0.18 * (1 - a / 0.5), 1.0, 0, (x * 0.53 + z * 0.29) % 1);
   // the fog forming: soft white wisps drifting through the square
   if (s.fog > 0.01) {
     for (let k = 0; k < 36; k++) {
       const a = k * 2.399, r = 6 + 22 * ((k * 0.618) % 1);
-      smoke.puff(Math.cos(a) * r, 1.0 + 7 * ((k * 0.377) % 1), Math.sin(a) * r, 3 + 2.5 * ((k * 0.29) % 1), 0.16 * s.fog, 1.0, 0, (k * 0.13) % 1);
+      smoke.puff(Math.cos(a) * r, 1.0 + 7 * ((k * 0.377) % 1), Math.sin(a) * r, 3 + 2.5 * ((k * 0.29) % 1), 0.05 * s.fog, 1.0, 0, (k * 0.13) % 1);
     }
   }
   splash.end();
   smoke.end();
   smoke.mat.uniforms.uTime.value = t;
-  smoke.mat.uniforms.uLight.value.setRGB(1.45, 1.47, 1.5);
+  smoke.mat.uniforms.uLight.value.setRGB(1.6, 1.66, 1.75);
   smoke.mat.uniforms.uSun.value.copy(SUNDIR);
-  bloom.strength = 0.18 + 0.15 * s.fog;
+  bloom.strength = 0.18 + 0.04 * s.fog;
   // ---- post ----
-  tv.set(me.x, BASIN.water + 0.3, me.z).project(camera);
+  tv.set(0, 1.4, 0).project(camera);
   finish.uniforms.uSP.value.set(clamp(tv.x * 0.5 + 0.5, 0.1, 0.9), clamp(tv.y * 0.5 + 0.5, 0.0, 0.6));
   finish.uniforms.uTime.value = v;
   const white = Math.max(s.flash, cover);

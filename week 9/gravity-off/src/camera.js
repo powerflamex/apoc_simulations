@@ -6,22 +6,34 @@ import { BASIN } from './layout.js';
 export const CAMK = [
   [-2, 10, 4.8, 1.0, 0, 12, 62],
   [0, 10, 4.8, 1.0, 0, 12, 62],
-  [3.5, 4, 4.6, 1.0, 6, 24, 62],
-  [7.0, -70, 4.2, 1.1, 78, 20, 60],
-  [9.6, -88, 4.3, 1.1, 101.5, 1.5, 22],
-  [12.0, -92, 4.4, 1.1, 102.5, 1.5, 19],
-  [15.5, -2, 4.0, 1.0, 0, 10, 60],
-  [19.5, 60, 5.6, 0.7, -68, 3, 48],
-  [23.0, 66, 5.8, 0.7, -70, 3, 48],
-  [25.8, 50, 3.6, 1.6, -4, 26, 16],
-  [28.0, 46, 3.8, 1.7, -4.5, 26, 18],
-  [30.0, 22, 10.5, 0.6, -9, 24, 60],
-  [32.5, 18, 9.5, 0.7, -6, 22, 58],
-  [35.0, 6, 4.8, 1.0, 0, 12, 62],
-  [36.96, 5, 4.7, 1.0, 0, 11, 62],
-  [42.0, 3, 4.3, 0.9, 0, 6, 62],
-  [45.4, 0, 3.4, 0.9, 0, -4, 64],
-  [48, 0, 3.4, 0.9, 0, -4, 64],
+  // the kid shoots up: pull back south and tilt with him past the floors of the block behind
+  [3.5, 6, 6.5, 1.0, 6, 16, 58],
+  [7.5, 4, 10.0, 1.2, 7, 15, 52],
+  // turn to the court (you in the foreground): the player on the rim, the others floating past him
+  [10.2, -125, 4.6, 1.0, 117, 4, 40],
+  [13.0, -127, 4.6, 1.0, 118, 4, 40],
+  // swing round past your face to the street: cars sliding across the crossing, one drifting toward the fountain
+  [16.3, 56, 5.0, 1.0, -62, 5, 50],
+  [19.6, 58, 5.2, 1.0, -64, 5, 50],
+  // your face (ears pop), then tilt up: the pool's water heaving up over the roof of the block
+  [21.6, 15, 4.3, 1.0, -8, 10, 58],
+  [23.4, 8, 4.4, 0.8, -3, 15, 58],
+  [25.4, 2, 17.5, 1.2, -1, 9, 31],
+  [28.4, 2, 18.0, 1.2, -1, 9, 29],
+  // the drifting car over the basin, coming at you; 0.00; everything drops; the car and you into the fountain
+  [29.7, 25, 6.0, 0.8, -27, 8, 56],
+  [31.6, 26, 6.0, 0.9, -28, 4, 56],
+  [34.0, 22, 4.8, 1.0, -22, 0, 58],
+  [35.4, 14, 3.9, 1.1, -12, -6, 60],
+  // look up and right: the kid falling 50 ft into the big tree
+  [36.6, -60, 6.0, 1.45, 107, 37, 40],
+  [38.6, -60, 6.0, 1.45, 109, 31, 32],
+  [40.0, -55, 6.0, 1.45, 107, 25, 36],
+  // round to the north: the pool pouring off the roof, the fountain's big jet coming down on top of you
+  [41.6, 12, 4.0, 1.45, -6, 21, 52],
+  [43.4, 8, 3.6, 1.5, -4, 22, 54],
+  [44.8, 6, 2.6, 1.6, -3, 34, 64],
+  [47, 6, 2.6, 1.6, -3, 34, 64],
 ];
 const camSpl = [1, 2, 3, 4, 5, 6].map((j) => {
   const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];

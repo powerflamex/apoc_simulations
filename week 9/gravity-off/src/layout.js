@@ -15,6 +15,8 @@ export const RING = Array.from({ length: 10 }, (_, k) => { const a = (k / 10) * 
 // ---- the square ----
 export const SQ = { x0: -17.5, x1: 31, z0: -27, z1: 27 };
 export const ROAD = { x0: -30, x1: -20.3, laneN: -24.75, laneS: -28.25, park: -21.6, curb: -20.3, walkW: -33 };
+// a side street joining the west street from the west (the crossing the cars slide across)
+export const SIDE = { z0: -9.5, z1: -2.5 };
 export const COURT = { x0: 13, x1: 28, z0: -14, z1: 14, hoopX: 20.5, rimZ: 12.4, boardZ: 12.8, rimY: 3.05 };
 
 // ---- the pool block (north side) ----
@@ -41,7 +43,7 @@ export const BLD = [];
   // south: shops, 3 storeys
   for (let x = -33; x < 44;) { const w = 9 + R() * 8; add(x + w / 2, 38.5, w - 0.4, 15, 10.5 + R() * 3.5, R() < 0.55 ? 2 : 0); x += w; }
   // west, across the street
-  for (let z = -30; z < 34;) { const d = 9 + R() * 8; add(-42, z + d / 2, 18, d - 0.4, 11 + R() * 5, R() < 0.5 ? 2 : 0); z += d; }
+  for (let z = -30; z < 34;) { const d = 9 + R() * 8; if (z + d > SIDE.z0 - 0.5 && z < SIDE.z1 + 0.5) { z = SIDE.z1 + 0.5; continue; } add(-42, z + d / 2, 18, d - 0.4, 11 + R() * 5, R() < 0.5 ? 2 : 0); z += d; }
   // the city beyond: taller, further off, in every direction (kept out of the square, the street and the near rows)
   const nNear = BLD.length;
   for (let i = 0; i < 300; i++) {
@@ -50,6 +52,7 @@ export const BLD = [];
     const tall = R() < 0.3;
     const w = 18 + R() * 26, d = 18 + R() * 26, h = (r < 140 ? 18 : 28) + R() * (tall ? 110 : 40) + (tall && r > 200 ? 60 : 0);
     if (Math.abs(x) - w / 2 < 53 && Math.abs(z) - d / 2 < 49) continue;
+    if (x < 0 && z + d / 2 > SIDE.z0 - 1 && z - d / 2 < SIDE.z1 + 1) continue;
     if (z < 0 && Math.abs(Math.atan2(x, -z)) < 0.75 && r < 340 && h > 34) continue;
     if (BLD.slice(0, nNear).some((b) => Math.abs(b.x - x) < (b.w + w) / 2 + 2 && Math.abs(b.z - z) < (b.d + d) / 2 + 2)) continue;
     add(x, z, w, d, h, tall ? 1 : 3);
@@ -65,6 +68,8 @@ export const TREES = [];
   for (const z of [-15, -5, 5, 15]) put(-15.2, z);
   for (const x of [-11, -3, 7]) put(x, 21.5);
   for (const z of [-21, 21]) put(31.5 - 1, z);
+  // the big tree the kid falls into (a broad crown)
+  TREES.push({ x: 8.0, z: 13.5, h: 3.4, r: 3.1, col: 0xd8821c, seed: 0.37, kid: true });
 }
 export const LAMPS = [];
 for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; LAMPS.push({ x: Math.cos(a) * 12.5, z: Math.sin(a) * 12.5 }); }

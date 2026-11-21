@@ -23,12 +23,18 @@ export const CARS = [];
   // driving north, braking for the people stepping off the curb ahead: nose dipped -> it rears up
   CARS.push({ kind: 2, p: [ROAD.laneN, 0, 26], yaw: 0, u: [0, 0.55, -9.0], w: [0.13, 0.0, 0.03], col: 0xc8261e, drive: true });
   // driving south
-  CARS.push({ kind: 0, p: [ROAD.laneS, 0, -14], yaw: Math.PI, u: [0, 0.45, 10.5], w: [-0.05, 0.0, -0.04], col: 0x2a5a9a, drive: true });
+  CARS.push({ kind: 0, p: [ROAD.laneS, 0, -26], yaw: Math.PI, u: [0, 0.45, 10.5], w: [-0.05, 0.0, -0.04], col: 0x2a5a9a, drive: true });
   CARS.push({ kind: 3, p: [ROAD.laneS, 0, -48], yaw: Math.PI, u: [0, 0.4, 9.5], w: [-0.04, 0.0, 0.05], col: 0xf2f2ee, drive: true });
   // pulling in to a space, right front wheel up on the curb: kicked into a roll toward the square
   CARS.push({ kind: 1, p: [ROAD.curb - 2.05, 0, 11.5], yaw: -0.46, u: [1.2, 0.72, -2.4], w: [0.1, 0.02, -0.34], col: 0xe0a828, drive: true, roller: true });
-  // a parked car's neighbour space: the gap the roller is aiming for stays empty
-  for (let i = CARS.length - 1; i >= 0; i--) if (!CARS[i].drive && Math.abs(CARS[i].p[2] - 10.5) < 4.6) CARS.splice(i, 1);
+  // turning left into the side street: no grip, so it slides on in a straight line while its body keeps turning
+  // (its yaw rate carries on): it goes across the crossing sideways, then backwards
+  CARS.push({ kind: 0, p: [ROAD.laneS + 1.0, 0, 10], yaw: 0.25, u: [-0.6, 0.5, -5.2], w: [0.04, 0.5, 0.09], col: 0x3a8a4a, drive: true });
+  // turning right out of the side street onto the street: it goes straight on, over the far curb, into the square,
+  // spinning slowly, rising, toward the fountain; at 0.00 it's over the basin and drops into it
+  CARS.push({ kind: 2, p: [-24.0, 0, -6.0], yaw: -1.93, u: [4.5, 0.55, 1.7], w: [0.05, -0.4, 0.07], col: 0x7ab8d8, drive: true, drifter: true });
+  // no parking at the crossing (where the drifter crosses the parking lane) or in the space the roller is aiming for
+  for (let i = CARS.length - 1; i >= 0; i--) if (!CARS[i].drive && (Math.abs(CARS[i].p[2] - 10.5) < 4.6 || (CARS[i].p[2] > -12.5 && CARS[i].p[2] < 0.5))) CARS.splice(i, 1);
 }
 const CY = 0.6;                    // the car's centre of mass above its ground point
 // a car at story time t: centre position, Euler rotation (pitch x, yaw y, roll z), and whether it has landed
@@ -60,6 +66,10 @@ export function carAt(c, t, out) {
       out.y = hs + (0.6 + 0.35 * side - hs) * k;
       const sk = Math.min(t - T_ON - tl, 0.5);
       out.x += c.u[0] * (sk - sk * sk); out.z += c.u[2] * (sk - sk * sk);
+      // the bounce: tyres and springs throw it back up once or twice
+      const sb = t - T_ON - tl;
+      out.y += 0.32 * Math.exp(-sb / 0.22) * Math.abs(Math.sin(Math.PI * sb / 0.26));
+      out.rx += 0.06 * Math.exp(-sb / 0.2) * Math.sin(Math.PI * sb / 0.2);
     }
   }
   return out;

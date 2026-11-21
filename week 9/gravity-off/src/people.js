@@ -8,7 +8,8 @@
 // past, the girl filming) and their flailing.
 import * as THREE from 'three';
 import { BASIN, COURT, TREES, LAMPS, BENCHES, MASTS, ROAD, SQ } from './layout.js';
-import { G, T_ON, fly, YOU0, YOU_U, KID0, KID_U, LEDGE } from './timeline.js';
+import { G, T_ON, fly, YOU0, YOU_U, KID0, KID_U, LEDGE, kidAt } from './timeline.js';
+import { CARS, carAt } from './traffic.js';
 import { SKIN, HAIR } from './crowd.js';
 import { rng, clamp, smooth, lerp } from './util.js';
 import { camPos } from './camera.js';
@@ -80,6 +81,19 @@ export const PEOPLE = [];
   // the street: people on the sidewalk (clear of the rolling car's path) and three on the crosswalk
   for (const z of [-24, -19, -14, -8.5, 17, 21.5, 25.5]) { const dir = R() < 0.5 ? 0 : Math.PI; add({ kind: 'walk', x: ROAD.curb + 1.2 + 0.9 * R(), z, y: 0, yaw: dir, u: [0, 0.35 + 0.4 * R(), Math.cos(dir) * 1.3], w: [0.15 + 0.2 * R(), 0, (R() - 0.5) * 0.15] }); }
   for (const [x, dir] of [[-27.4, 1], [-25.6, 1], [-23.2, -1]]) add({ kind: 'walk', x, z: -29.4, y: 0, yaw: dir * Math.PI / 2, u: [dir * 1.35, 0.4 + 0.3 * R(), 0], w: [0.2, 0, 0.1] });
+  // nobody in the way of the cars that leave the street or of the kid's flight
+  {
+    const o = {}, c = {}, k = {};
+    const movers = CARS.filter((cc) => cc.drive);
+    for (const p of PEOPLE) {
+      if (p.kind === 'dunk' || p.gone) continue;
+      for (let t = 0; t < 7.5 && !p.gone; t += 0.1) {
+        fly([p.x, p.y, p.z], p.u, t, o, 0);
+        for (const cc of movers) { carAt(cc, t, c); if (Math.hypot(o.x - c.x, (o.y + 0.9 - c.y) * 0.8, o.z - c.z) < 3.2) { p.gone = true; break; } }
+        kidAt(t, k); if (Math.hypot(o.x - k.x, o.y - k.y, o.z - k.z) < 1.4) p.gone = true;
+      }
+    }
+  }
   // nobody drifts into the lens: drop anyone whose body comes within 2.2 m of the camera (sampled every 0.25 s of video)
   {
     const cam = { set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } }, o = {};
@@ -196,7 +210,7 @@ export const FIGS = [
 // a figure's root: where its middle is and how it's turned, at story time t
 export function figAt(F, t, out) {
   const st = out.st || (out.st = {});
-  fly(F.p, F.u, t, st, F.floor);
+  if (F.name === 'kid') kidAt(t, st); else fly(F.p, F.u, t, st, F.floor);
   const tr = st.landed ? st.tl : t;
   out.x = st.x; out.y = st.y; out.z = st.z; out.landed = st.landed; out.tl = st.tl; out.vy = st.vy;
   out.pitch = F.w[0] * Math.max(0, Math.min(tr, 6)); out.yaw = F.yaw + F.w[1] * Math.max(0, tr); out.roll = F.w[2] * Math.max(0, tr);

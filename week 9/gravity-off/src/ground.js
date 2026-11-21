@@ -2,7 +2,7 @@
 // the water, the basketball court (blue with red keys and white lines), the two-way street on the west side (asphalt,
 // a double yellow line, the parking lane, crosswalks at both ends) and concrete sidewalks; curbs along the street.
 import * as THREE from 'three';
-import { ROAD, COURT, SQ, BASIN } from './layout.js';
+import { ROAD, COURT, SQ, BASIN, SIDE } from './layout.js';
 import { CU, HAZE_GLSL } from './city.js';
 
 export const GU = { uTime: { value: 0 }, uWet: { value: 0 } };
@@ -33,7 +33,7 @@ export function makeGround(scene) {
         float r = length(P);
         vec3 c;
         float rough = 0.85;
-        bool road = P.x > ${f(ROAD.x0)} && P.x < ${f(ROAD.curb)};
+        bool road = (P.x > ${f(ROAD.x0)} && P.x < ${f(ROAD.curb)}) || (P.x <= ${f(ROAD.x0)} && P.y > ${f(SIDE.z0)} && P.y < ${f(SIDE.z1)});
         bool court = P.x > ${f(COURT.x0)} && P.x < ${f(COURT.x1)} && P.y > ${f(COURT.z0)} && P.y < ${f(COURT.z1)};
         bool square = P.x > ${f(SQ.x0)} && P.x < ${f(SQ.x1)} && P.y > ${f(SQ.z0)} && P.y < ${f(SQ.z1)};
         if (r < ${f(BASIN.rIn)}) {
@@ -111,7 +111,7 @@ export function makeGround(scene) {
   // curbs along both sides of the street (open at the crosswalks)
   const curbMat = new THREE.MeshStandardMaterial({ color: 0x8e8a84, roughness: 0.8 });
   const curbs = [];
-  for (const x of [ROAD.x0, ROAD.curb]) for (let z = -120; z < 120; z += 2) if (!(Math.abs(z + 1) > 27 && Math.abs(z + 1) < 32)) curbs.push([x, z + 1]);
+  for (const x of [ROAD.x0, ROAD.curb]) for (let z = -120; z < 120; z += 2) if (!(Math.abs(z + 1) > 27 && Math.abs(z + 1) < 32) && !(x === ROAD.x0 && z + 1 > SIDE.z0 - 1 && z + 1 < SIDE.z1 + 1)) curbs.push([x, z + 1]);
   const cg = new THREE.InstancedMesh(new THREE.BoxGeometry(0.25, 0.15, 2.0).translate(0, 0.075, 0), curbMat, curbs.length);
   const m4 = new THREE.Matrix4();
   curbs.forEach(([x, z], i) => cg.setMatrixAt(i, m4.makeTranslation(x, 0, z)));

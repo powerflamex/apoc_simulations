@@ -23,12 +23,12 @@ export function poolH(u, w, t) {
   const tt = clamp(t, 0, T_ON);
   const shape = Math.exp(-((u / 3.1) ** 2 + (w / 1.35) ** 2));
   // the mound: rising at 0.3 m/s from a quick start (the slab's kick), wobbling; after 0.00 it falls back
-  let m = 0.35 * tt * smooth(0, 0.25, tt) + 0.06 * Math.sin(tt * 2.1) * smooth(0.3, 1.5, tt);
+  let m = 0.4 * tt * smooth(0, 0.25, tt) + 0.06 * Math.sin(tt * 2.1) * smooth(0.3, 1.5, tt);
   let drain = m * 0.31;
   let slosh = 0;
   if (t > T_ON) {
-    const s = t - T_ON, m5 = 0.35 * T_ON + 0.06 * Math.sin(T_ON * 2.1);
-    m = Math.max(0, m5 + 0.35 * s - 0.5 * G * s * s);
+    const s = t - T_ON, m5 = 0.4 * T_ON + 0.06 * Math.sin(T_ON * 2.1);
+    m = Math.max(0, m5 + 0.4 * s - 0.5 * G * s * s);
     drain = m * 0.31;
     // the collapse: a surge out to the walls and over the front glass
     const k = smooth(0.45, 0.8, s);
@@ -125,11 +125,12 @@ export function makePool(scene, ctx) {
   // splashes the swimmers had thrown up (flying on) and the crests' fingers
   const SPL = [];
   for (const S of SWIM) for (let k = 0; k < 14; k++) { const a = R() * Math.PI * 2, sp = 0.3 + 1.4 * R(); SPL.push({ x: CX + S.u + Math.cos(a) * 0.3, z: CZ + S.w + Math.sin(a) * 0.3, v: [Math.cos(a) * sp * 0.6, 0.4 + 1.6 * R(), Math.sin(a) * sp * 0.6], r: 0.015 + 0.04 * R() * R() }); }
-  const blobs = makeBlobs(scene, 900);
+  const blobs = makeBlobs(scene, 2600);
+  const SPLASH = [];
   const o = {};
   const P = {};
   return {
-    SWIM, BATH, water,
+    SWIM, BATH, water, SPLASH,
     frame(t, crowd, idx0, poser) {
       // the water mesh
       for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) {
@@ -145,6 +146,7 @@ export function makePool(scene, ctx) {
       geo.computeVertexNormals();
       // blobs: splashes flying on, fingers off the wave crests near each swimmer, the overflow sheet at the end
       blobs.begin();
+      SPLASH.length = 0;
       for (const s of SPL) {
         const f = fly([s.x, Y0 + 0.05, s.z], s.v, t, o, POOL.floor + 0.5);
         if (!f.landed && t > 0) blobs.add(o.x, o.y, o.z, s.v[0], o.vy, s.v[2], s.r, s.r * 1.4);
@@ -154,14 +156,20 @@ export function makePool(scene, ctx) {
         const h = poolH(u, w, t), up = (0.25 + 0.2 * k) * Math.min(t, T_ON) * (t > T_ON ? Math.max(0, 1 - (t - T_ON) / 0.4) : 1);
         for (let q = 0; q <= 4; q++) blobs.add(CX + u, POOL.floor + h + up * q / 4, CZ + w, 0, 1, 0, 0.045 * (1 - 0.12 * q), Math.max(0.045, up / 8));
       }
-      if (t > T_ON + 0.5) {
-        // the surge over the front glass: a sheet of water spilling and falling down the facade
-        const s = t - T_ON - 0.5;
-        for (let i = 0; i < 70; i++) {
-          const u = -HX + 0.3 + (2 * HX - 0.6) * ((i * 0.618) % 1), age = s - ((i * 0.377) % 1) * 0.35;
-          if (age <= 0) continue;
-          const y = POOL.floor + POOL.wall - 0.5 * G * age * age + 0.3 * age, z = POOL.z1 + 0.15 + 1.1 * age;
-          blobs.add(CX + u, y, z, 0, -G * age, 1.1, 0.12 + 0.05 * ((i * 0.29) % 1), 0.25 + G * age * 0.04);
+      // the collapse slops over the glass front and off the roof's edge: a waterfall down the facade onto the square
+      if (t > T_ON + 0.55) {
+        for (let i = 0; i < 46; i++) {
+          const u = -HX + 0.2 + (2 * HX - 0.4) * ((i * 0.618) % 1), sp = (i * 0.377) % 1;
+          for (let k = 0; k < 44; k++) {
+            const te = T_ON + 0.55 + k * 0.05 + 0.04 * sp;
+            const age = t - te; if (age <= 0) break;
+            // the pour thins out after a second and a half
+            const flow = Math.max(0, 1 - (te - T_ON - 0.55) / 2.2);
+            if (flow <= 0 || ((i * 7 + k * 3) % 10) / 10 > flow) continue;
+            const y = POOL.floor + POOL.wall + 0.25 + 0.4 * age - 0.5 * G * age * age, z = POOL.z1 + 0.2 + 1.5 * age;
+            if (y < 0.05) { if (y > -0.8) SPLASH.push([CX + u, z, age]); continue; }
+            blobs.add(CX + u + 0.15 * Math.sin(k * 1.7 + i), y, z, 0, 0.4 - G * age, 1.5, (0.14 + 0.08 * sp) * flow + 0.05, 0.3 + G * age * 0.05);
+          }
         }
       }
       blobs.end();

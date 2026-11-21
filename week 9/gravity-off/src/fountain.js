@@ -82,7 +82,7 @@ function hitTime(y0, vy, dt, grav, h) {
   return s <= dt ? s : -1;
 }
 export function blobAt(te, p0, v0, t, o, floorFn) {
-  if (t < te) return false;
+  if (t < te) { o.hit = Infinity; return false; }
   o.x = p0[0]; o.y = p0[1]; o.z = p0[2]; o.vx = v0[0]; o.vy = v0[1]; o.vz = v0[2]; o.hit = Infinity;
   // the three legs: [te, 0) gravity, [0, T_ON) none, [T_ON, t] gravity
   const legs = [[te, Math.min(t, 0), true], [Math.max(te, 0), Math.min(t, T_ON), false], [Math.max(te, T_ON), t, true]];
@@ -193,17 +193,24 @@ export function makeFountain(scene, ctx) {
   }
 
   const blobs = makeBlobs(scene, 15000);
+  const HITS = [];
   const o = {};
   return {
-    blobs, JETS, DROPS, FING, surf,
+    blobs, JETS, DROPS, FING, surf, HITS,
     frame(t) {
       WU.uT.value = t;
       // foam where the arcs come down: full before 0, gone ~0.6 s after (nothing lands while it's off), back after 0.00
       WU.uFoam.value = t < 0.15 ? 1 : t < T_ON ? Math.max(0, 1 - (t - 0.15) / 0.5) : Math.min(1, (t - T_ON - 0.25) / 0.3);
       blobs.begin();
+      HITS.length = 0;
+      let nh = 0;
       for (const J of JETS) {
         for (const b of J.list) {
-          if (!blobAt(b.te, b.p, b.v, t, o, floorOf)) continue;
+          if (!blobAt(b.te, b.p, b.v, t, o, floorOf)) {
+            // water that has come back down since 0.00: a splash where it lands (every other blob)
+            if (o.hit > T_ON && t - o.hit < 0.5 && (nh++ & 1) === 0 && HITS.length < 300) HITS.push([o.x, floorOf(o.x, o.z), o.z, t - o.hit]);
+            continue;
+          }
           const age = t - b.te;
           // near the nozzle a smooth rope (blobs stretched along the flow, overlapping), further out it breaks into
           // separate wobbling drops

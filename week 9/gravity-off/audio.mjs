@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, tOf, vOf, T_ON, T_SPLASH, V_SPLASH, V_WHITE, V_ZERO, T_FOG } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, tOf, vOf, T_ON, T_SPLASH, V_SPLASH, V_WHITE, V_ZERO, V_CRASH, T_FOG, T_KIDTREE } from './src/timeline.js';
 import { CARS, carAt } from './src/traffic.js';
 import { PEOPLE } from './src/people.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -123,22 +123,22 @@ export function makeSoundtrack(outFile) {
     for (let k = 0; k < 20; k++) {
       const tk = 0.25 * (k + 1); if (tk >= T_ON) break;
       const v0 = vOf(tk), whole = Math.abs(tk - Math.round(tk)) < 1e-6;
-      const g = whole ? 0.9 : 0.22 + 0.2 * (tk / T_ON), f0 = whole ? 48 : 95;
+      // they grow toward 0.00: the ticks from faint to firm, the booms each bigger than the last
+      const g = whole ? 0.22 + 0.14 * tk : 0.06 + 0.12 * (tk / T_ON), f0 = whole ? 50 - 2 * tk : 95;
       let ph = 0;
       add(v0, whole ? 3.5 : 0.9, (dt) => { ph += f0 * (1 + 0.6 * Math.exp(-dt * 6)) / SR; const o = Math.sin(TAU * ph) * env(dt, 0.008, whole ? 1.1 : 0.18) * g + lp.run(white()) * env(dt, 0.004, 0.08) * g * 1.2; return [o, o]; });
-      if (whole) REV[idx(v0)] += 0.4;
+      if (whole) REV[idx(v0)] += 0.1 + 0.08 * tk;
     }
   }
   // your ears pop: the bed dips (handled in the mix) and a soft low pressure thump
-  const V_POP = [14.6, 27.0];
-  for (const vp of V_POP) { const f = new OnePole(60); add(vp, 1.2, (dt) => { const o = f.run(white()) * env(dt, 0.02, 0.25) * 3.0; return [o, o]; }); }
+  const V_POP = [21.6, 27.4];
+  for (const vp of V_POP) { const f = new OnePole(60); add(vp, 1.2, (dt) => { const o = f.run(white()) * env(dt, 0.02, 0.25) * 1.6; return [o, o]; }); }
   // the cars sliding by when the street is in view (a slow, deep tyre-less whoosh)
   for (const c of CARS.filter((c) => c.drive)) {
     const f = new SVF(), o = {};
-    for (let v = 17; v < 26; v += 1 / 60) {}
-    add(17, 10, (dt) => {
-      const v = 17 + dt; carAt(c, tOf(v), o);
-      const d = Math.hypot(o.x - 3.8, o.z - 7.2), g = 0.5 / (1 + d / 6) * smooth(0, 1, dt) * smooth(10, 8.5, dt);
+    add(14.5, 17, (dt) => {
+      const v = 14.5 + dt; carAt(c, tOf(v), o);
+      const d = Math.hypot(o.x - 3.0, o.z - 8.0), g = 0.4 / (1 + d / 6) * smooth(0, 1.5, dt) * (c.drifter ? 1 : smooth(8, 6, dt));
       const x = f.run(white(), 300 + 300 / (1 + d / 10), 1.5).bp * g;
       return [x * 0.8, x * 1.2];
     });
@@ -146,10 +146,17 @@ export function makeSoundtrack(outFile) {
   // 0.00: the slam (a deep hit, the drone cut), then a rising rush as everything drops
   {
     let ph = 0; const lp = new OnePole(90);
-    add(V_ZERO, 5, (dt) => { ph += 34 * (1 + 0.8 * Math.exp(-dt * 5)) / SR; const o = Math.sin(TAU * ph) * env(dt, 0.006, 1.4) * 1.3 + lp.run(white()) * env(dt, 0.004, 0.35) * 2.5; return [o, o]; });
-    REV[idx(V_ZERO)] += 0.8;
+    const lp2 = new OnePole(300), cr = new SVF();
+    add(V_ZERO - 0.02, 7, (dt) => {
+      ph += 30 * (1 + 1.2 * Math.exp(-dt * 4)) / SR;
+      const sub = Math.sin(TAU * ph) * env(dt, 0.005, 1.1) * 3.0;
+      const body = lp.run(white()) * env(dt, 0.004, 0.45) * 6 + lp2.run(white()) * env(dt, 0.003, 0.25) * 2.2;
+      const roar = cr.run(white(), 500 + 600 * Math.exp(-dt), 0.7).lp * env(dt, 0.02, 0.9) * 1.2;
+      const o = sub + body + roar; return [o, o];
+    });
+    REV[idx(V_ZERO)] += 2.0;
     const f = new SVF();
-    add(V_ZERO + 0.4, V_SPLASH - V_ZERO, (dt) => { const k = dt / (V_SPLASH - V_ZERO - 0.4); const o = f.run(white(), 200 + 1500 * k * k, 0.9).bp * 0.45 * smooth(0, 0.3, k) * (0.4 + 0.6 * k); return [o, o]; });
+    add(V_ZERO + 0.4, V_SPLASH - V_ZERO, (dt) => { const k = dt / (V_SPLASH - V_ZERO - 0.4); const o = f.run(white(), 200 + 1500 * k * k, 0.9).bp * 0.3 * smooth(0, 0.3, k) * (0.4 + 0.6 * k); return [o, o]; });
   }
   // every landing: people (soft thuds, the nearest louder), the cars (a low metal crash), the pool's collapse
   const thud = (v0, g, pan, fc = 140) => { if (v0 > V_WHITE || g < 0.004) return; const f = new OnePole(fc), f2 = new OnePole(fc * 0.5); add(v0, 0.9, (dt) => { const o = (f.run(white()) * 2.5 + f2.run(white()) * 2) * env(dt, 0.004, 0.12) * g; return [o * (1 - pan), o * (1 + pan)]; }); };
@@ -161,19 +168,27 @@ export function makeSoundtrack(outFile) {
     const tl = p.y + p.u[1] * 5 > 0.2 ? (() => { const y5 = p.y + p.u[1] * 5 + 0.243, vy = p.u[1] + 0.097; return T_ON + (vy + Math.sqrt(vy * vy + 2 * 9.81 * y5)) / 9.81; })() : T_ON;
     const d = Math.hypot(p.x - 0.3, p.z - 8.5);
     if (d > 26) continue;
-    thud(vOf(tl), 0.8 / (1 + d / 6), clamp((p.x - 0.3) / 15, -0.8, 0.8));
+    thud(vOf(tl), 0.45 / (1 + d / 6), clamp((p.x - 0.3) / 15, -0.8, 0.8));
     nThud++;
   }
   let nCrash = 0;
-  for (const c of CARS) { carAt(c, 9, st); const d = Math.hypot(st.x - 0.3, st.z - 8); crash(vOf(st.tl), 1.4 / (1 + d / 12), 700, 0.45, -0.6); nCrash++; }
+  for (const c of CARS) { carAt(c, 9, st); const d = Math.hypot(st.x - 0.3, st.z - 8); crash(vOf(st.tl), (c.drifter ? 1.0 : 0.7) / (1 + d / 12), 700, 0.45, -0.6); nCrash++;
+    if (c.drifter) { const f = new SVF(); add(vOf(st.tl), 4, (dt) => { const o = f.run(white(), 900 - 500 * Math.min(dt, 1), 0.8).lp * env(dt, 0.01, 0.9) * 1.1; return [o * 0.9, o * 1.1]; }); }
+  }
+  // the kid crashing into the tree: a rush of leaves and the crown's branches giving (soft cracks, no clicks)
+  { const f = new SVF(), f2 = new SVF(), th = new OnePole(90); add(vOf(T_KIDTREE) - 0.05, 4, (dt) => { const leaves = f.run(white(), 2200, 0.6).bp * env(dt, 0.03, 0.9) * 0.6; const br = f2.run(white() * (R0() < 0.004 ? 20 : 0.3), 700, 1.2).bp * env(dt, 0.02, 0.6) * 0.5; const o = leaves + br + th.run(white()) * env(dt, 0.005, 0.15) * 1.6; return [o * 1.2, o * 0.8]; }); }
+  // the waterfall off the roof: a pouring roar growing as it falls, a heavy splash on the square
+  { const f = new SVF(); const v0 = vOf(T_ON + 0.6), v1 = vOf(T_ON + 2.75); add(v0, 12, (dt) => { const v = v0 + dt; const k = smooth(v0, v1, v) * (1 - smooth(V_WHITE, V_WHITE + 1.5, v)) + 0.6 * smooth(v1, v1 + 0.3, v) * (1 - smooth(V_WHITE, V_WHITE + 1.5, v)); const o = f.run(white(), 700 + 900 * k, 0.6).bp * 0.55 * k; return [o * 0.9, o * 0.9]; }); }
+  // the fountain's water coming down all round you, and its big jet crashing down on top of you into the white
+  { const f = new SVF(), f2 = new SVF(), lp = new OnePole(70); const v0 = vOf(T_ON + 1.4); add(v0, T_SWITCH - v0 + 1, (dt) => { const v = v0 + dt; const rain = smooth(v0, V_CRASH, v) * 0.35; const cr = smooth(V_CRASH - 0.1, V_CRASH + 0.6, v); const o = f.run(white(), 3000, 0.5).bp * rain + (f2.run(white(), 900 + 1400 * cr, 0.7).lp * 1.3 + lp.run(white()) * 2.2) * cr * (1 - 0.6 * smooth(V_WHITE, T_SWITCH, v)); return [o, o]; }); REV[idx(V_CRASH)] += 0.9; }
   // the pool collapsing back into its box (a heavy slosh) and its water slopping over the glass
-  { const f = new SVF(); add(vOf(T_ON + 0.5), 6, (dt) => { const o = f.run(white(), 300 + 500 * Math.exp(-dt), 0.8).lp * env(dt, 0.15, 1.5) * 1.2; return [o * 0.7, o * 1.1]; }); }
+  { const f = new SVF(); add(vOf(T_ON + 0.5), 6, (dt) => { const o = f.run(white(), 300 + 500 * Math.exp(-dt), 0.8).lp * env(dt, 0.15, 1.5) * 0.5; return [o * 0.7, o * 1.1]; }); }
   // your splash: a deep plunge and the spray rushing over the lens into the white
   {
     let ph = 0; const lp = new OnePole(80), f = new SVF(), f2 = new SVF();
-    add(V_SPLASH - 0.05, T_SWITCH - V_SPLASH + 1, (dt) => {
+    add(V_SPLASH - 0.05, 3.5, (dt) => {
       ph += 55 * (1 + Math.exp(-dt * 4)) / SR;
-      const boom = Math.sin(TAU * ph) * env(dt, 0.01, 0.9) * 1.1 + lp.run(white()) * env(dt, 0.005, 0.3) * 3;
+      const boom = Math.sin(TAU * ph) * env(dt, 0.01, 0.9) * 0.9 + lp.run(white()) * env(dt, 0.005, 0.3) * 2.2;
       const spray = f.run(white(), 2500 - 1200 * Math.min(dt, 1), 0.7).bp * env(dt, 0.08, 1.2) * 0.5 + f2.run(white(), 600, 0.8).lp * env(dt, 0.05, 1.0) * 0.5;
       const o = boom + spray;
       return [o, o];
