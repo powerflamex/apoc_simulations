@@ -938,3 +938,7 @@ Channel: 10.3M views in 28 days, 830,730 on Nov 20 (653K Nov 19, 509K Nov 18), 1
   during review do not matter. From Feb 1, 2027 Shorts revenue each month needs 10M qualified views in the last 90 days.
 - Backlog is empty: every built Short is posted. Prompts given Nov 21: 1 trillion times stronger, other planets' gravity (picker), 1 trillion
   times hotter, gravity off for 5 seconds (the non-formula test).
+- Audience, last 28 days (Studio > Audience, read Nov 21): United States 20.4%, India 15.7%, Philippines 4.8%, Indonesia 3.8%, United Kingdom
+  3.6%. Age 13-17 10.7%, 18-24 10.4%, 25-34 28.8%, 35-44 28.5%, 45-54 13.5%, 55-64 4.8%, 65+ 3.2% (logged-in viewers only; kids under 13 are
+  not counted). 64.8% male. Pay estimate before approval: about 4 cents per 1,000 Shorts views (range 3-6), from general creator reports
+  weighted by these countries; replace with the real number once monetization is on.
