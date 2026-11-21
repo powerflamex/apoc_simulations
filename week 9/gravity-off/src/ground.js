@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { ROAD, COURT, SQ, BASIN, SIDE } from './layout.js';
 import { CU, HAZE_GLSL } from './city.js';
+import { CITY_GLSL } from './farcity.js';
 
 export const GU = { uTime: { value: 0 }, uWet: { value: 0 } };
 const f = (x) => x.toFixed(3);
@@ -25,7 +26,8 @@ export function makeGround(scene) {
         float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(g21(i), g21(i + vec2(1, 0)), f.x), mix(g21(i + vec2(0, 1)), g21(i + vec2(1, 1)), f.x), f.y); }
         float band(float x, float a, float b, float w) { return smoothstep(a - w, a + w, x) * (1.0 - smoothstep(b - w, b + w, x)); }
-        float ln(float d, float w, float aw) { return 1.0 - smoothstep(w - aw, w + aw, abs(d)); }`)
+        float ln(float d, float w, float aw) { return 1.0 - smoothstep(w - aw, w + aw, abs(d)); }
+        ${CITY_GLSL}`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         vec2 P = vGW.xz;
         float aw = max(fwidth(P.x), fwidth(P.y)) * 0.75;
@@ -94,6 +96,8 @@ export function makeGround(scene) {
           float joint = min(min(t.x, 1.0 - t.x), min(t.y, 1.0 - t.y));
           c = vec3(0.5, 0.49, 0.47) * (0.88 + 0.2 * g21(floor(P / 1.5))) * (0.9 + 0.15 * n);
           c *= 0.84 + 0.16 * smoothstep(0.0, 0.03 + aw, joint);
+          // the city beyond the near rows (seen from far above)
+          c = mix(c, cityAt(P, aw), smoothstep(170.0, 230.0, r));
         }
         // wet where the water came down at the end
         c *= 1.0 - 0.35 * uWet * smoothstep(${f(BASIN.rOut + 9.0)}, ${f(BASIN.rOut)}, r);
@@ -104,8 +108,8 @@ export function makeGround(scene) {
       .replace('#include <fog_fragment>', `#include <fog_fragment>
         gl_FragColor.rgb = hazeIt(gl_FragColor.rgb, vGW);`);
   };
-  mat.customProgramCacheKey = () => 'gravoff-ground-v1';
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400, 1, 1).rotateX(-Math.PI / 2), mat);
+  mat.customProgramCacheKey = () => 'gravoff-ground-v2';
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(70000, 70000, 1, 1).rotateX(-Math.PI / 2), mat);
   mesh.receiveShadow = true;
   scene.add(mesh);
   // curbs along both sides of the street (open at the crosswalks)

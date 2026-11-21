@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=1080">
 <script>{ const q = new URLSearchParams(location.search); if (q.has('wide')) document.documentElement.classList.add('wide'); if (q.has('clean')) document.documentElement.classList.add('clean'); }</script>
-<title>Gravity Off for 5 Seconds</title>
+<title>Gravity Off: how long?</title>
 <style>
   @font-face { font-family: 'Cormorant'; font-style: normal; font-weight: 500;
     src: url('node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
@@ -50,7 +50,11 @@
     font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; color: #f4efe6;
     text-shadow: 0 2px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
 
-  #title { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center; opacity: 0;
+  #picker { position: absolute; left: 0; top: 380px; width: 1080px; height: 196px; }
+  #line { position: absolute; left: 0; right: 0; top: 586px; text-align: center; white-space: nowrap;
+    font: 500 84px/1 'Cormorant', serif; letter-spacing: .02em; font-variant-numeric: lining-nums tabular-nums;
+    text-shadow: 0 2px 14px rgba(0,0,0,.95), 0 0 5px rgba(0,0,0,.9), 0 1px 3px rgba(0,0,0,.9); }
+  #title { position: absolute; left: 190px; right: 190px; top: 176px; text-align: center; opacity: 0;
     text-shadow: 0 2px 30px rgba(0,0,0,.85), 0 1px 4px rgba(0,0,0,.9); }
   #title .t { font: 600 94px/1.05 'Cormorant', serif; }
   #title .rule { width: 120px; height: 1px; background: rgba(244,239,230,.6); margin: 40px auto 26px; }
@@ -88,22 +92,18 @@
 </head>
 <body>
 <div id="stage">
-  <div id="counter" class="serif">
-    <div class="label">GRAVITY COMES BACK IN · SLOW MOTION</div>
-    <div class="value">4.62 s</div>
-    <div class="unit">You: 1.0 ft up</div>
-  </div>
-  <div id="caption" class="serif"></div>
-  <div id="stampw" class="serif"></div>
-  <div id="stamp" class="serif"></div>
   <div id="title" class="serif">
-    <div class="t">What if gravity turned off for 5 seconds?</div>
+    <div class="t">What if gravity turned off?</div>
   </div>
+  <div id="picker"></div>
+  <div id="line" class="serif">YOU: 1.0 FT UP</div>
+  <div id="caption" class="serif"></div>
   <div id="cover" class="serif">
     <div class="k">WHAT IF GRAVITY</div>
     <div class="w">turned off</div>
-    <div class="q">for 5 seconds?</div>
+    <div class="q">for a day?</div>
   </div>
+  <div id="flash"></div>
 </div>
 <script type="module" src="./src/main.js"></script>
 </body>

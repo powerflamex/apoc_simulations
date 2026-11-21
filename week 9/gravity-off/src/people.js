@@ -13,7 +13,7 @@ import { CARS, carAt } from './traffic.js';
 import { SKIN, HAIR } from './crowd.js';
 import { rng, clamp, smooth, lerp } from './util.js';
 import { camPos } from './camera.js';
-import { tOf } from './timeline.js';
+import { tOf, STOPS, stopAt, setGravityBack } from './timeline.js';
 
 const SHIRT = [0xe63946, 0xf4a261, 0x2a9d8f, 0xe9c46a, 0xffffff, 0x1d1d1d, 0xb5838d, 0x6d597a, 0x8ecae6, 0x264653, 0x2b3a55, 0xe8e6e0, 0x8a96a8, 0x5a6a4a, 0x7a2a2a, 0xd8d2c4, 0x3a5a9a, 0xf2c14e, 0x4ea8de, 0xc0392b, 0x16a085];
 const PANTS = [0x1d1d1d, 0x2b2d42, 0x3d405b, 0x6b705c, 0x8a817c, 0x4a6a9a, 0xc9c2b6, 0x23252b, 0x3a4a6a, 0x8a7a66];
@@ -99,7 +99,13 @@ export const PEOPLE = [];
     const cam = { set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } }, o = {};
     for (const p of PEOPLE) {
       if (p.kind === 'dunk') continue;
-      for (let v = -1; v < 48; v += 0.25) { camPos(v, cam); fly([p.x, p.y, p.z], p.u, tOf(v), o, 0); if (Math.hypot(o.x - cam.x, o.y + 0.9 - cam.y, o.z - cam.z) < 2.2) { p.gone = true; break; } }
+      // (the square's stops only: 5 SECONDS and 1 MINUTE, and 10 MINUTES where the crowd floats round you)
+      for (let v = -1; v < STOPS[2].end && !p.gone; v += 0.1) {
+        const si = stopAt(v); setGravityBack(STOPS[si].T);
+        camPos(v, cam); fly([p.x, p.y, p.z], p.u, tOf(v), o, 0);
+        if (Math.hypot(o.x - cam.x, o.y + 0.9 - cam.y, o.z - cam.z) < (si === 0 ? 2.2 : 3.5)) p.gone = true;
+      }
+      setGravityBack(5);
     }
   }
   // nobody's path may run through anybody else's: drop the later of any two that come within 0.75 m (sampled)
@@ -116,6 +122,10 @@ export const PEOPLE = [];
   }
 }
 
+// in the time-lapses the limbs and the slow tumbling run on a calm clock of their own (ANIM, set by main.js), or they
+// would strobe; their positions still follow the story time
+export let ANIM = null;
+export function setAnim(x) { ANIM = x; }
 // the pose of a crowd person at story time t (for poseFloat), and where they are
 export function personAt(p, t, out) {
   out.visible = !p.gone;
@@ -126,11 +136,11 @@ export function personAt(p, t, out) {
   const tt = clamp(t, 0, T_ON);
   const sit0 = p.kind === 'sit' ? 1 : 0;
   // turning slowly the way they were left spinning (frozen once they land)
-  const tr = Math.min(t, st.landed ? st.tl : t);
+  const tr = ANIM ?? Math.min(t, st.landed ? st.tl : t);
   let pitch = p.w[0] * tr, yaw = p.yaw + p.w[1] * tr, roll = p.w[2] * tr;
   if (p.kind === 'walk' || p.kind === 'jog' || p.kind === 'run' || p.kind === 'kidrun') pitch += 0.12;
   // the flail: arms thrown out and up, swinging; legs kicking (slow: it's 8x slow motion)
-  const ph = t * p.fq * 2 * Math.PI + p.ph, react = smooth(0.0, 0.35, t);
+  const ph = (ANIM ?? t) * p.fq * 2 * Math.PI + p.ph, react = smooth(0.0, 0.35, t);
   let abL = lerp(0.15, p.ab + 0.35 * Math.sin(ph), react), abR = lerp(0.15, p.ab + 0.35 * Math.sin(ph + 1.9), react);
   let fwL = 0.4 * Math.sin(ph * 0.7 + 1), fwR = 0.4 * Math.sin(ph * 0.7 + 2.5);
   let legL = 0.35 * Math.sin(ph * 0.8) * react, legR = -0.35 * Math.sin(ph * 0.8 + 0.6) * react, spread = 0.15 + 0.15 * react;
@@ -211,16 +221,16 @@ export const FIGS = [
 export function figAt(F, t, out) {
   const st = out.st || (out.st = {});
   if (F.name === 'kid') kidAt(t, st); else fly(F.p, F.u, t, st, F.floor);
-  const tr = st.landed ? st.tl : t;
+  const tr = ANIM ?? (st.landed ? st.tl : t);
   out.x = st.x; out.y = st.y; out.z = st.z; out.landed = st.landed; out.tl = st.tl; out.vy = st.vy;
   out.pitch = F.w[0] * Math.max(0, Math.min(tr, 6)); out.yaw = F.yaw + F.w[1] * Math.max(0, tr); out.roll = F.w[2] * Math.max(0, tr);
   return out;
 }
 // the flail on a you.js figure (after fig.pose): shoulders out and up, elbows swinging, knees kicking
-export function flail(fig, F, t, seed) {
-  const ph = t * (1.4 + 0.3 * seed) * 2 * Math.PI + seed * 5;
+export function flail(fig, F, t, seed, fk) {
+  const ph = (ANIM ?? t) * (1.4 + 0.3 * seed) * 2 * Math.PI + seed * 5;
   const react = smooth(0.0, 0.3, t);
-  const fallK = smooth(T_ON, T_ON + 0.25, t);
+  const fallK = fk ?? smooth(T_ON, T_ON + 0.25, t);
   fig.arms.forEach((A, i) => {
     const sx = A.sx;
     let out = 1.25 + 0.35 * Math.sin(ph + i * 1.7), fwd = -0.2 + 0.45 * Math.sin(ph * 0.6 + i * 2.2);

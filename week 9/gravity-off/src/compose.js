@@ -102,6 +102,14 @@ export async function makeCompositor(glCanvas, stage) {
       ctx.fillStyle = bg;
       ctx.fillRect(map.x(r.left), map.y(r.top), r.width / map.k, r.height / map.k);
     }
+    if (el.tagName === 'CANVAS') {             // (the picker draws itself on a canvas)
+      const r = el.getBoundingClientRect();
+      ctx.globalAlpha = alpha;
+      ctx.filter = 'none';
+      ctx.shadowColor = 'transparent';
+      ctx.drawImage(el, map.x(r.left), map.y(r.top), r.width / map.k, r.height / map.k);
+      return;
+    }
     drawText(el, cs, alpha, blur, map);
     for (const c of el.children) walk(c, alpha, blur, map);
   }

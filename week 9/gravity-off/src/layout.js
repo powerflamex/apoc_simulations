@@ -66,7 +66,9 @@ export const TREES = [];
   const put = (x, z) => TREES.push({ x, z, h: 3.0 + R() * 0.8, r: 2.3 + R() * 0.8, col: [0xd8821c, 0xe0a828, 0xb8521c, 0xc8a030, 0xd06a20][Math.floor(R() * 5)], seed: R() });
   for (const x of [-12, -4.5, 4.5, 12]) put(x, -21.5);
   for (const z of [-15, -5, 5, 15]) put(-15.2, z);
-  for (const x of [-11, -3, 7]) put(x, 21.5);
+  for (const x of [-11, -3, 7]) { const T = put(x, 21.5); }
+  // (the two west trees of the south row stay out: the first stop's wide shot stands between them)
+  TREES.splice(TREES.length - 3, 2);
   for (const z of [-21, 21]) put(31.5 - 1, z);
   // the big tree the kid falls into (a broad crown)
   TREES.push({ x: 8.0, z: 13.5, h: 3.4, r: 3.1, col: 0xd8821c, seed: 0.37, kid: true });

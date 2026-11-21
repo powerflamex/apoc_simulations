@@ -1,43 +1,58 @@
 // The camera's path, shared by main.js (to draw) and people.js (to keep everyone's path clear of the lens).
-// Keys relative to you: [video time, azimuth round you (deg, 0 = south of you), distance, height above your feet,
-// facing (deg, 0 = north, 90 = east), pitch (deg), fov]; monotone cubic between keys.
-import { youAt, tOf } from './timeline.js';
+// One key table per stop, in video time. Keys relative to you: [video time, azimuth round you (deg, 0 = south of
+// you), distance, height above your feet, facing (deg, 0 = north, 90 = east), pitch (deg), fov]; monotone cubic
+// between keys. In the space stops you float at SPACE_YOU in the scene (the square hidden) and the Earth is drawn by
+// its own camera turned the same way.
+import { youAt, tIn, stopAt, STOPS } from './timeline.js';
 import { BASIN } from './layout.js';
-export const CAMK = [
-  [-2, 10, 4.8, 1.0, 0, 12, 62],
-  [0, 10, 4.8, 1.0, 0, 12, 62],
-  // the kid shoots up: pull back south and tilt with him past the floors of the block behind
-  [3.5, 6, 6.5, 1.0, 6, 16, 58],
-  [7.5, 4, 10.0, 1.2, 7, 15, 52],
-  // turn to the court (you in the foreground): the player on the rim, the others floating past him
-  // (the camera keeps moving: it pushes in, rises and tilts up with everyone rising; you stay whole, right of centre)
-  [10.2, -124, 7.0, 0.9, 117, 3, 54],
-  [13.0, -130, 5.3, 1.5, 123, 10, 54],
-  // swing round past your face to the street: cars sliding across the crossing, one drifting toward the fountain
-  [16.3, 56, 5.0, 1.0, -62, 5, 50],
-  [19.6, 58, 5.2, 1.0, -64, 5, 50],
-  // your face (ears pop), then tilt up: the pool's water heaving up over the roof of the block
-  [21.6, 15, 4.3, 1.0, -8, 10, 58],
-  [23.4, 8, 4.4, 0.8, -3, 15, 58],
-  [25.4, 2, 17.5, 1.2, -1, 9, 31],
-  [28.4, 2, 18.0, 1.2, -1, 9, 29],
-  // the drifting car over the basin, coming at you; 0.00; everything drops; the car and you into the fountain
-  [29.7, 25, 6.0, 0.8, -27, 8, 56],
-  [31.6, 26, 6.0, 0.9, -28, 4, 56],
-  [34.0, 22, 4.8, 1.0, -22, 0, 58],
-  [35.4, 14, 3.9, 1.1, -12, -6, 60],
-  // look up and right: the kid falling 50 ft into the big tree
-  [36.6, -60, 6.0, 1.45, 107, 37, 40],
-  [38.6, -60, 6.0, 1.45, 109, 31, 32],
-  [40.0, -55, 6.0, 1.45, 107, 25, 36],
-  // round to the north: the pool pouring off the roof, the fountain's big jet coming down on top of you
-  [41.6, 12, 4.0, 1.45, -6, 21, 52],
-  [43.4, 8, 3.6, 1.5, -4, 22, 54],
-  [44.8, 6, 2.6, 1.6, -3, 34, 64],
-  [47, 6, 2.6, 1.6, -3, 34, 64],
+export const SPACE_YOU = { x: 0, y: 400, z: 0 };
+export const CAMS = [
+  // 5 SECONDS: frame 0 close on you; pull back and tilt up with the kid; then wide from the south-west (between the
+  // trees) so your drop into the fountain and the kid's fall into the tree are both in frame
+  [
+    [-2, 10, 4.8, 1.0, 0, 12, 62],
+    [0, 10, 4.8, 1.0, 0, 12, 62],
+    [2.4, -4, 8.5, 0.8, 14, 24, 62],
+    [4.6, -26, 19.0, -1.2, 42, 12, 66],
+    [5.7, -26, 19.0, 3.35, 43, 9, 66],
+    [7.2, -26, 18.6, 3.4, 44, 9, 66],
+  ],
+  // 1 MINUTE: beside you, the sky going dark over the rooftops and the fountain's column; tilting down past you to the
+  // square below; then the fall, looking down and west so the cars hit the street below you
+  [
+    [7.0, 15, 3.4, 2.4, -15, -14, 64],
+    [9.0, 20, 3.4, 3.0, -20, -32, 64],
+    [10.6, 25, 3.0, 4.2, -25, -58, 64],
+    [12.6, 30, 3.0, 4.6, -40, -64, 66],
+    [14.85, 32, 3.0, 4.4, -42, -56, 66],
+  ],
+  // 10 MINUTES: above you, a band of black sky over the city's edge, the city far below; the fall
+  [
+    [14.85, 20, 3.2, 3.5, -20, -22, 62],
+    [18.6, 30, 3.0, 4.0, -30, -40, 62],
+    [23.65, 35, 3.0, 4.2, -35, -62, 64],
+  ],
+  // 1 HOUR: west of you looking east: you, the Earth's curved edge, the bare sea floor and the lifted seas; the fall
+  [
+    [23.65, -80, 3.8, 1.0, 70, -14, 60],
+    [27.3, -82, 3.8, 1.0, 72, -18, 60],
+    [31.75, -84, 3.6, 1.6, 75, -40, 62],
+  ],
+  // 1 DAY: you hang between the camera and the swelling Sun; then above you, looking down past you at the whole Earth
+  // as everything flung off it spreads into a flat cloud 6 times its width; then round to the Sun again for the white
+  [
+    [31.75, 128, 3.5, -0.6, 216, 26, 60],
+    [35.2, 98, 3.5, 0.4, 247, 10, 58],
+    [36.8, 180, 1.6, 4.4, 180, -72, 60],
+    [39.6, 180, 1.6, 4.5, 180, -76, 58],
+    [40.0, 180, 1.6, 4.5, 181, -76, 58],
+    [41.3, 104, 3.5, 1.5, 256, -10, 56],
+    [44.8, 104, 3.2, 1.5, 256, -10, 52],
+    [47, 104, 3.2, 1.5, 256, -10, 52],
+  ],
 ];
-const camSpl = [1, 2, 3, 4, 5, 6].map((j) => {
-  const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];
+const SPL = CAMS.map((K) => [1, 2, 3, 4, 5, 6].map((j) => {
+  const x = K.map((k) => k[0]), y = K.map((k) => k[j]), n = x.length, d = [], m = [];
   for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
   m[0] = 0; m[n - 1] = 0;
   for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (2 * d[i - 1] * d[i]) / (d[i - 1] + d[i]);
@@ -47,16 +62,21 @@ const camSpl = [1, 2, 3, 4, 5, 6].map((j) => {
     const h = x[i + 1] - x[i], s = (t - x[i]) / h;
     return (2 * s ** 3 - 3 * s ** 2 + 1) * y[i] + (s ** 3 - 2 * s ** 2 + s) * h * m[i] + (-2 * s ** 3 + 3 * s ** 2) * y[i + 1] + (s ** 3 - s ** 2) * h * m[i + 1];
   };
-});
-export const ck = (j, v) => camSpl[j](v);
+}));
+export const ck = (j, v) => SPL[stopAt(v)][j](v);
 const DEG = Math.PI / 180, me = {};
+// where you are (the camera's anchor) at video time v
+export function anchorAt(v, out = me) {
+  const i = stopAt(v);
+  if (STOPS[i].scene === 'space') { out.x = SPACE_YOU.x; out.y = SPACE_YOU.y; out.z = SPACE_YOU.z; return out; }
+  return youAt(tIn(i, v), out);
+}
 // the camera's position at video time v (into out: anything with set(x, y, z))
 export function camPos(v, out) {
-  const t = tOf(v);
-  youAt(t, me);
+  const p = anchorAt(v);
   const az = ck(0, v) * DEG, dist = ck(1, v), dh = ck(2, v);
-  const x = me.x + Math.sin(az) * dist, z = me.z + Math.cos(az) * dist;
+  const x = p.x + Math.sin(az) * dist, z = p.z + Math.cos(az) * dist;
   // never below the paving or into the basin's water
-  const y = Math.max(me.y + dh, Math.hypot(x, z) < BASIN.rOut + 0.1 ? 0.75 : 0.35);
+  const y = Math.max(p.y + dh, Math.hypot(x, z) < BASIN.rOut + 0.1 ? 0.75 : 0.35);
   return out.set(x, y, z);
 }

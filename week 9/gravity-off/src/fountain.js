@@ -168,6 +168,27 @@ export function makeFountain(scene, ctx) {
       JETS.push({ list: L, r: J.r, v: J.v, sp: 1 / rt * J.v });
     }
   }
+  // the long stops: the pumps keep going for a minute (and more): the same jets, thinned (every 3rd blob of the big
+  // jet, every 8th of the ring's, a little fatter), shot until gravity's back plus a few seconds
+  const JETS_LONG = [];
+  {
+    const RL = rng(909);
+    const rate = JET0.v / 0.09 / 3, list = [];
+    for (let te = -2.4; te < 66; te += 1 / rate) {
+      const a = RL() * Math.PI * 2, j = 0.18 + 0.3 * RL() * RL();
+      list.push({ te, p: [JET0.x, JET0.y, JET0.z], v: [Math.cos(a) * j * 0.3, JET0.v * (0.985 + 0.03 * RL()), Math.sin(a) * j * 0.3], r: JET0.r * 1.25 * (0.75 + 0.5 * RL()), s: RL() });
+    }
+    JETS_LONG.push({ list, r: JET0.r, v: JET0.v, sp: 1 / rate * JET0.v * 0.45 });
+    for (const J of RING) {
+      const rt = J.v / 0.075 / 8, L = [];
+      const ux = Math.cos(J.a), uz = Math.sin(J.a);
+      for (let te = -1.6; te < 66; te += 1 / rt) {
+        const jj = 0.05 * (RL() - 0.5), vh = J.v * Math.cos(J.el), vy = J.v * Math.sin(J.el);
+        L.push({ te, p: [J.x, J.y, J.z], v: [ux * vh + jj, vy * (0.99 + 0.02 * RL()), uz * vh + 0.05 * (RL() - 0.5)], r: J.r * 1.5 * (0.75 + 0.5 * RL()), s: RL() });
+      }
+      JETS_LONG.push({ list: L, r: J.r, v: J.v, sp: 1 / rt * J.v * 0.2 });
+    }
+  }
   // splash drops thrown up where the falling water hits (only the hits after gravity goes off matter: those drops
   // never come back). Found by running every blob once.
   const DROPS = [];
@@ -204,8 +225,9 @@ export function makeFountain(scene, ctx) {
       blobs.begin();
       HITS.length = 0;
       let nh = 0;
-      for (const J of JETS) {
+      for (const J of (T_ON === 5 ? JETS : JETS_LONG)) {
         for (const b of J.list) {
+          if (b.te > t) break;
           if (!blobAt(b.te, b.p, b.v, t, o, floorOf)) {
             // water that has come back down since 0.00: a splash where it lands (every other blob)
             if (o.hit > T_ON && t - o.hit < 0.5 && (nh++ & 1) === 0 && HITS.length < 300) HITS.push([o.x, floorOf(o.x, o.z), o.z, t - o.hit]);
