@@ -948,3 +948,5 @@ Channel: 10.3M views in 28 days, 830,730 on Nov 20 (653K Nov 19, 509K Nov 18), 1
   clips + music; US 16.7%, Mexico 7%, Brazil 6.5%, Indonesia 5.6%, India 5.1%) reports a channel RPM of 22-26 cents, but the channel also
   has 13 long videos of 1.5-2.5 min (one at 6M views), which pay dollars per 1,000 and lift a blended RPM. Unknown until the friend's
   Shorts-only RPM is known; if 22-26 is Shorts-only, ours should land near it.
+- Owner, Nov 21: the friend's 22-26 cents is Shorts only. So published country rates run about half of what a real channel with a mix like
+  ours gets; working estimate for us is 20-25 cents per 1,000 Shorts views (about $2,000-2,600 a month at 10.3M views) until Studio shows the real number.
