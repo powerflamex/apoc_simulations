@@ -2808,6 +2808,139 @@ Where would you want to be when it came back? 👇
 
 Cover: `week 9/gravity-off/out/gravity-off_v4_cover.png` (`node render.mjs --cover 29.8`, remade in the fix pass: a car floating right beside you over the fountain a moment before 0.00, the square floating behind; "WHAT IF GRAVITY / turned off / for 5 seconds?")
 
+## Next Short. What if you were 1 trillion times hotter? — `week 9/hot-trillion/out/hot-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+47.5 s, loops. Same formula as scream trillion: you alive in the middle of a new shopping street on a sunny afternoon,
+one counter (TIMES HOTTER, your temperature in °F on the line under it) racing to 1,000,000,000,000x, one continuous
+camera move with no cuts, something new and closer destroyed at every step (~2.6 s each). In order: 0:00 you, big in
+frame in a gap between parked cars, already glowing orange (2.7x, 1,048°F); your friend next to you jerks back with a
+scream, her ice cream slides off the cone onto the road; the title, the counter racing. 0:01-0:04 the people round you
+flinch back, arms over their faces, and run. 0:03 5x, "Hotter than lava."; the asphalt under you goes soft and smokes.
+0:05.6 10x, "As hot as a light bulb filament.": the car behind you, its tires, the trees and the ice cream parlour's
+awning catch fire, the shop windows crack; by 0:07 the street round you is burning. 0:08.2 20x, "Hotter than the surface
+of the Sun.": fires across the street, the road turning to glowing lava, the rooms behind the windows on fire. 0:10.8 30x,
+"Cars sag like wax." 0:13.4 40x, "The building next to you starts to bend." 0:16 50x, "Its walls melt and pour down."
+(the flames die back as things get too hot to burn and simply glow). 0:18.6 70x the walls across the street pour.
+0:21.2 100x, "Hotter than a lightning bolt.": the block next to you boils away. 0:23.8 200x, "The whole street boils into
+glowing gas."; the camera rises behind you: the towers up the street glowing and pouring against a dark sky.
+0:26.4 1,000x, "Everything for half a mile.": a column of glowing gas climbs out of the street behind you.
+0:29 10,000x, "Everything you can see.": the horizon goes up in a band of fire. 0:31.6 60,000x, "Hotter than the center of
+the Sun.": the air itself glows violet. The camera sinks low in front of you, looking up. 0:34.2 1,000,000x, "Brighter
+than the Sun itself.": next to you the Sun looks like a dark spot. 0:36.8 100,000,000x, "Enough to blow the Earth
+apart.": slabs of the ground crack loose round you and fly up, glowing. 0:39.4 100,000,000,000x, "Hotter than anything
+ever made." 0:42 1,000,000,000,000x (558,000,000,000,000°F), "Hotter than anything since the Big Bang.": rays of light out
+of you until the frame is hard white (0:44.8), which clears onto frame 0. Sound: quiet between the hits (bed ~12 dB under
+them), your friend's scream on frame 0, a whoomp on every step, fires catching, glass, metal groaning, the walls pouring,
+thunder as the city boils, the ground cracking, half a second of silence before 1 trillion.
+
+The numbers (also at the top of `src/timeline.js`): "times hotter" multiplies your body temperature in kelvin (37 °C =
+310.15 K; °F and °C have no real zero, so multiplying them means nothing). 2.7x = 837 K = 1,048°F, just past the
+temperature where things start to glow (~977°F). 5x = 2,332°F, hotter than lava (2,000-2,200°F). 10x = 3,100 K = 5,123°F,
+a light bulb filament (2,700-3,000 K). 20x = 6,203 K, hotter than the Sun's surface (5,772 K). 100x = 31,000 K, hotter
+than lightning (~30,000 K). 60,000x = 18.6 million K, hotter than the Sun's core (15.7 million K). You glow like any hot
+body: sigma T^4 over ~1.8 m² of skin (943 W x mult^4): at 1,000,000x that is 9.4e26 W, 2.5 times the Sun's whole output;
+at 100,000,000x it is 9.4e34 W, the energy that holds the Earth together (2.2e32 J) every 2.4 thousandths of a second.
+100 billion x = 31 trillion K, hotter than the hottest thing ever made (5.5 trillion K, lead collisions at the Large
+Hadron Collider, 2012). 1 trillion x = 310 trillion K = 558 trillion °F: the universe was last that hot less than a
+billionth of a second after the Big Bang. What happens where: the heat landing r metres away is sigma T^4 (0.38 m / r)²
+(10x hotter reaches 100x farther). People back off at ~0.5 kW/m² (like an open oven); windows crack at ~9 kW/m²; paint and
+plastic melt ~16; canvas, leaves and tires catch fire at 22-30; asphalt runs liquid ~60; glass runs ~300; thin car steel
+sags ~800 kW/m²; a building's steel frame sags ~3 MW/m²; concrete and brick melt and pour ~10 MW/m²; rock boils to gas
+~100 MW/m² (8.7 m away at 100x, 35 m at 200x, 870 m at 1,000x, past the horizon at 10,000x).
+Honest notes (simplified): you survive, and your clothes glow with you instead of burning; the heat is treated as light
+only (no blast from the air you heat, which would really be a huge explosion); a solid surface is drawn glowing at no more
+than ~3,300 K (rock boils there, so it can't get hotter while it's still there); the times things take to catch, melt and
+boil are shortened to the seconds between steps; people get away before the flames reach them (we don't show what would
+really happen to anyone nearby); the camera survives; your own glow is drawn a little warmer on screen at first so
+1,000°F reads as orange; the "dark" Sun is how it would look next to you, not a change in the Sun; the slabs of ground
+flying up stand for the Earth coming apart, which would really be far more violent.
+
+**YouTube title (86 chars)**
+What if you were 1 trillion times hotter? Hotter than the Big Bang 🔥 #whatif #physics
+
+**YouTube description**
+You start at 2.7 times your body temperature: 1,048°F. You glow.
+5x (2,332°F): hotter than lava. The road melts under your feet.
+10x (5,123°F): as hot as a light bulb filament. Trees, awnings and car tires catch fire.
+20x (10,700°F): hotter than the surface of the Sun.
+30x: cars sag like wax. 50x: the building next to you melts and pours down.
+100x (55,400°F): hotter than a lightning bolt. The whole street boils into glowing gas.
+1,000x: everything for half a mile. 10,000x: everything you can see.
+60,000x: hotter than the center of the Sun.
+1,000,000x: brighter than the Sun itself.
+100,000,000x: every 2.4 thousandths of a second you give off the energy that holds the Earth together.
+100 billion x: hotter than anything ever made.
+1 trillion x: 558 trillion °F. The universe was last this hot a billionth of a second after the Big Bang.
+
+At which number would you have started running? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --cover 18.2`: you white-hot in a street of molten road, the building beside you glowing with every room on fire, burning cars and trees up the street; "WHAT IF YOU WERE / 1 trillion / times hotter?")
+
+## Next Short. What if you were 1 trillion times stronger? — `week 9/strong-trillion/out/strong-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+47.25 s, loops. Same formula as heavy/shrink/fast trillion: you (orange hoodie), one counter (TIMES STRONGER) racing to
+1,000,000,000,000x, one continuous shot with no cuts, something new and bigger every 4-6 s. The one line under the
+counter says what you can lift at that number. Not punch-10x again (that was one wall, blasts, cuts to aerials and
+space): here you pick up real things on a cruise-ship plaza on a harbor and throw them, and the cost shows under your
+feet. In order:
+0:00 you, big in frame, a blue car over your head on one hand; a red bus at the stop, the cruise ship's decks and the
+mountain across the harbor behind; people backing away filming; a crowd gasp; title, 42x, "YOU CAN LIFT: A CAR".
+0:01 you toss the car over your shoulder; it lands on its roof behind you. 0:02.7 you get under the bus's side and lift
+it over your head ("A city bus: 15 tons."), 0:04.5 throw it up the street end over end; it lands and tumbles by 0:06.5
+(a different picture from frame 0 by 0:05). 0:08 the container truck, over your head; the pavement cracks under you
+("A loaded truck: 40 tons.", "Your shoes crack the concrete."); 0:10.5 thrown into the cruise ship's hull: it clangs and
+crumples onto the quay. 0:12 two bounds to the jumbo jet; 0:13.3 under its nose, you lift it by the nose wheel, your feet
+sinking into a cracked crater ("A jumbo jet: 440 tons."); 0:15.9 thrown into the ship's decks: a fireball, and it stays
+wedged there, burning. 0:18.7 at the quay edge you grab the ship's hull; it shudders and can't move until the counter
+reaches a cruise ship (0:20.7), then comes up out of the harbor, water pouring off its red hull, its ends sagging and
+breaking off ("A cruise ship: 110,000 tons.", "The ground can't hold you up."); 0:22.85 thrown across the harbor, the
+burning jet still in it; it lands on the far shore. 0:23.3-0:26.8 three bounds to the glass tower; you rip it off its base,
+it tilts away ("A skyscraper: 365,000 tons."), 0:30.7 thrown across the harbor; it lands on the far shore and breaks
+up in dust. 0:33.2 one jump across the harbor, the camera chasing you ("One jump across the harbor."); 0:36.2 you land at
+the mountain's foot in the forest. You dig in; rockfalls, cracks running up its face, the ground caving in round you
+("It breaks where you grab it."). 0:41.4 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN": its foot comes up, 0:41.75 you
+throw it: it lifts off (sky under it) and flies off ("50 billion tons. A mountain a mile high."), 0:43.5 it lands ~3 km
+away; a wall of dust rises and closes in; hard white at 0:45.55, which clears onto frame 0.
+
+The numbers (also at the top of `src/timeline.js`): at 1x you lift 100 lb, so the counter x 100 lb is what you can lift
+(tons = US tons of 2,000 lb). Car ~3,300 lb = 33x; 40-ft city bus ~30,000 lb (15 tons) = 300x; loaded semi 80,000 lb
+(40 tons, the US legal limit) = 800x; Boeing 747-400 at max take-off 875,000 lb (~440 tons) = 8,750x (empty it's
+~394,000 lb, which you pass at ~12 s); biggest cruise ships ~100,000 metric tons displacement = 220 million lb
+(110,000 tons) = 2,200,000x; Empire State Building ~365,000 tons = 7,300,000x; 10 of them 73,000,000x, 1,000 of them
+7,300,000,000x; 1e12 x 100 lb = 50 billion tons = ~17 km^3 of rock (2,700 kg/m^3): a peak about a mile (1.6 km) high on
+a base ~8 x 4.5 km (Everest is ~3x heavier). The ship only starts to rise when the counter reaches its weight, and the
+mountain's foot only when you can lift about half of it (~5e11x, 0:40.2: tipping it about its far edge). Under your
+shoes (~0.06 m^2): the bus ~2.3 MPa (paving cracks), the truck ~6 MPa, the jet 30-65 MPa (more than concrete's ~30-40
+MPa), the ship ~16 GPa (80x what granite can take).
+Honest notes: from the jet on, really your feet would punch down into the ground like a nail; the video shows the ground
+caving in round you instead, so you stay in sight. A throw from a ~2 m push only goes far once you're many times stronger
+than the thing's weight; the counter keeps climbing while you hold each one, but the throws are drawn longer and faster
+than that allows, and the mountain's flight (~3 km in under 2 s) is sped up a lot (a real one would take minutes). The
+bounds between things and the ~290 m jump across the harbor are within what legs this strong could do. The jet is lifted
+from its nose wheel as one stiff piece (in reality it would bend and the nose gear would snap); the plaza puts a jumbo jet,
+a cruise terminal and a tower side by side to fit one shot.
+
+**YouTube title (90 chars, emoji counted as 2)**
+What if you were 1 trillion times stronger? You could throw a mountain 💪 #whatif #physics
+
+**YouTube description**
+At 1x you can lift 100 lb over your head. Everything below is 100 lb times the counter.
+33x: a car, with one hand.
+300x: a city bus (15 tons). You throw it up the street.
+800x: a loaded truck (40 tons). Your shoes crack the concrete.
+8,750x: a jumbo jet (440 tons). You throw it into a cruise ship.
+2,200,000x: the cruise ship itself (110,000 tons), straight out of the harbor. The ground caves in under you.
+7,300,000x: a skyscraper (365,000 tons), ripped off its base.
+1,000,000,000,000x: 50 billion tons. A mountain a mile high.
+
+What would you lift first? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 10`: you holding the loaded container truck over your head, the pavement cracking under you, the jumbo jet and the cruise ship behind; "WHAT IF YOU WERE / 1 trillion / times stronger?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
