@@ -38,6 +38,12 @@ export const B = {
   mtnGrab: 36.25, mtnCrack: 36.55, mtnUp: 37.7, mtnPull: 38.55, mtnBack: 39.95, mtnThrow: 40.7, mtnLand: 43.6,
 };
 export const V_TRILLION = 37.7;
+// when the ground under you cracks at each lift (fx.js draws it, audio.mjs plays it, on the same frame): [first snap
+// (its weight comes onto you), second snap (it goes overhead / you heave)]
+export const CRACK_T = {
+  bus: [B.busGrab + 0.15, B.busUp], truck: [B.truckGrab + 0.15, B.truckUp], jet: [B.jetGrab + 0.2, B.jetUp + 0.2],
+  ship: [B.shipGrab + 0.3, B.shipGrab + 1.7], tower: [B.towerGrab + 0.3, B.towerUp - 1.0],
+};
 export const V_WHITE = 45.55;                   // the dust wall reaches the camera: hard white
 export const T_SWITCH = 46.35;                  // full white since V_WHITE: the loop point
 export const LOOP = 0.9;
@@ -94,8 +100,8 @@ export function canAt(v) {
 // ---- captions (never more than one; none while the title is up) ----
 export const CAPTIONS = [
   [3.15, 5.0, 'A city bus: 15 tons.'],
-  [8.3, 10.3, 'A loaded truck: 40 tons.'],
-  [11.0, 12.8, 'Your shoes crack the concrete.'],
+  [8.25, 9.45, 'A loaded truck: 40 tons.'],
+  [9.6, 11.4, 'Your shoes crack the concrete.'],
   [13.5, 15.6, 'A jumbo jet: 440 tons.'],
   [19.4, 21.6, 'A cruise ship: 110,000 tons.'],
   [22.9, 24.9, 'The ground can’t hold you up.'],

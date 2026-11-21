@@ -13,8 +13,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, B, V_WHITE, logS } from './src/timeline.js';
-import { MOVES } from './src/choreo.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, B, V_WHITE, logS, CRACK_T } from './src/timeline.js';
+import { MOVES, youAt } from './src/choreo.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -181,19 +181,19 @@ export function makeSoundtrack(outFile) {
   crash(B.carLand + 0.5, 0.22, 900, 0.2, -0.3);
   // the bus
   groan(B.busGrab, B.busThrow + 0.1, 0.3, 230, 3);
-  crack(B.busGrab + 0.6, 0.12);
+  crack(CRACK_T.bus[0], 0.14); crack(CRACK_T.bus[1], 0.12);
   whoosh(B.busThrow - 0.05, 0.4, 200, 900, 1.2, -0.4);
   crash(B.busLand, 0.75, 1100, 0.35, -0.3); glass(B.busLand + 0.03, 0.4, 12, -0.3); boom(B.busLand, 0.5, 58, 0.55);
   crash(B.busLand + 0.55, 0.35, 700, 0.3, -0.3); crash(B.busLand + 1.05, 0.2, 500, 0.3, -0.3);
   // the truck
   groan(B.truckGrab, B.truckThrow + 0.1, 0.34, 160, 3);
-  crack(B.truckGrab + 0.5, 0.22); crack(B.truckUp, 0.18);
+  crack(CRACK_T.truck[0], 0.22); crack(CRACK_T.truck[1], 0.24);
   whoosh(B.truckThrow - 0.05, 0.45, 160, 700, 1.4, 0.0);
   // it lands in the harbor: a boom and a big splash
   boom(B.truckHit, 0.65, 50, 0.7); splash(B.truckHit, 0.9, 1.0); crash(B.truckHit, 0.4, 900, 0.3, 0);
   // the jet: a hollow metal groan, the throw (a rush), the explosion against the ship and the fire
   groan(B.jetGrab, B.jetThrow + 0.1, 0.38, 120, 4);
-  crack(B.jetGrab + 0.4, 0.3); crack(B.jetUp + 0.2, 0.25);
+  crack(CRACK_T.jet[0], 0.3); crack(CRACK_T.jet[1], 0.28);
   whoosh(B.jetThrow - 0.05, 0.6, 140, 600, 1.3, 0.2);
   {
     const t = B.jetHit;
@@ -208,17 +208,17 @@ export function makeSoundtrack(outFile) {
   }
   // the ship: the hull's deep groan as it comes up, water pouring off it, the throw, the crash on the far shore
   groan(B.shipGrab, B.shipThrow + 0.2, 0.5, 55, 4);
-  crack(B.shipGrab + 0.6, 0.45); crack(B.shipGrab + 2.0, 0.35);
+  crack(CRACK_T.ship[0], 0.45); crack(CRACK_T.ship[1], 0.38);
   crash(B.shipGrab + 1.4, 0.35, 400, 0.8, 0.3); crash(B.shipGrab + 2.4, 0.3, 350, 0.8, -0.4);      // the end pieces breaking off
   {
     const f = new SVF();
     add(B.shipGrab + 0.5, B.shipThrow - B.shipGrab + 1.2, (dt) => { const k = smooth(0, 1.5, dt) * (1 - smooth(3.6, 4.6, dt)); const o = f.run(white(), 1800, 0.6).lp * k * 0.5; return [o, o]; });
   }
   whoosh(B.shipThrow - 0.1, 0.7, 70, 300, 2.2, 0);
-  boom(B.shipLand, 0.95, 32, 1.6); crash(B.shipLand, 0.95, 900, 0.9, -0.2); splash(B.shipLand + 0.05, 0.6, 1.4);
+  boom(B.shipLand, 0.95, 32, 1.6); crash(B.shipLand, 0.6, 900, 0.9, -0.2); splash(B.shipLand, 1.2, 2.2); splash(B.shipLand + 0.5, 0.6, 1.6);
   // the tower: a structural groan, the base floors crushing, glass, the throw, the crash across the harbor
   groan(B.towerGrab, B.towerThrow + 0.2, 0.5, 70, 4);
-  crack(B.towerGrab + 0.5, 0.55); crash(B.towerGrab + 0.6, 0.45, 600, 0.6, 0.2);
+  crack(CRACK_T.tower[0], 0.55); crash(CRACK_T.tower[0] + 0.05, 0.45, 600, 0.6, 0.2); crack(CRACK_T.tower[1], 0.45);
   glass(B.towerUp + 0.2, 0.45, 26, 0.1);
   whoosh(B.towerThrow - 0.1, 0.7, 60, 260, 2.0, 0.3);
   boom(B.towerLand, 1.1, 29, 1.7);
@@ -258,7 +258,7 @@ export function makeSoundtrack(outFile) {
   }
 
   // your running footsteps between things (heavy: the pavement cracks a little at each)
-  for (const [t0, t1, , , kind] of MOVES) if (kind === 'jog' || kind === 'run') for (let t = t0 + 0.12; t < t1 - 0.05; t += kind === 'jog' ? 0.3 : 0.26) { boom(t, 0.22, 70, 0.12); crack(t, 0.1); }
+  for (const [t0, t1, , , kind] of MOVES) if (kind === 'jog' || kind === 'run') { let prev = null; for (let t = t0; t < t1; t += 1 / 600) { const n = Math.floor((youAt(t).gaitPh - 1.27) / Math.PI); if (prev !== null && n > prev) boom(t, 0.24, 70, 0.12); prev = n; } }
   // people shouting and screaming as they run (a band-passed noise crowd, rising after each throw)
   {
     const f = [new SVF(), new SVF(), new SVF()];

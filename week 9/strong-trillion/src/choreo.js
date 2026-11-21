@@ -143,8 +143,9 @@ function shipPose(P, th) {
 const G_REST = SH_G.clone().applyQuaternion(SH_REST.q).add(SH_REST.p);
 const SH_TH = 0.66, SH_THW = 0.74;
 const SH_WIND = { ...shipPose(SH_H.clone().add(V3(0, -0.3, 0.3)), SH_THW), dent: 1 };
-const SH_L = { p: V3(-140, 16, -560), q: QE(0, 0.05, 0).multiply(QE(Math.PI * 0.92, 0, 0)), crush: 0.25, dent: 1 };
-const SH_R = { p: V3(-144, 12, -566), q: QE(0, 0.08, 0).multiply(QE(Math.PI * 0.97, 0, 0.03)), crush: 0.45, dent: 1 };
+// it comes down upside down in the harbor just off the far shore, and stays there capsized, its hull out of the water
+const SH_L = { p: V3(-148, SEA_Y + 9, -424), q: QE(0, 0.05, 0).multiply(QE(Math.PI * 0.92, 0, 0)), crush: 0.25, dent: 1 };
+const SH_R = { p: V3(-152, SEA_Y + 1.5, -428), q: QE(0, 0.08, 0).multiply(QE(Math.PI * 0.97, 0, 0.03)), crush: 0.45, dent: 1 };
 export const SHIP_TIMES = { can: SHIP_CAN };
 const shipMid = track([
   { t0: -9, t1: B.shipGrab, f: (k, v) => ({ p: SH_REST.p.clone().add(V3(0, 0.08 * Math.sin(v * 0.6), 0)), q: SH_REST.q.clone(), crush: 0, dent: 0 }) },
@@ -219,19 +220,26 @@ export function towerPiece(k, v) {
     W.decompose(p, q, s);
     return { p, q, crush: 0, dent: k === 0 ? lift : 0, crack: k === 0 ? lift : lift * 0.5 };
   }
-  // in flight: the stack's base middle on a ballistic arc, the stack turning to lie on its side pointing east
+  // in flight: it tumbles end over end (one full turn, top first) about its middle, which flies on a high arc, and
+  // comes down lying on its side pointing east; when it hits, its five pieces break apart and skid
   const tau = Math.min(v - B.towerThrow, TW_T), kk = tau / TW_T;
   const M0 = towerM(B.towerThrow);
-  const base0 = V3(TOWER.x, 0, TOWER.z).applyMatrix4(M0);
+  const HALF = 142.5;
+  const c0 = V3(TOWER.x, HALF, TOWER.z).applyMatrix4(M0);
   const q0 = new THREE.Quaternion().setFromRotationMatrix(M0);
   const qL = QE(0, 0.25, 0).multiply(QE(0, 0, -Math.PI / 2 + 0.06, 'XYZ'));
-  const vel = V3((TW_LAND.x - base0.x) / TW_T, (TW_LAND.y - base0.y + 0.5 * 9 * TW_T * TW_T) / TW_T, (TW_LAND.z - base0.z) / TW_T);
-  const basePos = V3(base0.x + vel.x * tau, base0.y + vel.y * tau - 0.5 * 9 * tau * tau, base0.z + vel.z * tau);
-  const qStack = q0.clone().slerp(qL, kk * kk * (3 - 2 * kk));
-  const land = smooth(B.towerLand - 0.05, B.towerLand + 1.3, v);
+  const cL = TW_LAND.clone().add(V3(0, 1, 0).applyQuaternion(qL).multiplyScalar(HALF));
+  const fd = V3(cL.x - c0.x, 0, cL.z - c0.z).normalize();
+  const spinAx = new THREE.Vector3().crossVectors(V3(0, 1, 0), fd).normalize();
+  const e = kk * kk * (3 - 2 * kk);
+  const qStack = QA(spinAx, 2 * Math.PI * kk).multiply(q0.clone().slerp(qL, e));
+  const cen = c0.clone().lerp(cL, kk).add(V3(0, 300 * 4 * kk * (1 - kk), 0));
+  const land = smooth(B.towerLand - 0.05, B.towerLand + 1.1, v);
   const dir = V3(0, 1, 0).applyQuaternion(qStack);
-  const p = basePos.clone().add(dir.clone().multiplyScalar(y0 + k * 9 * land)).add(V3(0, -k * 1.5 * land, (k % 2 ? 6 : -5) * land));
-  const q = qStack.clone().multiply(QE((k % 2 ? 0.25 : -0.2) * land, 0, 0.12 * k * land));
+  const side = new THREE.Vector3().crossVectors(dir, V3(0, 1, 0)).normalize();
+  const p = cen.clone().add(dir.clone().multiplyScalar(y0 - HALF + (k - 2) * 16 * land))
+    .add(side.multiplyScalar((k % 2 ? 1 : -1) * (6 + 5 * k) * land)).add(V3(0, -k * 1.0 * land, 0));
+  const q = qStack.clone().multiply(QE((k % 2 ? 0.45 : -0.35) * land, (k % 2 ? 0.3 : -0.25) * land, 0.15 * (k - 2) * land));
   return { p, q, crush: 0.5 * land, dent: 1, crack: 1 };
 }
 export const TOWER_TIMES = { can: TOWER_CAN };

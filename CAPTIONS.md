@@ -2908,31 +2908,38 @@ and for the ship, the tower and the mountain it pulls back fast, side-on, until 
 daylight under it (you at its base marked by a glow and a ring of dust), then comes straight back in on you for the
 throw. Ending fix pass Nov 21 (0:33 on only): you stay big in the jump; the grab is ~2.5 s and readable (hands
 into the ground, a crack racing both ways along the foot, the edge up onto your hands and a slot of daylight opening
-under it); the thrown ship and tower lie on the mountain's slope and go with it; the throw and the landing are seen
-clearly. In order:
+under it); the tower (which landed on its slope) goes with it; the throw and the landing are seen clearly. Second fix pass
+Nov 21 (owner: "the cracking is late against the captions and the steps; the ship falls in the water yet ends up on
+the mountain; the skyscraper throw looks weird"): the ground now cracks on the frame each thing's weight comes onto
+you and again as it goes overhead (the crack sound on the same frame), every bound's landing cracks the paving, the
+footstep sounds land on your feet, "Your shoes crack the concrete." comes with the truck's second crack; the ship
+comes down capsized in the harbor and stays there; the tower tumbles end over end and breaks up where it lands.
+In order:
 0:00 you, big in frame, a blue car over your head on one hand; the bus beside you, the mountain across the harbor
 behind; people backing away filming; a crowd gasp and a scream; title, 42x, "YOU CAN LIFT: A CAR". 0:01 you toss the car
 over your shoulder; it lands on its roof behind you. 0:02.6 you walk to the bus, squat, grab its side and heave it over
 your head ("A city bus: 15 tons."), 0:04.5 throw it up the street end over end; we watch it land and tumble by 0:06.5.
-0:05-0:07.6 you run to the container truck (ahead of you); you squat, grab its frame, heave it overhead, the pavement
-cracking ("A loaded truck: 40 tons."); 0:10.5 thrown north over the quay: a big splash in the harbor, and it sinks
-("Your shoes crack the concrete."). 0:11-0:13 two bounds to the jumbo jet; you lift it by its nose wheel, your feet sinking
+0:05-0:07.6 you run to the container truck (ahead of you); you squat, grab its frame, heave it overhead ("A loaded truck: 40 tons."),
+the pavement cracking at 0:08.15 and again at 0:09.6 as it goes overhead ("Your shoes crack the concrete."); 0:10.5
+thrown north over the quay: a big splash in the harbor, and it sinks. 0:11-0:13 two bounds to the jumbo jet; you lift it by its nose wheel, your feet sinking
 into a crater ("A jumbo jet: 440 tons."); 0:15.9 thrown: it dives nose-first into the cruise ship's side, a fireball,
 and stays wedged there, burning. 0:16.3-0:18.8 two bounds to the quay, the ship's bow ahead of you. 0:19 you grab the
 bow's stem and strain; it can't move until the counter reaches a cruise ship (0:20.7). Then the bow comes up out of the
 water onto your hands; the camera pulls back over the harbor: the whole ship rising into the sky off your hands like a
 pole, water pouring off it, the jet burning in its side, its back half drooping ("A cruise ship: 110,000 tons."); back in
-on you, 0:23.2 thrown: it flies across the harbor and lands on the far shore ("The ground can't hold you up.").
+on you, 0:23.2 thrown: it flies across the harbor and comes down upside down in the water just off the far shore, a wall
+of white water along it; it stays there capsized, its hull out of the water ("The ground can't hold you up.").
 0:25.5-0:27 three bounds to the glass tower; you grab the corner of its base and rip it up; the camera pulls back: the
 whole tower tipped up off your hands at ~50 degrees, daylight under it ("A skyscraper: 365,000 tons."); back in, 0:30.7
-thrown across the harbor; it lands on the far shore and breaks up in dust. 0:33.2 one jump across the harbor, the
+thrown: it tumbles end over end across the harbor (you in the frame below it), lands on the far shore and breaks into
+its pieces in dust. 0:33.2 one jump across the harbor, the
 camera close behind you ("One jump across the harbor."); 0:36.2 you land at the mountain's foot and squat, hands into the
 ground under its edge; 0:36.55 a crack races off both ways along its foot, dust spurting along it, rockfalls and cracks
 up its face ("It breaks where you grab it."); 0:37.35 (5e11x, half its weight) its edge comes up onto your hands; the camera
 drops low behind you; 0:37.7 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN": its far side swings up and a slot of daylight
 opens under it all the way across; 0:38.6 the camera pulls back low over the harbor and round to the east: side-on, the
-whole mountain held up by its edge, snow cap tipped, daylight under it, you a glow at its foot (the landed ship and tower
-ride on its slope); 0:40-0:40.5 back in behind you; 0:40.7 you throw it: it flies away from us, turning upright, daylight
+whole mountain held up by its edge, snow cap tipped, daylight under it, you a glow at its foot (the tower that landed on
+its slope rides with it); 0:40-0:40.5 back in behind you; 0:40.7 you throw it: it flies away from us, turning upright, daylight
 under it the whole way ("50 billion tons. A mountain a mile high."), 0:43.6 it lands on the horizon ~5.5 km off, snow cap
 showing; a wall of dust rolls at you; hard white at 0:45.55, which clears onto frame 0.
 

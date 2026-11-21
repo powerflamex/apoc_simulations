@@ -62,9 +62,10 @@ export const KEYS = [
   [29.85, -135, 430, 55, 70, 'tower', 0.75, 60],
   [30.12, -70, 60, 14, 8, 'towerB', 0.2, 68],
   // (c) back in for the throw; watch it fly across the harbor
-  [30.35, -40, 5.0, 1.0, 6.0, 'towerB', 0.2, 80],
-  [31.0, -28, 5.0, 1.3, 5.0, 'towerB', 0.45, 78],
-  [32.6, -18, 6.0, 1.6, 4.0, 'tower', 0.45, 74],
+  [30.35, -40, 5.5, 1.6, 3.5, 'you', 0, 78],
+  [31.0, -24, 9.0, 1.2, 5.2, 'you', 0, 80],
+  [31.9, -20, 8.0, 1.3, 4.0, 'you', 0, 78],
+  [32.6, -18, 6.0, 1.6, 3.0, 'tower', 0.04, 74],
   // the jump across the harbor: chasing you close, from behind your left shoulder, you low in the frame (under the
   // counter); the landed ship stays out of frame
   [33.2, -10, 8.0, 2.0, 2.5, 'you', 0, 74],

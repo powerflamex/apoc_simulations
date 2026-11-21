@@ -177,7 +177,7 @@ function update(v, cover = -1) {
   // the mountain first: the ship (with the jet in it) and the tower landed on its lower slope and ride with it
   const ms = mountainAt(v);
   const ride = (obj, st) => { obj.P.matrixAutoUpdate = false; obj.P.matrix.compose(st.p, st.q, s4); if (v > B.leap) obj.P.matrix.premultiply(ms.M); obj.P.matrixWorldNeedsUpdate = true; };
-  const js = thingAt('jet', v); ride(jet, js); jet.DU.uCrush.value = js.crush || 0;
+  const js = thingAt('jet', v); place(jet, js); jet.P.matrixAutoUpdate = true; jet.DU.uCrush.value = js.crush || 0;
   const sm = thingAt('shipMid', v);
   const sag = shipSag(v);
   {
@@ -186,7 +186,6 @@ function update(v, cover = -1) {
     const piv = (x, ang, apart) => new THREE.Matrix4().makeTranslation(x + apart, -8.8 - Math.abs(apart) * 0.3, 0).multiply(new THREE.Matrix4().makeRotationZ(ang)).multiply(new THREE.Matrix4().makeTranslation(-x, 8.8, 0));
     const Mmid = Mbow.clone().multiply(piv(SHIP_CUTS[1], -sag.bow, sag.apart));
     const Ms = [Mbow, Mmid, Mmid.clone().multiply(piv(SHIP_CUTS[2], -sag.stern, sag.apart))];
-    if (v > B.leap) Ms.forEach((M) => M.premultiply(ms.M));
     window.__shipMs = Ms;
     ship.forEach((pc, i) => { pc.P.matrixAutoUpdate = false; pc.P.matrix.copy(Ms[i]); pc.P.matrixWorldNeedsUpdate = true; pc.DU.uCrush.value = sm.crush || 0; });
   }

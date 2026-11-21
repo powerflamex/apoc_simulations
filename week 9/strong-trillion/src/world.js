@@ -12,7 +12,7 @@ float gn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(gh(i), gh(i + vec2(1, 0)), f.x), mix(gh(i + vec2(0, 1)), gh(i + vec2(1, 1)), f.x), f.y); }
 float gfbm(vec2 p) { float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * gn(p); p = mat2(1.6, 1.2, -1.2, 1.6) * p + 3.7; a *= 0.5; } return s; }
 `;
-export const NCR = 8;
+export const NCR = 16;
 // shared uniforms: craters (x, z, radius, depth) and their cracks (reach, strength, seed, rubble)
 export const GU = {
   uCr: { value: Array.from({ length: NCR }, () => new THREE.Vector4(0, 0, 0.001, 0)) },
