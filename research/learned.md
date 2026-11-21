@@ -942,3 +942,9 @@ Channel: 10.3M views in 28 days, 830,730 on Nov 20 (653K Nov 19, 509K Nov 18), 1
   3.6%. Age 13-17 10.7%, 18-24 10.4%, 25-34 28.8%, 35-44 28.5%, 45-54 13.5%, 55-64 4.8%, 65+ 3.2% (logged-in viewers only; kids under 13 are
   not counted). 64.8% male. Pay estimate before approval: about 4 cents per 1,000 Shorts views (range 3-6), from general creator reports
   weighted by these countries; replace with the real number once monetization is on.
+- Pay estimate corrected the same day: the 4 cents above assumed about 10 cents per 1,000 for US views. Published 2026 country figures
+  (AIR Media-Tech, Fluxnote; third-party, they disagree) put US Shorts at 17-33 cents, UK ~17, Brazil/Mexico ~4, India/Indonesia ~1.
+  Weighted by our countries that gives about 10 cents per 1,000 (range 7-14). The owner's friend (@slimetree, 202K subs, edits with
+  clips + music; US 16.7%, Mexico 7%, Brazil 6.5%, Indonesia 5.6%, India 5.1%) reports a channel RPM of 22-26 cents, but the channel also
+  has 13 long videos of 1.5-2.5 min (one at 6M views), which pay dollars per 1,000 and lift a blended RPM. Unknown until the friend's
+  Shorts-only RPM is known; if 22-26 is Shorts-only, ours should land near it.
