@@ -10,8 +10,9 @@ export const CAMK = [
   [3.5, 6, 6.5, 1.0, 6, 16, 58],
   [7.5, 4, 10.0, 1.2, 7, 15, 52],
   // turn to the court (you in the foreground): the player on the rim, the others floating past him
-  [10.2, -125, 4.6, 1.0, 117, 4, 40],
-  [13.0, -127, 4.6, 1.0, 118, 4, 40],
+  // (the camera keeps moving: it pushes in, rises and tilts up with everyone rising; you stay whole, right of centre)
+  [10.2, -124, 7.0, 0.9, 117, 3, 54],
+  [13.0, -130, 5.3, 1.5, 123, 10, 54],
   // swing round past your face to the street: cars sliding across the crossing, one drifting toward the fountain
   [16.3, 56, 5.0, 1.0, -62, 5, 50],
   [19.6, 58, 5.2, 1.0, -64, 5, 50],

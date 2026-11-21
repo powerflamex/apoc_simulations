@@ -2749,11 +2749,15 @@ the square with you (no cutaways). The 5 seconds run in slow motion (6.5x: 0.00 
 coming back (5x slow motion), each thing falling as its own beat. The counter is the countdown, GRAVITY BACK IN, racing
 down in hundredths from 4.62 s; the one line under it is your height and the kid's ("You: 5.2 ft · Kid: 19 ft").
 Fix pass Nov 21 (owner: ending flat, cutaways, kid tiny, samey cars, washed-out mist, every hit the same size).
+Sound + camera pass Nov 21 (owner: quiet between the hits, 0:10-0:13 static with you cut off at the edge): the bed is now
+crowd screams and shouts all the way up, slow-motion wind and a rising tone that climbs to 0.00, at -12 to -15 dB every
+second (was -23 to -26); after 0.00 each landing stands 4-6 dB over it and the slam stays the loudest moment. The court
+shot now pushes in and rises with everyone, you whole in frame.
 What you see, in order:
 0:00 you on the fountain's ledge a foot up and rising, arms out, screaming; a kid beside you in mid-jump; the fountain's
 jets already straight columns of blobs climbing into the sky; the whole square floating; the title; slowed screams.
 0:03-0:09 the camera pulls back and tilts with the kid as he rises past the floors of the block behind ("That kid jumped
-at 10 feet a second. Nothing slows him now."). 0:10 turned to the court with you in front: a player hanging on the rim,
+at 10 feet a second. Nothing slows him now."). 0:10 turned to the court with you in front, the camera pushing in and rising: a player hanging on the rim,
 the others floating up past him ("He grabbed the rim. Everyone else keeps rising."). 0:16 round to the street: a car that
 was turning slides sideways across the crossing, still turning; a yellow car rolls over in mid-air; a car that was
 pulling out drifts off the street into the square, spinning slowly, rising, straight at the fountain ("No weight, no
