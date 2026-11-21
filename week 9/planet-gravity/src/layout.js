@@ -55,19 +55,17 @@ export const BUILDINGS = [];
 {
   const R = rng(77);
   const BR = [[0.58, 0.22, 0.15], [0.66, 0.32, 0.2], [0.86, 0.74, 0.55], [0.93, 0.9, 0.84], [0.45, 0.6, 0.7], [0.8, 0.58, 0.38], [0.96, 0.93, 0.86], [0.72, 0.42, 0.36], [0.55, 0.62, 0.5]];
-  let x = -46;
-  while (x < 46) {
-    const w = 9 + R() * 8;
-    const kind = R() < 0.18 ? 2 : R() < 0.55 ? 0 : 1;
-    const col = kind === 2 ? [0.35, 0.47, 0.58] : BR[Math.floor(R() * BR.length)];
-    BUILDINGS.push({ x: x + w / 2, z: Z.walk2, w: w - 0.3, d: 14, h: 13 + R() * 12 + (kind === 2 ? 6 : 0), kind, col, seed: R() });
-    x += w;
-  }
-  x = -60;
-  while (x < 60) {
-    const w = 14 + R() * 12;
-    const kind = R() < 0.3 ? 2 : 1;
-    BUILDINGS.push({ x: x + w / 2, z: Z.walk2 - 30, w: w - 1, d: 18, h: 30 + R() * 22, kind, col: kind === 2 ? [0.42, 0.55, 0.66] : BR[Math.floor(R() * BR.length)], seed: R(), back: true });
-    x += w + 8 + R() * 14;
-  }
+  // three rows, each taller than the one in front so all three show: shops and flats on the street, blocks behind,
+  // towers at the back (row: 0 front, 1 middle, 2 back)
+  const rows = [[Z.walk2, 14, 11, 10, 9, 8], [Z.walk2 - 17, 16, 22, 14, 12, 10], [Z.walk2 - 36, 20, 36, 22, 14, 14]];
+  rows.forEach(([z0, d, h0, hr, w0, wr], row) => {
+    let x = -50 - 6 * row;
+    while (x < 50 + 6 * row) {
+      const w = w0 + R() * wr;
+      const kind = row === 2 ? (R() < 0.5 ? 2 : 1) : R() < 0.15 ? 2 : R() < 0.55 ? 0 : 1;
+      const col = kind === 2 ? [0.36 + 0.06 * row, 0.5, 0.62] : BR[Math.floor(R() * BR.length)];
+      BUILDINGS.push({ x: x + w / 2, z: z0, w: w - 0.4 - row * 1.5, d, h: h0 + R() * hr, kind, col, seed: R(), back: row > 0, row });
+      x += w + (row ? 1 + R() * 3 * row : 0);
+    }
+  });
 }

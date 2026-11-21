@@ -27,16 +27,17 @@ export const STOPS = [
   { key: 'moon', name: 'MOON', land: -1.6, lb: 25, g: 1.62 / 9.8, lines: [[-9, "THE MOON: 1/6 OF EARTH'S GRAVITY"]] },
   { key: 'pluto', name: 'PLUTO', land: 7.0, lb: 9, g: 0.62 / 9.8, lines: [[0.12, "PLUTO: 1/16 OF EARTH'S GRAVITY"]] },
   { key: 'jupiter', name: 'JUPITER', land: 14.5, lb: 380, g: 24.79 / 9.8, lines: [[0.12, "JUPITER: 2.5x EARTH'S GRAVITY"]] },
-  { key: 'sun', name: 'SUN', land: 22.0, lb: 4200, g: 274 / 9.8, lines: [[0.12, "THE SUN: 28x EARTH'S GRAVITY"]] },
-  { key: 'wd', name: 'WHITE DWARF', land: 29.5, lb: 15e6, g: 1e5, lines: [[0.12, "WHITE DWARF: 100,000x EARTH'S GRAVITY"]] },
-  { key: 'ns', name: 'NEUTRON STAR', land: 37.0, lb: 20e12, g: 1.3e11, lines: [[0.12, 'NEUTRON STAR: 130 BILLION x EARTH']], until: 7.6 },
+  { key: 'sun', name: 'SUN', land: 22.5, lb: 4200, g: 274 / 9.8, lines: [[0.12, "THE SUN: 28x EARTH'S GRAVITY"]] },
+  { key: 'wd', name: 'WHITE DWARF', land: 31.0, lb: 15e6, g: 1e5, lines: [[0.12, "WHITE DWARF: 100,000x EARTH'S GRAVITY"]] },
+  { key: 'ns', name: 'NEUTRON STAR', land: 40.0, lb: 20e12, g: 1.3e11, lines: [[0.12, 'NEUTRON STAR: 130 BILLION x EARTH']], until: 3.0 },
 ];
 STOPS.forEach((s, i) => { s.i = i; });
 export const ST = Object.fromEntries(STOPS.map((s) => [s.key, s]));
 export const LAND = Object.fromEntries(STOPS.map((s) => [s.key, s.land]));
 
-// the ending: everything pressed into a glowing film that brightens to white; the loop point sits in the white
-export const T_END = LAND.ns + 9.0;                // the white is full
+// the ending: everything pressed into a film, a wave of heat sweeps in over it from the horizon, straight into the
+// white; the loop point sits in the white
+export const T_END = LAND.ns + 3.3;                // the white is full
 export const T_SWITCH = Math.round((T_END + 0.3) * 60) / 60;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 
@@ -44,8 +45,8 @@ export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 export const CAPTIONS = [
   [3.9, 6.6, 'Every jump hangs in the air for 4 seconds'],
   [LAND.pluto + 2.3, LAND.pluto + 5.9, 'One jump takes you 26 feet up'],
-  [LAND.sun + 3.7, LAND.sun + 6.9, 'You weigh as much as a car', 1300],
-  [LAND.ns + 2.2, LAND.ns + 6.0, 'Everything pressed thinner than paper', 1300],
+  [LAND.sun + 4.6, LAND.sun + 7.6, 'You weigh as much as a car', 1300],
+  [LAND.ns + 0.45, LAND.ns + 2.75, 'Everything pressed thinner than paper', 1300],
 ];
 export function captionAt(v) {
   for (const [a, b, text, top] of CAPTIONS) if (v >= a && v < b) return { text, top: top || 1495, alpha: smooth(a, a + 0.25, v) * (1 - smooth(b - 0.25, b, v)), rise: (1 - smooth(a, a + 0.25, v)) * 12 };

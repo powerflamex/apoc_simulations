@@ -7,8 +7,8 @@ import { makeWorld, youJump } from './world.js';
 import { makeOverlay } from './overlay.js';
 import { state, VIDEO_DURATION, LOOP, LAND, STOPS } from './timeline.js';
 import { CAM0 } from './layout.js';
-import { WD_CRACK, WD_CRUSH, NS_FILM, NS_FLARE } from './sched.js';
-import { DEG, wobble, smooth } from './util.js';
+import { WD_CRUSH, WD_FLAT1, NS_FILM } from './sched.js';
+import { DEG, wobble, smooth, lerp } from './util.js';
 import { makeCompositor } from './compose.js';
 
 const W = 1080, H_ = 1920;
@@ -122,13 +122,16 @@ function camAt(i, v) {
   let x = CAM0.x, y = CAM0.h, z = CAM0.z, pitch = 5;
   if (key === 'moon') { const J = youJump(key, tt); y += 0.6 * J.h; pitch += 2.5 * J.h; }
   else if (key === 'pluto') {
-    const J = youJump(key, tt), k = smooth(0.3, 7.0, J.h), k1 = smooth(0, 1.5, J.h);
-    x = (J.x - 0.3) * k1; y += 0.95 * J.h + 1.6 * k; z = J.z + 4.0 + 0.6 * k; pitch = 5 - 35 * k;
+    // up with you: close behind and a little above, looking down past you; you stay big in the middle of the frame
+    const J = youJump(key, tt), k = smooth(0.3, 6.0, J.h), k1 = smooth(0, 1.2, J.h);
+    const back = 4.0 - 1.0 * k, above = 0.0 + 1.9 * k;                    // from your middle (~0.9 m above your feet)
+    x = lerp(CAM0.x, J.x, k1); y = lerp(CAM0.h, J.h + 0.9 + above, k1); z = J.z + back;
+    pitch = lerp(5, -Math.atan2(above + 0.25, back) / DEG + 9 * k, k1);       // (you a little below the middle, clear of the text)
   }
-  else if (key === 'jupiter') { y -= 0.28 * smooth(0.04, 0.25, tt); pitch += 1.5 * smooth(0.04, 0.25, tt); }
+  else if (key === 'jupiter') { y -= 0.28 * smooth(0.04, 0.25, tt) + 0.12 * smooth(3.0, 3.3, tt); pitch += 1.5 * smooth(0.04, 0.25, tt); }
   else if (key === 'sun') { y -= 0.42 * smooth(0.03, 0.12, tt); pitch += 1; }
-  else if (key === 'wd') { y -= 0.3 * smooth(WD_CRUSH, WD_CRUSH + 0.12, tt) + 0.3 * smooth(WD_CRACK, WD_CRACK + 0.3, tt); pitch = 5 - 2 * smooth(WD_CRUSH, WD_CRUSH + 0.3, tt); }
-  else if (key === 'ns') { const k = smooth(NS_FILM, NS_FILM + 0.12, tt); y += -0.4 * k + 1.1 * smooth(NS_FILM + 0.2, NS_FLARE + 1.5, tt); pitch = 5 - 2 * k - 5 * smooth(NS_FILM + 0.2, NS_FLARE + 1.5, tt); }
+  else if (key === 'wd') { y -= 0.3 * smooth(WD_CRUSH, WD_CRUSH + 0.12, tt) + 0.4 * smooth(WD_FLAT1 - 0.2, WD_FLAT1 + 0.15, tt); pitch = 5 - 2 * smooth(WD_CRUSH, WD_CRUSH + 0.3, tt); }
+  else if (key === 'ns') { y -= 0.4 * smooth(NS_FILM, NS_FILM + 0.12, tt); pitch = 5 - 3 * smooth(NS_FILM, NS_FILM + 0.3, tt); }
   return { x, y, z, pitch };
 }
 function placeCamera(i, v, o, snap) {
@@ -198,7 +201,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [45, 41, 37.2, 33, 29.7, 26, 22.2, 18, 14.7, 11, 7.2, 3, 0]) renderFrame(t);   // compile everything once
+  for (const t of [43, 41.5, 40.2, 38, 34, 31.2, 28, 25, 22.7, 18, 14.7, 11, 7.2, 3, 0]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world, state, comp: () => comp };

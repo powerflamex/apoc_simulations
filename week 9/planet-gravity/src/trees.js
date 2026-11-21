@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TREES } from './layout.js';
 import { rng, smooth, clamp } from './util.js';
-import { JUP_SNAP, SUN_TREES } from './sched.js';
+import { JUP_SNAP, sunTreeT } from './sched.js';
 
 function blobGeo(seed) {
   const g = mergeVertices(new THREE.IcosahedronGeometry(1, 3).deleteAttribute('normal').deleteAttribute('uv'));
@@ -89,7 +89,9 @@ export function makeTrees(scene, { plainMat, shadowy }) {
     const baseY = tr.hs + L.y0;
     const drop = Math.min(0.5 * gE * t * t, Math.max(0, baseY - 0.35));
     const k = clamp(drop / Math.max(0.01, baseY - 0.35));
-    L.pivot.position.y = L.y0 - drop;
+    // a broken limb is no longer part of the tree: it lies where it fell, whatever the trunk does after
+    if (L.pivot.parent !== tr.root) tr.root.add(L.pivot);
+    L.pivot.position.y = tr.hs + L.y0 - drop;
     L.bend.rotation.x = Math.PI / 2 - L.elev + (L.elev + 0.05) * Math.min(1, k * 1.3) + 0.25 * k;
     L.pivot.position.x = Math.sin(L.az) * 0.7 * k; L.pivot.position.z = Math.cos(L.az) * 0.7 * k;
   }
@@ -100,7 +102,7 @@ export function makeTrees(scene, { plainMat, shadowy }) {
     frame(key, tt, burst) {
       trees.forEach((tr, ti) => {
         tr.upper.rotation.set(0, 0, 0);
-        tr.limbs.forEach((L) => { L.pivot.position.set(0, L.y0, 0); L.bend.rotation.x = Math.PI / 2 - L.elev; });
+        tr.limbs.forEach((L) => { if (L.pivot.parent !== tr.upper) tr.upper.add(L.pivot); L.pivot.position.set(0, L.y0, 0); L.bend.rotation.x = Math.PI / 2 - L.elev; });
         if (key === 'jupiter') {
           // sag: a quick drop with a bounce, a little more on the long limbs
           const s = smooth(0.0, 0.25, tt) + 0.12 * Math.exp(-tt / 0.3) * Math.sin(tt * 18) * smooth(0, 0.05, tt);
@@ -121,7 +123,7 @@ export function makeTrees(scene, { plainMat, shadowy }) {
             if (L.seed < 0.75 && T > tb) { fallLimb(L, tr, T - tb, 274 * 0.06); if (T - tb < 0.4 && burst && li % 2 === 0) burst(tr, L, T - tb); }
           });
           // then the trunk snaps and the tree crashes over
-          const t0 = SUN_TREES + 0.06 * ((ti * 7) % 13);
+          const t0 = sunTreeT(ti);
           if (T > t0) {
             const t = T - t0;
             const th = Math.min(1.32, 0.5 * 42 * t * t);

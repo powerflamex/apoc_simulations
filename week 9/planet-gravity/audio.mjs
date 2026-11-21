@@ -20,8 +20,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STOPS, LAND, T_END } from './src/timeline.js';
 import {
-  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, PLU_TAKE, JUP_BUCKLE, JUP_SNAP, SUN_FLAT, SUN_HOOP, SUN_BOARD_HIT, SUN_TYRES, SUN_TREES,
-  WD_CRUSH, WD_BLDG0, WD_BLDG_STEP, WD_CRACK, NS_FILM, NS_FLARE,
+  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, PLU_TAKE, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, jupCarT, SUN_FLAT, sunTyreT, SUN_LAMPS,
+  SUN_HOOP, SUN_BOARD_HIT, sunTreeT, sunRoofT, SUN_WINDOWS, SUN_TOP_LIST, WD_CRUSH, WD_BLDG_T, WD_FLAT0, WD_FLAT1, NS_FILM, NS_WAVE0, NS_WAVE1,
 } from './src/sched.js';
 import { CARS, BUILDINGS } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -66,26 +66,37 @@ export function makeSoundtrack(outFile) {
   add(LAND.moon + MOON_DUNK, 'clang', 0.55, -0.1); add(LAND.moon + MOON_DUNK + 0.12, 'swish', 0.35, -0.1);
   for (const [t, v] of bounces(3.3, -3.2, GRAV.moon, 0.72, 5)) add(LAND.moon + MOON_DUNK + t, 'ball', 0.25 * Math.min(1, v / 4), -0.1);
   add(LAND.moon + MOON_ALL, 'whomp', 0.5, 0);
-  // Pluto: your take-off; the floating ball
+  // Pluto: your take-off
   add(LAND.pluto + PLU_TAKE, 'whomp', 0.35, 0.1);
-  // Jupiter: everyone drops; the ball dies; the limbs snap and land
+  // Jupiter: everyone drops (thuds as the jumpers slam down), the ball dies; ~3 s in: limbs, benches, the hoop, the cars
   add(LAND.jupiter + JUP_BUCKLE, 'boom', 0.75, 0, 0.6);
+  for (let k = 0; k < 7; k++) add(LAND.jupiter + 0.2 + 0.05 * k, 'thud', 0.35, -0.6 + 0.2 * k);
   for (const [t, v] of bounces(1.0, -1.5, GRAV.jupiter, 0.6, 6)) add(LAND.jupiter + t, 'ball', 0.3 * Math.min(1, v / 5), 0.3);
-  JUP_SNAP.forEach((t, k) => { const p = [-0.6, 0.6, -0.5, 0.5, 0.3][k]; add(LAND.jupiter + t, 'snap', 0.55, p); add(LAND.jupiter + t + 0.62, 'crash', 0.5, p); });
-  // the Sun
+  JUP_SNAP.forEach((t, k) => { const p = [-0.6, 0.6, -0.5, 0.5, 0.3][k]; add(LAND.jupiter + t, 'snap', 0.5, p); add(LAND.jupiter + t + 0.62, 'crash', 0.45, p); });
+  JUP_BENCH.forEach((t, k) => add(LAND.jupiter + t, 'splinter', 0.45, [-0.5, 0.2, 0.5, -0.1][k]));
+  add(LAND.jupiter + JUP_HOOP, 'groan', 0.55, -0.1); add(LAND.jupiter + 5.5, 'groan', 0.5, -0.1); add(LAND.jupiter + 5.95, 'clang', 0.25, -0.1);
+  for (let k = 0; k < 6; k++) add(LAND.jupiter + 5.9 + 0.12 * k, 'thud', 0.3, -0.5 + 0.2 * k);
+  CARS.forEach((c, k) => { if (Math.abs(c.x) < 22) add(LAND.jupiter + jupCarT(k), 'clunk', 0.35 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
+  // (the trees creaking under the weight, wood and steel straining, between the beats)
+  for (const [t, p] of [[1.3, -0.5], [1.9, 0.5], [4.8, -0.3], [6.6, 0.4], [7.1, -0.2]]) add(LAND.jupiter + t, 'groan', 0.4, p);
+  add(LAND.jupiter + 1.6, 'crack', 0.3, -0.4); add(LAND.jupiter + 6.8, 'crack', 0.35, 0.4);
+  // the Sun: the slam, tyres, lamps; ~3 s in the hoop, the trees, the roofs, the windows; ~6 s in the building tops
   add(LAND.sun + SUN_FLAT, 'boom', 1.1, 0, 1);
+  CARS.forEach((c, k) => { if (Math.abs(c.x) < 22) add(LAND.sun + sunTyreT(k), 'pop', 0.3 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
+  add(LAND.sun + SUN_LAMPS, 'groan', 0.3, 0.5);
   add(LAND.sun + SUN_HOOP, 'groan', 0.6, -0.1);
   add(LAND.sun + SUN_BOARD_HIT, 'crash', 0.85, -0.1); add(LAND.sun + SUN_BOARD_HIT, 'glass', 0.5, -0.1);
-  add(LAND.sun + 1.0, 'groan', 0.3, 0.5);
-  CARS.forEach((c, k) => { const t0 = SUN_TYRES + 0.085 * ((k * 5) % CARS.length) * (12 / CARS.length); if (Math.abs(c.x) < 22) add(LAND.sun + t0, 'pop', 0.3 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
-  for (let ti = 0; ti < 13; ti++) { const t0 = SUN_TREES + 0.06 * ((ti * 7) % 13); if (ti < 5) add(LAND.sun + t0, 'snap', 0.28, (ti % 2 ? 0.5 : -0.5)); add(LAND.sun + t0 + 0.24, 'crash', ti < 5 ? 0.45 : 0.18, (ti % 2 ? 0.5 : -0.5)); }
-  add(LAND.sun + 4.3, 'glassrain', 0.3, 0);
-  // the white dwarf
+  for (let ti = 0; ti < 13; ti++) { const t0 = sunTreeT(ti); if (ti < 5) add(LAND.sun + t0, 'snap', 0.28, (ti % 2 ? 0.5 : -0.5)); add(LAND.sun + t0 + 0.24, 'crash', ti < 5 ? 0.45 : 0.18, (ti % 2 ? 0.5 : -0.5)); }
+  CARS.forEach((c, k) => { if (Math.abs(c.x) < 22) add(LAND.sun + sunRoofT(k), 'crunch', 0.35 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
+  add(LAND.sun + SUN_WINDOWS, 'glassrain', 0.45, 0);
+  SUN_TOP_LIST.forEach(({ i, t }) => add(LAND.sun + t, 'collapse', 0.5, clamp(BUILDINGS[i].x / 35, -0.9, 0.9)));
+  for (const [t, p] of [[2.3, 0.3], [5.3, -0.4], [7.6, 0.2]]) { add(LAND.sun + t, 'groan', 0.45, p); add(LAND.sun + t + 0.2, 'collapse', 0.25, p); }
+  // the white dwarf: the crush; the buildings one after another, the near ones loudest; the front of cracks
   add(LAND.wd + WD_CRUSH, 'boom', 1.3, 0, 1.4);
-  BUILDINGS.forEach((b) => { const t0 = WD_BLDG0 + WD_BLDG_STEP * ((b.x + 50) / 7.5) + (b.back ? 0.12 : 0); if (Math.abs(b.x) < 40) add(LAND.wd + t0 + 0.05, 'collapse', b.back ? 0.35 : 0.55, clamp(b.x / 35, -0.9, 0.9)); });
-  add(LAND.wd + WD_CRACK, 'boom', 1.1, 0, 1.2); add(LAND.wd + WD_CRACK, 'crack', 0.7, 0);
+  BUILDINGS.forEach((b, i) => { const d = Math.hypot(b.x, b.z); add(LAND.wd + WD_BLDG_T[i] + 0.05, 'collapse', 0.25 + 0.5 * smooth(75, 42, d), clamp(b.x / 35, -0.9, 0.9)); });
+  add(LAND.wd + WD_FLAT0, 'crack', 0.5, 0); add(LAND.wd + WD_FLAT1, 'boom', 1.2, 0, 1.3);
   // the neutron star
-  add(LAND.ns + NS_FILM, 'boom', 1.6, 0, 2.0); add(LAND.ns + NS_FLARE, 'boom', 0.8, 0, 1.6);
+  add(LAND.ns + NS_FILM, 'boom', 1.6, 0, 2.0);
 
   const FL = new Map();
   const flt = (name) => { let f = FL.get(name); if (!f) { f = new SVF(); FL.set(name, f); } return f; };
@@ -119,24 +130,25 @@ export function makeSoundtrack(outFile) {
       if (gj > 0.001) {
         const tt = v - LAND.jupiter;
         const creak = flt('creak').run(w2, 380 + 120 * Math.sin(TAU * 0.9 * v), 0.15).bp * (0.5 + 0.5 * Math.sin(TAU * 2.3 * v)) * 0.12 * smooth(0.3, 1.2, tt);
-        const groan = flt('jgroan').run(w3, 260, 0.35).bp * env(tt - JUP_BUCKLE, 0.25, 1.2) * 0.5;
+        const groan = flt('jgroan').run(w3, 260, 0.35).bp * (env(tt - JUP_BUCKLE, 0.25, 1.2) * 0.5 + 0.34 * smooth(0.5, 1.5, tt) * (0.7 + 0.3 * Math.sin(TAU * 0.5 * tt)));
         const strain = flt('jstr').run(w4, 55, 0.6).lp * 2.2;
-        l += gj * (creak + groan + strain * 0.12); r += gj * (creak * 0.8 + groan + strain * 0.12);
+        l += gj * (creak + groan + strain * 0.22); r += gj * (creak * 0.8 + groan + strain * 0.22);
       }
       // the Sun, the white dwarf: a pressing low roar; the neutron star: the heat roaring up to the white
       if (gs > 0.001 || gw > 0.001) {
         const p = flt('press').run(w1, 70, 0.6).lp * 3.0;
-        l += p * (0.14 * gs + 0.2 * gw); r += p * (0.14 * gs + 0.2 * gw);
+        const ts = v - LAND.sun, rumble = flt('srumb').run(w2, 160, 0.6).lp * 2.2 * (0.6 + 0.4 * Math.sin(TAU * 0.6 * v));
+        l += p * (0.24 * gs + 0.3 * gw) + rumble * (0.1 * gs + 0.12 * gw); r += p * (0.24 * gs + 0.3 * gw) + rumble * (0.1 * gs + 0.12 * gw);
         const tw = v - LAND.wd;
         if (gw > 0.001) {
-          const hiss = flt('whiss').run(w3, 3200, 0.6).bp * 0.07 * smooth(WD_CRACK, WD_CRACK + 2, tw);
-          const crackle = flt('wcrk').run(w4 * (R0() < 0.004 ? 6 : 0.2), 900, 0.8).bp * 0.12 * smooth(WD_CRACK, WD_CRACK + 1, tw);
+          const hiss = flt('whiss').run(w3, 3200, 0.6).bp * 0.07 * smooth(WD_FLAT0, WD_FLAT1, tw);
+          const crackle = flt('wcrk').run(w4 * (R0() < 0.004 ? 6 : 0.2), 900, 0.8).bp * 0.12 * smooth(WD_FLAT0, WD_FLAT0 + 1, tw);
           l += gw * (hiss + crackle); r += gw * (hiss * 0.9 + crackle);
         }
       }
       if (gn > 0.001) {
-        const tt = v - LAND.ns, k = smooth(NS_FILM, NS_FILM + 0.5, tt), hot = smooth(NS_FLARE - 0.5, 8.8, tt);
-        const roar = flt('nroar').run(w2, 120 + 900 * hot, 0.5).bp * (0.12 + 0.5 * hot) * k;
+        const tt = v - LAND.ns, k = smooth(NS_FILM, NS_FILM + 0.3, tt), hot = smooth(NS_WAVE0, NS_WAVE1 + 0.4, tt);
+        const roar = flt('nroar').run(w2, 120 + 1400 * hot, 0.5).bp * (0.15 + 0.9 * hot) * k;
         const sub = Math.sin(TAU * (32 + 10 * hot) * tt) * (0.12 + 0.25 * hot) * k;
         const sizzle = flt('nsiz').run(w4, 4000, 0.7).bp * 0.08 * k * (0.4 + hot);
         l += gn * (roar + sub + sizzle); r += gn * (roar * 0.95 + sub + sizzle * 1.05);
@@ -181,6 +193,10 @@ export function makeSoundtrack(outFile) {
           s = hiss * 0.9 + tk * 0.06;
           break;
         }
+        case 'thud': s = Math.sin(TAU * (60 + 50 * Math.exp(-d * 20)) * d) * env(d, 0.005, 0.12) + flt(id).run(w1, 400, 0.7).lp * env(d, 0.005, 0.06) * 1.2; break;
+        case 'splinter': s = flt(id).run(w2, 1300, 0.6).lp * env(d, 0.006, 0.07) * 2.0 + flt(id + 'w').run(w3, 450, 0.3).bp * env(d, 0.01, 0.2) * 1.3 + Math.sin(TAU * (80 + 40 * Math.exp(-d * 12)) * d) * env(d, 0.01, 0.15) * 0.6; break;
+        case 'clunk': s = Math.sin(TAU * (55 + 35 * Math.exp(-d * 15)) * d) * env(d, 0.006, 0.18) + flt(id).run(w4, 700, 0.3).bp * env(d, 0.006, 0.1) * 0.8; break;
+        case 'crunch': s = flt(id).run(w1, 900 + 400 * Math.sin(d * 40), 0.4).bp * env(d, 0.01, 0.25) * 2.0 * (0.6 + 0.4 * Math.sin(TAU * 31 * d)) + Math.sin(TAU * (50 + 30 * Math.exp(-d * 10)) * d) * env(d, 0.008, 0.2) * 0.6; break;
         case 'collapse': s = flt(id).run(w2, 180 + 250 * Math.exp(-d * 2), 0.6).lp * env(d, 0.03, 0.9) * 3.0 + Math.sin(TAU * (34 + 20 * Math.exp(-d * 4)) * d) * env(d, 0.02, 0.6) * 0.7; break;
         case 'crack': s = flt(id).run(w3, 700, 0.5).bp * env(d, 0.01, 0.7) * 1.6 + flt(id + 'h').run(w1, 2600, 0.6).bp * env(d, 0.005, 0.2) * 0.8; break;
         default: break;

@@ -205,22 +205,45 @@ export function personPose(p, key, tt) {
     return o;
   }
   if (key === 'jupiter') {
-    // their legs give way: deep crouches, hands on knees; some on all fours, a few flat; then they try to get up
+    // at the wipe: the ones caught mid-jump slam down onto the court; everyone else staggers (a lurch, arms out) and
+    // drops to their knees; ~3 s in, as the trees break, many sink further onto all fours; some try to stand and fail
     if (p.kind === 'walker') walker(o, p, tt, 'jupiter');
-    const t0 = JUP_BUCKLE + 0.25 * p.d;
-    const k = smooth(t0, t0 + 0.22, tt) + 0.1 * Math.exp(-Math.max(0, tt - t0 - 0.22) / 0.15) * smooth(t0 + 0.1, t0 + 0.22, tt);
     o.look = -0.15;
-    if (p.kind === 'rim') { o.pitch = 0.55 * k; o.armL = 0.6 * k; o.armR = 0.6 * k; return o; }
-    if (p.g3 < 0.1) {               // flat
-      o.pitch = 1.45 * smooth(t0, t0 + 0.3, tt); o.y = 0.1 * smooth(t0, t0 + 0.3, tt); o.armL = 1.6 * k; o.armR = 1.6 * k;
+    const g = GRAV.jupiter;
+    if (p.kind === 'rim') { const k = smooth(0.06, 0.3, tt); o.pitch = 0.55 * k; o.armL = 0.6 * k; o.armR = 0.6 * k; return o; }
+    if (p.g4 > 0.72 && p.kind !== 'walker') {
+      // caught mid-jump: up 0.45 m and still rising, then down hard and flat
+      const v0 = 0.9 + 0.6 * p.g3, y = 0.45 + v0 * tt - 0.5 * g * tt * tt;
+      const tl = (v0 + Math.sqrt(v0 * v0 + 2 * g * 0.45)) / g;
+      if (tt < tl) { o.y = y; o.armL = 1.4; o.armR = 1.3; o.sit = 0.15; o.look = 0.3; return o; }
+      const k = smooth(tl, tl + 0.12, tt);
+      o.pitch = (p.g2 < 0.5 ? 1.45 : -1.45) * k; o.y = 0.1 * k; o.armL = 1.6 * k; o.armR = 1.5 * k; o.sit = 0.3 * (1 - k);
+      o.roll = 0.1 * Math.exp(-(tt - tl) / 0.1) * Math.sin((tt - tl) * 40);
       return o;
     }
-    if (p.g2 < 0.32) {              // on all fours (the legs, one stiff piece each, go into the ground: kneeling)
-      o.y = -0.4 * p.s * k; o.pitch = 1.0 * k; o.armL = 0.68 * k; o.armR = 0.68 * k; o.look = 0.3 * k;
-    } else {                        // down on their knees, hunched, hands on thighs, head down
-      o.y = -(0.36 + 0.08 * p.g2) * p.s * k; o.pitch = (0.35 + 0.25 * p.g3) * k; o.armL = 0.35 * k; o.armR = 0.35 * k; o.look = -0.3 * k;
+    const t0 = JUP_BUCKLE + 0.2 * p.d;
+    // the stagger: a lurch to one side with a half step, arms thrown out
+    const st = smooth(t0, t0 + 0.12, tt) * (1 - smooth(t0 + 0.3, t0 + 0.45, tt));
+    const side = p.g1 < 0.5 ? -1 : 1;
+    o.roll = 0.28 * side * st; o.pitch = 0.22 * st; o.armL = 1.0 * st; o.armR = 1.0 * st;
+    o.x += Math.cos(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt); o.z -= Math.sin(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt);
+    o.walk = 1.2 * side; o.stride = 0.6 * st;
+    const k = smooth(t0 + 0.28, t0 + 0.48, tt) + 0.08 * Math.exp(-Math.max(0, tt - t0 - 0.48) / 0.12) * smooth(t0 + 0.4, t0 + 0.48, tt);
+    if (p.g3 < 0.1) {               // flat
+      const kf = smooth(t0 + 0.28, t0 + 0.5, tt);
+      o.pitch = lerp(o.pitch, 1.45, kf); o.roll *= 1 - kf; o.y = 0.1 * kf; o.armL = lerp(o.armL, 1.6, kf); o.armR = lerp(o.armR, 1.6, kf);
+      return o;
+    }
+    // ~3 s in, as the limbs come down: many of the kneelers sink onto all fours
+    const fours = p.g2 < 0.32 ? 1 : p.g2 < 0.7 ? smooth(2.9 + 0.9 * p.g1, 3.15 + 0.9 * p.g1, tt) : 0;
+    const kneelY = -(0.36 + 0.08 * p.g2) * p.s, kneelP = 0.35 + 0.25 * p.g3;
+    o.y = lerp(0, lerp(kneelY, -0.4 * p.s, fours), k);
+    o.pitch = lerp(o.pitch, lerp(kneelP, 1.0, fours), k); o.roll *= 1 - k;
+    o.armL = lerp(o.armL, lerp(0.35, 0.68, fours), k); o.armR = lerp(o.armR, lerp(0.35, 0.68, fours), k);
+    o.look = lerp(o.look, lerp(-0.3, 0.3, fours), k);
+    if (fours < 0.5) {
       // trying to stand, failing
-      const tr = 3.6 + 1.6 * p.g1;
+      const tr = 4.4 + 1.6 * p.g1;
       const up = smooth(tr, tr + 0.6, tt) * (1 - smooth(tr + 0.9, tr + 1.15, tt));
       o.y += 0.25 * p.s * up; o.pitch -= 0.15 * up; o.roll = 0.05 * up * Math.sin(tt * 19 + p.ph);
     }

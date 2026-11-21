@@ -8,16 +8,16 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { H, HEAT_GLSL, patchHeat } from './heat.js';
 import { COURT, HOOP, BOARD, POLE, APRON, Z, FOUNTAIN, LAMPS, BENCHES } from './layout.js';
 import { smooth, clamp } from './util.js';
-import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS } from './sched.js';
+import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS, JUP_HOOP, JUP_BENCH } from './sched.js';
 
 export const GU = {
-  uCrack: { value: 0 }, uCrackR: { value: 0 }, uCrackGlow: { value: 0 }, uPlate: { value: 0 }, uFilm: { value: 0 }, uWet: { value: 0 },
+  uCrack: { value: 0 }, uCrackR: { value: 1e5 }, uWave: { value: 1e5 }, uCrackGlow: { value: 0 }, uPlate: { value: 0 }, uFilm: { value: 0 }, uWet: { value: 0 },
   uCam: { value: new THREE.Vector2() }, uTime: { value: 0 },
 };
 const L = { cx: (HOOP.x).toFixed(3), z0: COURT.z0.toFixed(3), z1: COURT.z1.toFixed(3), x0: COURT.x0.toFixed(3), x1: COURT.x1.toFixed(3), ap: APRON.toFixed(2) };
 
 const GROUND_GLSL = /* glsl */ `
-uniform float uCrack; uniform float uCrackR; uniform float uCrackGlow; uniform float uPlate; uniform float uFilm; uniform float uWet; uniform vec2 uCam; uniform float uTime;
+uniform float uCrack; uniform float uCrackR; uniform float uWave; uniform float uCrackGlow; uniform float uPlate; uniform float uFilm; uniform float uWet; uniform vec2 uCam; uniform float uTime;
 float g21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   return mix(mix(g21(i), g21(i+vec2(1,0)), f.x), mix(g21(i+vec2(0,1)), g21(i+vec2(1,1)), f.x), f.y); }
@@ -45,7 +45,7 @@ function groundMat() {
           // the white dwarf: plates of crust tilt and drop a little (each its own way), the seams between them open
           vec3 pl = plates(position.xz / 3.2);
           float h = g21(pl.xy + 3.1), h2 = g21(pl.xy + 9.7);
-          float on = uPlate * smoothstep(uCrackR + 2.0, uCrackR - 2.0, length(position.xz - uCam));
+          float on = uPlate * smoothstep(uCrackR - 3.0, uCrackR + 3.0, length(position.xz - uCam));
           transformed.y += on * (-0.06 - 0.16 * h + 0.05 * (h2 - 0.5) * (position.x - pl.x * 3.2));
           transformed.y -= on * 0.25 * smoothstep(0.08, 0.0, pl.z);
         }`)
@@ -117,7 +117,7 @@ function groundMat() {
           c *= 1.0 - 0.35 * wet; rough = mix(rough, 0.25, wet);
           // the white dwarf: plates and their seams; the neutron star: one smooth film
           vec3 pl = plates(p / 3.2);
-          float reach = smoothstep(uCrackR + 1.5, uCrackR - 1.5, length(p - uCam));
+          float reach = smoothstep(uCrackR - 2.0, uCrackR + 2.0, length(p - uCam));
           float seamMask = smoothstep(0.35, 0.6, gn(pl.xy * 0.7 + 4.0) + 0.25 * gn(p * 0.4));
           float seam = (1.0 - smoothstep(0.0, 0.045 + 0.06 * g21(pl.xy), pl.z)) * uCrack * reach * seamMask;
           c = mix(c, vec3(0.05, 0.03, 0.02), seam);
@@ -138,6 +138,10 @@ function groundMat() {
           float n = gn(vWP.xz * 0.6 + uTime * 0.2) * 0.6 + gn(vWP.xz * 3.0) * 0.4;
           float Tg = uAmbK * (0.88 + 0.22 * n);
           totalEmissiveRadiance += vGlowAdd + heatGlow(Tg) * uGlowGain;
+          // the neutron star's wave of heat: white-hot behind it (the far side), a blazing crest
+          float dw = length(vWP.xz - uCam) - uWave;
+          float behind = smoothstep(-2.0, 6.0, dw);
+          totalEmissiveRadiance += vec3(1.6, 1.15, 0.7) * (behind * (1.2 + 0.4 * n) + 3.5 * exp(-dw * dw / 6.0)) * step(uWave, 9e4);
         }`)
       .replace('void main() {', 'vec3 vGlowAdd; float vRough;\nvoid main() {');
   };
@@ -209,17 +213,7 @@ export function makePark(scene, { plainMat, shadowy }) {
   // the board's centre in the top group's frame (for the glass bursting where it lands)
   const boardC = new THREE.Vector3(0, (BOARD.y0 + BOARD.y1) / 2 - KINK, BOARD.z - POLE.z);
 
-  // ---- the fountain: a round stone basin, its water, a pedestal with a bowl ----
-  const stone = plainMat(0xb9b0a0, 0.85);
-  const F = FOUNTAIN;
-  const rim = shadowy(new THREE.Mesh(new THREE.LatheGeometry([[F.r - 0.32, 0], [F.r - 0.32, F.rim], [F.r - 0.28, F.rim + 0.03], [F.r + 0.02, F.rim + 0.03], [F.r + 0.06, F.rim], [F.r + 0.06, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 64), stone));
-  rim.position.set(F.x, 0, F.z);
-  const waterMat = patchHeat(new THREE.MeshStandardMaterial({ color: 0x1f5a6a, roughness: 0.06, metalness: 0.2 }), 'water');
-  const water = new THREE.Mesh(new THREE.CircleGeometry(F.r - 0.3, 48).rotateX(-Math.PI / 2), waterMat);
-  water.position.set(F.x, F.water, F.z); water.receiveShadow = true;
-  const ped = shadowy(new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.42, 0], [0.32, 0.25], [0.26, 0.85], [0.9, 1.0], [1.02, 1.12], [0.95, 1.16], [0.2, 1.1], [0.1, 1.28], [0, 1.3]].map(([r, y]) => new THREE.Vector2(r, y)), 40), stone));
-  ped.position.set(F.x, 0, F.z);
-  scene.add(rim, water, ped);
+  // (the fountain is its own module: fountain.js)
 
   // ---- street lamps: a post in two pieces (so the Sun can bend it), an arm and a lantern ----
   const lampMat = plainMat(0x1d2124, 0.5, { metalness: 0.4 });
@@ -234,19 +228,23 @@ export function makePark(scene, { plainMat, shadowy }) {
     return { g, up, dir: i % 2 ? 1 : -1 };
   });
 
-  // ---- benches ----
+  // ---- benches: two halves hinged at the middle, so they can snap and fold down ----
   const wood = plainMat(0x8a5a32, 0.8), iron = plainMat(0x222222, 0.6, { metalness: 0.4 });
-  for (const [x, z, yaw] of BENCHES) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw;
-    for (let k = 0; k < 3; k++) g.add(shadowy(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.04, 0.12), wood)).translateY(0.45).translateZ(-0.15 + k * 0.15));
-    for (let k = 0; k < 2; k++) { const b = shadowy(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.04), wood)); b.position.set(0, 0.62 + k * 0.15, -0.26); g.add(b); }
-    for (const sx of [-0.75, 0.75]) { const l = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.5), iron)); l.position.set(sx, 0.225, -0.05); g.add(l); }
-    scene.add(g);
-  }
+  const benches = BENCHES.map(([x, z, yaw]) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; scene.add(g);
+    const halves = [-1, 1].map((sx) => {
+      const h = new THREE.Group(); h.position.set(0, 0.47, 0); g.add(h);          // the hinge: the seat's middle
+      for (let k = 0; k < 3; k++) { const m = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.12), wood)); m.position.set(sx * 0.45, -0.02, -0.15 + k * 0.15); h.add(m); }
+      for (let k = 0; k < 2; k++) { const m = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.04), wood)); m.position.set(sx * 0.45, 0.15 + k * 0.15, -0.26); h.add(m); }
+      const l = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.5), iron)); l.position.set(sx * 0.75, -0.245, -0.05); h.add(l);
+      return { h, sx };
+    });
+    return { g, halves, x, z };
+  });
 
   const tmp = new THREE.Vector3();
   return {
-    ground, water, waterMat, top, board, net, lamps,
+    ground, top, board, net, lamps, benches,
     // the world position of the backboard's centre now
     boardCentre(out) { top.updateMatrixWorld(true); return out.copy(boardC).applyMatrix4(top.matrixWorld); },
     frame(key, tt) {
@@ -257,9 +255,20 @@ export function makePark(scene, { plainMat, shadowy }) {
         const t = tt - SUN_HOOP, T = SUN_BOARD_HIT - SUN_HOOP;
         if (t > 0) th = t < T ? thMax * (t / T) * (t / T) : thMax - 0.05 * Math.exp(-(t - T) / 0.12) * Math.abs(Math.sin((t - T) * 22));
         th += 0.04 * smooth(0, 0.3, tt) * (t < 0 ? 1 : 0);              // (sagging before it goes)
-      } else if (key === 'jupiter') th = 0.035 * smooth(0, 0.3, tt);    // (the arm dips under the weight)
+      } else if (key === 'jupiter') {
+        // the arm dips under the weight at once; ~3 s in the post bends and the board tips down toward the court
+        th = 0.035 * smooth(0, 0.3, tt) + 0.3 * smooth(JUP_HOOP, JUP_HOOP + 0.45, tt) + 0.14 * smooth(5.5, 5.95, tt) + 0.02 * Math.exp(-Math.max(0, tt - JUP_HOOP - 0.45) / 0.15) * Math.sin((tt - JUP_HOOP) * 30) * smooth(JUP_HOOP + 0.3, JUP_HOOP + 0.45, tt);
+      }
       
       top.rotation.x = th;
+      // the benches: Jupiter snaps them in the middle ~3 s in (the halves fold down, the middle on the ground); the Sun
+      // flattens them at once
+      benches.forEach((bn, i) => {
+        let a = 0, dy = 0;
+        if (key === 'jupiter') { const t0 = JUP_BENCH[i % JUP_BENCH.length]; const k = smooth(t0, t0 + 0.14, tt); a = 0.42 * k; dy = -0.4 * k; }
+        else if (key === 'sun') { const k = smooth(0.04, 0.12, tt); a = 0.05 * k; dy = -0.42 * k; }
+        bn.halves.forEach((hf) => { hf.h.rotation.z = hf.sx * a; hf.h.position.y = 0.47 + dy; });
+      });
       // the lamps: the Sun bends them over (the upper post more than the lower)
       lamps.forEach((l, i) => {
         let b0 = 0, b1 = 0;

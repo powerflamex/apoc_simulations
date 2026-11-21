@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { makePark, GU } from './park.js';
 import { makeTrees } from './trees.js';
+import { makeFountain } from './fountain.js';
 import { makeCity } from './city.js';
 import { makeFleet } from './cars.js';
 import { makeCrowd } from './crowd.js';
@@ -17,8 +18,9 @@ import { PEOPLE, personPose } from './people.js';
 import { YOU, FACE_YAW, HOOP, FOUNTAIN, CARS, BUILDINGS, COURT } from './layout.js';
 import { STOPS } from './timeline.js';
 import {
-  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, V_JUMP, PLU_TAKE, PLU_VX, JUP_BUCKLE, SUN_FLAT, SUN_HOOP, SUN_BOARD_HIT, SUN_TYRES,
-  WD_CRUSH, WD_BLDG0, WD_BLDG_STEP, WD_CRACK, NS_FILM, NS_FLARE, sqWD, sqNS,
+  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, V_JUMP, PLU_TAKE, PLU_VX, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, jupCarT,
+  SUN_FLAT, SUN_HOOP, SUN_BOARD_HIT, sunTyreT, sunRoofT, SUN_TREES, SUN_WINDOWS, SUN_TOP_LIST,
+  WD_CRUSH, WD_BLDG_T, WD_FLAT0, WD_FLAT1, wdFrontR, NS_FILM, NS_WAVE0, NS_WAVE1, nsWaveR, sqWD, sqNS,
 } from './sched.js';
 import { smooth, clamp, lerp } from './util.js';
 
@@ -69,6 +71,7 @@ export function makeWorld(scene) {
   const smoke = makeSmoke(scene, 1400);
   const glows = makeGlows(scene, 400);
   const parts = makeParts(scene, 12000);
+  const fountain = makeFountain(scene, { plainMat, shadowy, parts });
   const you = makeYou(scene, { hoodie: 0xd8352a });
   const youSq = new THREE.Group(); scene.add(youSq); youSq.add(you.root);
   you.root.rotation.order = 'YXZ';
@@ -88,51 +91,6 @@ export function makeWorld(scene) {
   const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3();
   const youLocal = (x, y, z, out) => { you.root.updateMatrixWorld(true); return out.set(x, y, z).applyMatrix4(you.root.matrixWorld); };
   const m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), s4 = new THREE.Vector3(), p4 = new THREE.Vector3(), e4 = new THREE.Euler();
-
-  // ---- the fountain's jets: the drops in flight now, under Earth's gravity until the wipe, this world's after ----
-  const F = FOUNTAIN;
-  const JETS = [{ p: [F.x, 1.3, F.z], v: [0, 6.57, 0], n: 1 }];
-  for (let k = 0; k < 8; k++) {
-    const a = (k / 8) * Math.PI * 2 + 0.2;
-    const dx = -Math.sin(a), dz = -Math.cos(a), sp = 5.42;
-    JETS.push({ p: [F.x + Math.sin(a) * 2.6, 0.58, F.z + Math.cos(a) * 2.6], v: [dx * sp * 0.5, sp * 0.866, dz * sp * 0.5], n: 0.6 });
-  }
-  function fountain(key, tt, wetOut) {
-    const g = GV[key];
-    if (key === 'wd' || key === 'ns') return;
-    const DT = 0.022, back = 2.6;
-    let wet = 0;
-    JETS.forEach((J, j) => {
-      const first = Math.ceil((tt - Math.min(tt + back, 40)) / DT);
-      for (let k = 0; k < 2000; k++) {
-        const e = tt - k * DT;                                 // when this drop left the nozzle
-        if (e < -back) break;
-        const sj = hash(k + j * 977, 3.3), sj2 = hash(k + j * 977, 5.7);
-        const vx = J.v[0] * (1 + 0.05 * (sj - 0.5)) + 0.15 * (sj2 - 0.5), vy = J.v[1] * (1 + 0.04 * (sj2 - 0.5)), vz = J.v[2] * (1 + 0.05 * (sj - 0.5)) + 0.15 * (sj - 0.5);
-        let x, y, z, vyN;
-        if (e >= 0) { const t = tt - e; x = J.p[0] + vx * t; z = J.p[2] + vz * t; y = J.p[1] + vy * t - 0.5 * g * t * t; vyN = vy - g * t; }
-        else {
-          const a = -e; let y1 = J.p[1] + vy * a - 0.5 * gE * a * a; const vy1 = vy - gE * a;
-          if (y1 < 0.38 && vy1 < 0) continue;                  // (landed back in the basin before the switch)
-          const t = tt; x = J.p[0] + vx * (a + t); z = J.p[2] + vz * (a + t); y = y1 + vy1 * t - 0.5 * g * t * t; vyN = vy1 - g * t;
-        }
-        const inBasin = Math.hypot(x - F.x, z - F.z) < F.r - 0.3;
-        const floor = inBasin ? F.water : 0.02;
-        if (y < floor) {
-          // landed: a little splash where it came down (only the recent ones)
-          const tl = vyN < 0 ? (floor - y) / Math.max(0.5, -vyN) : 0;
-          if (tl < 0.25 && k % 2 === 0) parts.add(x, floor + 0.05 + tl * 0.6, z, 0.05 + tl * 0.5, 0, 0.6, 0, 0, 0.85, 0.9, 0.95, 0.35 * (1 - tl / 0.25), sj);
-          if (!inBasin) wet += 1;
-          continue;
-        }
-        const big = Math.min(1.6, 0.6 + 0.012 * Math.abs(vyN));
-        parts.add(x, y, z, (J.n > 0.9 ? 0.17 : 0.1) * (0.85 + 0.3 * sj), 0, 0, 0, 0, 0.8, 0.88, 0.97, 0.42, sj);      // (the stream's body: soft blobs that run together)
-        parts.add(x, y, z, (0.075 * big * J.n + 0.03) * (0.8 + 0.5 * sj2), vx * 2.5, vyN * 2.5, vz * 2.5, 1, 0.86, 0.93, 1.0, 0.8, sj);
-        if (k % 2 === 0) parts.add(x + (sj - 0.5) * 0.3, y, z + (sj2 - 0.5) * 0.3, 0.25 + 0.2 * sj * J.n, 0, 0, 0, 0, 0.92, 0.96, 1.0, 0.12, sj2);       // (spray mist round the stream)
-      }
-    });
-    wetOut.w = clamp(wet / 300);
-  }
 
   // ---- you ----
   function placeYou(key, tt) {
@@ -171,14 +129,19 @@ export function makeWorld(scene) {
         you.root.rotation.x = 0.12 * k;
       }
     } else if (key === 'jupiter') {
-      const k = smooth(JUP_BUCKLE, JUP_BUCKLE + 0.2, tt) + 0.12 * Math.exp(-Math.max(0, tt - 0.26) / 0.12) * smooth(0.1, 0.26, tt);
-      const up = smooth(3.9, 4.5, tt) * (1 - smooth(4.9, 5.15, tt));
-      // down on your knees, bent over, hands braced on your thighs (the legs are set after the pose, below)
-      q.sink = (0.43 - 0.2 * up) * k; q.hunch = (0.5 - 0.2 * up) * k; q.head = [0.4 * k, -0.15];
-      q.holdR = youLocal(-0.13, 0.62 + 0.15 * up, 0.3, new THREE.Vector3()); q.poleR = youLocal(-0.6, 1.0, -0.3, new THREE.Vector3());
-      q.holdL = youLocal(0.34, 0.62 + 0.15 * up, 0.3, new THREE.Vector3()); q.poleL = youLocal(0.8, 1.0, -0.3, new THREE.Vector3());
-      q.kneel = k * (1 - 0.5 * up);
-      q.curlR = 0.8; q.curlL = 0.8; q.roll = 0.03 * up * Math.sin(tt * 23);
+      // a stagger (a lurch to the left, arms thrown out), down onto your knees, hands on your thighs; ~3 s in, as the
+      // trees break, you fold forward onto your hands
+      const st = smooth(JUP_BUCKLE, JUP_BUCKLE + 0.1, tt) * (1 - smooth(0.3, 0.45, tt));
+      const k = smooth(0.28, 0.48, tt) + 0.1 * Math.exp(-Math.max(0, tt - 0.48) / 0.12) * smooth(0.4, 0.48, tt);
+      const f = smooth(3.0, 3.3, tt);
+      const up = smooth(5.2, 5.7, tt) * (1 - smooth(6.0, 6.25, tt));       // (you try to push up, and can't)
+      q.roll = -0.16 * st + 0.03 * up * Math.sin(tt * 23);
+      q.sink = 0.43 * k; q.hunch = 0.12 * st + lerp(0.5, 1.2 - 0.25 * up, f) * k; q.head = [lerp(0.4, -0.2, f) * k, -0.15];
+      const hy = lerp(0.62, 0.12 + 0.12 * up, f), hz = lerp(0.3, 0.62, f);
+      q.holdR = youLocal(lerp(-0.13, -0.24, f) - 0.5 * st, hy + 0.7 * st, hz - 0.15 * st, new THREE.Vector3()); q.poleR = youLocal(-0.6, 1.0, -0.3, new THREE.Vector3());
+      q.holdL = youLocal(lerp(0.34, 0.45, f) + 0.5 * st, hy + 0.7 * st, hz - 0.15 * st, new THREE.Vector3()); q.poleL = youLocal(0.8, 1.0, -0.3, new THREE.Vector3());
+      q.kneel = k;
+      q.curlR = lerp(0.8, 0.2, f); q.curlL = q.curlR;
     } else {
       // slammed flat on your front, arms flung forward
       const k = key === 'sun' ? smooth(SUN_FLAT, SUN_FLAT + 0.08, tt) : smooth(WD_CRUSH - 0.02, WD_CRUSH + 0.05, tt);
@@ -233,7 +196,6 @@ export function makeWorld(scene) {
   }
 
   const toward = (p, k) => p;  // (placeholder for readability)
-  const wetOut = { w: 0 };
   return {
     sun, hemi, sky, park, trees, city, crowd, you, parts, smoke, glows,
     setStop(i, v, camera) {
@@ -246,7 +208,7 @@ export function makeWorld(scene) {
       H.uTK.value = 300; H.uAmbK.value = 300; H.uTKP.value = 300; H.uAmbKP.value = 300;
       H.uSunW.value.copy(SUN_DIR); H.uFrostF.value = -1e5; H.uFrostAll.value = 0;
       H.uSq.value = 1; H.uSqY.value = 0;
-      GU.uCrack.value = 0; GU.uCrackR.value = 0; GU.uCrackGlow.value = 0; GU.uPlate.value = 0; GU.uFilm.value = 0; GU.uWet.value = 0;
+      GU.uCrack.value = 0; GU.uCrackR.value = 1e5; GU.uWave.value = 1e5; GU.uCrackGlow.value = 0; GU.uPlate.value = 0; GU.uFilm.value = 0; GU.uWet.value = 0;
       GU.uCam.value.set(camera.position.x, camera.position.z); GU.uTime.value = v;
       const s = sky.u;
       s.uTop.value.setRGB(0.13, 0.32, 0.72); s.uLow.value.setRGB(0.6, 0.74, 0.92); s.uHaze.value.setRGB(0.78, 0.85, 0.93); s.uHazeK.value = 0.55;
@@ -274,56 +236,78 @@ export function makeWorld(scene) {
         }
       };
       trees.frame(key, tt, burst);
-      // the cars: settle on Jupiter; on the Sun their tyres burst one after another (the bodies drop onto the rims)
+      // the cars: Jupiter ~3 s in their springs bottom out, one after another (the bodies drop onto the wheels); the
+      // Sun bursts their tyres at once, then ~3.5 s in crushes their roofs in
       CARS.forEach((c, k) => {
-        let sy = 1, dy = 0;
-        if (key === 'jupiter') sy = 1 - 0.045 * smooth(0, 0.18, tt) - 0.015 * Math.exp(-tt / 0.2) * Math.sin(tt * 30) * smooth(0, 0.05, tt);
+        let sy = 1;
+        const dustAt = (d, n, col) => {
+          for (let j = 0; j < n; j++) {
+            const a = hash(j + k * 31, 2.2), b = hash(j + k * 31, 4.4);
+            const wx = c.x + (j % 2 ? 1.5 : -1.5), wz = c.z + (j % 4 < 2 ? 0.85 : -0.85);
+            parts.add(wx + (a - 0.5) * d * 5, 0.15 + b * d * 1.5, wz + (b - 0.5) * d * 3, 0.12 + d * 0.9, 0, 0, 0, 0, col, col * 0.95, col * 0.88, 0.5 * (1 - d / 0.7), a);
+          }
+        };
+        if (key === 'jupiter') {
+          const t0 = jupCarT(k);
+          sy = 1 - 0.045 * smooth(0, 0.18, tt) - 0.1 * smooth(t0, t0 + 0.08, tt) + 0.02 * Math.exp(-Math.max(0, tt - t0 - 0.08) / 0.1) * Math.sin((tt - t0) * 50) * smooth(t0, t0 + 0.08, tt);
+          if (tt > t0 && tt < t0 + 0.7) dustAt(tt - t0, 8, 0.55);
+        }
         if (key === 'sun') {
-          const t0 = SUN_TYRES + 0.085 * ((k * 5) % CARS.length) * (12 / CARS.length);
-          const T = key === 'sun' ? tt : 99;
-          sy = 0.94 - 0.18 * smooth(t0, t0 + 0.05, T) + 0.03 * Math.exp(-Math.max(0, T - t0 - 0.05) / 0.08) * Math.sin((T - t0) * 60) * smooth(t0, t0 + 0.05, T);
-          if (key === 'sun' && T > t0 && T < t0 + 0.6) {
-            const d = T - t0;
-            for (let j = 0; j < 18; j++) {           // a puff of dust and rubber at each wheel, glass bursting out
-              const a = hash(j + k * 31, 2.2), b = hash(j + k * 31, 4.4);
-              const wx = c.x + (j % 2 ? 1.6 : -1.6), wz = c.z + (j % 4 < 2 ? 0.9 : -0.9);
-              parts.add(wx + (a - 0.5) * d * 6, 0.2 + b * d * 2 - 8 * d * d, wz + (b - 0.5) * d * 4, 0.08 + d * 0.6, 0, 0, 0, 0, 0.5, 0.47, 0.42, 0.45 * (1 - d / 0.6), a);
-              if (j < 10) parts.add(c.x + (a - 0.5) * 3, 1.1 - 80 * d * d, c.z + (b - 0.5) * 1.6, 0.035, 0, -30, 0, 3, 1.6, 1.7, 1.8, (1 - d / 0.25) * (d < 0.25 ? 1 : 0), a);
-            }
+          const t0 = sunTyreT(k), t1 = sunRoofT(k);
+          sy = 0.94 - 0.16 * smooth(t0, t0 + 0.05, tt) - 0.3 * smooth(t1, t1 + 0.07, tt);
+          sy += 0.03 * Math.exp(-Math.max(0, tt - t0 - 0.05) / 0.08) * Math.sin((tt - t0) * 60) * smooth(t0, t0 + 0.05, tt);
+          if (tt > t0 && tt < t0 + 0.7) dustAt(tt - t0, 14, 0.5);
+          if (tt > t1 && tt < t1 + 0.4) for (let j = 0; j < 24; j++) {      // the windows burst as the roof comes down
+            const a = hash(j + k * 17, 6.2), b = hash(j + k * 17, 7.4), d = tt - t1;
+            parts.add(c.x + (a - 0.5) * 3.5 * (1 + 3 * d), Math.max(0.05, 1.0 - 60 * d * d), c.z + (b - 0.5) * 1.8 * (1 + 3 * d), 0.06, 0, 0, 0, 5, 0.8, 0.9, 1.0, 1 - d / 0.4, a);
+            if (j % 3 === 0) parts.add(c.x + (a - 0.5) * 3, 1.0, c.z + (b - 0.5) * 1.6, 0.07, 0, 0, 0, 3, 2.0, 2.1, 2.3, Math.max(0, 1 - d / 0.15), b);
           }
         }
-        m4.makeRotationY(c.yaw).premultiply(new THREE.Matrix4().makeScale(1, sy, 1)).setPosition(c.x, dy, c.z);
+        m4.makeRotationY(c.yaw).premultiply(new THREE.Matrix4().makeScale(1, sy, 1)).setPosition(c.x, 0, c.z);
         fleet.set(k, m4, false);
       });
       fleet.commit();
-      // the buildings: on the Sun their windows burst ~4.5 s in (glass raining down); the white dwarf pancakes them
-      // one after another; the neutron star leaves a film
+      // the buildings: on the Sun their windows burst out ~4 s in, glass pouring down the fronts, and ~6 s in the tallest
+      // start to give way at the top; the white dwarf brings them down one after another, the farthest first, coming
+      // toward you, and the front of cracks presses the heaps flat; the neutron star leaves a film
       let crushF = () => 0, bst = 0;
       if (key === 'sun') {
-        bst = 0.75 * smooth(4.3, 5.0, tt);
-        if (tt > 4.3 && tt < 6.2) for (let j = 0; j < 500; j++) {
+        bst = 0.85 * smooth(SUN_WINDOWS, SUN_WINDOWS + 0.6, tt);
+        if (tt > SUN_WINDOWS && tt < SUN_WINDOWS + 2.0) for (let j = 0; j < 900; j++) {
           const bi = j % BUILDINGS.length, b = BUILDINGS[bi];
           if (b.back) continue;
-          const t0 = 4.3 + 0.7 * hash(j, 1.1), t = tt - t0;
-          if (t < 0 || t > 0.5) continue;
-          const y0 = 4.5 + hash(j, 2.2) * (b.h - 5.5), y = y0 - 0.5 * 274 * 0.12 * t * t;
+          const t0 = SUN_WINDOWS + 0.6 * hash(j, 1.1), t = tt - t0;
+          if (t < 0 || t > 0.9) continue;
+          const y0 = 4.5 + hash(j, 2.2) * (b.h - 5.5), fall = 0.5 * 274 * 0.04 * t * t, y = y0 - fall;
           if (y < 0.1) continue;
-          parts.add(b.x + (hash(j, 3.3) - 0.5) * b.w, y, b.z + 0.4 + hash(j, 4.4) * 1.5, 0.05 + 0.04 * hash(j, 5.5), 0, -274 * 0.12 * t, 0, 5, 0.75, 0.85, 0.95, 0.9, hash(j, 6.6));
-          if (j % 3 === 0) parts.add(b.x + (hash(j, 3.3) - 0.5) * b.w, y, b.z + 0.5, 0.06, 0, 0, 0, 3, 2.0, 2.1, 2.3, 0.6, hash(j, 7.7));
+          const out = 3.5 * t * (0.5 + hash(j, 4.4));                     // blown out of the front, then straight down
+          parts.add(b.x + (hash(j, 3.3) - 0.5) * b.w, y, b.z + 0.3 + out, 0.14 + 0.1 * hash(j, 5.5), 0, -274 * 0.04 * t, 3.5, 5, 0.78, 0.88, 0.98, 0.95, hash(j, 6.6));
+          if (j % 3 === 0) parts.add(b.x + (hash(j, 3.3) - 0.5) * b.w, y, b.z + 0.4 + out, 0.16, 0, 0, 0, 3, 2.0, 2.1, 2.3, 0.7 * (1 - t / 0.9), hash(j, 7.7));
+        }
+        // the tallest ones' top floors give way: they sag down onto the floors below in a burst of dust
+        const tops = new Map(SUN_TOP_LIST.map((x) => [x.i, x.t]));
+        crushF = (bi) => (tops.has(bi) ? 0.28 * smooth(tops.get(bi), tops.get(bi) + 0.35, tt) : 0);
+        for (const { i, t: t0 } of SUN_TOP_LIST) {
+          const b = BUILDINGS[i], t = tt - t0;
+          if (t < 0 || t > 2.5) continue;
+          for (let j = 0; j < 16; j++) {
+            const a = hash(j + i * 7, 1.9), c = hash(j + i * 7, 2.7);
+            smoke.puff(b.x + (a - 0.5) * b.w, b.h * (1 - 0.26 * smooth(0, 0.35, t)) + 1 + 4 * c * Math.sqrt(t), b.z + 1 + 3 * c * t, 2 + 3 * c + 3 * t, 0.6 * (1 - smooth(0.8, 2.5, t)) * smooth(0, 0.15, t), 0.7, 0, a);
+          }
         }
       }
       if (key === 'wd') {
-        // left to right, the near row and the tall row behind interleaved
-        crushF = (bi) => { const b = BUILDINGS[bi]; const t0 = WD_BLDG0 + WD_BLDG_STEP * ((b.x + 50) / 7.5) + (b.back ? 0.12 : 0); return smooth(t0, t0 + 0.32, tt); };
+        const R = wdFrontR(tt);
+        crushF = (bi) => { const b = BUILDINGS[bi], t0 = WD_BLDG_T[bi]; const d = Math.hypot(b.x, b.z - b.d / 2); return smooth(t0, t0 + 0.32, tt) + 0.063 * smooth(R + 6, R - 6, d); };
         BUILDINGS.forEach((b, bi) => {
-          const t0 = WD_BLDG0 + WD_BLDG_STEP * ((b.x + 50) / 7.5) + (b.back ? 0.12 : 0), t = tt - t0;
-          if (t < 0.15 || t > 3.0) return;
+          const t = tt - WD_BLDG_T[bi];
+          if (t < 0.12 || t > 3.0) return;
           // a sheet of dust shoved out low along the street from its foot
           for (let j = 0; j < 14; j++) {
             const a = hash(j + bi * 13, 1.7), c = hash(j + bi * 13, 2.9);
-            const r = (1.5 + 6 * Math.sqrt(t - 0.15)) * (0.5 + 0.6 * c);
+            const r = (1.5 + 6 * Math.sqrt(t - 0.12)) * (0.5 + 0.6 * c);
             const px = b.x + (a - 0.5) * b.w * 1.1, pz = b.z - b.d * 0.4 + (j % 2 ? 1 : -0.3) * r * 0.9;
-            smoke.puff(px, 0.4 + 0.5 * c, pz, 2.4 + 2.5 * c + 2 * t, 0.55 * (1 - smooth(1.2, 3.0, t)) * smooth(0.15, 0.3, t), 0.62, 0, a, 0.3);
+            smoke.puff(px, 0.4 + 0.5 * c, pz, 2.4 + 2.5 * c + 2 * t, 0.55 * (1 - smooth(1.0, 2.6, t)) * smooth(0.12, 0.25, t), 0.62, 0, a, 0.3);
           }
         });
       }
@@ -336,8 +320,10 @@ export function makeWorld(scene) {
       placeYou(key, tt);
       const dk = PEOPLE.find((p) => p.kind === 'dunker');
       placeBall(key, tt, { x: dk._x, y: dk._y, z: dk._z, s: dk.s });
-      fountain(key, tt, wetOut);
-      GU.uWet.value = key === 'moon' || key === 'pluto' ? 0.5 + 0.5 * wetOut.w : 0;
+      // the fountain: this world's gravity from the wipe on (the white dwarf and the neutron star press it flat)
+      const crushed = (key === 'wd' || key === 'ns') && tt > WD_CRUSH;
+      const out_ = fountain.frame(key === 'wd' || key === 'ns' ? gE : GV[key], tt, !crushed, camera.position);
+      GU.uWet.value = key === 'moon' || key === 'pluto' ? 0.4 + 0.6 * out_ : 0;
 
       // ====================================================================================== the worlds
       if (key === 'moon') {
@@ -345,18 +331,30 @@ export function makeWorld(scene) {
       } else if (key === 'pluto') {
         out.shake = 0.04;
       } else if (key === 'jupiter') {
-        out.jolt = 0.9 * Math.exp(-Math.max(0, tt - 0.08) / 0.18) * smooth(0, 0.08, tt) + 0.35 * Math.max(...[2.75, 2.95, 3.2, 3.45, 3.9].map((t) => Math.exp(-Math.abs(tt - t - 0.3) / 0.1)));
-        out.shake = 0.12;
+        const hits = [...JUP_SNAP.map((t) => t + 0.65), ...JUP_BENCH, JUP_HOOP + 0.4];
+        out.jolt = 0.9 * Math.exp(-Math.max(0, tt - 0.08) / 0.18) * smooth(0, 0.08, tt) + 0.45 * Math.max(...hits.map((t) => Math.exp(-Math.abs(tt - t) / 0.1)));
+        out.shake = 0.12 + 0.25 * smooth(2.8, 3.1, tt) * (1 - smooth(4.2, 5.0, tt));
+        // splinters where each bench breaks
+        park.benches.forEach((bn, i) => {
+          const t = tt - JUP_BENCH[i % JUP_BENCH.length];
+          if (t < 0 || t > 0.6) return;
+          for (let j = 0; j < 16; j++) {
+            const a = hash(j + i * 19, 3.7), b = hash(j + i * 19, 5.1);
+            parts.add(bn.x + (a - 0.5) * 1.6, Math.max(0.03, 0.45 + 1.5 * b * t - 12 * t * t), bn.z + (b - 0.5) * 0.8, 0.04 + 0.03 * a, 0, 0, 0, 4, 0.55, 0.36, 0.2, 1 - t / 0.6, a);
+          }
+          smoke.puff(bn.x, 0.2, bn.z, 0.5 + 1.2 * t, 0.35 * (1 - t / 0.6), 0.75, 0, i * 0.3, 0.5);
+        });
       } else if (key === 'sun') {
-        out.jolt = 1.3 * Math.exp(-Math.max(0, tt - 0.05) / 0.2) * smooth(0, 0.05, tt) + 0.7 * Math.exp(-Math.abs(tt - SUN_BOARD_HIT) / 0.08) + 0.6 * Math.exp(-Math.abs(tt - 2.95) / 0.12);
-        out.shake = 0.25 + 0.4 * Math.exp(-Math.abs(tt - 3.0) / 0.4);
+        out.jolt = 1.3 * Math.exp(-Math.max(0, tt - 0.05) / 0.2) * smooth(0, 0.05, tt) + 0.8 * Math.exp(-Math.abs(tt - SUN_BOARD_HIT) / 0.08) + 0.7 * Math.exp(-Math.abs(tt - SUN_TREES - 0.3) / 0.15)
+          + 0.5 * Math.max(...SUN_TOP_LIST.map((x) => Math.exp(-Math.abs(tt - x.t - 0.2) / 0.12)));
+        out.shake = 0.25 + 0.45 * Math.exp(-Math.abs(tt - 3.4) / 0.5) + 0.3 * Math.exp(-Math.abs(tt - 6.6) / 0.6);
         // the backboard hits the court and bursts: glass and dust
         const bt = tt - SUN_BOARD_HIT;
         if (bt > 0 && bt < 1.2) {
           const c = park.boardCentre(v2);
           for (let j = 0; j < 220; j++) {
             const a = hash(j, 8.1) * 6.283, sp = 1.5 + 5 * hash(j, 8.3), up = 0.6 + 1.2 * hash(j, 8.5);
-            const t = bt, tl = Math.min(t, up / (274 * 0.05) * 2);
+            const t = bt;
             const y = Math.max(0.03, 0.1 + up * t - 0.5 * 274 * 0.05 * t * t);
             const sl = Math.min(t, 0.35);
             parts.add(c.x + Math.cos(a) * sp * sl, y, c.z + Math.sin(a) * sp * sl, 0.03 + 0.03 * hash(j, 8.7), 0, 0, 0, 5, 0.85, 0.92, 1.0, 1, hash(j, 8.9));
@@ -367,44 +365,48 @@ export function makeWorld(scene) {
       } else if (key === 'wd') {
         const sq = sqWD(tt);
         H.uSq.value = sq; sun.shadow.intensity = smooth(0.4, 0.85, sq);
-        const ck = smooth(WD_CRACK, WD_CRACK + 0.7, tt);
-        GU.uCrack.value = smooth(WD_CRACK - 0.05, WD_CRACK + 0.1, tt); GU.uPlate.value = ck * (window.__noPlate ? 0 : 1); GU.uCrackR.value = 70 * Math.pow(smooth(WD_CRACK - 0.05, WD_CRACK + 0.8, tt), 0.7);
-        GU.uCrackGlow.value = 2.5 * smooth(WD_CRACK, WD_CRACK + 2.5, tt);
-        H.uAmbK.value = lerp(300, 820, smooth(WD_CRACK + 0.5, 7.5, tt));
-        out.jolt = 1.4 * Math.exp(-Math.max(0, tt - WD_CRUSH) / 0.2) * smooth(0, WD_CRUSH, tt) + 1.3 * Math.exp(-Math.max(0, tt - WD_CRACK) / 0.25) * smooth(WD_CRACK - 0.05, WD_CRACK, tt);
-        out.shake = 0.3 + 0.5 * smooth(0.3, 1.4, tt) * (1 - smooth(2.0, 2.8, tt)) + 0.5 * Math.exp(-Math.max(0, tt - WD_CRACK) / 1.5) * smooth(WD_CRACK - 0.05, WD_CRACK, tt);
-        // the sky hazes over with dust
-        scene.fog.color.setRGB(0.62, 0.6, 0.58); scene.fog.density = 0.0055 + 0.012 * smooth(0.4, 2.0, tt) * (1 - 0.5 * smooth(3, 7, tt));
-        s.uHaze.value.lerp(new THREE.Color(0.62, 0.58, 0.54), smooth(0.4, 2.0, tt) * 0.6); s.uHazeK.value = 0.55 + 0.3 * smooth(0.4, 2.0, tt);
-        // sparks spitting from the glowing seams
-        if (tt > WD_CRACK) for (let j = 0; j < 160; j++) {
+        // the front of cracks sweeping in from the horizon: plates drop behind it, the seams glow
+        const R = wdFrontR(tt), on = smooth(WD_FLAT0 - 0.05, WD_FLAT0 + 0.1, tt);
+        GU.uCrack.value = on; GU.uPlate.value = on; GU.uCrackR.value = R; GU.uCrackGlow.value = 2.5 * smooth(WD_FLAT0, WD_FLAT1, tt);
+        H.uAmbK.value = lerp(300, 760, smooth(WD_FLAT0 + 0.5, WD_FLAT1 + 0.8, tt));
+        const bh = BUILDINGS.map((b, i) => Math.exp(-Math.abs(tt - WD_BLDG_T[i] - 0.25) / 0.09) * (0.15 + 0.35 * smooth(70, 40, Math.hypot(b.x, b.z))));
+        out.jolt = 1.4 * Math.exp(-Math.max(0, tt - WD_CRUSH) / 0.2) * smooth(0, WD_CRUSH, tt) + Math.max(...bh) + 1.2 * Math.exp(-Math.max(0, tt - WD_FLAT1) / 0.25) * smooth(WD_FLAT1 - 0.1, WD_FLAT1, tt);
+        out.shake = 0.3 + 0.35 * smooth(0.8, 1.5, tt) * (1 - smooth(5.0, 5.6, tt)) + 0.7 * smooth(WD_FLAT0, WD_FLAT1, tt) * (1 - smooth(WD_FLAT1 + 0.3, WD_FLAT1 + 1.2, tt));
+        // the sky hazes over with dust as they come down
+        scene.fog.color.setRGB(0.62, 0.6, 0.58); scene.fog.density = 0.0055 + 0.01 * smooth(1.0, 5.0, tt);
+        s.uHaze.value.lerp(new THREE.Color(0.62, 0.58, 0.54), smooth(1.0, 5.0, tt) * 0.6); s.uHazeK.value = 0.55 + 0.3 * smooth(1.0, 5.0, tt);
+        // sparks spitting from the glowing seams, just behind the front
+        if (tt > WD_FLAT0) for (let j = 0; j < 200; j++) {
           const a = hash(j, 6.1), b = hash(j, 6.7), ph = (tt * 1.3 + hash(j, 7.3)) % 1;
-          const f = 4 + 40 * Math.pow(a, 1.6), x = (b - 0.5) * f * 0.8;
-          parts.add(x, 0.05 + ph * 0.4, -f, 0.03 + 0.02 * a, 0, 0.5, 0, 3, 2.4, 0.9, 0.25, Math.sin(Math.PI * ph) * GU.uCrackGlow.value * 0.3, a);
+          const f = Math.max(R, 4) + 40 * Math.pow(a, 1.6), x = (b - 0.5) * f * 0.8;
+          parts.add(x, 0.05 + ph * 0.5, -f, 0.04 + 0.03 * a, 0, 0.5, 0, 3, 2.4, 0.9, 0.25, Math.sin(Math.PI * ph) * GU.uCrackGlow.value * 0.3, a);
         }
       } else if (key === 'ns') {
         const sq = sqNS(tt);
         H.uSq.value = sq; sun.shadow.intensity = 0;
         GU.uFilm.value = smooth(NS_FILM, NS_FILM + 0.2, tt);
-        // it heats till it glows: red at once, brighter and yellower from ~3 s, white at the end
-        const T = lerp(300, 1750, smooth(NS_FILM, NS_FILM + 0.3, tt)) + 250 * smooth(0.8, NS_FLARE, tt) + 1800 * smooth(NS_FLARE, NS_FLARE + 2.2, tt) + 2500 * smooth(5.5, 8.8, tt);
+        // pressed into a film that glows dull red at once; then one move: a bright wave of heat sweeps in from the horizon
+        // over everything (white-hot behind it) and straight into the white
+        const W = nsWaveR(tt);
+        GU.uWave.value = tt > NS_WAVE0 - 0.05 ? W : 1e5;
+        const T = lerp(300, 1300, smooth(NS_FILM, NS_FILM + 0.3, tt));
         H.uAmbK.value = T; H.uTK.value = T;
-        const dark = smooth(NS_FILM, NS_FILM + 1.2, tt);
+        const dark = smooth(NS_FILM, NS_FILM + 0.6, tt);
         s.uTop.value.lerp(new THREE.Color(0.0, 0.0, 0.005), dark); s.uLow.value.lerp(new THREE.Color(0.05, 0.02, 0.015), dark); s.uHaze.value.lerp(new THREE.Color(0.2, 0.06, 0.02), dark);
+        s.uHaze.value.lerp(new THREE.Color(2.0, 1.5, 1.0), smooth(NS_WAVE0, NS_WAVE0 + 0.6, tt));      // (the horizon blazing as the wave sets off)
         s.uCloud.value *= 1 - dark; s.uSunGlow.value = 0;
         sun.intensity *= 1 - 0.85 * dark; hemi.intensity *= 1 - 0.8 * dark;
-        scene.fog.color.setRGB(0.3, 0.1, 0.03); scene.fog.density = 0.004;
-        out.exp = 1 - 0.25 * smooth(NS_FLARE, NS_FLARE + 2, tt) + 2.5 * smooth(6.5, 8.95, tt);
-        out.jolt = 1.6 * Math.exp(-Math.max(0, tt - NS_FILM) / 0.25) * smooth(0, NS_FILM, tt) + 0.9 * Math.exp(-Math.abs(tt - NS_FLARE) / 0.2);
-        out.shake = 0.35 + 0.3 * smooth(NS_FLARE, NS_FLARE + 1, tt);
-        out.shimmer = 1.2 * smooth(0.5, 2.5, tt);
-        // a flash as it's crushed
-        out.veil = [1.0, 0.75, 0.45, 0.85 * Math.exp(-Math.max(0, tt - NS_FILM) / 0.18) * smooth(0, NS_FILM, tt) + 0.35 * smooth(6.8, 8.9, tt)];
-        // sparks of heat flickering over the film
-        for (let j = 0; j < 220; j++) {
-          const a = hash(j, 3.1), b = hash(j, 3.7), ph = (tt * 0.9 + hash(j, 4.3)) % 1;
-          const f = 3 + 60 * Math.pow(a, 1.8), x = (b - 0.5) * f * 0.8;
-          parts.add(x, 0.03 + ph * 0.25, -f, 0.02 + 0.015 * f * 0.05, 0, 0, 0, 3, 2.4, 1.3, 0.5, Math.sin(Math.PI * ph) * 0.5 * smooth(0.3, 1.5, tt), a);
+        scene.fog.color.setRGB(0.3, 0.1, 0.03); scene.fog.density = 0.003;
+        out.exp = 1 + 1.6 * smooth(NS_WAVE1 - 0.6, NS_WAVE1 + 0.6, tt);
+        out.jolt = 1.6 * Math.exp(-Math.max(0, tt - NS_FILM) / 0.25) * smooth(0, NS_FILM, tt);
+        out.shake = 0.35 + 0.9 * smooth(NS_WAVE0, NS_WAVE1, tt);
+        out.shimmer = 1.2 * smooth(0.4, 1.5, tt);
+        out.veil = [1.0, 0.8, 0.55, 0.85 * Math.exp(-Math.max(0, tt - NS_FILM) / 0.18) * smooth(0, NS_FILM, tt) + 0.5 * smooth(NS_WAVE1 - 0.3, NS_WAVE1 + 0.5, tt)];
+        // sparks thrown up along the wave's crest
+        for (let j = 0; j < 260; j++) {
+          const a = hash(j, 3.1), b = hash(j, 3.7), ph = (tt * 2.2 + hash(j, 4.3)) % 1;
+          const f = Math.max(W, 2) + 6 * a, x = (b - 0.5) * f * 0.85;
+          parts.add(x, 0.05 + ph * (0.4 + 0.02 * f), -f, 0.05 + 0.004 * f, 0, 1, 0, 3, 2.6, 1.9, 1.2, Math.sin(Math.PI * ph) * 0.8 * smooth(NS_WAVE0, NS_WAVE0 + 0.3, tt), a);
         }
       }
 
