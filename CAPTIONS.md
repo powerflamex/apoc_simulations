@@ -2796,6 +2796,76 @@ Where would you want to be when it came back? 👇
 
 Cover: `week 9/gravity-off/out/gravity-off_v4_cover.png` (`node render.mjs --cover 31.5`: the kid in the yellow hoodie way up in the sky over the square, you floating 14 ft up with your arms out, the whole crowd floating, the pool block behind; "WHAT IF GRAVITY / turned off / for 5 seconds?")
 
+## Next Short. What if you were 1 trillion times hotter? — `week 9/hot-trillion/out/hot-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+47.5 s, loops. Same formula as scream trillion: you alive in the middle of a new shopping street on a sunny afternoon,
+one counter (TIMES HOTTER, your temperature in °F on the line under it) racing to 1,000,000,000,000x, one continuous
+camera move with no cuts, something new and closer destroyed at every step (~2.6 s each). In order: 0:00 you, big in
+frame in a gap between parked cars, already glowing orange (2.7x, 1,048°F); your friend next to you jerks back with a
+scream, her ice cream slides off the cone onto the road; the title, the counter racing. 0:01-0:04 the people round you
+flinch back, arms over their faces, and run. 0:03 5x, "Hotter than lava."; the asphalt under you goes soft and smokes.
+0:05.6 10x, "As hot as a light bulb filament.": the car behind you, its tires, the trees and the ice cream parlour's
+awning catch fire, the shop windows crack; by 0:07 the street round you is burning. 0:08.2 20x, "Hotter than the surface
+of the Sun.": fires across the street, the road turning to glowing lava, the rooms behind the windows on fire. 0:10.8 30x,
+"Cars sag like wax." 0:13.4 40x, "The building next to you starts to bend." 0:16 50x, "Its walls melt and pour down."
+(the flames die back as things get too hot to burn and simply glow). 0:18.6 70x the walls across the street pour.
+0:21.2 100x, "Hotter than a lightning bolt.": the block next to you boils away. 0:23.8 200x, "The whole street boils into
+glowing gas."; the camera rises behind you: the towers up the street glowing and pouring against a dark sky.
+0:26.4 1,000x, "Everything for half a mile.": a column of glowing gas climbs out of the street behind you.
+0:29 10,000x, "Everything you can see.": the horizon goes up in a band of fire. 0:31.6 60,000x, "Hotter than the center of
+the Sun.": the air itself glows violet. The camera sinks low in front of you, looking up. 0:34.2 1,000,000x, "Brighter
+than the Sun itself.": next to you the Sun looks like a dark spot. 0:36.8 100,000,000x, "Enough to blow the Earth
+apart.": slabs of the ground crack loose round you and fly up, glowing. 0:39.4 100,000,000,000x, "Hotter than anything
+ever made." 0:42 1,000,000,000,000x (558,000,000,000,000°F), "Hotter than anything since the Big Bang.": rays of light out
+of you until the frame is hard white (0:44.8), which clears onto frame 0. Sound: quiet between the hits (bed ~12 dB under
+them), your friend's scream on frame 0, a whoomp on every step, fires catching, glass, metal groaning, the walls pouring,
+thunder as the city boils, the ground cracking, half a second of silence before 1 trillion.
+
+The numbers (also at the top of `src/timeline.js`): "times hotter" multiplies your body temperature in kelvin (37 °C =
+310.15 K; °F and °C have no real zero, so multiplying them means nothing). 2.7x = 837 K = 1,048°F, just past the
+temperature where things start to glow (~977°F). 5x = 2,332°F, hotter than lava (2,000-2,200°F). 10x = 3,100 K = 5,123°F,
+a light bulb filament (2,700-3,000 K). 20x = 6,203 K, hotter than the Sun's surface (5,772 K). 100x = 31,000 K, hotter
+than lightning (~30,000 K). 60,000x = 18.6 million K, hotter than the Sun's core (15.7 million K). You glow like any hot
+body: sigma T^4 over ~1.8 m² of skin (943 W x mult^4): at 1,000,000x that is 9.4e26 W, 2.5 times the Sun's whole output;
+at 100,000,000x it is 9.4e34 W, the energy that holds the Earth together (2.2e32 J) every 2.4 thousandths of a second.
+100 billion x = 31 trillion K, hotter than the hottest thing ever made (5.5 trillion K, lead collisions at the Large
+Hadron Collider, 2012). 1 trillion x = 310 trillion K = 558 trillion °F: the universe was last that hot less than a
+billionth of a second after the Big Bang. What happens where: the heat landing r metres away is sigma T^4 (0.38 m / r)²
+(10x hotter reaches 100x farther). People back off at ~0.5 kW/m² (like an open oven); windows crack at ~9 kW/m²; paint and
+plastic melt ~16; canvas, leaves and tires catch fire at 22-30; asphalt runs liquid ~60; glass runs ~300; thin car steel
+sags ~800 kW/m²; a building's steel frame sags ~3 MW/m²; concrete and brick melt and pour ~10 MW/m²; rock boils to gas
+~100 MW/m² (8.7 m away at 100x, 35 m at 200x, 870 m at 1,000x, past the horizon at 10,000x).
+Honest notes (simplified): you survive, and your clothes glow with you instead of burning; the heat is treated as light
+only (no blast from the air you heat, which would really be a huge explosion); a solid surface is drawn glowing at no more
+than ~3,300 K (rock boils there, so it can't get hotter while it's still there); the times things take to catch, melt and
+boil are shortened to the seconds between steps; people get away before the flames reach them (we don't show what would
+really happen to anyone nearby); the camera survives; your own glow is drawn a little warmer on screen at first so
+1,000°F reads as orange; the "dark" Sun is how it would look next to you, not a change in the Sun; the slabs of ground
+flying up stand for the Earth coming apart, which would really be far more violent.
+
+**YouTube title (86 chars)**
+What if you were 1 trillion times hotter? Hotter than the Big Bang 🔥 #whatif #physics
+
+**YouTube description**
+You start at 2.7 times your body temperature: 1,048°F. You glow.
+5x (2,332°F): hotter than lava. The road melts under your feet.
+10x (5,123°F): as hot as a light bulb filament. Trees, awnings and car tires catch fire.
+20x (10,700°F): hotter than the surface of the Sun.
+30x: cars sag like wax. 50x: the building next to you melts and pours down.
+100x (55,400°F): hotter than a lightning bolt. The whole street boils into glowing gas.
+1,000x: everything for half a mile. 10,000x: everything you can see.
+60,000x: hotter than the center of the Sun.
+1,000,000x: brighter than the Sun itself.
+100,000,000x: every 2.4 thousandths of a second you give off the energy that holds the Earth together.
+100 billion x: hotter than anything ever made.
+1 trillion x: 558 trillion °F. The universe was last this hot a billionth of a second after the Big Bang.
+
+At which number would you have started running? 👇
+
+#whatif #science #physics #simulation
+
+Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --cover 18.2`: you white-hot in a street of molten road, the building beside you glowing with every room on fire, burning cars and trees up the street; "WHAT IF YOU WERE / 1 trillion / times hotter?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

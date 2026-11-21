@@ -274,6 +274,17 @@
       }
     },
     {
+      "name": "hot-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 9/hot-trillion/server.mjs"
+      ],
+      "port": 5321,
+      "env": {
+        "PORT": "5321"
+      }
+    },
+    {
       "name": "gravity-off",
       "runtimeExecutable": "node",
       "runtimeArgs": [
