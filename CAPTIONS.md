@@ -2674,6 +2674,68 @@ How fast would you go before you stopped? 👇
 
 Cover: `week 9/fast-trillion/out/fast-trillion_v4_cover.png` (`node render.mjs --cover 34`: you flying head first down a glowing trench of molten rock between walls of fire and smoke under a black sky; "WHAT IF YOU WERE / 1 trillion / times faster?")
 
+## Next Short. What if Earth had other planets' gravity? — `week 9/planet-gravity/out/planet-gravity_v4_1080x1920_60fps_tiktok.mp4`
+
+47.2 s, loops. The next "picker", built like planet weather: one place, one camera spot just behind YOU, a quick wipe to
+the next world every ~7.5 s, a bar of the six worlds under the title with the neutron star as the finish line. The place is
+new: a packed outdoor basketball court in a city park (~700 people: a game round the far hoop, a crowd along the baseline and
+round a fountain, people on both sidewalks), parked cars, street trees and lamps, shops and flats across the street. Each
+stop starts fresh (everything standing again). Counter: YOUR WEIGHT (150 lb on Earth), racing to each world's; the one line
+under it says how strong that gravity is.
+What you see, in order:
+0:00 the Moon: the whole court hanging in the air mid-jump, arms up, the fountain's jets climbing six times higher, the
+owner's scream, the counter racing down from 150 to 25 LB. 0:01 a player dunks from way above the rim (a clang and a
+swish), the ball bouncing slowly away. 0:03 the whole court jumps at once (a few flip slowly), you too, ~10 ft up and ~4 s in the air ("Every
+jump hangs in the air for 4 seconds"). 0:07 Pluto, 9 LB: you crouch and jump and the camera rises with you, up past the
+backboard and over the hoop, the crowd floating up all round you, the fountain shooting a column of water into the sky, the
+ball drifting up beside you ("One jump takes you 26 feet up", "oh my god"). 0:14.5 Jupiter, 380 LB: with a thud everyone
+drops to their knees, you too; the ball slams down and dies in a few low bounces; the trees sag; 0:17.2-0:18.4 big limbs snap
+off the trees by the court and crash down onto the crowd; people try to get up and can't. 0:22 the Sun, 4,200 LB: everyone
+is slammed flat on the ground at once, you too ("nooo"); 0:22.5 the hoop's post buckles and the backboard crashes onto the
+court and shatters; 0:23 the lamp posts bend over; 0:23.4 the parked cars' tyres burst one after another; limbs break off;
+0:24.9 the trunks snap and the trees crash down; 0:26.3 windows burst across the street, glass raining down ("You weigh as
+much as a car"). 0:29.5 a white dwarf, 15 MILLION LB: 0:29.9 everything still standing (people, you, cars, trees, the hoop)
+is pressed flat into the ground in a blink; 0:30-0:31.2 the buildings across the street pancake one after another, left to
+right, dust shoved out low along the street; 0:32.4 the ground cracks into plates, glowing orange in the seams, and drops.
+0:37 a neutron star, 20 TRILLION LB: 0:37.4 a flash and everything is pressed into one flat film, the sky goes black, the
+flat world glowing red, then orange ("Everything pressed thinner than paper"); 0:40 it flares brighter and brighter; 0:46
+white, which clears onto frame 0 (the loop).
+
+The numbers (also at the top of `src/timeline.js`): your weight = 150 lb x the world's surface gravity / Earth's (9.80 m/s²).
+NASA fact sheets: the Moon 1.62 m/s² -> 24.8 lb (shown 25); Pluto 0.62 -> 9.5 lb (9); Jupiter 24.79 (at the 1-bar cloud
+level) -> 379.5 lb (380); the Sun 274 -> 4,195 lb (4,200). A white dwarf: typical surface gravity about 100,000x Earth's (log g
+≈ 8; most are ~0.6 Suns packed into about Earth's size) -> 15.3 million lb (15 million). A neutron star: 1.4 Suns in a 12 km
+radius (NICER measured ~12-13 km), g = GM/R² ≈ 130 billion x Earth's -> 19.8 trillion lb (20 trillion). Jumps: the same push as
+a 20-inch jump on Earth: on the Moon ~10 ft up and ~4 s in the air; on Pluto 7.9 m (26 ft) up, 5 s just to reach the top. A
+fountain jet's height and an arc's reach scale as 1/gravity (six times higher on the Moon, 16x on Pluto). An average new US
+car weighs ~4,000-4,300 lb.
+Honest notes: every stop switches gravity instantly and starts fresh. At 28x gravity (the Sun) real buildings would most likely
+fall too; the video saves that for the white dwarf (at the Sun only their windows burst). Things would fall much faster than
+shown at the white dwarf and the neutron star (thousandths of a second): the buildings are slowed to about a third of a second
+each and set one after another so you can see them; real dust couldn't rise or spread at all there, it's drawn as a low sheet.
+A dropped ball bounces to the same share of its height on any world, only quicker; the Jupiter dribble is drawn as a dead,
+low bounce. White dwarfs range from ~10,000x to ~1,000,000x Earth's gravity; 100,000x is a typical one. The glow at the
+neutron star is a stand-in for the heat of crushing everything; the black sky comes from the glow outshining it.
+
+**YouTube title (59 chars)**
+What if Earth had other planets' gravity? 🪐 #whatif #space
+
+**YouTube description**
+You're on a packed basketball court and you weigh 150 lb. Every few seconds, Earth gets another world's gravity.
+
+The Moon: 25 lb. Every jump hangs in the air for 4 seconds.
+Pluto: 9 lb. One jump takes you 26 feet up, over the hoop.
+Jupiter: 380 lb. Everyone drops to their knees and the trees start to break.
+The Sun: 4,200 lb, as much as a car. The hoop folds, tires burst, trees snap.
+A white dwarf: 15 million lb. The buildings pancake.
+A neutron star: 20 trillion lb. Everything is pressed thinner than paper.
+
+Which gravity could you survive? 👇
+
+#whatif #space #gravity #physics #simulation
+
+Cover: `week 9/planet-gravity/out/planet-gravity_v4_cover.png` (`node render.mjs --cover 24.1`: the Sun stop, everyone flat on the court with you in front, arms out, the backboard crashed onto the court, the lamp posts bent over; "WHAT IF EARTH HAD / the Sun's / gravity?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the
