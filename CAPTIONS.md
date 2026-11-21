@@ -2736,6 +2736,66 @@ Which gravity could you survive? 👇
 
 Cover: `week 9/planet-gravity/out/planet-gravity_v4_cover.png` (`node render.mjs --cover 24.1`: the Sun stop, everyone flat on the court with you in front, arms out, the backboard crashed onto the court, the lamp posts bent over; "WHAT IF EARTH HAD / the Sun's / gravity?")
 
+## Next Short. What if gravity turned off for 5 seconds? — `week 9/gravity-off/out/gravity-off_v4_1080x1920_60fps_tiktok.mp4`
+
+47.9 s, loops. A new kind of video (no trillion, no picker): one packed city square, the 5 seconds shown in slow motion
+(8x: every second of the countdown takes 8 s of video), one continuous camera that stays with you. The counter is the
+countdown, GRAVITY BACK IN, racing down in hundredths from 4.62 s; the one line under it says how high you are now.
+What you see, in order:
+0:00 you on the fountain's ledge a foot up and rising, arms out, screaming; a kid beside you in mid-jump; the fountain's
+jets already straight columns of blobs climbing into the sky (the last arcs from before still falling into the basin);
+the whole square floating, arms out; the title; slowed-down screams. 0:03 the camera tilts up with the kid shooting up
+past you ("That kid jumped at 10 feet a second. Nothing slows him now."). 0:07 it has swung round to your left: the kid
+high above you, the basketball court behind, players up past the lamp posts, the shot sailing on over the hoop. 0:09.6
+a zoom on the hoop: a player hangs on the rim while the others float up past him ("He grabbed the rim. Everyone else keeps
+rising."). 0:15 back on your face ("The air is rising off the planet too. Your ears pop." with the sound muffling).
+0:19.5 round to your right, looking at the street: a yellow car that was pulling in, kicked off the curb, rolling over in
+mid-air, other cars drifting up off the road and sliding on ("No weight, no grip. The cars can't steer or stop.").
+0:25 a long lens up at the rooftop pool: its water heaving up in a mound with the swimmers in it ("The rooftop pool heaves up
+in a wobbling mound."). 0:30 pulled back: you, the pool block, and the kid high above its roof ("That kid is 40 feet up,
+and still going."). 0:32 the air turns misty ("The air thins so fast it cools into mist."), the camera back in front of
+you, 14 ft up. 0:37 0.00, GRAVITY IS BACK: a slam, and everything drops at once ("Everything falls at once."), the
+fountain's arcs come back; 0:41.5 you drop toward the basin ("You drop 15 feet, into the fountain."); 0:45.4 you hit the
+water and the spray covers the lens: white, which clears onto frame 0 (the loop).
+
+The numbers (also at the top of `src/timeline.js`): nothing floats up by itself; what moves is what was already moving,
+plus springs letting go and the Earth turning underneath. A kid's jump that leaves the ground at 10 ft/s (3.05 m/s) is
+50 ft up after 5 s. People push themselves off with their own legs (0.2-0.8 m/s; you stepped up onto the ledge: 0.8 m/s
+-> 14 ft up at 0.00). The Earth turns everything loose 24 cm (10 in) up and 21 cm south in 5 s at New York's latitude
+(the ground follows a circle, a free thing goes straight). A car's springs (15 cm of sag) throw it up at ~0.4-0.7 m/s;
+tires grip by being pressed down, so no weight = no grip. Trees spring up and shake off loose leaves; festoon lights snap
+straight and bounce. The pool can't leave as a ball: air can't get under it, so air pressure holds it in like a suction
+cup; its floor springing back pushes the middle up in a mound (~0.35 m/s, ~5.5 ft by 0.00) while the sides drain into it.
+The fountain's centre jet (13 m/s) is a 65 m column at 0.00. The air rises off the planet: near the ground it barely
+moves (6 cm/s at head height, no wind), but the pressure falls 4,000 Pa every second (rho x g x c), 20% after 5 s, like
+standing 6,000 ft up: ears pop, and on a 25°C day at 45% humidity the rising air cools enough to condense at 4.4 s (mist).
+Gravity back: you fall 15 ft in 1.06 s (8.5 s of slow motion).
+Honest notes: the rule is the usual what-if one, that the planet itself holds its shape. A real Earth is squeezed by its own
+weight; with gravity off its rock would spring outward and keep pushing up on everything at exactly 1 g for these 5 seconds,
+so in truth you'd feel nothing at all (a good pinned comment). The owner's "pool leaves as one wobbling ball" isn't real
+(the suction above), so it's a mound; the "upward wind" isn't real at street level either (6 cm/s), so the air beats are the
+ears and the mist. The kid is still in the air (50 ft up, 2.1 s from landing) when the video ends; the loop restarts first.
+Post it a few days apart from planet-gravity (same week: also a packed court with a fountain, also about gravity).
+
+**YouTube title (61 chars)**
+What if gravity turned off for 5 seconds? 😱 #whatif #physics
+
+**YouTube description**
+Gravity switches off for 5 seconds. Shown in slow motion.
+
+Nothing floats up by itself. Whatever was already moving just keeps going.
+A kid's jump at 10 feet per second: 50 feet up by the time it's over.
+Tires need weight to grip, so the cars can't steer or stop.
+A pool can't fly out (air pressure holds it in like a suction cup), but its water heaves up in a mound.
+The air lifts off the planet too: the pressure drops 20%, your ears pop, and it cools into mist.
+Then gravity comes back. You drop 15 feet, into the fountain.
+
+Where would you want to be when it came back? 👇
+
+#whatif #physics #gravity #science #simulation
+
+Cover: `week 9/gravity-off/out/gravity-off_v4_cover.png` (`node render.mjs --cover 31.5`: the kid in the yellow hoodie way up in the sky over the square, you floating 14 ft up with your arms out, the whole crowd floating, the pool block behind; "WHAT IF GRAVITY / turned off / for 5 seconds?")
+
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 
 16:9, 6:34, built from the week-2 Shorts (`longform/six/`). Opens on a 3.6 s flash-forward of the Big Crunch with the

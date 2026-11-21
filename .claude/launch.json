@@ -272,6 +272,17 @@
       "env": {
         "PORT": "5311"
       }
+    },
+    {
+      "name": "gravity-off",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 9/gravity-off/server.mjs"
+      ],
+      "port": 5341,
+      "env": {
+        "PORT": "5341"
+      }
     }
   ]
 }
