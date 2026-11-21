@@ -237,34 +237,53 @@ export function towerPiece(k, v) {
 export const TOWER_TIMES = { can: TOWER_CAN };
 
 // ======================= THE MOUNTAIN =======================
-// lifted by its near edge about its far edge (axis along x at the far foot), then thrown: it rises, tips over away
-// from you and lands ~3 km further north
-const M_FAR = V3(MTN.x, 0, MTN.z - MTN.rz);
-const M_LEVER = 2 * MTN.rz;
-const MTN_CAN = timeOfLog(Math.log10(5e11));                                   // 4.5 km from the far foot to the near foot
+// (ending fix pass, Nov 21) You dig your hands under its foot; a crack races along the foot; at 5e11x (half its weight:
+// enough to raise one edge) the edge comes up onto your hands; at 1e12x you raise it like a pole by that edge: it pivots
+// about your hands, its far side swinging up ~1.4 km, daylight under its whole base. Then you throw it: it flies away
+// north, turning upright, and lands on the horizon ~7 km off (sped up, like every throw).
+const MZP = 900;                                                               // mountain.js ZP (the peak's offset)
+const rimZ = (x) => MTN.z + MZP + (MTN.rz - MZP) * Math.sqrt(Math.max(0, 1 - Math.pow((x - MTN.x) / MTN.rx, 2)));
+const M_PIV0 = V3(SPOT.mtn.x, 0, rimZ(SPOT.mtn.x));                            // the foot's edge in front of you
+const MTN_CAN = timeOfLog(Math.log10(5e11));
+export const MTN_TIMES = { can: MTN_CAN };
+// how far the ground under you has sunk (the crater at your feet; fx.js uses the same)
+export function mtnSink(v) { return 0.5 * smooth(B.leapLand - 0.02, B.leapLand + 0.25, v) + 0.3 * smooth(B.mtnGrab + 0.4, B.mtnThrow, v); }
+const M_TH = 0.28, M_THW = 0.33;                                               // the pole angle (rad), and at the wind-up
+const M_FLY = V3(0, 0, -4300);                                                 // where the throw takes it (its foot's edge)
+function mPose(P, th) {
+  return new THREE.Matrix4().makeTranslation(P.x, P.y, P.z).multiply(new THREE.Matrix4().makeRotationX(th)).multiply(new THREE.Matrix4().makeTranslation(-M_PIV0.x, -M_PIV0.y, -M_PIV0.z));
+}
+function mHeld(v) {
+  const edge = smooth(MTN_CAN, B.mtnUp, v), wind = smooth(B.mtnThrow - 0.45, B.mtnThrow, v);
+  const hands = 2.1 - mtnSink(v);
+  const P = V3(M_PIV0.x, hands * edge - 0.35 * wind, M_PIV0.z + 0.3 * wind);
+  const tip = smooth(B.mtnUp, B.mtnUp + 0.95, v);
+  const th = M_TH * tip * tip * (3 - 2 * tip) * 0.92 + 0.08 * M_TH * smooth(B.mtnUp + 0.95, B.mtnThrow - 0.45, v) + (M_THW - M_TH) * wind;
+  return { P, th, edge, wind };
+}
 export function mountainAt(v) {
-  // its near foot can only start to come up once you can lift ~half its weight (5e11x, ~0:40.2); you heave and its
-  // near edge swings up ~500 m (its far edge still on the ground), daylight under it
-  const lift = smooth(MTN_CAN, B.mtnUp - 0.2, v), heave = smooth(B.mtnUp, B.mtnThrow, v);
-  let ang = (800 * Math.pow(lift, 1.3) + 80 * heave) / M_LEVER;
-  let off = V3(0, 0, 0);
+  const h = mHeld(Math.min(v, B.mtnThrow));
+  let P = h.P, th = h.th;
+  let fly = 0;
   if (v > B.mtnThrow) {
-    const T = B.mtnLand - B.mtnThrow, tau = Math.min(v - B.mtnThrow, T), k = tau / T;
-    // thrown: it lifts off and flies away north (~3 km) and lands on the horizon (real time: minutes; sped up)
-    ang = ang * (1 - 0.6 * k);
-    off = V3(0, 900 * k * (1 - k) * (1 + 0.6 * (1 - k)), -3200 * Math.pow(k, 1.5) - 300 * k);
+    const T = B.mtnLand - B.mtnThrow, k = clamp((v - B.mtnThrow) / T, 0, 1);
+    fly = k;
+    // away from you and up, then down onto the horizon; it turns back upright on the way
+    const kz = 1 - Math.pow(1 - k, 1.6);
+    P = h.P.clone().add(V3(M_FLY.x * kz, 1500 * Math.sin(Math.PI * k) * (1 - 0.25 * k) - h.P.y * k, M_FLY.z * kz));
+    th = h.th * (1 - smooth(0.05, 0.85, k)) - 0.06 * Math.sin(Math.PI * clamp((k - 0.55) / 0.45, 0, 1));
     if (v > B.mtnLand) {
-      const s = smooth(B.mtnLand, B.mtnLand + 2.2, v);
-      off.add(V3(0, -90 * s, -200 * s));
+      // it hits and sinks into the ground it lands on
+      const s = smooth(B.mtnLand, B.mtnLand + 1.4, v);
+      P.y -= 70 * s; P.z -= 120 * s;
     }
   }
-  // shake while you strain
-  const sh = (lift - heave * 0.5) * 0.000012 * Math.sin(v * 37) * (v < B.mtnThrow ? 1 : 0);
-  const M = new THREE.Matrix4().makeTranslation(off.x, off.y, off.z)
-    .multiply(new THREE.Matrix4().makeTranslation(M_FAR.x, M_FAR.y, M_FAR.z))
-    .multiply(new THREE.Matrix4().makeRotationX(-ang + sh))
-    .multiply(new THREE.Matrix4().makeTranslation(-M_FAR.x, -M_FAR.y, -M_FAR.z));
-  return { M, ang, lift, heave, fly: smooth(B.mtnThrow, B.mtnLand, v), crack: clamp(lift * 0.8 + heave * 0.6 + smooth(B.mtnThrow, B.mtnThrow + 0.8, v) * 0.4, 0, 1.4) };
+  const sh = (h.edge * (1 - h.wind)) * 0.00002 * Math.sin(v * 37) * (v < B.mtnThrow ? 1 : 0);
+  const M = mPose(P, th + sh);
+  const crack = clamp(smooth(B.mtnCrack, B.mtnUp + 0.3, v) + 0.4 * smooth(B.mtnThrow, B.mtnThrow + 0.8, v), 0, 1.4);
+  return { M, ang: th, lift: h.edge, heave: h.wind, fly, crack,
+    // the crack along its foot: how far it has run each way from you (m), and the ground left behind once it's gone
+    rim: 14 * smooth(B.mtnCrack, B.mtnCrack + 0.3, v) + 1600 * Math.pow(smooth(B.mtnCrack + 0.2, B.mtnCrack + 1.0, v), 2), torn: smooth(B.mtnUp - 0.1, B.mtnUp + 0.6, v) };
 }
 
 export const TRACK = { car, bus, truck, jet, shipMid };
@@ -350,7 +369,7 @@ export function youAt(v) {
   else if (v >= B.jetGrab - 0.2 && v < B.jetThrow + 0.45) o.lift = { thing: 'jet', k: ph(B.jetGrab - 0.2, B.jetUp), throwK: smooth(B.jetThrow - 0.3, B.jetThrow, v) - smooth(B.jetThrow, B.jetThrow + 0.45, v), rel: v > B.jetThrow };
   else if (v >= B.shipGrab - 0.25 && v < B.shipThrow + 0.5) o.lift = { thing: 'ship', k: ph(B.shipGrab - 0.25, B.shipUp), throwK: smooth(B.shipThrow - 0.5, B.shipThrow, v) - smooth(B.shipThrow, B.shipThrow + 0.5, v), rel: v > B.shipThrow };
   else if (v >= B.towerGrab - 0.25 && v < B.towerThrow + 0.5) o.lift = { thing: 'tower', k: ph(B.towerGrab - 0.25, B.towerUp), throwK: smooth(B.towerThrow - 0.5, B.towerThrow, v) - smooth(B.towerThrow, B.towerThrow + 0.5, v), rel: v > B.towerThrow };
-  else if (v >= B.mtnGrab - 0.3 && v < B.mtnThrow + 0.6) o.lift = { thing: 'mtn', k: ph(B.mtnGrab - 0.3, B.mtnGrab + 1.2), throwK: smooth(B.mtnUp, B.mtnThrow, v) - smooth(B.mtnThrow, B.mtnThrow + 0.6, v), rel: v > B.mtnThrow };
+  else if (v >= B.mtnGrab - 0.3 && v < B.mtnThrow + 0.6) o.lift = { thing: 'mtn', k: ph(B.mtnGrab - 0.15, B.mtnGrab + 0.3), throwK: smooth(B.mtnThrow - 0.45, B.mtnThrow, v) - smooth(B.mtnThrow, B.mtnThrow + 0.6, v), rel: v > B.mtnThrow };
   return o;
 }
 export { MOVES };

@@ -2906,7 +2906,10 @@ skyscraper and the mountain"): the camera now follows YOU, low and close with a 
 of the frame through the car, bus and truck), stays on you as you run or bound to the next thing (which is ahead of you),
 and for the ship, the tower and the mountain it pulls back fast, side-on, until the whole thing is in frame with
 daylight under it (you at its base marked by a glow and a ring of dust), then comes straight back in on you for the
-throw. In order:
+throw. Ending fix pass Nov 21 (0:33 on only): you stay big in the jump; the grab is ~2.5 s and readable (hands
+into the ground, a crack racing both ways along the foot, the edge up onto your hands and a slot of daylight opening
+under it); the thrown ship and tower lie on the mountain's slope and go with it; the throw and the landing are seen
+clearly. In order:
 0:00 you, big in frame, a blue car over your head on one hand; the bus beside you, the mountain across the harbor
 behind; people backing away filming; a crowd gasp and a scream; title, 42x, "YOU CAN LIFT: A CAR". 0:01 you toss the car
 over your shoulder; it lands on its roof behind you. 0:02.6 you walk to the bus, squat, grab its side and heave it over
@@ -2923,12 +2926,15 @@ on you, 0:23.2 thrown: it flies across the harbor and lands on the far shore ("T
 0:25.5-0:27 three bounds to the glass tower; you grab the corner of its base and rip it up; the camera pulls back: the
 whole tower tipped up off your hands at ~50 degrees, daylight under it ("A skyscraper: 365,000 tons."); back in, 0:30.7
 thrown across the harbor; it lands on the far shore and breaks up in dust. 0:33.2 one jump across the harbor, the
-camera chasing you ("One jump across the harbor."); 0:36.2 you land at the mountain's foot in the forest; you dig your
-hands under its foot; rockfalls, cracks up its face, the ground caving in round you ("It breaks where you grab it.").
-0:40.2 its edge comes up; the camera pulls back far to the east: the whole mountain, snow cap and all, tipping up off the
-ground with daylight under it; 0:41.4 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN"; back in on you, 0:41.95 you throw
-it: it flies off ("50 billion tons. A mountain a mile high."), 0:43.7 it lands on the horizon ~3 km away; a wall of dust
-rolls at you; hard white at 0:45.55, which clears onto frame 0.
+camera close behind you ("One jump across the harbor."); 0:36.2 you land at the mountain's foot and squat, hands into the
+ground under its edge; 0:36.55 a crack races off both ways along its foot, dust spurting along it, rockfalls and cracks
+up its face ("It breaks where you grab it."); 0:37.35 (5e11x, half its weight) its edge comes up onto your hands; the camera
+drops low behind you; 0:37.7 1,000,000,000,000x, "YOU CAN LIFT: A MOUNTAIN": its far side swings up and a slot of daylight
+opens under it all the way across; 0:38.6 the camera pulls back low over the harbor and round to the east: side-on, the
+whole mountain held up by its edge, snow cap tipped, daylight under it, you a glow at its foot (the landed ship and tower
+ride on its slope); 0:40-0:40.5 back in behind you; 0:40.7 you throw it: it flies away from us, turning upright, daylight
+under it the whole way ("50 billion tons. A mountain a mile high."), 0:43.6 it lands on the horizon ~5.5 km off, snow cap
+showing; a wall of dust rolls at you; hard white at 0:45.55, which clears onto frame 0.
 
 The numbers (also at the top of `src/timeline.js`): at 1x you lift 100 lb, so the counter x 100 lb is what you can lift
 (tons = US tons of 2,000 lb). Car ~3,300 lb = 33x; 40-ft city bus ~30,000 lb (15 tons) = 300x; loaded semi 80,000 lb
@@ -2937,14 +2943,14 @@ The numbers (also at the top of `src/timeline.js`): at 1x you lift 100 lb, so th
 (110,000 tons) = 2,200,000x; Empire State Building ~365,000 tons = 7,300,000x; 10 of them 73,000,000x, 1,000 of them
 7,300,000,000x; 1e12 x 100 lb = 50 billion tons = ~17 km^3 of rock (2,700 kg/m^3): a peak about a mile (1.6 km) high on
 a base ~8 x 4.5 km (Everest is ~3x heavier). The ship only starts to rise when the counter reaches its weight, and the
-mountain's foot only when you can lift about half of it (~5e11x, 0:40.2: tipping it about its far edge). Under your
+mountain's edge only when you can lift about half of it (~5e11x, 0:37.35: raising one edge); it leaves the ground at 1e12x. Under your
 shoes (~0.06 m^2): the bus ~2.3 MPa (paving cracks), the truck ~6 MPa, the jet 30-65 MPa (more than concrete's ~30-40
 MPa), the ship ~16 GPa (80x what granite can take).
 Honest notes: from the jet on, really your feet would punch down into the ground like a nail; the video shows the ground
 caving in round you instead, so you stay in sight. A throw from a ~2 m push only goes far once you're many times stronger
 than the thing's weight; the counter keeps climbing while you hold each one, but the throws are drawn longer and faster
-than that allows, and the mountain's flight (~3 km in under 2 s) is sped up a lot (a real one would take minutes). The
-bounds between things and the ~400 m jump across the harbor are within what legs this strong could do. The ship and the tower are held up by one end like a pole (you'd need to be anchored in the ground to hold the turning force; the cratered ground stands in for that), and the mountain's edge swings up ~800 m off your heave before you throw it. The jet is lifted
+than that allows, and the mountain's flight (~4.3 km in 2.9 s) is sped up a lot (a real one would take minutes). The
+bounds between things and the ~400 m jump across the harbor are within what legs this strong could do. The ship and the tower are held up by one end like a pole (you'd need to be anchored in the ground to hold the turning force; the cratered ground stands in for that), and so is the mountain: held overhead by its near edge, its far side ~1.3 km up (16 degrees). The jet is lifted
 from its nose wheel as one stiff piece (in reality it would bend and the nose gear would snap); the plaza puts a jumbo jet,
 a cruise terminal and a tower side by side to fit one shot. The glow round you in the wide shots is drawn so you can be found.
 
@@ -2965,7 +2971,7 @@ What would you lift first? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 23`: you on the quay with your arms up, holding the cruise ship's red-and-navy bow over your head, the ship rising into the sky behind it, the mountain across the harbor; "WHAT IF YOU WERE / 1 trillion / times stronger?")
+Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.mjs --cover 42`: the whole mountain in the air after the throw, snow cap up, daylight under it, you small below on the torn ground; "WHAT IF YOU WERE / 1 trillion / times stronger?"; remade Nov 21 because the ship's bow read as a red-and-navy wedge at phone size)
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

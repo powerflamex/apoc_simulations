@@ -22,9 +22,9 @@ import { makeYou, FLAP } from './you.js';
 import { makePeople } from './people.js';
 import { makeFx } from './fx.js';
 import { SPOT, BUS, TRUCK, JET, SHIP, TOWER, MTN, SEA_Y, STREET, QUAY_Z } from './layout.js';
-import { thingAt, youAt, towerPiece, mountainAt, shipSag, CAR_C, BUS_C, TRUCK_C, JET_C, SHIP_TIMES, TOWER_TIMES } from './choreo.js';
+import { thingAt, youAt, towerPiece, mountainAt, shipSag, CAR_C, BUS_C, TRUCK_C, JET_C, SHIP_TIMES, TOWER_TIMES, MTN_TIMES, mtnSink } from './choreo.js';
 import { state, VIDEO_DURATION, LOOP, captionAt, B, HITS, T_SWITCH, V_WHITE, timeOfLog } from './timeline.js';
-const MTN_CAN = timeOfLog(Math.log10(5e11));
+const MTN_CAN = MTN_TIMES.can;
 import { lerp, smooth, wobble, clamp, rng } from './util.js';
 import { camAt } from './camera.js';
 
@@ -174,7 +174,10 @@ function update(v, cover = -1) {
   fleet.commit();
   const bs = thingAt('bus', v); place(bus, bs); bus.DU.uCrush.value = bs.crush || 0;
   const ts = thingAt('truck', v); place(truck, ts); truck.DU.uCrush.value = ts.crush || 0;
-  const js = thingAt('jet', v); place(jet, js); jet.DU.uCrush.value = js.crush || 0;
+  // the mountain first: the ship (with the jet in it) and the tower landed on its lower slope and ride with it
+  const ms = mountainAt(v);
+  const ride = (obj, st) => { obj.P.matrixAutoUpdate = false; obj.P.matrix.compose(st.p, st.q, s4); if (v > B.leap) obj.P.matrix.premultiply(ms.M); obj.P.matrixWorldNeedsUpdate = true; };
+  const js = thingAt('jet', v); ride(jet, js); jet.DU.uCrush.value = js.crush || 0;
   const sm = thingAt('shipMid', v);
   const sag = shipSag(v);
   {
@@ -183,17 +186,18 @@ function update(v, cover = -1) {
     const piv = (x, ang, apart) => new THREE.Matrix4().makeTranslation(x + apart, -8.8 - Math.abs(apart) * 0.3, 0).multiply(new THREE.Matrix4().makeRotationZ(ang)).multiply(new THREE.Matrix4().makeTranslation(-x, 8.8, 0));
     const Mmid = Mbow.clone().multiply(piv(SHIP_CUTS[1], -sag.bow, sag.apart));
     const Ms = [Mbow, Mmid, Mmid.clone().multiply(piv(SHIP_CUTS[2], -sag.stern, sag.apart))];
+    if (v > B.leap) Ms.forEach((M) => M.premultiply(ms.M));
     window.__shipMs = Ms;
     ship.forEach((pc, i) => { pc.P.matrixAutoUpdate = false; pc.P.matrix.copy(Ms[i]); pc.P.matrixWorldNeedsUpdate = true; pc.DU.uCrush.value = sm.crush || 0; });
   }
-  tower.forEach((pc, k) => { const st = towerPiece(k, v); place(pc, st); pc.DU.uCrush.value = st.crush || 0; });
-  const ms = mountainAt(v);
+  tower.forEach((pc, k) => { const st = towerPiece(k, v); ride(pc, st); pc.DU.uCrush.value = st.crush || 0; });
   mtn.g.matrixAutoUpdate = false; mtn.g.matrix.copy(ms.M).multiply(new THREE.Matrix4().makeTranslation(MTN.x, 0, MTN.z)); mtn.g.matrixWorldNeedsUpdate = true;
   mtn.MU.uCrack.value = ms.crack; mtn.MU.uTime.value = v;
   scene.updateMatrixWorld(true);
 
   // ---- craters and cracks under your feet ----
   fx.craters(v, GU);
+  GU.uMR.value.set(SPOT.mtn.x, ms.rim, ms.torn, 0);
   // ---- you ----
   const Y = youAt(v);
   const ground = craterH(Y.x, Y.z);
@@ -211,11 +215,11 @@ function update(v, cover = -1) {
     // standing / lifting
     const lk = L ? L.k : 0;
     const strain = L && !L.rel ? 1 : 0;
-    const crouchDepth = L ? (L.thing === 'car' ? 0 : L.thing === 'mtn' || L.thing === 'ship' || L.thing === 'tower' ? 0.42 : 0.32) : 0;
+    const crouchDepth = L ? (L.thing === 'car' ? 0 : L.thing === 'mtn' ? 0.48 : L.thing === 'ship' || L.thing === 'tower' ? 0.42 : 0.32) : 0;
     const cr = L ? (L.thing === 'car' ? 0 : (1 - smooth(0.25, 0.85, lk)) * smooth(0, 0.15, lk)) : 0;
     const big = L && (L.thing === 'mtn' || L.thing === 'tower' || L.thing === 'ship');
     const canT = L ? (L.thing === 'ship' ? SHIP_TIMES.can : L.thing === 'tower' ? TOWER_TIMES.can : MTN_CAN) : 0;
-    const crouch = big ? 0.62 * smooth(0, 0.12, lk) * (1 - smooth(canT, canT + 0.55, v)) + 0.25 * (L.rel ? 0 : smooth(canT + 0.55, canT + 0.9, v) * 0) : cr;
+    const crouch = big ? (L.thing === 'mtn' ? 1.0 : 0.62) * smooth(0, 0.12, lk) * (1 - smooth(canT, canT + 0.55, v)) + 0.25 * (L.rel ? 0 : smooth(canT + 0.55, canT + 0.9, v) * 0) : cr;
     pose.hipY = 0.92 - crouchDepth * crouch - 0.12 * (L ? L.throwK : 0) * 0;
     pose.lean = 0.04 + 0.35 * crouch + (L ? 0.12 * L.throwK : 0);
     pose.footZ = 0.05 + 0.12 * crouch;
@@ -261,7 +265,9 @@ function update(v, cover = -1) {
         gL.copy(local(st, -TOWER.w / 2 - 0.05, hh, TOWER.d / 2 - 0.4)); gR.copy(local(st, -TOWER.w / 2 + 0.4, hh, TOWER.d / 2 + 0.05));
         wristUp = rip;
       } else if (L.thing === 'mtn') {
-        const p = (dx) => tv.set(Y.x + dx - MTN.x, -0.2, MTN.z + MTN.rz - MTN.z + 0.1).add(new THREE.Vector3(MTN.x, 0, MTN.z)).applyMatrix4(ms.M).clone();
+        // on its foot's edge: dug into the ground below it while you strain, then the edge comes up onto your hands
+        const dig = -0.2 - 0.9 * mtnSink(v) * (1 - ms.lift);
+        const p = (dx) => tv.set(Y.x + dx, dig, MTN.z + MTN.rz + 0.1).applyMatrix4(ms.M).clone();
         gL.copy(p(0.3)); gR.copy(p(-0.3));
         // once its edge rises past your reach, your arms stay up, pushing
         const top = yy + 2.12;
@@ -304,7 +310,7 @@ function update(v, cover = -1) {
   sky.mesh.position.copy(camera.position);
   u.uSun.value.copy(SUNDIR); u.uZen.value.copy(C(sc.zen)); u.uHor.value.copy(C(sc.hor)); u.uGlow.value.copy(C(sc.glow)); u.uSunCol.value.copy(C(sc.sun));
   u.uSunI.value = 1; u.uStars.value = 0; u.uT.value = v; u.uPx.value = (camera.fov * DEG) / H_PX; u.uCloud.value = 0.75; u.uCity.value = 0;
-  GU.uHaze.value.copy(C(sc.hor)).lerp(new THREE.Color(0.78, 0.74, 0.68), 0.25 * smooth(B.towerLand, B.mtnLand, v)); GU.uHazeD.value = 5200 * (1 + 5 * smooth(400, 6000, s.camDist || 0));
+  GU.uHaze.value.copy(C(sc.hor)).lerp(new THREE.Color(0.78, 0.74, 0.68), 0.25 * smooth(B.towerLand, B.mtnLand, v)); GU.uHazeD.value = 5200 * (1 + 5 * smooth(400, 6000, s.camDist || 0)) * (1 + 2.5 * smooth(B.mtnThrow, B.mtnThrow + 1.2, v));
   world.waterU.uSky.value.copy(C(sc.hor)); world.waterU.uZen.value.copy(C(sc.zen)); world.waterU.uSun.value.copy(SUNDIR); world.waterU.uSunCol.value.copy(C(sc.sun));
   world.frame(v);
   // the sun's shadow box follows the action and grows with it

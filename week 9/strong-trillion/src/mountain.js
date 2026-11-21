@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { hazed } from './world.js';
 import { MTN } from './layout.js';
 
-const ROOT = 60;                         // the root's depth (m)
+const ROOT = 4;                          // the root's side at the foot (m); under it a bowl of torn rock, deepest in the middle
+const BOWL = 250;   // shallow near the foot, so daylight shows under it once it tips ~11 deg
 export const ZP = 900;                   // the peak sits this far from the base's middle toward the harbor (local +z)
 // height of the mountain at local (x, z) (0 outside the base): a main peak toward the harbor, two lower summits on its
 // shoulders, gullies running down from the ridges
@@ -53,15 +54,20 @@ export function makeMountain(scene) {
     for (const [x, z] of ring(qs[j])) { pos.push(x, mtnHeight(x, z), z); qa.push(qs[j], 0); }
   }
   const sideTop = (NQ) * NA;
-  // the root: the outline again, 60 m down, and the bottom's middle
-  for (const [x, z] of ring(1)) { pos.push(x, -ROOT, z); qa.push(1, 1); }
-  pos.push(0, -ROOT, ZP); qa.push(0, 1);
+  // the root: the outline again, ROOT down, then rings of the bowl under it, and the bottom's middle
+  const BQ = [1, 0.85, 0.68, 0.5, 0.3];
+  for (const bq of BQ) for (const [x, z] of ring(bq)) { pos.push(x, -ROOT - (BOWL - ROOT) * Math.pow(1 - bq, 1.2) * (0.9 + 0.1 * Math.sin(x * 0.004 + z * 0.006)), z); qa.push(bq, 1); }
+  pos.push(0, -BOWL, ZP); qa.push(0, 1);
   const V = (j, i) => j * NA + (i % NA);
   for (let j = 0; j < NQ; j++) for (let i = 0; i < NA; i++) idx.push(V(j, i), V(j + 1, i + 1), V(j + 1, i), V(j, i), V(j, i + 1), V(j + 1, i + 1));
   const S0 = (NQ + 1) * NA;
   for (let i = 0; i < NA; i++) { const a = sideTop + i, b = sideTop + ((i + 1) % NA), c = S0 + ((i + 1) % NA), d = S0 + i; idx.push(a, c, b, a, d, c); }
-  const BC = S0 + NA;
-  for (let i = 0; i < NA; i++) idx.push(BC, S0 + i, S0 + ((i + 1) % NA));
+  for (let r = 0; r < BQ.length - 1; r++) {
+    const o = S0 + r * NA, n = S0 + (r + 1) * NA;
+    for (let i = 0; i < NA; i++) { const i1 = (i + 1) % NA; idx.push(n + i, o + i, o + i1, n + i, o + i1, n + i1); }
+  }
+  const BC = S0 + BQ.length * NA, LR = S0 + (BQ.length - 1) * NA;
+  for (let i = 0; i < NA; i++) idx.push(BC, LR + i, LR + ((i + 1) % NA));
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('aQ', new THREE.Float32BufferAttribute(qa, 2));

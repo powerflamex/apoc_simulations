@@ -16,7 +16,7 @@ const CRATERS = [
   [SPOT.jet, B.jetGrab + 0.4, B.jetUp + 0.4, 3.2, 0.42, 15.0, 0.8],
   [SPOT.ship, B.shipGrab + 0.6, B.shipUp + 0.5, 5.5, 0.75, 26.0, 1.0],
   [SPOT.tower, B.towerGrab + 0.5, B.towerUp + 0.5, 8.5, 1.05, 42.0, 1.0],
-  [SPOT.mtn, B.leapLand - 0.02, B.leapLand + 0.25, 6.0, 0.7, 30.0, 1.0],
+  [SPOT.mtn, B.leapLand - 0.02, B.leapLand + 0.25, 6.0, 0.5, 30.0, 1.0],
 ];
 export function makeFx(scene, ctx, { smoke, glows }) {
   const R = rng(9090);
@@ -66,6 +66,8 @@ export function makeFx(scene, ctx, { smoke, glows }) {
   // glass glints when the tower comes away: pieces from its lower floors
   burst(B.towerUp - 0.6, 150, 60, -88, 120, 6, 0.35, [0.6, 0.72, 0.82], { up: 0.2 });
 
+  burst(B.mtnGrab + 0.1, SPOT.mtn.x, -0.4, MTN.z + MTN.rz + 0.4, 46, 4.5, 0.16, [0.3, 0.25, 0.2], { up: 1.4 });
+  burst(B.mtnUp - 0.05, SPOT.mtn.x, 0.5, MTN.z + MTN.rz - 0.5, 40, 5, 0.22, [0.34, 0.29, 0.24], { up: 1.0 });
   const ripple = [];
   return {
     // ---- the crater uniforms ----
@@ -74,7 +76,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
         const k = smooth(t0, t1, v);
         // the mountain's crater keeps growing as you lift it (the ground under you gives)
         let R0 = r, D0 = d, Rk = reach;
-        if (i === 5) { const m = smooth(B.mtnGrab + 0.4, B.mtnThrow, v); R0 = r + 12 * m; D0 = d + 1.6 * m; Rk = reach + 140 * m + 200 * smooth(B.mtnThrow, B.mtnLand, v); }
+        if (i === 5) { const m = smooth(B.mtnGrab + 0.4, B.mtnThrow, v); R0 = r + 12 * m; D0 = d + 0.3 * m; Rk = reach + 140 * m + 200 * smooth(B.mtnThrow, B.mtnLand, v); }
         GU.uCr.value[i].set(sp.x, sp.z, R0 * (0.3 + 0.7 * k), D0 * k);
         GU.uCk.value[i].set(Rk * (0.15 + 0.85 * smooth(t0, t1 + 0.6, v)), k > 0 ? 1 : 0, 3.7 * i + 1.1, rub * k);
       });
@@ -186,10 +188,11 @@ export function makeFx(scene, ctx, { smoke, glows }) {
       // ---- the tower: dust where it lands, along its length ----
       {
         const t = v - B.towerLand;
-        if (t > 0 && t < 9) for (let i = 0; i < 50; i++) {
+        const gone = 1 - smooth(B.mtnUp - 0.8, B.mtnUp, v);
+        if (t > 0 && t < 9 && gone > 0) for (let i = 0; i < 50; i++) {
           const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
           const d = 285 * (i / 50);
-          smoke.puff(205 + d * 0.97 + (f - 0.5) * 30, 10 + 40 * g * (1 - Math.exp(-t)) + 4 * t, -530 - d * 0.25 + (g - 0.5) * 40, 14 + 12 * f + 5 * t, 0.75 * smooth(0, 0.25, t) * (1 - smooth(5, 9, t)), 0.66, 0, f);
+          smoke.puff(205 + d * 0.97 + (f - 0.5) * 30, 10 + 40 * g * (1 - Math.exp(-t)) + 4 * t, -530 - d * 0.25 + (g - 0.5) * 40, 14 + 12 * f + 5 * t, 0.75 * smooth(0, 0.25, t) * (1 - smooth(5, 9, t)) * gone, 0.66, 0, f);
         }
       }
       // ---- in the wide shots: a bright glow round you and a ring of dust at your feet, sized to stay findable ----
@@ -197,9 +200,10 @@ export function makeFx(scene, ctx, { smoke, glows }) {
         const d = o.camDist || 0, k = smooth(25, 70, d);
         if (k > 0) {
           const Y = o.you;
-          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(1.5, 0.09 * d), 6 * k, 4.2 * k, 2.2 * k);
-          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(0.6, 0.03 * d), 12 * k, 11 * k, 9 * k);
-          const R = Math.max(3, 0.03 * d);
+          const gd = Math.min(d, 1500) + 0.25 * Math.max(0, d - 1500);   // (the 9 km mountain shot: a smaller glow)
+          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(1.5, 0.09 * gd), 6 * k, 4.2 * k, 2.2 * k);
+          glows.add(Y.x, o.yy + 1.1, Y.z, Math.max(0.6, 0.03 * gd), 12 * k, 11 * k, 9 * k);
+          const R = Math.max(3, 0.03 * gd);
           for (let i = 0; i < 22; i++) {
             const a = (i / 22) * Math.PI * 2 + v * 0.4, f = (i * 0.618) % 1;
             const rr = R * (0.85 + 0.3 * f) * (0.9 + 0.1 * Math.sin(v * 3 + i));
@@ -209,39 +213,67 @@ export function makeFx(scene, ctx, { smoke, glows }) {
       }
       // ---- the leap's landing: a ring of dust and sand ----
       dustRing(B.leapLand, SPOT.mtn.x, SPOT.mtn.z, 3.5, 22, 1.3, 2.6, 0.7);
-      // ---- the mountain: rock and dust falling off its face as you lift; dust along its foot; the landing ----
+      // ---- the mountain: the crack racing along its foot, dust pouring off its edge as it comes up, rockfalls down its
+      //      face, and the landing: a wall of dust rolling back at you ----
       {
-        const lift = smooth(B.mtnGrab + 0.3, B.mtnUp, v);
-        if (v > B.mtnGrab && v < B.mtnLand + 3) {
-          // dust along the foot, where it tears from the ground
-          const k = smooth(B.mtnGrab + 0.3, B.mtnGrab + 2, v) * (1 - smooth(B.mtnUp - 0.6, B.mtnUp + 0.2, v));
-          for (let i = 0; i < 40; i++) {
-            const f = (i * 0.618) % 1, x = SPOT.mtn.x - 260 + 520 * (i / 40);
-            const zf = MTN.z + MTN.rz * Math.sqrt(Math.max(0, 1 - Math.pow((x - MTN.x) / MTN.rx, 2)));
-            smoke.puff(x, 3 + 6 * f + 3 * lift, zf - 8 - 10 * f, 4 + 6 * f + 3 * lift, 0.5 * k, 0.62, 0, f);
-          }
-          // rockfalls down the face (dust plumes sliding down)
-          for (let i = 0; i < 24; i++) {
-            const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
-            const ts = B.mtnGrab + 0.8 + 4 * f;
-            const tt = v - ts; if (tt < 0 || tt > 4) continue;
-            const x = SPOT.mtn.x - 300 + 600 * g;
-            const h0 = 300 + 700 * ((i * 0.211) % 1), h = Math.max(0, h0 - 160 * tt);
-            const zf = MTN.z + MTN.rz - 50 - h * 0.75;
-            const pp = new THREE.Vector3(x, h, zf).applyMatrix4(o.ms.M);
-            smoke.puff(pp.x, pp.y, pp.z, 20 + 25 * tt, 0.5 * smooth(0, 0.4, tt) * (1 - smooth(2.5, 4, tt)), 0.58, 0, f);
+        const ms = o.ms, x0 = SPOT.mtn.x;
+        const rimZ = (x) => MTN.z + 900 + (MTN.rz - 900) * Math.sqrt(Math.max(0, 1 - Math.pow((x - MTN.x) / MTN.rx, 2)));
+        // the crack's two fronts: dust spurting up where it is running, a low trail behind
+        if (v > B.mtnCrack && v < B.mtnUp + 1.2) {
+          const fr = ms.rim, fade = 1 - smooth(B.mtnUp + 0.4, B.mtnUp + 1.2, v);
+          for (const sd of [-1, 1]) for (let i = 0; i < 26; i++) {
+            const f = (i * 0.618) % 1, u = i / 26;
+            const dx = fr * (1 - 0.85 * u * u);
+            if (dx < 3) continue;
+            const x = x0 + sd * dx, z = rimZ(x) + 1.5;
+            const r = (0.8 + 0.05 * dx) * (0.7 + 0.6 * f), front = 1 - smooth(0.0, 0.35, u);
+            smoke.puff(x, r * (0.4 + 0.8 * front), z + (f - 0.5) * r, r * (1 + front), (0.35 + 0.45 * front) * fade, 0.6, 0, f);
           }
         }
-        // the landing: a wall of dust along its whole outline, rising, then rolling back toward you
-        const t = v - B.mtnLand;
-        if (t > -0.1) {
-          const dist = 3500 - 1550 * Math.max(0, t);        // the wall's front, metres north of you
-          for (let i = 0; i < 90; i++) {
+        // dust and soil pouring off the underside as the edge comes up and it tips (not on you: kept 9 m+ to the sides)
+        {
+          const k = smooth(B.mtnUp - 0.35, B.mtnUp + 0.4, v) * (1 - smooth(B.mtnBack - 0.2, B.mtnThrow + 0.4, v));
+          if (k > 0) for (let i = 0; i < 44; i++) {
             const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
-            const x = SPOT.mtn.x - 3000 + 6000 * (i / 90);
-            const zf = SPOT.mtn.z - Math.max(160, dist) - 300 * g;
-            const hgt = 100 + 900 * g * Math.min(1, (t + 0.1) * 0.9);
-            smoke.puff(x, hgt, zf, 160 + 200 * f + 60 * Math.max(0, t), 0.9 * smooth(-0.1, 0.4, t), 0.8, 0, f);
+            const sx = (i % 2 ? 1 : -1) * (9 + 900 * Math.pow(g, 1.6));
+            const x = x0 + sx;
+            const ph = (v * 0.7 + f) % 1;
+            const pp = new THREE.Vector3(x, -2, rimZ(x) - 30 * f).applyMatrix4(ms.M);
+            const r = 3 + 0.04 * Math.abs(sx) + 6 * ph;
+            smoke.puff(pp.x, Math.max(r * 0.5, pp.y - 25 * ph * ph), pp.z, r, 0.55 * k * (1 - ph), 0.6, 0, f);
+          }
+        }
+        // rockfalls down the face (dust plumes sliding down; they ride with it)
+        if (v > B.mtnCrack && v < B.mtnLand) for (let i = 0; i < 24; i++) {
+          const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
+          const ts = B.mtnCrack + 0.3 + 3.4 * f;
+          const tt = v - ts; if (tt < 0 || tt > 4) continue;
+          const x = x0 - 500 + 1000 * g;
+          const h0 = 250 + 700 * ((i * 0.211) % 1), h = Math.max(0, h0 - 160 * tt);
+          const zf = MTN.z + MTN.rz - 50 - h * 0.75;
+          const pp = new THREE.Vector3(x, h, zf).applyMatrix4(ms.M);
+          smoke.puff(pp.x, pp.y, pp.z, 20 + 25 * tt, 0.5 * smooth(0, 0.4, tt) * (1 - smooth(2.5, 4, tt)), 0.58, 0, f);
+        }
+        // the landing: dust bursting up all round it, then a wall of it rolling back toward you, into the white
+        const t = v - B.mtnLand, TW = V_WHITE - B.mtnLand;
+        if (t > -0.05) {
+          const near = rimZ(MTN.x) - 4420;                 // its foot's edge where it lands (world z)
+          const D0 = SPOT.mtn.z - near;                             // how far that is from you (~5.9 km)
+          const tk = clamp(t / TW, 0, 1);
+          const dist = 160 + (D0 - 160) * Math.pow(1 - tk, 1.35);   // the wall's front, metres north of you
+          for (let i = 0; i < 110; i++) {
+            const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
+            const x = x0 - 4200 + 8400 * (i / 110);
+            const zf = SPOT.mtn.z - dist - 250 * g;
+            const hgt = (80 + 700 * g) * Math.min(1, (t + 0.05) * 1.2) * (0.5 + 0.5 * Math.min(1, dist / 1500));
+            const r = (140 + 180 * f + 60 * Math.max(0, t)) * (0.35 + 0.65 * Math.min(1, dist / 2500));
+            smoke.puff(x, hgt + r * 0.3, zf, r, 0.92 * smooth(-0.05, 0.3, t), 0.8, 0, f);
+          }
+          // the burst round its foot as it hits (stays where it landed)
+          for (let i = 0; i < 40; i++) {
+            const f = (i * 0.618) % 1, g = (i * 0.377) % 1;
+            const x = MTN.x + (g - 0.5) * 7600, zf = near - 600 * f;
+            smoke.puff(x, 60 + 500 * f * Math.min(1, t * 1.5), zf, 260 + 160 * f + 150 * Math.max(0, t), 0.85 * smooth(-0.05, 0.25, t), 0.78, 0, f);
           }
         }
       }

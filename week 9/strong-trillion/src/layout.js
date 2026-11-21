@@ -30,5 +30,5 @@ export const SPOT = {
   jet: { x: 21.35, z: -52, yaw: Math.PI / 2 },                // under its nose, at the nose wheel, facing east
   ship: { x: 60, z: -94.6, yaw: Math.PI },                    // at the quay edge in front of the ship's bow, facing north
   tower: { x: 108.9, z: -46.9, yaw: 3 * Math.PI / 4 },        // at the tower's south-west corner, facing north-east
-  mtn: { x: 60, z: -484.6, yaw: Math.PI },                    // at the mountain's foot, facing north
+  mtn: { x: 60, z: -485.9, yaw: Math.PI },                    // at the mountain's foot (its edge 1 m in front), facing north
 };

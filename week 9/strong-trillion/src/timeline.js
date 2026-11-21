@@ -33,9 +33,11 @@ export const B = {
   shipGrab: 19.0, shipUp: 22.3, shipThrow: 23.2, shipLand: 25.3,
   towerGrab: 27.2, towerUp: 30.0, towerThrow: 30.7, towerLand: 32.6,
   leap: 33.2, leapLand: 36.2,
-  mtnGrab: 36.8, mtnUp: 41.4, mtnThrow: 41.95, mtnLand: 43.7,
+  // the mountain (ending fix pass, Nov 21): hands into the ground, a crack races along its foot, its edge comes up onto
+  // your hands (5e11x), at 1e12x it tips up off the ground (daylight under it), pull back, back in, throw, it lands far off
+  mtnGrab: 36.25, mtnCrack: 36.55, mtnUp: 37.7, mtnPull: 38.55, mtnBack: 39.95, mtnThrow: 40.7, mtnLand: 43.6,
 };
-export const V_TRILLION = 41.4;
+export const V_TRILLION = 37.7;
 export const V_WHITE = 45.55;                   // the dust wall reaches the camera: hard white
 export const T_SWITCH = 46.35;                  // full white since V_WHITE: the loop point
 export const LOOP = 0.9;
@@ -47,8 +49,8 @@ export const HITS = [B.carLand, B.busLand, B.truckHit, B.jetHit, B.shipLand, B.t
 const LK = [
   [-2.0, 1.40], [0.0, 1.62], [1.0, 1.85], [2.0, 2.2], [2.75, 2.48], [4.55, 2.68], [6.6, 2.82], [7.9, 2.905],
   [10.55, 3.25], [12.3, 3.6], [13.8, 3.945], [15.9, 4.3], [17.8, 5.1], [19.8, 6.0], [20.7, 6.345], [22.85, 6.6],
-  [25.0, 6.78], [27.3, 6.865], [30.7, 7.4], [32.6, 7.86], [34.2, 8.9], [36.2, 10.0], [37.8, 10.7], [39.6, 11.45],
-  [41.4, 12.0], [60, 12.0],
+  [25.0, 6.78], [27.3, 6.865], [30.7, 7.4], [32.6, 7.86], [34.2, 8.9], [36.2, 10.0], [36.75, 10.85], [37.25, 11.6],
+  [37.7, 12.0], [60, 12.0],
 ];
 const MC = (() => {
   const n = LK.length, x = LK.map((k) => k[0]), y = LK.map((k) => k[1]);
@@ -99,8 +101,8 @@ export const CAPTIONS = [
   [22.9, 24.9, 'The ground can’t hold you up.'],
   [27.4, 29.8, 'A skyscraper: 365,000 tons.'],
   [33.4, 35.4, 'One jump across the harbor.'],
-  [37.0, 39.4, 'It breaks where you grab it.'],
-  [41.5, 44.6, '50 billion tons. A mountain a mile high.'],
+  [36.5, 38.4, 'It breaks where you grab it.'],
+  [41.3, 44.5, '50 billion tons. A mountain a mile high.'],
 ];
 export function captionAt(v) {
   for (const [a, b, text] of CAPTIONS) {

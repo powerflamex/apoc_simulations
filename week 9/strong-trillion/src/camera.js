@@ -65,25 +65,34 @@ export const KEYS = [
   [30.35, -40, 5.0, 1.0, 6.0, 'towerB', 0.2, 80],
   [31.0, -28, 5.0, 1.3, 5.0, 'towerB', 0.45, 78],
   [32.6, -18, 6.0, 1.6, 4.0, 'tower', 0.45, 74],
-  // the jump across the harbor: chasing you
+  // the jump across the harbor: chasing you close, from behind your left shoulder, you low in the frame (under the
+  // counter); the landed ship stays out of frame
   [33.2, -10, 8.0, 2.0, 2.5, 'you', 0, 74],
-  [34.0, 5, 14, 4.0, 1.5, 'you', 0, 72],
-  [35.5, 6, 14, 4.0, 1.5, 'you', 0, 72],
-  [36.2, 6, 9.0, 2.5, 3.0, 'mtn', 0.05, 74],
-  // the mountain (a): close behind you at its foot, digging in
-  [37.2, 6, 4.6, 0.9, 6.0, 'mtn', 0.04, 80],
-  [39.9, 6, 4.6, 0.9, 6.0, 'mtn', 0.04, 80],
-  // (b) pull-back far to the east: the whole mountain, its snow cap, tipping up off the ground, daylight under it
-  [40.35, 30, 300, 60, 80, 'mtn', 0.7, 60],
-  [40.8, 80, 9000, 400, 700, 'mtn', 0.85, 46],
-  [41.3, 80, 9000, 400, 800, 'mtn', 0.85, 46],
-  // (c) back in on you; the throw; it flies off and lands on the horizon; the dust wall rolls at you
-  [41.6, 30, 80, 20, 10, 'you', 0, 70],
-  [41.85, 6, 6.0, 1.4, 1.6, 'you', 0, 80],
-  [42.4, 6, 7.0, 1.6, 1.2, 'mtn', 0.03, 78],
-  [43.0, 6, 7.5, 1.8, 1.8, 'mtn', 0.07, 76],
-  [43.7, 6, 7.5, 1.8, 3.5, 'mtn', 0.1, 74],
-  [47.5, 6, 7.5, 1.8, 3.5, 'mtn', 0.1, 74],
+  [33.9, -26, 6.5, 2.6, 3.6, 'you', 0, 74],
+  [35.6, -30, 6.2, 2.6, 3.6, 'you', 0, 74],
+  // the mountain (a): behind you and above, looking down at your hands in the ground at its foot: the crack runs off
+  // both ways along the foot; then down low behind you, looking up: its edge comes up onto your hands, and as it tips
+  // up a slot of daylight opens under it all the way across
+  [36.2, -16, 6.0, 3.0, 1.5, 'you', 0, 76],
+  [36.55, -6, 5.2, 3.2, 0.2, 'you', 0, 78],
+  [37.25, -4, 5.4, 3.2, 0.3, 'you', 0, 78],
+  [37.7, -6, 4.6, 0.45, 2.4, 'you', 0, 80],
+  [38.55, -8, 5.0, 0.4, 2.8, 'you', 0, 80],
+  // (b) a fast pull-back, low and straight back over the harbor, then up and round to the east: side-on, the whole
+  // mountain held up by its edge, its snow cap tipped, a wedge of daylight under it, you at its foot (marked by a glow)
+  [38.85, 0, 400, 8, 70, 'mtn', 0.3, 64],
+  [39.2, 60, 4000, 250, 500, 'mtn', 0.8, 50],
+  [39.45, 80, 9000, 400, 700, 'mtn', 0.85, 46],
+  [39.95, 80, 9000, 400, 750, 'mtn', 0.85, 46],
+  // (c) back in behind you for the throw (round the east side, then down from above); it flies away from us and lands
+  // on the horizon; the dust wall rolls at us
+  [40.2, 60, 900, 200, 50, 'you', 0, 66],
+  [40.35, 15, 70, 30, 6, 'you', 0, 72],
+  [40.5, -16, 6.5, 1.4, 2.4, 'you', 0, 80],
+  [41.2, -12, 7.0, 1.4, 2.9, 'you', 0, 76],
+  [42.3, -10, 7.5, 1.5, 2.6, 'you', 0, 68],
+  [43.6, -8, 7.5, 1.5, 2.4, 'mtnL', 0.02, 60],
+  [47.5, -8, 7.5, 1.5, 2.4, 'mtnL', 0.02, 60],
 ];
 
 // monotone cubic through one column (log space for the distance)
@@ -115,6 +124,7 @@ function focusAt(name, v, Y, ly) {
     case 'tower': return p.copy(towerPiece(2, v).p);
     case 'towerB': return p.copy(towerPiece(0, v).p);
     case 'mtn': return p.set(MTN.x, 600, MTN.z).applyMatrix4(mountainAt(v).M);
+    case 'mtnL': return p.set(MTN.x, 250, MTN.z + 900).applyMatrix4(mountainAt(v).M);   // low on its near face
     default: return p.set(Y.x, ly + Y.air, Y.z);
   }
 }
@@ -123,7 +133,7 @@ export function camAt(v) {
   const Y = youAt(v);
   const az = AZ(v) * DEG, d = DIST(v), h = H(v), ly = LY(v), w = clamp(W(v), 0, 1), fov = FOV(v);
   // the rig follows your jumps only partly (no bobbing on every bound)
-  const yy = Y.air * (Y.mode === 'leap' ? 0.85 : 0.5);
+  const yy = Y.air * (Y.mode === 'leap' ? 1.0 : 0.5);
   const pos = new THREE.Vector3(Y.x + Math.sin(az) * d, yy + h, Y.z + Math.cos(az) * d);
   const me = new THREE.Vector3(Y.x, yy + ly, Y.z);
   let i = 0; while (i < KEYS.length - 2 && v > KEYS[i + 1][0]) i++;

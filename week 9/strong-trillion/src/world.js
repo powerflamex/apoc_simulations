@@ -3,7 +3,7 @@
 // the waterfront, and the far shore. The mountain itself (it gets lifted) is in mountain.js.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { QUAY_Z, SEA_Y, FAR_Z, STREET, WALK_W, BLD_W, TOWER, JET } from './layout.js';
+import { QUAY_Z, SEA_Y, FAR_Z, STREET, WALK_W, BLD_W, TOWER, JET, MTN } from './layout.js';
 import { rng } from './util.js';
 
 const NOISE = /* glsl */ `
@@ -19,6 +19,8 @@ export const GU = {
   uCk: { value: Array.from({ length: NCR }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uHaze: { value: new THREE.Color(0.7, 0.78, 0.88) }, uHazeD: { value: 2500 },
   uTime: { value: 0 },
+  // the mountain's foot: (your x, how far the crack along it has run each way (m), the ground left where it stood 0..1)
+  uMR: { value: new THREE.Vector4(0, 0, 0, 0) },
 };
 // the crater depth at (x, z) (the same formula as the shader), for placing you and the rubble
 export function craterH(x, z) {
@@ -381,11 +383,11 @@ export function makeWorld(scene, ctx) {
     const prev = farMat.onBeforeCompile;
     farMat.onBeforeCompile = (sh, r) => {
       prev(sh, r);
-      Object.assign(sh.uniforms, { uCr: GU.uCr, uCk: GU.uCk });
+      Object.assign(sh.uniforms, { uCr: GU.uCr, uCk: GU.uCk, uMR: GU.uMR });
       sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>\n${NOISE}\n${CRATER_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
         .replace('#include <beginnormal_vertex>', `vec3 chg = craterHG(position.xz); vec3 objectNormal = normalize(vec3(-chg.y, 1.0, -chg.z)); vCrD = -chg.x;`)
         .replace('#include <begin_vertex>', `vec3 transformed = position; transformed.y += chg.x; vGW = transformed;`);
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n${NOISE}\nuniform vec4 uCr[${NCR}]; uniform vec4 uCk[${NCR}];\n${CRACK_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n${NOISE}\nuniform vec4 uCr[${NCR}]; uniform vec4 uCk[${NCR}]; uniform vec4 uMR;\n${CRACK_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
         .replace('#include <color_fragment>', `#include <color_fragment>
         {
           vec2 p = vGW.xz;
@@ -398,6 +400,34 @@ export function makeWorld(scene, ctx) {
           float deep = clamp(vCrD / 3.0, 0.0, 1.0);
           c = mix(c, vec3(0.3, 0.25, 0.2) * (0.7 + 0.5 * gn(p * 0.8)), clamp(deep * 1.5 + ck.y * 0.6, 0.0, 0.95));
           c = mix(c, vec3(0.05, 0.04, 0.035), ck.x * 0.9);
+          // the mountain's footprint (its egg-shaped base; 900 = mountain.js ZP) and the line of its foot
+          {
+            float lz = p.y - ${MTN.z.toFixed(1)}, dx = (p.x - ${MTN.x.toFixed(1)}) / ${MTN.rx.toFixed(1)};
+            float dz = lz > 900.0 ? (lz - 900.0) / ${(MTN.rz - 900).toFixed(1)} : (lz - 900.0) / ${(MTN.rz + 900).toFixed(1)};
+            float q = length(vec2(dx, dz));
+            // where it stood, once it's gone: torn dark earth and rock, broken into slabs
+            if (uMR.z > 0.0 && q < 1.02) {
+              float n = gn(p * 0.01), n2 = gn(p * 0.07), n3 = gn(p * 0.4);
+              vec3 torn = mix(vec3(0.19, 0.13, 0.09), vec3(0.36, 0.3, 0.25), n * 0.6 + n2 * 0.4) * (0.7 + 0.45 * n3);
+              float slab = 1.0 - smoothstep(0.0, 0.08, abs(gn(p * 0.012 + 7.0) - 0.5));
+              torn *= 1.0 - 0.5 * slab;
+              c = mix(c, torn, uMR.z * (1.0 - smoothstep(0.985, 1.02, q)));
+            }
+            // the crack racing along the foot from your hands, both ways
+            float rimz = ${(MTN.z + 900).toFixed(1)} + ${(MTN.rz - 900).toFixed(1)} * sqrt(max(0.0, 1.0 - dx * dx));
+            float ax = abs(p.x - uMR.x);
+            if (uMR.y > 0.0 && ax < uMR.y) {
+              float wob = (gfbm(vec2(p.x * 0.05, 3.0)) - 0.5) * 3.0 + (gn(vec2(p.x * 0.6, 1.0)) - 0.5) * 0.8;
+              float d = abs(p.y - (rimz + 1.2 + wob));
+              float w = (0.5 + 0.9 * smoothstep(0.0, 30.0, ax)) * (1.0 - smoothstep(uMR.y * 0.8, uMR.y, ax)) + px * 0.7;
+              float line = 1.0 - smoothstep(w * 0.5, w, d);
+              // a second, thinner crack a few metres out
+              float d2 = abs(p.y - (rimz + 5.5 + wob * 1.6 + (gn(vec2(p.x * 0.11, 5.0)) - 0.5) * 4.0));
+              line = max(line, (1.0 - smoothstep(w * 0.25, w * 0.5, d2)) * step(6.0, ax));
+              c = mix(c, vec3(0.03, 0.025, 0.02), line * 0.95);
+              c = mix(c, vec3(0.42, 0.36, 0.3), (1.0 - smoothstep(0.0, w * 4.0, d)) * 0.35);
+            }
+          }
           diffuseColor.rgb = c;
         }`);
     };

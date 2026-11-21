@@ -239,7 +239,7 @@ export function makeSoundtrack(outFile) {
       const o = (f[0].run(white(), 90 + 140 * k + 30 * Math.sin(dt * 5), 0.5).lp * 1.3 + lp.run(white()) * 2.5 + f[1].run(white(), 700 + 400 * Math.sin(dt * 2.1), 0.3).bp * 0.15 * (GR() < 0.3 ? 1 : 0.4)) * e * 0.42;
       return [o, o];
     });
-    for (let k = 0; k < 7; k++) { const t = B.mtnGrab + 0.6 + k * 0.62 + 0.2 * GR(); crack(t, 0.4 + 0.08 * k); crash(t + 0.05, 0.25 + 0.05 * k, 300, 0.7, (k % 2 ? 0.4 : -0.4)); }
+    for (let k = 0; k < 7; k++) { const t = B.mtnCrack + k * 0.33 + 0.08 * GR(); crack(t, 0.4 + 0.08 * k); crash(t + 0.05, 0.25 + 0.05 * k, 300, 0.7, (k % 2 ? 0.4 : -0.4)); }
     // the heave and launch: a rising roar
     const fl = new SVF();
     add(B.mtnUp - 0.2, B.mtnLand - B.mtnUp + 0.3, (dt) => { const k = dt / (B.mtnLand - B.mtnUp + 0.3); const o = fl.run(white(), 120 + 500 * Math.sin(Math.PI * k), 0.6).lp * Math.sin(Math.PI * Math.min(1, k * 1.1)) * 0.9; return [o, o]; });
@@ -264,8 +264,8 @@ export function makeSoundtrack(outFile) {
     const f = [new SVF(), new SVF(), new SVF()];
     add(0.2, 12, (dt) => { const t = 0.2 + dt; const e = (0.5 + 0.5 * Math.sin(t * 3.3)) * (0.6 * (1 - smooth(1.0, 2.0, t)) + smooth(1.4, 2.0, t) * (1 - smooth(10, 12, t))) * 0.5; let o = 0; [700, 1100, 1600].forEach((fc, i) => { o += f[i].run(white(), fc * (1 + 0.15 * Math.sin(t * (2 + i))), 6).bp; }); o *= e; return [o * 0.9, o]; });
   }
-  for (const t of [20.95, 28.0, 40.0]) whoosh(t, 0.55, 60, 420, 1.4, 0);
-  for (const t of [22.6, 29.9, 41.3]) whoosh(t, 0.45, 80, 520, 0.8, 0);
+  for (const t of [20.95, 28.0, B.mtnPull]) whoosh(t, 0.55, 60, 420, 1.4, 0);
+  for (const t of [22.6, 29.9, B.mtnBack]) whoosh(t, 0.45, 80, 520, 0.8, 0);
   // ---------------- the mix ----------------
   const rms = (A, Bq, t0, t1) => { let e = 0, c = 0; for (let n = idx(t0); n < idx(t1); n++) { e += A[n] * A[n] + Bq[n] * Bq[n]; c += 2; } return Math.sqrt(e / c); };
   const hitR = rms(L, R, 1, 44), bedR = rms(BL, BR, 1, 44);
