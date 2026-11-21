@@ -106,6 +106,45 @@ export function timeOfL(Lt) {
 }
 // when the heat at r first reaches q
 export const timeOfQ = (q, r) => timeOfL((Math.log10(q) - LOG_S - 2 * Math.log10(RS / Math.max(r, RS))) / 4 - LOG_TB);
+// ---- the walk: from frame 0 you walk slowly up the middle of the street (north, -z), never stopping ----
+export const WALK_V = 1.45, PATH_X = 0.0, Z0 = 0.0;
+export const walkZ = (v) => Z0 - WALK_V * v;
+// the crater: from 1,000x the ground ahead of you boils away into a glowing pit, and you walk on down into it
+export const CRATER = { x: 0, z: -57 };
+export const craterR = (v) => 40 * Math.pow(smooth(26.4, 33.5, v), 0.7);
+export const craterD = (v) => 24 * smooth(26.5, 34, v);
+export function craterY(x, z, v) {
+  const R = craterR(v); if (R <= 0.01) return 0;
+  const r = Math.hypot(x - CRATER.x, z - CRATER.z) / R;
+  return r >= 1 ? 0 : -craterD(v) * Math.pow(1 - r * r, 1.3);
+}
+// your middle (the heat's centre) at time v
+export function heartAt(v, out = {}) {
+  out.x = PATH_X; out.z = walkZ(v); out.y = 1.0 + craterY(PATH_X, out.z, v);
+  return out;
+}
+const _h = {};
+// log10 heat at (x, y, z) at time v, remembering how hot it got as you went by (things you pass stay burnt):
+// the most of now, the moment you passed level with it, and halfway between (the shaders do the same, heat.js)
+export function lqHist(x, y, z, v) {
+  heartAt(v, _h);
+  let best = logQ(logMult(v), Math.hypot(x - _h.x, y - _h.y, z - _h.z));
+  const tp = Math.min(Math.max((Z0 - z) / WALK_V, -2), v);
+  for (const t of [tp, (tp + v) / 2]) { heartAt(t, _h); best = Math.max(best, logQ(logMult(t), Math.hypot(x - _h.x, y - _h.y, z - _h.z))); }
+  return best;
+}
+// the first video time the heat at (x, y, z) reaches q (shrink: the thing's own size, its near side catches first)
+export function timeOfQAt(q, x, y, z, shrink = 0) {
+  const lt = Math.log10(q);
+  const f = (v) => { heartAt(v, _h); return logQ(logMult(v), Math.max(Math.hypot(x - _h.x, y - _h.y, z - _h.z) - shrink, RS)) - lt; };
+  let prev = -2;
+  if (f(prev) >= 0) return -2;
+  for (let v = -1.95; v <= 48; v += 0.05) {
+    if (f(v) >= 0) { let lo = prev, hi = v; for (let k = 0; k < 20; k++) { const m = (lo + hi) / 2; if (f(m) >= 0) hi = m; else lo = m; } return hi; }
+    prev = v;
+  }
+  return Infinity;
+}
 // thresholds (W/m², the heat that does it within a second or two)
 export const Q = {
   FLEE: 5e2,         // a glowing person, the heat on your face like an open oven: people back off (pain from ~2.5 kW/m²)
@@ -119,6 +158,7 @@ export const Q = {
   STEEL: 3e6,        // a building's steel frame sags
   POUR: 1e7,         // concrete, brick and stone melt and pour
   VAPOR: 1e8,        // rock boils to gas
+  FLASH: 3e6,        // a fountain's water flashes to steam all at once
 };
 
 // ---- text: captions (never more than one; none while the title is up) ----

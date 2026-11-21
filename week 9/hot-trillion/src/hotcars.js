@@ -9,7 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { HU, HEAT_GLSL, LQ_GLSL } from './heat.js';
 
 // the heat patch for one car part (wheel: the tires melt flat; glass: cracks, then runs)
-function carHeat(m, part) {
+export function carHeat(m, part, perVertex = false) {
   const prev = m.onBeforeCompile;
   m.onBeforeCompile = (sh, r) => {
     if (prev) prev(sh, r);
@@ -20,7 +20,7 @@ ${HEAT_GLSL}
 ${LQ_GLSL}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         {
-          vec3 ctr = (modelMatrix * instanceMatrix * vec4(0.0, 0.75, 0.0, 1.0)).xyz;
+          vec3 ctr = (modelMatrix * instanceMatrix * vec4(${perVertex ? 'position.x, 0.75, position.z' : '0.0, 0.75, 0.0'}, 1.0)).xyz;
           float lqC = lqAt(ctr); vCC = lqC; vCO = position;
           float tire = clamp((lqC - LQ_TREE + 0.1) / 0.45, 0.0, 1.0);
           float slump = clamp((lqC - LQ_CAR) / 0.6, 0.0, 1.0);
@@ -52,7 +52,7 @@ ${LQ_GLSL}`)
           if (vap > nn3(vCW * 1.7) * 1.1) discard;
         }`);
   };
-  m.customProgramCacheKey = () => 'hotcar-' + part;
+  m.customProgramCacheKey = () => 'hotcar-' + part + (perVertex ? '-pv' : '');
   return m;
 }
 

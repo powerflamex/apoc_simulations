@@ -7,11 +7,12 @@
 //   ~100 MW/m²: the rock boils, a churning glowing surface;
 //   at the end (uTear) the Earth splits: glowing rifts run out from under you to the horizon and widen.
 import * as THREE from 'three';
-import { RW, FX, CZ, CW, HEART } from './layout.js';
+import { RW, FX, CZ, CW } from './layout.js';
+import { PATH_X, Z0, CRATER } from './timeline.js';
 import { CU } from './city.js';
 import { HU, HEAT_GLSL, LQ_GLSL } from './heat.js';
 
-export const GU = { uTear: { value: 0 }, uCool: { value: 0 } };
+export const GU = { uTear: { value: 0 }, uCool: { value: 0 }, uCrater: { value: new THREE.Vector4(CRATER.x, CRATER.z, 0, 0) } };
 const f = (x) => x.toFixed(2);
 
 export function makeGround(scene, ctx) {
@@ -25,13 +26,15 @@ export function makeGround(scene, ctx) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         varying vec3 vGW;
-        uniform float uTear; uniform float uCool; uniform vec3 uHaze; uniform float uHazeD;
+        uniform float uTear; uniform float uCool; uniform vec3 uHaze; uniform float uHazeD; uniform vec4 uCrater;
         ${HEAT_GLSL}
         ${LQ_GLSL}
         float band(float x, float a, float b, float w) { return smoothstep(a - w, a + w, x) * (1.0 - smoothstep(b - w, b + w, x)); }
         float gEm = 0.0; vec3 gEmC = vec3(0.0); float gRough = 0.85;`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         vec2 P = vGW.xz;
+        // (inside the crater the crater's own bowl is drawn)
+        if (uCrater.z > 0.01 && length(P - uCrater.xy) < uCrater.z) discard;
         float aw = max(fwidth(P.x), fwidth(P.y)) * 0.7;
         float ax = abs(P.x), dz = abs(P.y - (${f(CZ)}));
         bool road = ax < ${f(RW)};
@@ -69,9 +72,11 @@ export function makeGround(scene, ctx) {
         vec3 G = vec3(P.x, 0.0, P.y);
         float r = distance(G, uHeart);
         float lq = lqAt(G);
-        // (right under your shoes: the heat flows straight in by contact)
-        float rf = length(P - uHeart.xz);
-        lq += 0.9 * exp(-rf * rf / 0.18);
+        // (where your shoes have been: the heat flows straight in by contact; a trail of melted footsteps behind you)
+        float dxw = P.x - ${PATH_X.toFixed(2)};
+        float onPath = step(uHeart.z - 0.35, P.y) * step(P.y, ${(Z0 + 4).toFixed(2)});
+        float step2 = 0.55 + 0.45 * smoothstep(0.1, 0.0, abs(fract(P.y / 0.725) - 0.5) - 0.32);
+        lq += 0.9 * exp(-dxw * dxw / 0.05) * onPath * step2;
         float Ts = tSurf(lq);
         float tar = clamp((lq - LQ_TAR + 0.35) / 0.5, 0.0, 1.0);
         float lit = clamp((lq - LQ_TAR - 0.15) / 0.9, 0.0, 1.0);

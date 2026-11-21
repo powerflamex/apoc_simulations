@@ -3,15 +3,23 @@
 // beyond), how bright it reads on screen (an art curve: real glow grows as T^4, far past what a screen can show), and
 // the same three in GLSL (HU uniforms, HEAT_GLSL functions) for the shaders.
 import * as THREE from 'three';
-import { LOG_S, RS, Q, logQ } from './timeline.js';
-import { HEART } from './layout.js';
+import { LOG_S, LOG_TB, RS, Q, logQ, logMult, heartAt, WALK_V, PATH_X, Z0 } from './timeline.js';
 
 export const LQ = Object.fromEntries(Object.entries(Q).map(([k, q]) => [k, Math.log10(q)]));
 // uniforms every heat shader shares: your heat at your skin (log10 W/m²), where you are, the time
+// the counter over time (log10 times hotter, every 0.02 s from -2 s to 50 s) as a lookup, so a shader can tell how hot
+// it was when you walked past a spot
+const LT0 = -2, LT1 = 50, LTN = 2601;
+const ltData = new Float32Array(LTN * 4);
+for (let i = 0; i < LTN; i++) ltData[i * 4] = logMult(LT0 + (LT1 - LT0) * i / (LTN - 1));
+const ltTex = new THREE.DataTexture(ltData, LTN, 1, THREE.RGBAFormat, THREE.FloatType);
+ltTex.minFilter = ltTex.magFilter = THREE.NearestFilter; ltTex.needsUpdate = true;
 export const HU = {
-  uLQ0: { value: 0 }, uHeart: { value: new THREE.Vector3(HEART.x, HEART.y, HEART.z) }, uHT: { value: 0 },
+  uLQ0: { value: 0 }, uHeart: { value: new THREE.Vector3(PATH_X, 1, Z0) }, uHT: { value: 0 },
+  uLT: { value: ltTex }, uWalk: { value: new THREE.Vector3(PATH_X, Z0, WALK_V) },
 };
-export const setHeat = (L, v) => { HU.uLQ0.value = logQ(L, 0); HU.uHT.value = v; };
+const _hp = {};
+export const setHeat = (L, v) => { HU.uLQ0.value = logQ(L, 0); HU.uHT.value = v; heartAt(v, _hp); HU.uHeart.value.set(_hp.x, _hp.y, _hp.z); };
 
 // black-body colour (linear RGB, max channel 1) — Tanner Helland's fit, 1,000-40,000 K, extended down to 600 K
 export function bbColor(T, out = new THREE.Color()) {
@@ -31,9 +39,19 @@ export const glowOf = (T) => {
 };
 
 export const HEAT_GLSL = /* glsl */ `
-uniform float uLQ0; uniform vec3 uHeart; uniform float uHT;
-// log10 of the heat (W/m²) landing at P
-float lqAt(vec3 P) { return uLQ0 + 2.0 * log(${RS.toFixed(5)} / max(distance(P, uHeart), ${RS.toFixed(5)})) / log(10.0); }
+uniform float uLQ0; uniform vec3 uHeart; uniform float uHT; uniform sampler2D uLT; uniform vec3 uWalk;
+float Lat(float t) { return texture2D(uLT, vec2((clamp(t, ${LT0.toFixed(1)}, ${LT1.toFixed(1)}) - (${LT0.toFixed(1)}) + ${((LT1 - LT0) / (LTN - 1) * 0.5).toFixed(4)}) / ${(LT1 - LT0 + (LT1 - LT0) / (LTN - 1)).toFixed(4)}, 0.5)).r; }
+float lqOne(vec3 P, float L, vec3 H) { return ${LOG_S.toFixed(5)} + 4.0 * (${LOG_TB.toFixed(5)} + L) + 2.0 * log(${RS.toFixed(5)} / max(distance(P, H), ${RS.toFixed(5)})) / log(10.0); }
+// log10 of the heat (W/m²) at P, remembering how hot it got as you walked past (the most of: now, the moment you were
+// level with it, halfway between; timeline.js lqHist does the same)
+float lqAt(vec3 P) {
+  float a = uLQ0 + 2.0 * log(${RS.toFixed(5)} / max(distance(P, uHeart), ${RS.toFixed(5)})) / log(10.0);
+  float tp = clamp((uWalk.y - P.z) / uWalk.z, ${LT0.toFixed(1)}, uHT);
+  float tm = 0.5 * (tp + uHT);
+  float b = lqOne(P, Lat(tp), vec3(uWalk.x, uHeart.y, uWalk.y - uWalk.z * tp));
+  float c = lqOne(P, Lat(tm), vec3(uWalk.x, uHeart.y, uWalk.y - uWalk.z * tm));
+  return max(a, max(b, c));
+}
 // the temperature (K) a surface there settles at, absorbing on one side and glowing from both: (q / 2 sigma)^(1/4)
 // (capped where rock boils, ~3,300 K: past that the heat goes into boiling it away, not into heating the surface)
 float tSurf(float lq) { return min(pow(10.0, (lq - ${(LOG_S + Math.log10(2)).toFixed(5)}) / 4.0), 3300.0); }

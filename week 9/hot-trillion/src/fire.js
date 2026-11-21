@@ -2,8 +2,7 @@
 // Callers fill the list each frame: fire.begin(); fire.add(x, y, z, width, height, intensity, seed); fire.end().
 // The flame's base sits at y; it licks upward, its tongues scrolling up, deep red at the edges, yellow at the core.
 import * as THREE from 'three';
-import { logQ } from './timeline.js';
-import { HEART } from './layout.js';
+import { lqHist } from './timeline.js';
 import { LQ } from './heat.js';
 
 export function makeFire(scene, max = 3000) {
@@ -49,13 +48,13 @@ export function makeFire(scene, max = 3000) {
   const mesh = new THREE.InstancedMesh(geo, mat, max);
   mesh.frustumCulled = false; mesh.renderOrder = 6;
   scene.add(mesh);
-  let n = 0, L = 0;
+  let n = 0, L = 0, V = 0;
   return {
     mat,
-    begin(Lnow) { n = 0; L = Lnow; },
+    begin(Lnow, v) { n = 0; L = Lnow; V = v; },
     add(x, y, z, w, hgt, k, seed) {
       // once a thing is hot enough to glow white on its own, it's past burning: the flames die back into the glare
-      const lq = logQ(L, Math.hypot(x - HEART.x, y + hgt * 0.3 - HEART.y, z - HEART.z));
+      const lq = lqHist(x, y + hgt * 0.3, z, V);
       k *= 1 - Math.min(1, Math.max(0, (lq - LQ.GLASS - 0.1) / 0.6));
       if (n >= max || k < 0.01 || w <= 0 || hgt <= 0) return;
       aB.setXYZW(n, x, y, z, w); aF.setXYZ(n, hgt, k, seed); n++;

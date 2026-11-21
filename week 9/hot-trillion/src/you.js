@@ -314,7 +314,7 @@ export function makeYou(scene, opts = {}) {
       torso.rotation.set(-0.02 + 0.06 * fl, 0, 0);
       legs.forEach((L, i) => {
         // ankle target relative to the hip joint
-        const fz = (q.footZ ?? 0) + (i === 0 ? 0.02 : 0.0) + lift[i] * 0.35 + fl * (i === 0 ? 0.06 : -0.08);
+        const fz = (q.footZ ?? 0) + (q.stepZ ? q.stepZ[i] : (i === 0 ? 0.02 : 0.0) + lift[i] * 0.35) + fl * (i === 0 ? 0.06 : -0.08);
         const fy = hipH - 0.01 - ANKLE_Y - lift[i] - fl * (i === 0 ? 0.08 : 0.03);
         const ik = legIK(fy, fz);
         L.hip.rotation.set(-ik.hip, 0, (i === 0 ? -1 : 1) * 0.02);

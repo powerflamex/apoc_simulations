@@ -3,68 +3,63 @@
 // heat where they are (timeline.js):
 //   ~0.15 kW/m² (a warm glow on the face, and a glowing person): they stop and turn to look at you;
 //   ~0.5 kW/m² (like an open oven, and climbing fast): they flinch back, arms up over their faces, then turn and
-//     run, straight up or down the street away from you. Runners in one lane never pass through each other (the one
+//     run, up the street ahead of you (or back past the camera if they're behind you; across the plaza if in it). Runners in one lane never pass through each other (the one
 //     behind keeps a step back from the one in front).
 // Your friend (main.js, a detailed figure) is planned in main.js; she is the first to jump back.
 import { rng, clamp, smooth, lerp } from './util.js';
-import { timeOfQ, Q, logQ, logMult } from './timeline.js';
+import { timeOfQAt, Q, lqHist, heartAt } from './timeline.js';
 import { LQ } from './heat.js';
-import { HEART, CAM, YOU, TREES, LAMPS } from './layout.js';
+import { TREES, LAMPS, CART, BUS, PLAZA, FOUNTAIN, PARKED } from './layout.js';
+import { TABLES, BINS } from './props.js';
 import { SKIN, HAIR } from './crowd.js';
 
 const SHIRT = [0xe63946, 0xf4a261, 0x2a9d8f, 0xe9c46a, 0xffffff, 0x1d1d1d, 0xb5838d, 0x6d597a, 0x8ecae6, 0x264653, 0x2b3a55, 0xe8e6e0, 0x8a96a8, 0x5a6a4a, 0x7a2a2a, 0xd8d2c4, 0x3a5a9a, 0xf2c14e, 0x4ea8de];
 const PANTS = [0x1d1d1d, 0x2b2d42, 0x3d405b, 0x6b705c, 0x8a817c, 0x4a6a9a, 0xc9c2b6, 0x23252b, 0x3a4a6a, 0x8a7a66];
 const WALK = 1.3;
-const rOf = (x, z, y = 1.4) => Math.hypot(x - HEART.x, y - HEART.y, z - HEART.z);
+const H = {};
 
 export const PEOPLE = [];
 {
-  const R = rng(9393);
+  const R = rng(9394);
   const add = (p) => {
     p.i = PEOPLE.length;
     p.shirt = SHIRT[Math.floor(R() * SHIRT.length)]; p.pants = PANTS[Math.floor(R() * PANTS.length)];
     p.skin = SKIN[Math.floor(R() * SKIN.length)]; p.hair = HAIR[Math.floor(R() * HAIR.length)];
     p.sleeves = R() < 0.45; p.ph = R() * 6.28; p.s = 0.93 + R() * 0.12;
-    p.react = 0.1 + R() * 0.35; p.k = 0.8 + 0.45 * R(); p.rnd = R(); p.speed = 3.7 + 1.1 * R();
+    p.react = 0.08 + R() * 0.3; p.k = 0.8 + 0.45 * R(); p.rnd = R(); p.speed = 3.7 + 1.1 * R();
     PEOPLE.push(p);
   };
-  const clearOfCam = (x, z) => Math.hypot(x - CAM.x, z - CAM.z) > 2.2 && Math.hypot(x - YOU.x, z - YOU.z) > 1.4;
-  const clearOfStuff = (x, z) => !TREES.some((t) => Math.hypot(t.x - x, t.z - z) < 0.7) && !LAMPS.some((l) => Math.hypot(l.x - x, l.z - z) < 0.6);
-  // walkers: [x, direction (+1 south, -1 north), z from, z to]
-  const lanes = [
-    [7.9, -1, 20, -170], [8.6, 1, -170, 20], [9.35, -1, 20, -170], [10.1, 1, -170, 20],
-    [-7.9, 1, -170, 30], [-8.6, -1, 30, -170], [-9.35, 1, -170, 30], [-10.1, -1, 30, -170],
-  ];
+  const solid = [...TREES.map((t) => [t.x, t.z, 0.6]), ...LAMPS.map((l) => [l.x, l.z, 0.5]), ...TABLES.map((t) => [t.x, t.z, 0.75]), ...BINS.map((b) => [b.x, b.z, 0.6]),
+    [CART.x, CART.z, 1.4], [FOUNTAIN.x, FOUNTAIN.z, FOUNTAIN.r + 0.6], ...PARKED.map((c) => [c.x, c.z, 2.6])];
+  const clearOfStuff = (x, z) => !solid.some(([sx, sz, r]) => Math.hypot(sx - x, sz - z) < r) && !(Math.abs(x - BUS.x) < BUS.w / 2 + 0.5 && Math.abs(z - BUS.z) < BUS.len / 2 + 0.5);
+  // walkers on both sidewalks: [x, direction (+1 south, -1 north), z from, z to]
+  const lanes = [[5.95, -1, 30, -55], [6.55, 1, -55, 30], [-5.95, 1, -55, 30], [-6.55, -1, 30, -55]];
   for (const [x, dir, za, zb] of lanes) {
     const lo = Math.min(za, zb), hi = Math.max(za, zb);
-    for (let z = lo + R() * 2; z < hi - 0.5; z += 2.4 + R() * 3.2) {
-      const xx = x + (R() - 0.5) * 0.12;
-      if (!clearOfCam(xx, z)) continue;
-      add({ kind: 'walk', x: xx, z, dir, end: dir > 0 ? hi : lo });
-    }
+    for (let z = lo + R() * 2; z < hi - 0.5; z += 2.2 + R() * 3) add({ kind: 'walk', x: x + (R() - 0.5) * 0.1, z, dir, end: dir > 0 ? hi : lo });
   }
-  // standing round you (looking at you already: you're glowing)
-  for (const [x, z] of [[6.2, 0.75], [6.05, -2.9], [2.95, 0.55], [5.15, 1.35], [7.55, 0.1], [9.5, -3.6], [10.1, -4.7], [7.6, -6.2], [2.6, -3.6]]) add({ kind: 'stand', x, z });
-  // crossing the road
-  for (const [x, z, dir] of [[-2.8, -14.5, 1], [0.6, -24, -1], [-1.2, -38, 1]]) add({ kind: 'cross', x, z, dir });
+  // in the street round you and ahead of you (it's a busy shopping street: people cross anywhere); they all scream
+  for (const [x, z] of [[0.55, -2.4], [-0.95, -3.2], [1.05, -3.9], [0.15, -5.1], [-0.75, -6.3], [1.45, -6.8], [0.6, -8.6], [2.2, -12.5], [1.2, -15], [0.9, -19.5], [2.0, -23]]) add({ kind: 'stand', x, z, road: true });
+  // round the fountain in the plaza
+  for (const [x, z] of [[8.6, -24.5], [12.8, -25.4], [14.2, -28.6], [13.5, -31.5], [9.4, -32.6], [16.5, -27], [11.2, -22.8], [16.8, -30.8], [2.6, -27.2], [4.3, -32.6]]) add({ kind: 'stand', x, z, plaza: true });
   for (const p of PEOPLE) {
-    // where a walker / crosser is at time t (before they stop)
-    const posAt = (t) => (p.kind === 'walk' ? [p.x, clamp(p.z + p.dir * WALK * t, Math.min(p.z, p.end), Math.max(p.z, p.end))]
-      : p.kind === 'cross' ? [p.x + p.dir * WALK * t, p.z] : [p.x, p.z]);
+    const posAt = (t) => (p.kind === 'walk' ? [p.x, clamp(p.z + p.dir * WALK * t, Math.min(p.z, p.end), Math.max(p.z, p.end))] : [p.x, p.z]);
     let tN = 0;
-    for (let k = 0; k < 4; k++) { const [x, z] = posAt(tN); tN = timeOfQ(150 * p.k, rOf(x, z)) + p.react; }
+    for (let k = 0; k < 4; k++) { const [x, z] = posAt(tN); tN = timeOfQAt(150 * p.k, x, 1.4, z) + p.react; }
     p.tNotice = tN;
     const [sx, sz] = posAt(Math.max(tN, -3) + 0.3);
     p.sx = sx; p.sz = sz;
-    p.tFlee = Math.max(p.tNotice + 0.25, timeOfQ(Q.FLEE * p.k, rOf(sx, sz)) + p.react * 0.6);
-    // the flinch: a step straight back from you; then the run, along the street, away from you
-    const dx = p.sx - HEART.x, dz = p.sz - HEART.z, dh = Math.hypot(dx, dz) || 1;
+    p.tFlee = Math.max(p.tNotice + 0.2, timeOfQAt(Q.FLEE * p.k, sx, 1.4, sz) + p.react * 0.6);
+    // the flinch: a step straight back from where you are then; then the run away from you
+    heartAt(p.tFlee, H);
+    const dx = p.sx - H.x, dz = p.sz - H.z, dh = Math.hypot(dx, dz) || 1;
     p.bx = p.sx + dx / dh * 0.45; p.bz = p.sz + dz / dh * 0.45;
-    p.runDir = Math.abs(dz) > 0.4 ? Math.sign(dz) : (p.rnd < 0.5 ? -1 : 1);
-    if (p.kind === 'stand' && p.sx > 4.4 && p.sx < 5.8 && p.sz > 0) p.runDir = 1;   // (the one at your side: past the camera)
-    p.faceYou = Math.atan2(HEART.x - p.sx, HEART.z - p.sz);
+    p.runDir = dz > 0 ? 1 : -1;
+    // (in the road they run up your lane, clear of the bus and the cars; in the plaza they run off across it)
+    if (p.road) p.bx = clamp(p.bx, 0.6, 1.1);
+    if (p.plaza) { p.runAxis = 'x'; p.runDir = 1; p.end = PLAZA.x1 - 0.6; }
   }
-  // nobody may stand inside anybody else (or a tree, or a lamp)
+  // nobody may stand inside anybody else (or a tree, a lamp, a car, the cart, the fountain)
   for (let i = 0; i < PEOPLE.length; i++) {
     const a = PEOPLE[i];
     if (!clearOfStuff(a.sx, a.sz) || !clearOfStuff(a.bx, a.bz)) { a.gone = true; continue; }
@@ -79,7 +74,7 @@ export const PEOPLE = [];
   for (const p of live) {
     let best = null;
     for (const o of live) {
-      if (o === p || o.runDir !== p.runDir || Math.abs(o.bx - p.bx) > 0.6) continue;
+      if (o === p || o.runDir !== p.runDir || o.runAxis || p.runAxis || Math.abs(o.bx - p.bx) > 0.6) continue;
       const ahead = (o.bz - p.bz) * p.runDir;
       if (ahead > 0 && (!best || ahead < (best.bz - p.bz) * p.runDir)) best = o;
     }
@@ -102,9 +97,11 @@ function runZ(p, v) {
 export function personAt(p, v, out) {
   if (p.gone) { out.visible = false; return out; }
   // (once the flames reach where they've got to, the smoke and glare hide them: they're not shown)
-  if (v > 9 && logQ(logMult(v), rOf(p.bx, runZ(p, v))) > LQ.TREE) { out.visible = false; return out; }
+  if (v > 7 && (p.runAxis ? lqHist(Math.min(p.end, p.bx + Math.max(0, v - p.tFlee - 0.4) * p.speed), 1.4, p.bz, v) : lqHist(p.bx, 1.4, runZ(p, v), v)) > LQ.TREE) { out.visible = false; return out; }
   out.visible = true;
-  let x = p.sx, z = p.sz, yaw = p.kind === 'walk' ? (p.dir > 0 ? 0 : Math.PI) : p.kind === 'cross' ? (p.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : p.faceYou;
+  heartAt(v, H);
+  const faceYou = Math.atan2(H.x - p.sx, H.z - p.sz);
+  let x = p.sx, z = p.sz, yaw = p.kind === 'walk' ? (p.dir > 0 ? 0 : Math.PI) : faceYou;
   let stride = 0, walk = 0, pitch = 0, armL = 0, armR = 0, look = 0;
   // walking until they notice you
   if ((p.kind === 'walk' || p.kind === 'cross') && v < p.tNotice + 0.3) {
@@ -116,7 +113,7 @@ export function personAt(p, v, out) {
     walk = v * 7.2 + p.ph;
   }
   // turn to look at you
-  yaw = angTo(yaw, p.faceYou, smooth(p.tNotice, p.tNotice + 0.5, v));
+  yaw = angTo(yaw, faceYou, smooth(p.tNotice, p.tNotice + 0.5, v));
   look = 0.15 * smooth(p.tNotice, p.tNotice + 0.5, v);
   // flinch: a quick step back, leaning away, arms up over the face
   const kF = smooth(p.tFlee, p.tFlee + 0.3, v);
@@ -126,8 +123,11 @@ export function personAt(p, v, out) {
   // and run: turn away along the street, arms pumping
   const kR = smooth(p.tFlee + 0.25, p.tFlee + 0.6, v);
   if (kR > 0) {
-    z = runZ(p, v); x = p.bx;
-    yaw = angTo(yaw, p.runDir > 0 ? 0 : Math.PI, kR);
+    if (p.runAxis) {
+      const t = Math.max(0, v - p.tFlee - 0.35);
+      x = Math.min(p.end, p.bx + (t < 0.6 ? 0.5 * p.speed * t * t / 0.6 : p.speed * (t - 0.3))); z = p.bz;
+      yaw = angTo(yaw, Math.PI / 2, kR);
+    } else { z = runZ(p, v); x = p.bx; yaw = angTo(yaw, p.runDir > 0 ? 0 : Math.PI, kR); }
     stride = Math.max(stride, 1.6 * kR);
     walk = (v - p.tFlee) * 11 + p.ph;
     pitch = lerp(pitch, 0.12, kR);

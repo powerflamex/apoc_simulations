@@ -11,8 +11,8 @@
 // Near buildings (layout NEAR_R) have a fine mesh so they can bend; far ones are plain boxes that sink. Signs droop,
 // char and burn off; the awnings' canvas burns through from its hottest edge (fire.js adds the flames).
 import * as THREE from 'three';
-import { BLD, SIGNS, AWNINGS, HEART } from './layout.js';
-import { timeOfQ, Q } from './timeline.js';
+import { BLD, SIGNS, AWNINGS } from './layout.js';
+import { timeOfQAt, Q, PATH_X } from './timeline.js';
 import { HU, HEAT_GLSL, LQ_GLSL } from './heat.js';
 import { rng, smooth, clamp } from './util.js';
 
@@ -295,17 +295,15 @@ function makeSignAtlas() {
 }
 
 // when each awning and sign goes (fire.js reads these): canvas catches at ~22 kW/m², plastic signs droop at ~16
-const rOf = (x, y, z) => Math.hypot(x - HEART.x, y - HEART.y, z - HEART.z);
 {
   const R = rng(808);
   for (const a of AWNINGS) {
     // the awning's hottest point: its outer edge nearest you
-    const ox = a.x - (a.out ?? 1.5) * 0.9 * a.side, oz = clamp(HEART.z, a.z - a.w / 2, a.z + a.w / 2);
-    a.r = rOf(ox, 2.8, oz);
-    a.tIgn = timeOfQ(Q.IGNITE * (0.85 + 0.3 * R()), a.r);
+    const ox = a.x - (a.out ?? 1.5) * 0.9 * a.side;
+    a.tIgn = timeOfQAt(Q.IGNITE * (0.85 + 0.3 * R()), ox, 2.8, a.z, a.w * 0.45);
     a.burn = 1.8 + 1.2 * R();
   }
-  for (const s of SIGNS) { s.r = rOf(s.x, s.y, s.z); s.tMelt = timeOfQ(Q.MELT * (0.8 + 0.4 * R()), s.r); s.tGone = timeOfQ(Q.IGNITE * (1.4 + 0.6 * R()), s.r); }
+  for (const s of SIGNS) { s.tMelt = timeOfQAt(Q.MELT * (0.8 + 0.4 * R()), s.x, s.y, s.z, s.w * 0.4); s.tGone = timeOfQAt(Q.IGNITE * (1.4 + 0.6 * R()), s.x, s.y, s.z, s.w * 0.4); }
 }
 
 export function makeCity(scene, ctx) {

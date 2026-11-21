@@ -3,13 +3,13 @@
 // where it is (city.js heated()).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { LAMPS, HEART } from './layout.js';
-import { timeOfQ, Q } from './timeline.js';
+import { LAMPS } from './layout.js';
+import { timeOfQAt, Q, walkZ } from './timeline.js';
 import { rng, smooth } from './util.js';
 
-export const BINS = [{ x: 6.55, z: -8.4 }, { x: -6.6, z: -21 }, { x: 6.6, z: -46 }, { x: -6.6, z: 6 }];
-export const BENCHES = [{ x: 6.7, z: -13.5 }, { x: -6.7, z: -9.5 }, { x: 6.7, z: -31 }];
-export const TABLES = [{ x: 9.7, z: -2.2 }, { x: 9.8, z: -6.4 }];
+export const BINS = [{ x: 4.9, z: -15.4 }, { x: -4.9, z: -21 }, { x: 4.9, z: -46 }, { x: -4.9, z: 6 }];
+export const BENCHES = [{ x: 13.5, z: -25.5 }, { x: 13.5, z: -32.5 }, { x: -6.7, z: -12.5 }];
+export const TABLES = [{ x: 6.5, z: -6.2 }, { x: 6.6, z: -10.8 }];
 
 export function makeProps(scene, ctx) {
   const R = rng(515);
@@ -24,9 +24,10 @@ export function makeProps(scene, ctx) {
   lamps.castShadow = true; lamps.frustumCulled = false;
   scene.add(lamps);
   const LP = LAMPS.map((l) => {
-    const dx = l.x - HEART.x, dz = l.z - HEART.z, dh = Math.hypot(dx, dz) || 1;
-    const r = Math.hypot(dx, 3 - HEART.y, dz);
-    return { ...l, t: timeOfQ(Q.STEEL * 0.6 * (0.8 + 0.4 * R()), r), ax: new THREE.Vector3(-dz / dh, 0, dx / dh) };
+    // (they bow away from where you are when they go)
+    const t = timeOfQAt(Q.STEEL * 0.6 * (0.8 + 0.4 * R()), l.x, 3, l.z);
+    const dx = l.x - 0, dz = l.z - walkZ(Math.min(t, 45)), dh = Math.hypot(dx, dz) || 1;
+    return { ...l, t, ax: new THREE.Vector3(-dz / dh, 0, dx / dh) };
   });
   const bin = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.32, 0.28, 0.95, 12).translate(0, 0.475, 0), ctx.heated(ctx.plainMat(0x2a4a3a, 0.6), 'bin'), BINS.length);
   BINS.forEach((b, i) => bin.setMatrixAt(i, m4.makeTranslation(b.x, 0, b.z)));
@@ -40,7 +41,7 @@ export function makeProps(scene, ctx) {
   TABLES.forEach((b, i) => tables.setMatrixAt(i, m4.makeTranslation(b.x, 0, b.z)));
   const hyd = new THREE.Mesh(mergeGeometries([new THREE.CylinderGeometry(0.13, 0.15, 0.72, 10).translate(0, 0.36, 0), new THREE.SphereGeometry(0.14, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 0.72, 0)]),
     ctx.heated(ctx.plainMat(0xc8a018, 0.5), 'hyd'));
-  hyd.position.set(6.45, 0, -6.8);
+  hyd.position.set(4.95, 0, -24.5);
   for (const m of [bin, bench, tables, hyd]) { ctx.shadowy(m); scene.add(m); }
   return {
     frame(v) {

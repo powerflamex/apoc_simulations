@@ -3,8 +3,7 @@
 // opacity and glow. Columns over the burning buildings, a puff of steam over the crash, dust clouds where
 // buildings collapse. Callers fill the puff list each frame: smoke.puff(x, y, z, radius, alpha, shade, glow, seed).
 import * as THREE from 'three';
-import { logQ } from './timeline.js';
-import { HEART } from './layout.js';
+import { lqHist } from './timeline.js';
 import { LQ } from './heat.js';
 
 const NOISE = /* glsl */ `
@@ -62,9 +61,11 @@ export function makeSmoke(scene, max = 2600) {
   let n = 0;
   return {
     mat, mesh,
-    L: undefined,
-    begin(L) { n = 0; this.L = L; },
+    L: undefined, V: 0, cam: null,
+    begin(L, v, cam) { n = 0; this.L = L; this.V = v; this.cam = cam || null; },
     puff(x, y, z, r, alpha, shade, glow, seed, gr = 1.6, gg = 0.55, gb = 0.12) {
+      // (a puff near the lens would fog the whole picture: thin it out as it gets close)
+      if (this.cam) { const d = Math.hypot(x - this.cam.x, y - this.cam.y, z - this.cam.z); alpha *= Math.min(1, Math.max(0, (d - (r + 2)) / (r + 6))); }
       if (n >= max || alpha < 0.004 || r <= 0) return;
       e.set(seed * 3.1, seed * 7.7, seed * 1.3); q.setFromEuler(e);
       m4.compose(pos.set(x, y, z), q, sc.setScalar(r));
@@ -84,7 +85,7 @@ export function emitColumn(smoke, x, y, z, t, {
   if (t < 0) return;
   // a fire's smoke thins out once the thing is past burning (glowing on its own)
   let fade = 1;
-  if (heat && smoke.L !== undefined) fade = 1 - Math.min(1, Math.max(0, (logQ(smoke.L, Math.hypot(x - HEART.x, y - HEART.y, z - HEART.z)) - LQ.GLASS - 0.1) / 0.7));
+  if (heat && smoke.L !== undefined) fade = 1 - Math.min(1, Math.max(0, (lqHist(x, y, z, smoke.V) - LQ.GLASS - 0.1) / 0.7));
   if (fade <= 0.01) return;
   alpha *= fade;
   const j1 = Math.floor(Math.min(t, life) / every);

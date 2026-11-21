@@ -3,15 +3,14 @@
 // the heat where it is. Here: when each one's tires and cabin catch fire (~30 kW/m²), for the flames and smoke.
 import * as THREE from 'three';
 import { makeFleet } from './hotcars.js';
-import { PARKED, MOVING, HEART } from './layout.js';
-import { timeOfQ, Q } from './timeline.js';
+import { PARKED } from './layout.js';
+import { timeOfQAt, Q } from './timeline.js';
 import { emitColumn } from './smoke.js';
 import { rng, clamp } from './util.js';
 
 const PAINT = [0xe8e8e8, 0xc02a2a, 0x2a5ab0, 0x9aa0a8, 0x1c2e4a, 0x111111, 0xf0f0f0, 0xc9c2b0, 0x30a06e, 0x8a1a1a, 0x5a6a7a, 0x3a3a40, 0xd8a020];
 const TAXI = 0xf0c030;
 const LEN = [4.5, 4.0, 4.6, 4.9], WID = [1.8, 1.76, 1.88, 1.92];
-const rOf = (x, y, z) => Math.hypot(x - HEART.x, y - HEART.y, z - HEART.z);
 
 export const CARS = [];
 {
@@ -19,32 +18,17 @@ export const CARS = [];
   const finish = (c) => {
     c.col = c.hero ? 0xc8262a : R() < 0.15 ? TAXI : PAINT[Math.floor(R() * PAINT.length)];
     const len = LEN[c.kind];
-    // the nearest end of the car to you, and its wheels
-    const ez = clamp(HEART.z, c.sz - len / 2, c.sz + len / 2), ex = clamp(HEART.x, c.sx - WID[c.kind] / 2, c.sx + WID[c.kind] / 2);
-    c.rNear = rOf(ex, 0.6, ez);
-    c.rMid = rOf(c.sx, 0.75, c.sz);
     c.wheels = [-1, 1].flatMap((sx) => [-1, 1].map((sz) => {
       const yaw = c.yaw, wx = sx * (WID[c.kind] / 2 - 0.1), wz = sz * (len / 2 - 0.82);
       const x = c.sx + Math.cos(yaw) * wx + Math.sin(yaw) * wz, z = c.sz - Math.sin(yaw) * wx + Math.cos(yaw) * wz;
-      return { x, z, t: timeOfQ(Q.TREE * (0.9 + 0.2 * R()), rOf(x, 0.33, z)), seed: R() };
+      return { x, z, t: timeOfQAt(Q.TREE * (0.9 + 0.2 * R()), x, 0.33, z), seed: R() };
     }));
-    c.tCab = timeOfQ(Q.TREE * 1.3 * (0.85 + 0.3 * R()), c.rMid);
-    c.tGone = timeOfQ(Q.VAPOR, c.rMid);
+    c.tCab = timeOfQAt(Q.TREE * 1.3 * (0.85 + 0.3 * R()), c.sx, 0.75, c.sz, 0.8);
+    c.tGone = timeOfQAt(Q.VAPOR, c.sx, 0.75, c.sz);
     c.seed = R();
     CARS.push(c);
   };
   for (const p of PARKED) finish({ kind: p.kind, sx: p.x, sz: p.z, yaw: p.yaw, moving: false, hero: p.hero });
-  for (const m of MOVING) {
-    // where it stops: it brakes once the heat at it is past ~1 kW/m²
-    let z = m.z0, ts = 0;
-    for (let k = 0; k < 5; k++) {
-      ts = timeOfQ(1000, rOf(m.x, 1.2, z)) + 0.5;
-      z = m.z0 + m.dir * m.speed * Math.max(ts, -3);
-    }
-    const brake = 4.5, zs = z + m.dir * m.speed * m.speed / (2 * brake);
-    if (zs > 30 || zs < -300) continue;
-    finish({ kind: m.kind, sx: m.x, sz: zs, yaw: m.dir < 0 ? 0 : Math.PI, moving: true, m, ts, brake });
-  }
 }
 
 export function makeTraffic(scene, ctx) {
@@ -56,7 +40,7 @@ export function makeTraffic(scene, ctx) {
     frame(v, fire, smoke) {
       CARS.forEach((c, i) => {
         let z = c.sz;
-        if (c.moving) {
+        if (false) {
           const m = c.m;
           if (v < c.ts) z = m.z0 + m.dir * m.speed * v;
           else { const t = Math.min(v - c.ts, m.speed / c.brake); z = m.z0 + m.dir * (m.speed * c.ts + m.speed * t - 0.5 * c.brake * t * t); }

@@ -26,15 +26,17 @@ import { makeCrowd } from './crowd.js';
 import { makeOverlay } from './overlay.js';
 import { makeYou, FLAP, GLOW } from './you.js';
 import { PEOPLE, personAt } from './people.js';
-import { BLD, YOU, YOU_YAW, HEART, CAM, FRIEND, AWNINGS } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, HITS, T_SWITCH, logMult, logQ, radiusAt, timeOfQ, Q, V_WHITE, V_TRILLION, T_BODY } from './timeline.js';
-import { setHeat, bbColor, HU, LQ } from './heat.js';
+import { BLD, CAM, FRIEND, AWNINGS } from './layout.js';
+import { makeStreet } from './street.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, HITS, T_SWITCH, logMult, logQ, radiusAt, timeOfQAt, lqHist, heartAt, walkZ, craterY, craterR, craterD, CRATER, WALK_V, Q, V_WHITE, V_TRILLION, T_BODY } from './timeline.js';
+import { setHeat, bbColor, HU, LQ, HEAT_GLSL } from './heat.js';
 import { lerp, smooth, wobble, clamp, rng } from './util.js';
 
 const W = 1080, H_PX = 1920, DEG = Math.PI / 180;
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = params.has('render');
 const DBG = params.get('dbg') || '';
+globalThis.__DBG = DBG;
 window.__cover = params.has('cover');
 
 const stage = document.getElementById('stage');
@@ -61,6 +63,7 @@ const city = makeCity(scene, ctx);
 const trees = makeTrees(scene, ctx);
 const props = makeProps(scene, ctx);
 const traffic = makeTraffic(scene, ctx);
+const street = makeStreet(scene, ctx);
 const fire = makeFire(scene, 3000);
 const glows = makeGlows(scene, 1500);
 const smoke = makeSmoke(scene, 6500);
@@ -104,7 +107,7 @@ for (let k = 0; k < 5; k++) {
 const splat = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), iceMat(0xf2b4c4));
 for (const m of [cone, scoopA, scoopB, splat]) { m.castShadow = true; scene.add(m); }
 // (where the scoops land: on the road at her feet)
-const SPLAT = { x: FRIEND.x + 0.12, z: FRIEND.z + 0.3, t: 0.62 };
+const SPLAT = { x: FRIEND.x + 0.2, z: FRIEND.z - 0.05, t: 0.62 };
 
 // ---------- the boiling: points over every near building, the ground and the cars, each puffing glowing gas once its
 //            heat passes ~100 MW/m² (rock boiling) ----------
@@ -115,21 +118,20 @@ const GAS = [];
     if (b.dist > 1500 || b.z > 60) continue;
     if (b.dist > 140) {
       // far blocks and towers: a plume off the middle and the top as each one goes
-      for (const f of [0.45, 0.9]) GAS.push({ x: b.x, y: b.h * f, z: b.z, t: timeOfQ(Q.VAPOR * (0.8 + 0.4 * R()), Math.hypot(b.x - HEART.x, b.z - HEART.z)) + 0.2 * R(), s: Math.max(b.w, b.d) * 0.55, seed: R(), r: b.dist, big: true });
+      for (const f of [0.45, 0.9]) GAS.push({ x: b.x, y: b.h * f, z: b.z, t: timeOfQAt(Q.VAPOR * (0.8 + 0.4 * R()), b.x, b.h * f, b.z, Math.min(b.w, b.d) * 0.4) + 0.2 * R(), s: Math.max(b.w, b.d) * 0.55, seed: R(), r: b.dist, big: true });
       continue;
     }
     const nx = Math.max(1, Math.round(b.w / 14)), nz = Math.max(1, Math.round(b.d / 14)), ny = Math.max(2, Math.round(b.h / 12));
     for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) {
       const x = b.x - b.w / 2 + (i + 0.5) / nx * b.w, z = b.z - b.d / 2 + (k + 0.5) / nz * b.d, y = (j + 0.5) / ny * b.h;
-      const r = Math.hypot(x - HEART.x, z - HEART.z);
-      GAS.push({ x, y, z, t: timeOfQ(Q.VAPOR * (0.8 + 0.4 * R()), r) + 0.15 * R(), s: Math.min(b.w / nx, b.h / ny) * 0.8, seed: R(), r });
+      GAS.push({ x, y, z, t: timeOfQAt(Q.VAPOR * (0.8 + 0.4 * R()), x, 1, z) + 0.15 * R(), s: Math.min(b.w / nx, b.h / ny) * 0.8, seed: R(), r: b.dist });
     }
   }
-  // the ground itself, out to the horizon (bigger plumes further off)
+  // the ground itself, along your walk and out to the horizon (bigger plumes further off)
   for (let k = 0; k < 700; k++) {
     const r = 6 + Math.pow(R(), 2.2) * 3000, a = R() * Math.PI * 2;
-    const x = HEART.x + Math.cos(a) * r, z = HEART.z + Math.sin(a) * r;
-    GAS.push({ x, y: 0.5, z, t: timeOfQ(Q.VAPOR * (0.8 + 0.4 * R()), Math.hypot(r, HEART.y)) + 0.15 * R(), s: 2.5 + 0.06 * r, seed: R(), r, ground: true });
+    const x = Math.cos(a) * r, z = -30 + Math.sin(a) * r;
+    GAS.push({ x, y: 0.5, z, t: timeOfQAt(Q.VAPOR * (0.8 + 0.4 * R()), x, 0, z) + 0.15 * R(), s: 2.5 + 0.06 * r, seed: R(), r, ground: true });
   }
   GAS.sort((a, b) => a.t - b.t);
   console.log(`gas: ${GAS.length} points, first at ${GAS[0].t.toFixed(2)} s`);
@@ -142,9 +144,9 @@ const SLABS = [];
   for (let k = 0; k < 70; k++) {
     // (in front of the camera, round you, nearer ones later; none on the camera or on you)
     const a = -Math.PI / 2 + (R() - 0.5) * 2.6, r = 5 + Math.pow(R(), 1.4) * 70;
-    const x = HEART.x + Math.cos(a) * r, z = HEART.z + Math.sin(a) * r;
-    if (Math.hypot(x - 3.1, z - 4.2) < 6) continue;
-    SLABS.push({ x, z, a, w: 1.5 + R() * 4.5 * (0.5 + r / 70), d: 1.5 + R() * 4 * (0.5 + r / 70), h: 0.5 + R() * 1.2, t: 37.0 + 4.2 * Math.pow(R(), 0.8) + (r < 15 ? 0.8 : 0), up: 2 + 5 * R(), acc: 2 + 6 * R(), out: 1 + 3 * R(),
+    const t0 = 37.0 + 4.2 * Math.pow(R(), 0.8) + (r < 15 ? 0.8 : 0), H0 = heartAt(t0);
+    const x = H0.x + Math.cos(a) * r, z = H0.z + Math.sin(a) * r;
+    SLABS.push({ x, z, a, y0: craterY(x, z, t0), w: 1.5 + R() * 4.5 * (0.5 + r / 70), d: 1.5 + R() * 4 * (0.5 + r / 70), h: 0.5 + R() * 1.2, t: t0, up: 2 + 5 * R(), acc: 2 + 6 * R(), out: 1 + 3 * R(),
       ax: new THREE.Vector3(R() - 0.5, (R() - 0.5) * 0.4, R() - 0.5).normalize(), spin: 0.3 + 1.2 * R() });
   }
 }
@@ -163,6 +165,41 @@ slabMat.onBeforeCompile = (sh) => {
 const slabs = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), slabMat, SLABS.length);
 slabs.frustumCulled = false; slabs.castShadow = true;
 scene.add(slabs);
+
+// ---------- the crater: from 1,000x the ground ahead of you boils away into a glowing pit, deepening; you walk down into
+//            it (timeline.js craterY; ground.js leaves a hole for it) ----------
+const CRU = { uCrR: { value: 0 }, uCrD: { value: 0 } };
+const craterMat = new THREE.MeshStandardMaterial({ color: 0x1a1210, roughness: 0.5 });
+craterMat.onBeforeCompile = (sh) => {
+  Object.assign(sh.uniforms, CRU, HU);
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
+    uniform float uCrR; uniform float uCrD; varying vec3 vCW; varying float vCr;`)
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      { float r = length(position.xz); vCr = r;
+        transformed = vec3(position.x * uCrR, -uCrD * pow(max(1.0 - r * r, 0.0), 1.3), position.z * uCrR); }`)
+    .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+      { float r = length(position.xz); float dydr = uCrD * 2.6 * r * pow(max(1.0 - r * r, 0.0), 0.3) / max(uCrR, 0.01);
+        objectNormal = normalize(vec3(-normalize(position.xz + 1e-5).x * dydr, 1.0, -normalize(position.xz + 1e-5).y * dydr)); }`)
+    .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+      vCW = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+    varying vec3 vCW; varying float vCr; uniform float uCrD;
+    ${HEAT_GLSL}`)
+    .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      { // boiling rock: churning, brighter (hotter) deeper down, dark crust rafts near the rim
+        float churn = fb3(vec3(vCW.xz * 0.15, uHT * 0.5)) * 0.6 + fb3(vec3(vCW.xz * 0.6 + uHT * 0.3, uHT * 1.3)) * 0.4;
+        float deep = 1.0 - vCr;
+        float T = 1500.0 + 1400.0 * deep + 300.0 * churn;
+        float crust = smoothstep(0.5, 0.68, churn) * (0.55 + 0.45 * smoothstep(0.5, 0.0, deep));
+        // (the rim a dark broken lip, so the pit reads against the glowing plain round it)
+        float lip = smoothstep(0.86, 0.97, vCr) * (1.0 - smoothstep(0.97, 1.0, vCr));
+        totalEmissiveRadiance += bbCol(T) * glowOf(T) * (0.55 + 0.8 * churn) * (1.0 - 0.9 * crust) * (1.4 + 1.6 * deep) * (1.0 - 0.8 * lip); }`);
+};
+craterMat.customProgramCacheKey = () => 'hot-crater-v1';
+const crater = new THREE.Mesh(new THREE.RingGeometry(0.0, 1, 128, 48).rotateX(-Math.PI / 2), craterMat);
+crater.position.set(CRATER.x, 0, CRATER.z);
+crater.frustumCulled = false; crater.receiveShadow = true;
+scene.add(crater);
 
 const overlay = makeOverlay();
 
@@ -228,16 +265,17 @@ composer.addPass(finish);
 // ---------- update ----------
 const tmpC = new THREE.Color(), tv = new THREE.Vector3(), tv2 = new THREE.Vector3(), cc = new THREE.Color();
 const C = (a) => tmpC.setRGB(a[0], a[1], a[2]);
-const SUN_EL = 30, SUN_AZ = 28;
+const SUN_EL = 34, SUN_AZ = 12;
 const SUNDIR = (() => { const el = SUN_EL * DEG, az = SUN_AZ * DEG; return new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)); })();
 const kickAt = (v) => { let k = 0; HITS.forEach((t, n) => { const dt = v - t; if (dt > -0.05 && dt < 1.5) k = Math.max(k, smooth(-0.05, 0.04, dt) * Math.exp(-Math.max(dt, 0) / 0.35) * (0.2 + 0.035 * n)); }); return k; };
 const P = {};
-// the camera's keys: [time, x, y, z, yaw, pitch, fov]  (yaw + = toward +x; pitch + = up)
+// the camera's keys, relative to you: [time, dx, height above the ground under you, dz (behind you), yaw, pitch, fov]
+// (yaw + = toward +x; pitch + = up). Close behind your right shoulder; up over you for the crater and the horizon;
+// down low behind you looking up past you at the sky for the end.
 const CAMK = [
-  [-2, CAM.x, CAM.y, CAM.z, 9.5, 6.0, 56], [4.5, CAM.x + 0.05, CAM.y, CAM.z + 0.1, 9.5, 6.0, 56],
-  [14, 3.3, 2.0, 5.2, 8.0, 4.0, 52], [21, 2.9, 3.0, 8.0, 6.0, 1.0, 54],
-  [27, 2.7, 4.4, 11.5, 4.0, -1.5, 56], [31, 2.8, 3.2, 10.0, 8.0, 3.0, 58], [35.5, 3.0, 0.62, 4.6, 18.0, 15.0, 60],
-  [42, 3.05, 0.6, 4.3, 18.0, 14.5, 60], [44.8, 3.1, 0.6, 4.0, 18.0, 14.0, 60], [48, 3.1, 0.6, 4.0, 18.0, 14.0, 60]];
+  [-2, CAM.x, CAM.y, CAM.z, -8.0, 4.0, 56], [9, 0.68, 1.62, 2.75, -6.0, 4.0, 55], [14, 0.75, 1.7, 3.0, -2.5, 3.5, 55], [19, 0.85, 1.85, 3.3, -4.5, 3.0, 54],
+  [23.5, 1.0, 2.6, 4.6, -5.0, 0.5, 55], [27, 1.0, 4.8, 6.8, -3.0, -5.0, 56], [31, 0.9, 4.4, 6.2, -2.0, -9.0, 57],
+  [35, 0.3, 0.95, 3.6, 2.0, 13.0, 60], [42, 0.28, 0.85, 3.35, 2.0, 13.0, 60], [48, 0.28, 0.85, 3.35, 2.0, 13.0, 60]];
 const camSpl = [1, 2, 3, 4, 5, 6].map((j) => {
   const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];
   for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
@@ -270,23 +308,34 @@ function update(v, cover = -1) {
   const gk = Math.min(1.45 + 1.4 * smooth(800, 3500, T) + 3 * Math.log10(Math.max(T / 3500, 1)), 2.9 / exp0);
   GLOW.uGlowC.value.copy(cc); GLOW.uGlowK.value = gk;
   GLOW.uVein.value = smooth(1500, 9000, T);
-  // ---- you: standing your ground, looking at your hands at first, then up and round at what's happening ----
-  const look = smooth(1.5, 3.0, v);
-  let flinch = 0;
-  HITS.forEach((h) => { const dt = v - h; if (dt > -0.1 && dt < 1.0) flinch = Math.max(flinch, smooth(-0.1, 0.06, dt) * Math.exp(-Math.max(dt, 0) / 0.4)); });
-  you.pose({ hipY: 0.885 - 0.01 * flinch, footZ: 0.02, lean: 0.02 + 0.03 * Math.sin(v * 0.9),
-    head: [lerp(0.55, -0.05, look) + 0.04 * Math.sin(v * 0.7) - 0.06 * flinch, lerp(-0.1, 0.25 * Math.sin(v * 0.31 + 1.2), look) + 0.05 * wobble(v * 0.5, 2)],
-    armsOut: lerp(0.18, 0.38, smooth(0, 6, v)) + 0.05 * flinch, armsFwd: lerp(0.32, 0.08, look) + 0.04 * Math.sin(v * 0.8), curl: 0.25 });
-  you.arms.forEach((A, i) => {
-    // palms turned up and out, fingers spread: looking at your own glowing hands
-    A.el.rotation.set(lerp(-1.1, -0.35, look) + 0.05 * Math.sin(v * 1.3 + i), 0, 0);
-    A.wr.rotation.set(0.15, (i ? -1 : 1) * 0.6, 0);
-    A.fingers.forEach((f, j) => f.forEach((seg, k) => seg.rotation.set(0, 0, 0.1 + 0.05 * k)));
-  });
+  // ---- you: walking slowly up the middle of the street, never stopping; arms swinging a little, held a touch out ----
+  const H = heartAt(v);
+  const gy = H.y - 1;
+  {
+    const TW = 0.8, ST = 0.62, S = WALK_V * TW * ST / 2;
+    const stepZ = [0, 0], lift = [0, 0];
+    for (let i = 0; i < 2; i++) {
+      const ph = ((v / TW + i * 0.5) % 1 + 1) % 1;
+      if (ph < ST) { stepZ[i] = S - 2 * S * ph / ST; }
+      else { const u = (ph - ST) / (1 - ST); stepZ[i] = -S + 2 * S * smooth(0, 1, u); lift[i] = 0.11 * Math.sin(Math.PI * u); }
+    }
+    const bob = Math.abs(Math.cos(Math.PI * 2 * v / TW));
+    let flinch = 0;
+    HITS.forEach((h) => { const dt = v - h; if (dt > -0.1 && dt < 1.0) flinch = Math.max(flinch, smooth(-0.1, 0.06, dt) * Math.exp(-Math.max(dt, 0) / 0.4)); });
+    you.pose({ hipY: 0.815 + 0.02 * bob - 0.01 * flinch, footZ: 0, stepZ, lift, lean: 0.06,
+      head: [0.05 + 0.03 * Math.sin(v * 0.7) - 0.05 * flinch, 0.18 * Math.sin(v * 0.33 + 0.5) + 0.04 * wobble(v * 0.5, 2)],
+      armsOut: 0.22 + 0.06 * smooth(0, 10, v), armsFwd: 0, curl: 0.3 });
+    you.arms.forEach((A, i) => {
+      // (each arm swings with the opposite leg)
+      A.sh.rotation.x += -0.5 * stepZ[1 - i] / S * 0.55;
+      A.el.rotation.set(-0.35 + 0.05 * Math.sin(v * 1.3 + i), 0, 0);
+      A.wr.rotation.set(0.1, 0, 0);
+    });
+  }
   FLAP.uFT.value = v;
   FLAP.uFlap.value = 0.15 + 0.35 * smooth(4, 12, v);
   you.tufts.forEach((t) => { const a = t.userData.a; t.rotation.set(-0.7 + 0.25 * Math.sin(v * 9 + a * 3) * FLAP.uFlap.value, 0, a * 0.5 + 0.2 * Math.sin(v * 7 + a * 5) * FLAP.uFlap.value); });
-  place(you, YOU.x, 0, YOU.z, YOU_YAW);
+  place(you, H.x, gy, H.z, Math.PI);
   you.root.updateMatrixWorld(true);
   // ---- your friend: ice cream in her right hand; she jerks back from you, the scoops slide off, she runs ----
   {
@@ -294,8 +343,9 @@ function update(v, cover = -1) {
     const kB = smooth(tF, tF + 0.35, v), kR = smooth(tRun, tRun + 0.4, v);
     const tr = Math.max(0, v - tRun - 0.2);
     const run = tr < 0.6 ? 0.5 * 4.2 * tr * tr / 0.6 : 4.2 * (tr - 0.3);
-    const fx = FRIEND.x - 0.12 * kB - 0.55 * kR, fz = FRIEND.z - 0.45 * kB - run;
-    const yaw = lerp(0.75, 0.3, kB) * (1 - kR) + Math.PI * kR;
+    // (she walked with you up to frame 0; she jerks back, then runs off to the left sidewalk, past the camera)
+    const fx = FRIEND.x - 0.3 * kB - run * 0.72, fz = FRIEND.z - WALK_V * Math.min(v, tF) + 0.2 * kB + run * 0.7;
+    const yaw = lerp(1.25, 1.0, kB) * (1 - kR) + (-Math.PI / 4) * kR;
     const ph = tr * 11;
     const stride = kR * Math.min(1, tr * 2);
     friend.pose({ hipY: 0.88 - 0.03 * kB, footZ: -0.05 * kB, lean: -0.22 * kB * (1 - kR) + 0.18 * kR,
@@ -308,7 +358,7 @@ function update(v, cover = -1) {
     A.sh.rotation.set(-2.3 * kB * (1 - kR) - 0.4 * stride * Math.sin(ph + Math.PI), 0, 0.3 * kB, 'XYZ');
     A.el.rotation.set(-1.3 * kB * (1 - kR), 0, 0);
     place(friend, fx, 0, fz, yaw);
-    friend.root.visible = !(v > 9 && logQ(s.L, Math.hypot(fx - HEART.x, 0.4, fz - HEART.z)) > LQ.TREE);
+    friend.root.visible = !(v > 7 && lqHist(fx, 1.0, fz, v) > LQ.TREE);
     friend.root.updateMatrixWorld(true);
     // the cone in her palm, pointing up out of her hand
     friend.palmPoint(tv, 0.01);
@@ -344,7 +394,9 @@ function update(v, cover = -1) {
   }
   // ---- the camera: one shot ----
   const C3 = (a) => camKey(a, v);
-  const pos = new THREE.Vector3(C3(0), C3(1), C3(2));
+  const pos = new THREE.Vector3(H.x + C3(0), gy + C3(1), H.z + C3(2));
+  // (never below the crater's floor where the camera is)
+  pos.y = Math.max(pos.y, craterY(pos.x, pos.z, v) + 0.45);
   const yaw = C3(3) * DEG, pitch = C3(4) * DEG;
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
   camera.position.copy(pos);
@@ -371,12 +423,12 @@ function update(v, cover = -1) {
   CU.uSkyHi.value.copy(zen); CU.uSkyLo.value.copy(hor);
   // the haze: thick glowing gas closing in once the street boils
   CU.uHaze.value.copy(hor);
-  CU.uHazeD.value = lerp(2400, 1400, kHot);
+  CU.uHazeD.value = lerp(2400, 9000, kHot);
   CU.uSun.value.copy(SUNDIR); CU.uSunCol.value.copy(C(sc.sun));
   CU.uSmokeK.value = smooth(6, 14, v);
   GU.uTear.value = smooth(36.8, 42.4, v);
   // ---- light ----
-  const lc = new THREE.Vector3(YOU.x - 4, 0, YOU.z - 50);
+  const lc = new THREE.Vector3(H.x - 4, 0, H.z - 50);
   sunL.position.copy(SUNDIR).multiplyScalar(500).add(lc);
   sunL.target.position.copy(lc); sunL.target.updateMatrixWorld();
   sunL.intensity = 3.0 * (1 - 0.8 * kHot);
@@ -384,7 +436,7 @@ function update(v, cover = -1) {
   hemi.intensity = 1.7 * (1 - 0.5 * kHot);
   hemi.color.copy(zen).multiplyScalar(2.0).lerp(new THREE.Color(0.75, 0.8, 0.95), 0.4 * (1 - kHot));
   hemi.groundColor.setRGB(0.5, 0.45, 0.4).lerp(new THREE.Color(1.2, 0.5, 0.15), smooth(10, 24, v));
-  youL.position.set(HEART.x, 1.05, HEART.z + 0.05);
+  youL.position.set(H.x, H.y + 0.05, H.z);
   youL.color.copy(cc);
   youL.intensity = Math.min(110, 2.5 * Math.pow(T / 837, 1.6));
   renderer.toneMappingExposure = expAt(v);
@@ -394,11 +446,14 @@ function update(v, cover = -1) {
   if (DBG.includes('nohaze')) CU.uHazeD.value = 1e9;
   // ---- the world ----
   glows.begin(camera);
-  smoke.begin(s.L); fire.begin(s.L);
+  smoke.begin(s.L, v, camera.position); fire.begin(s.L, v);
   city.frame(v);
   props.frame(v);
   trees.frame(v, fire, smoke);
   traffic.frame(v, fire, smoke);
+  street.frame(v, fire, smoke);
+  CRU.uCrR.value = craterR(v); CRU.uCrD.value = craterD(v); crater.visible = craterR(v) > 0.05;
+  GU.uCrater.value.set(CRATER.x, CRATER.z, craterR(v) * 0.999, craterD(v));
   // the awnings' canvas burning: flames along it while it goes (city.js burns the canvas through)
   for (const a of AWNINGS) {
     const t = v - a.tIgn;
@@ -412,7 +467,7 @@ function update(v, cover = -1) {
     emitColumn(smoke, a.x - a.side * out * 0.6, 3.6, a.z, t, { life: a.burn + 0.5, every: 0.35, rise: 2.4, size: 0.8, grow: 0.8, alpha: 0.7, shade: 0.08, glow: 0.4, seed: (a.z * 0.37 % 1 + 1) % 1, maxAge: 5 });
   }
   // under your feet: the asphalt smoking from frame 0
-  emitColumn(smoke, HEART.x, 0.1, HEART.z, v + 3, { life: 999, every: 0.35, rise: 1.4, dx: 0.1, dz: 0.4, size: 0.18, grow: 0.5, alpha: 0.32, shade: 0.2, glow: 0, seed: 0.3, maxAge: 3 });
+  emitColumn(smoke, H.x, gy + 0.1, H.z + 0.3, v + 3, { life: 999, every: 0.35, rise: 1.4, dx: 0.1, dz: 0.4, size: 0.18, grow: 0.5, alpha: 0.32, shade: 0.2, glow: 0, seed: 0.3, maxAge: 3 });
   // the crust coming apart
   {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc2 = new THREE.Vector3(), zero = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -421,14 +476,14 @@ function update(v, cover = -1) {
       if (!(t > 0)) { slabs.setMatrixAt(i, zero); return; }
       const rise = Math.min(1, t / 0.4);
       q.setFromAxisAngle(S.ax, S.spin * t * t * 0.5 + 0.25 * rise);
-      p.set(S.x + Math.cos(S.a) * S.out * t * t * 0.5, -S.h * 0.5 + S.h * rise + S.up * t + 0.5 * S.acc * t * t, S.z + Math.sin(S.a) * S.out * t * t * 0.5);
+      p.set(S.x + Math.cos(S.a) * S.out * t * t * 0.5, S.y0 - S.h * 0.5 + S.h * rise + S.up * t + 0.5 * S.acc * t * t, S.z + Math.sin(S.a) * S.out * t * t * 0.5);
       slabs.setMatrixAt(i, m4.compose(p, q, sc2.set(S.w, S.h, S.d)));
     });
     slabs.instanceMatrix.needsUpdate = true;
   }
   // the boiling gas
   const camP = camera.position;
-  for (const g of GAS) {
+  for (const g of DBG.includes('nogas') ? [] : GAS) {
     const a = v - g.t;
     if (a < 0) break;
     const life = g.big ? 8 : g.ground ? 6 : 6;
@@ -436,7 +491,7 @@ function update(v, cover = -1) {
     const rr = Math.hypot(g.x - camP.x, g.z - camP.z);
     // (none on the lens or between the camera and you: the view of you stays clear)
     if (rr < 7 + g.s) continue;
-    { const ax = HEART.x - camP.x, az = HEART.z - camP.z, al = Math.hypot(ax, az), f = ((g.x - camP.x) * ax + (g.z - camP.z) * az) / al;
+    { const ax = H.x - camP.x, az = H.z - camP.z, al = Math.hypot(ax, az), f = ((g.x - camP.x) * ax + (g.z - camP.z) * az) / al;
       if (f > 0 && f < al + 3 && Math.abs((g.x - camP.x) * az - (g.z - camP.z) * ax) / al < 3 + g.s) continue; }
     const k = smooth(0, 0.5, a) * (1 - smooth(life * 0.45, life, a));
     if (g.ground && g.r > 400) {
@@ -450,20 +505,21 @@ function update(v, cover = -1) {
     bbColor(Tg, tmpC);
     const up = (g.big ? 9 : 4) * a + (g.big ? 3 : 1.5) * a * a;
     const sz = g.s * (0.8 + 0.45 * a);
-    smoke.puff(g.x + Math.sin(g.seed * 30) * a * 0.1 * g.s, g.y + up, g.z + Math.cos(g.seed * 20) * a * 0.1 * g.s, sz * 0.8, (g.big ? 0.22 : 0.09) * k, 0.05, 2.6 * Math.exp(-a * 0.4), g.seed, tmpC.r * 1.6, tmpC.g * 1.6, tmpC.b * 1.6);
+    smoke.puff(g.x + Math.sin(g.seed * 30) * a * 0.1 * g.s, g.y + up, g.z + Math.cos(g.seed * 20) * a * 0.1 * g.s, sz * 0.8, (g.big ? 0.12 : 0.09) * k, 0.05, 2.6 * Math.exp(-a * 0.4), g.seed, tmpC.r * 1.6, tmpC.g * 1.6, tmpC.b * 1.6);
   }
   // the air over you, heated far past anything and rising: a pillar of glowing gas climbing out of the street behind you
   // and spreading at the top (from the moment the street boils until the air itself starts to glow)
-  for (let j = Math.floor((v - 26.6 - 7) / 0.1); j * 0.1 + 26.6 <= Math.min(v, 31.8); j++) {
+  for (let j = Math.floor((v - 26.6 - 7) / 0.1); j * 0.1 + 26.6 <= Math.min(v, 31.8) && false; j++) {
     const t0 = 26.6 + j * 0.1, a = v - t0; if (j < 0 || a < 0 || a > 7) continue;
     const f = (j * 0.618) % 1, f2 = (j * 0.377) % 1;
     const V = 30 + 25 * smooth(26.6, 30, t0);
     const y = 3 + V * a + 4 * a * a, spread = Math.max(0, y - 120) * 0.35;
     const ang = f * Math.PI * 2;
-    const x = HEART.x + Math.cos(ang) * (2 + 6 * f2 + spread), z = HEART.z - 6 + Math.sin(ang) * (2 + 6 * f2 + spread) - 0.2 * spread;
+    const H0 = heartAt(t0);
+    const x = H0.x + Math.cos(ang) * (2 + 6 * f2 + spread), z = H0.z - 6 + Math.sin(ang) * (2 + 6 * f2 + spread) - 0.2 * spread;
     bbColor(4200 - 1200 * Math.min(1, a / 5), tmpC);
     const k = smooth(0, 0.3, a) * (1 - smooth(4.5, 7, a));
-    smoke.puff(x, y, z, 5 + 4 * a + 0.12 * spread, 0.45 * k * smooth(10, 40, y), 0.05, 2.8, f, tmpC.r * 1.6, tmpC.g * 1.6, tmpC.b * 1.6);
+    smoke.puff(x, y, z, 5 + 4 * a + 0.12 * spread, 0.32 * k * smooth(14, 45, y), 0.05, 2.8, f, tmpC.r * 1.6, tmpC.g * 1.6, tmpC.b * 1.6);
   }
   smoke.end(); glows.end(); fire.end();
   fire.mat.uniforms.uTime.value = v;
@@ -475,7 +531,7 @@ function update(v, cover = -1) {
   crowd.commit();
   bloom.strength = DBG.includes('nobloom') ? 0 : 0.25 + 0.12 * s.kick + 0.15 * smooth(20, 40, v);
   // ---------- post ----------
-  tv.set(HEART.x, 1.0, HEART.z).project(camera);
+  tv.set(H.x, H.y, H.z).project(camera);
   const sx = tv.x * 0.5 + 0.5, sy = tv.y * 0.5 + 0.5;
   shimmer.uniforms.uTime.value = v;
   shimmer.uniforms.uC.value.set(sx, sy);

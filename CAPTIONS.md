@@ -2810,28 +2810,29 @@ Cover: `week 9/gravity-off/out/gravity-off_v4_cover.png` (`node render.mjs --cov
 
 ## Next Short. What if you were 1 trillion times hotter? — `week 9/hot-trillion/out/hot-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
-47.5 s, loops. Same formula as scream trillion: you alive in the middle of a new shopping street on a sunny afternoon,
-one counter (TIMES HOTTER, your temperature in °F on the line under it) racing to 1,000,000,000,000x, one continuous
-camera move with no cuts, something new and closer destroyed at every step (~2.6 s each). In order: 0:00 you, big in
-frame in a gap between parked cars, already glowing orange (2.7x, 1,048°F); your friend next to you jerks back with a
-scream, her ice cream slides off the cone onto the road; the title, the counter racing. 0:01-0:04 the people round you
-flinch back, arms over their faces, and run. 0:03 5x, "Hotter than lava."; the asphalt under you goes soft and smokes.
-0:05.6 10x, "As hot as a light bulb filament.": the car behind you, its tires, the trees and the ice cream parlour's
-awning catch fire, the shop windows crack; by 0:07 the street round you is burning. 0:08.2 20x, "Hotter than the surface
-of the Sun.": fires across the street, the road turning to glowing lava, the rooms behind the windows on fire. 0:10.8 30x,
-"Cars sag like wax." 0:13.4 40x, "The building next to you starts to bend." 0:16 50x, "Its walls melt and pour down."
-(the flames die back as things get too hot to burn and simply glow). 0:18.6 70x the walls across the street pour.
-0:21.2 100x, "Hotter than a lightning bolt.": the block next to you boils away. 0:23.8 200x, "The whole street boils into
-glowing gas."; the camera rises behind you: the towers up the street glowing and pouring against a dark sky.
-0:26.4 1,000x, "Everything for half a mile.": a column of glowing gas climbs out of the street behind you.
-0:29 10,000x, "Everything you can see.": the horizon goes up in a band of fire. 0:31.6 60,000x, "Hotter than the center of
-the Sun.": the air itself glows violet. The camera sinks low in front of you, looking up. 0:34.2 1,000,000x, "Brighter
-than the Sun itself.": next to you the Sun looks like a dark spot. 0:36.8 100,000,000x, "Enough to blow the Earth
-apart.": slabs of the ground crack loose round you and fly up, glowing. 0:39.4 100,000,000,000x, "Hotter than anything
-ever made." 0:42 1,000,000,000,000x (558,000,000,000,000°F), "Hotter than anything since the Big Bang.": rays of light out
-of you until the frame is hard white (0:44.8), which clears onto frame 0. Sound: quiet between the hits (bed ~12 dB under
-them), your friend's scream on frame 0, a whoomp on every step, fires catching, glass, metal groaning, the walls pouring,
-thunder as the city boils, the ground cracking, half a second of silence before 1 trillion.
+47.5 s, loops. Same formula as scream trillion, reworked Nov 21 (owner: "a little static, a little quiet"): you walk
+slowly up the middle of a shopping street from frame 0 to the end (1.45 m/s, about 65 m), the camera following close
+behind your shoulder in one move, and every few seconds you reach something new and destroy it up close. In order:
+0:00 you from behind, glowing orange (2.7x, 1,048°F); your friend beside you screams and jerks back, her ice cream
+sliding off the cone; the people in the street round you scream and run ahead of you; the title, the counter racing.
+0:03 5x, "Hotter than lava."; a trail of melted footprints behind you. 0:05.4 the hot dog cart's umbrella catches,
+0:06.7 its propane bottle bursts as you pass it; 0:05.6 10x, "As hot as a light bulb filament.": trees, awnings and
+tires burning. 0:08 20x, "Hotter than the surface of the Sun.": the bus stopped on your left glows and sags like wax
+from its near end as you walk past it (0:08.4-0:11.8). 0:10.8 30x "Cars sag like wax." 0:13.4 40x "The building next
+to you starts to bend." 0:14.8 the fountain on its island just ahead flashes to steam all at once. 0:16 50x "Its walls
+melt and pour down."; the gas station at the end of the street is burning. 0:20.2 the gas station goes up in a
+fireball beside the glass tower. 0:21.2 100x "Hotter than a lightning bolt." 0:23.8 200x "The whole street boils into
+glowing gas.": the glass tower at the end of the street melts and pours as you arrive. 0:26.4 1,000x "Everything for
+half a mile.": the ground ahead of you opens into a glowing crater; 0:29 10,000x "Everything you can see." you walk
+over its lip and down into it. 0:31.6 60,000x "Hotter than the center of the Sun." the air glows violet; the camera
+drops low behind you, looking up. 0:34.2 1,000,000x "Brighter than the Sun itself.": the Sun a dark spot. 0:36.8
+100,000,000x "Enough to blow the Earth apart.": slabs of ground crack loose and fly up round you. 0:39.4 "Hotter than
+anything ever made." 0:42 1,000,000,000,000x (558,000,000,000,000°F) "Hotter than anything since the Big Bang.": rays
+of light until hard white (0:44.8), which clears onto frame 0. Sound: music in the black hole Short's style (a dark
+synth drone and trailer hits) from low on frame 0 to its biggest at 1 trillion, every hit on top of it (fires, the
+cart, the bus groaning, the fountain's roar of steam, the gas station's blast, the tower pouring, the crater's rumble),
+screams from the people round you in the first seconds, half a second of silence before 1 trillion; -10 to -17 dB
+every second (overall -12.6 dB, like asteroid sizes).
 
 The numbers (also at the top of `src/timeline.js`): "times hotter" multiplies your body temperature in kelvin (37 °C =
 310.15 K; °F and °C have no real zero, so multiplying them means nothing). 2.7x = 837 K = 1,048°F, just past the
@@ -2864,6 +2865,7 @@ You start at 2.7 times your body temperature: 1,048°F. You glow.
 10x (5,123°F): as hot as a light bulb filament. Trees, awnings and car tires catch fire.
 20x (10,700°F): hotter than the surface of the Sun.
 30x: cars sag like wax. 50x: the building next to you melts and pours down.
+And you keep walking: a hot dog cart blows up, a bus sags like wax as you pass it, a fountain flashes to steam, a gas station goes up.
 100x (55,400°F): hotter than a lightning bolt. The whole street boils into glowing gas.
 1,000x: everything for half a mile. 10,000x: everything you can see.
 60,000x: hotter than the center of the Sun.
@@ -2876,7 +2878,7 @@ At which number would you have started running? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --cover 18.2`: you white-hot in a street of molten road, the building beside you glowing with every room on fire, burning cars and trees up the street; "WHAT IF YOU WERE / 1 trillion / times hotter?")
+Cover: `week 9/hot-trillion/out/hot-trillion_v4_cover.png` (`node render.mjs --cover 12.2`: you white-hot from behind, walking into the burning street past the melted bus, fires on both sides, the fountain ahead; "WHAT IF YOU WERE / 1 trillion / times hotter?")
 
 ## Next Short. What if you were 1 trillion times stronger? — `week 9/strong-trillion/out/strong-trillion_v4_1080x1920_60fps_tiktok.mp4`
 

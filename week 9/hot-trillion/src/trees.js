@@ -3,8 +3,8 @@
 // fire.js / smoke.js draw the flames and smoke from the burn times worked out here.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { TREES, HEART } from './layout.js';
-import { timeOfQ, Q } from './timeline.js';
+import { TREES } from './layout.js';
+import { timeOfQAt, Q } from './timeline.js';
 import { HU, HEAT_GLSL, LQ_GLSL } from './heat.js';
 import { rng } from './util.js';
 import { emitColumn } from './smoke.js';
@@ -19,8 +19,7 @@ export const CLUMPS = [];   // { tree, x, y, z, r, tIgn, burn }
       const c = { tree: ti, x: t.x + Math.cos(a) * rr, y: t.h * (0.62 + 0.25 * R()), z: t.z + Math.sin(a) * rr, r: t.r * (0.5 + 0.25 * R()), seed: R() };
       if (k === 0) { c.x = t.x; c.z = t.z; c.y = t.h * 0.88; c.r = t.r * 0.7; }
       // it catches where its near side does
-      const d = Math.max(0.5, Math.hypot(c.x - HEART.x, c.y - HEART.y, c.z - HEART.z) - c.r * 0.7);
-      c.tIgn = timeOfQ(Q.TREE * (0.8 + 0.4 * R()), d);
+      c.tIgn = timeOfQAt(Q.TREE * (0.8 + 0.4 * R()), c.x, c.y, c.z, c.r * 0.7);
       c.burn = 2.2 + 1.2 * R();
       CLUMPS.push(c);
     }
