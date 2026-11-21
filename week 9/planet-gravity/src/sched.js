@@ -24,6 +24,7 @@ export const JUP_BUCKLE = 0.06;
 export const JUP_SNAP = [2.8, 2.95, 3.15, 3.4, 3.7];   // branch snaps (trees.js picks which)
 export const JUP_BENCH = [3.0, 3.2, 3.42, 3.6];        // each bench snaps in the middle
 export const JUP_HOOP = 3.1;                          // the hoop's arm bends down (over ~0.5 s)
+export const JUP_CREEP = [4.3, 5.5, 6.6];             // then the post gives a little more, in jerks (each a creak and a bang)
 export const JUP_CARS = 3.25;                         // the first car bottoms out (each a little after the last)
 export const jupCarT = (k) => JUP_CARS + 0.045 * ((k * 7) % CARS.length);
 
@@ -35,8 +36,10 @@ export const SUN_TYRES = 0.55;
 export const sunTyreT = (k) => SUN_TYRES + 0.06 * ((k * 5) % CARS.length);
 export const SUN_LAMPS = 0.9;
 export const SUN_HOOP = 2.95, SUN_BOARD_HIT = 3.32;
-export const SUN_TREES = 3.05;                         // the trunks snap (each tree a little after the last)
-export const sunTreeT = (ti) => SUN_TREES + 0.05 * ((ti * 7) % 13);
+export const SUN_TREES = 3.4;                          // the trunks snap one after another (the ones in frame spread
+// over ~3 s, so every second has a tree going down); the far ones in between
+const TREE_RANK = [2, 5, 7, 3, 0, 9, 1, 4, 6, 10, 8, 11, 12];   // by tree index: order of snapping
+export const sunTreeT = (ti) => SUN_TREES + 0.33 * TREE_RANK[ti];
 export const SUN_ROOFS = 3.45;
 export const sunRoofT = (k) => SUN_ROOFS + 0.05 * ((k * 3) % CARS.length);
 export const SUN_WINDOWS = 4.0;
@@ -47,11 +50,19 @@ export const SUN_TOP_LIST = BUILDINGS.map((b, i) => [Math.abs(b.x) < 0.3 * -b.z 
 // farthest first, coming toward you; then the ground itself: a front of cracks sweeps in from the horizon to your feet,
 // the crust dropping and everything left (the rubble heaps) pressed flat behind it
 export const WD_CRUSH = 0.42;
-export const WD_BLDG0 = 0.8, WD_BLDG1 = 5.2;
-// row by row from the back, each row from the outside in (the ones in the middle of the frame last)
-const ORDER = BUILDINGS.map((b, i) => [b.row * 1000 + Math.min(Math.abs(b.x), 60), i]).sort((a, b) => b[0] - a[0]);
+// row by row from the back (the towers 0.7-1.5 s, the blocks behind 1.4-2.3 s), each row from the outside in; then the
+// street's front row floor by floor (each takes WD_FLOORS s, its roofline dropping a floor at a time), the three in
+// frame a second apart so every second shows another one going down
+export const WD_FLOORS = 1.0;
+const ROWT = [[2.2, 3.0], [1.4, 2.3], [0.7, 1.5]];
 export const WD_BLDG_T = new Array(BUILDINGS.length);
-ORDER.forEach(([, i], k) => { WD_BLDG_T[i] = WD_BLDG0 + (WD_BLDG1 - WD_BLDG0) * k / (ORDER.length - 1); });
+[0, 1, 2].forEach((row) => {
+  const ix = BUILDINGS.map((b, i) => [Math.abs(b.x), i]).filter(([, i]) => BUILDINGS[i].row === row).sort((a, b) => b[0] - a[0]);
+  ix.forEach(([, i], k) => { WD_BLDG_T[i] = ROWT[row][0] + (ROWT[row][1] - ROWT[row][0]) * k / Math.max(1, ix.length - 1); });
+});
+// (the front row's buildings in frame: the left one at the frame's edge, the one left of the hoop, the wide one right of it)
+BUILDINGS.forEach((b, i) => { if (b.row === 0 && Math.abs(b.x) < 22 && b.x < 15) WD_BLDG_T[i] = b.x < -15 ? 2.35 : b.x < 0 ? 3.3 : 4.25; });
+export const WD_BLDG0 = 0.7, WD_BLDG1 = 5.25;
 export const WD_FLAT0 = 5.6, WD_FLAT1 = 7.4;           // the crack front leaves the horizon / reaches you
 export const wdFrontR = (tt) => 160 * Math.pow(1 - smooth(WD_FLAT0, WD_FLAT1, tt), 1.6);
 export const WD_CRACK = WD_FLAT0;

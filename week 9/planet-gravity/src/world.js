@@ -20,7 +20,7 @@ import { STOPS } from './timeline.js';
 import {
   GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, V_JUMP, PLU_TAKE, PLU_VX, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, jupCarT,
   SUN_FLAT, SUN_HOOP, SUN_BOARD_HIT, sunTyreT, sunRoofT, SUN_TREES, SUN_WINDOWS, SUN_TOP_LIST,
-  WD_CRUSH, WD_BLDG_T, WD_FLAT0, WD_FLAT1, wdFrontR, NS_FILM, NS_WAVE0, NS_WAVE1, nsWaveR, sqWD, sqNS,
+  WD_CRUSH, WD_BLDG_T, WD_FLOORS, WD_FLAT0, WD_FLAT1, wdFrontR, NS_FILM, NS_WAVE0, NS_WAVE1, nsWaveR, sqWD, sqNS,
 } from './sched.js';
 import { smooth, clamp, lerp } from './util.js';
 
@@ -298,9 +298,23 @@ export function makeWorld(scene) {
       }
       if (key === 'wd') {
         const R = wdFrontR(tt);
-        crushF = (bi) => { const b = BUILDINGS[bi], t0 = WD_BLDG_T[bi]; const d = Math.hypot(b.x, b.z - b.d / 2); return smooth(t0, t0 + 0.32, tt) + 0.063 * smooth(R + 6, R - 6, d); };
+        // (the back rows go in one slump; the front row floor by floor: its roofline drops a floor, holds, drops the next)
+        const floorsDown = (b, t) => { const n = Math.max(3, Math.round(b.h / 3.2)), u = clamp(t / WD_FLOORS) * n, k = Math.floor(u); return Math.min(1, (k + smooth(0, 0.35, u - k)) / n); };
+        crushF = (bi) => { const b = BUILDINGS[bi], t0 = WD_BLDG_T[bi]; const d = Math.hypot(b.x, b.z - b.d / 2); return (b.row === 0 ? floorsDown(b, tt - t0) : smooth(t0, t0 + 0.32, tt)) + 0.063 * smooth(R + 6, R - 6, d); };
         BUILDINGS.forEach((b, bi) => {
           const t = tt - WD_BLDG_T[bi];
+          // the front row: a puff of dust bursting out of the facade at the roofline each time a floor goes
+          if (b.row === 0 && t > 0 && t < WD_FLOORS + 1.2) {
+            const n = Math.max(3, Math.round(b.h / 3.2));
+            for (let f = 0; f < n; f++) {
+              const tf = t - WD_FLOORS * f / n; if (tf < 0 || tf > 1.2) continue;
+              const yr = b.h * (1 - 0.94 * f / n);
+              for (let j = 0; j < 6; j++) {
+                const a = hash(j + f * 7 + bi * 31, 3.1), c = hash(j + f * 7 + bi * 31, 3.7);
+                smoke.puff(b.x + (a - 0.5) * b.w, yr - 1.5 - 2 * tf, b.z + 0.8 + 3 * c * Math.sqrt(tf), 1.6 + 2 * c + 2.5 * tf, 0.6 * (1 - smooth(0.3, 1.2, tf)) * smooth(0, 0.08, tf), 0.66, 0, a, 0.3);
+              }
+            }
+          }
           if (t < 0.12 || t > 3.0) return;
           // a sheet of dust shoved out low along the street from its foot
           for (let j = 0; j < 14; j++) {
@@ -373,8 +387,8 @@ export function makeWorld(scene) {
         out.jolt = 1.4 * Math.exp(-Math.max(0, tt - WD_CRUSH) / 0.2) * smooth(0, WD_CRUSH, tt) + Math.max(...bh) + 1.2 * Math.exp(-Math.max(0, tt - WD_FLAT1) / 0.25) * smooth(WD_FLAT1 - 0.1, WD_FLAT1, tt);
         out.shake = 0.3 + 0.35 * smooth(0.8, 1.5, tt) * (1 - smooth(5.0, 5.6, tt)) + 0.7 * smooth(WD_FLAT0, WD_FLAT1, tt) * (1 - smooth(WD_FLAT1 + 0.3, WD_FLAT1 + 1.2, tt));
         // the sky hazes over with dust as they come down
-        scene.fog.color.setRGB(0.62, 0.6, 0.58); scene.fog.density = 0.0055 + 0.01 * smooth(1.0, 5.0, tt);
-        s.uHaze.value.lerp(new THREE.Color(0.62, 0.58, 0.54), smooth(1.0, 5.0, tt) * 0.6); s.uHazeK.value = 0.55 + 0.3 * smooth(1.0, 5.0, tt);
+        scene.fog.color.setRGB(0.62, 0.6, 0.58); scene.fog.density = 0.0055 + 0.01 * smooth(4.0, 6.5, tt);
+        s.uHaze.value.lerp(new THREE.Color(0.62, 0.58, 0.54), smooth(2.5, 6.0, tt) * 0.6); s.uHazeK.value = 0.55 + 0.3 * smooth(2.5, 6.0, tt);
         // sparks spitting from the glowing seams, just behind the front
         if (tt > WD_FLAT0) for (let j = 0; j < 200; j++) {
           const a = hash(j, 6.1), b = hash(j, 6.7), ph = (tt * 1.3 + hash(j, 7.3)) % 1;

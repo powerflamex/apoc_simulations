@@ -8,7 +8,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { H, HEAT_GLSL, patchHeat } from './heat.js';
 import { COURT, HOOP, BOARD, POLE, APRON, Z, FOUNTAIN, LAMPS, BENCHES } from './layout.js';
 import { smooth, clamp } from './util.js';
-import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS, JUP_HOOP, JUP_BENCH } from './sched.js';
+import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS, JUP_HOOP, JUP_BENCH, JUP_CREEP } from './sched.js';
 
 export const GU = {
   uCrack: { value: 0 }, uCrackR: { value: 1e5 }, uWave: { value: 1e5 }, uCrackGlow: { value: 0 }, uPlate: { value: 0 }, uFilm: { value: 0 }, uWet: { value: 0 },
@@ -257,7 +257,7 @@ export function makePark(scene, { plainMat, shadowy }) {
         th += 0.04 * smooth(0, 0.3, tt) * (t < 0 ? 1 : 0);              // (sagging before it goes)
       } else if (key === 'jupiter') {
         // the arm dips under the weight at once; ~3 s in the post bends and the board tips down toward the court
-        th = 0.035 * smooth(0, 0.3, tt) + 0.3 * smooth(JUP_HOOP, JUP_HOOP + 0.45, tt) + 0.14 * smooth(5.5, 5.95, tt) + 0.02 * Math.exp(-Math.max(0, tt - JUP_HOOP - 0.45) / 0.15) * Math.sin((tt - JUP_HOOP) * 30) * smooth(JUP_HOOP + 0.3, JUP_HOOP + 0.45, tt);
+        th = 0.035 * smooth(0, 0.3, tt) + 0.3 * smooth(JUP_HOOP, JUP_HOOP + 0.45, tt) + JUP_CREEP.reduce((a, t0, k) => a + [0.2, 0.22, 0.2][k] * smooth(t0, t0 + 0.22, tt) + 0.015 * Math.exp(-Math.max(0, tt - t0 - 0.22) / 0.12) * Math.sin((tt - t0) * 30) * smooth(t0 + 0.12, t0 + 0.22, tt), 0) + 0.02 * Math.exp(-Math.max(0, tt - JUP_HOOP - 0.45) / 0.15) * Math.sin((tt - JUP_HOOP) * 30) * smooth(JUP_HOOP + 0.3, JUP_HOOP + 0.45, tt);
       }
       
       top.rotation.x = th;
