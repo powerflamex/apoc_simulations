@@ -908,3 +908,33 @@ List counts: shrink trillion 520K, planet picker 343K, Earth falls 113K, men van
 - Re-renders watched (Nov 18 night): planet weather now has Saturn's rings across the sky; scream trillion breaks something new and closer at
   every step and its soundtrack has quiet between the hits (bed about -27 dB, hits -12 to -17, the 1 trillion hit -7); fast trillion goes
   through a ship, a tower and a mountain, but 0:30-0:40 is still ten seconds of one hazy road view.
+
+## Nov 21 read (~10:30 AM ET; exact views from each video's page). 10M engaged views reached; monetization review pending
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| fast trillion (`BRjKnt24aKI`) | Nov 20 | 7,354 | 51,960 | 99,850 | 199,117 | | 209.9K (26 h) | 65.9% | not out |
+| scream trillion (`-HnWlwG0lbA`) | Nov 19, PM | 1,523 | 11,732 | 26,852 | 76,079 | | 130.8K (45 h) | 69.8% | 108 / 95 / 71 / **62** / 58 |
+| planet weather (`uaz2q2BuhLM`) | Nov 19, AM | 5,764 | 36,837 | 74,979 | 152,951 | 226,379 | 232.1K | 67.8% | 111 / 92 / 76 / **69** / 55 |
+| asteroid sizes | Nov 18 | 6,594 | 17,352 | 28,664 | 68,797 | 116,199 | 141.5K | 65.6% | 106 / 94 / 73 / **65** / 60 |
+| heavy trillion | Nov 17 | 3,072 | 23,793 | 59,724 | 112,323 | 144,071 | 224.4K | 62.6% | 108 / 97 / 73 / **62** / 56 |
+| planet stand | Nov 17 | 1,550 | 12,149 | 24,985 | 42,671 | 57,345 | 106.5K | 60.7% | 95 / 85 / 70 / **64** / 56 |
+| trillion seconds | Nov 16 | 1,665 | 9,239 | 25,996 | 72,047 | 95,109 | 122.2K | 59.5% | 104 / 93 / 75 / **66** / 61 |
+| dino asteroid | Nov 16 | 1,070 | 8,719 | 20,940 | 34,238 | 49,686 | 73.1K | 61.5% | 101 / 89 / 71 / **64** / 58 |
+List counts: shrink trillion 749K, planet picker 474K, star picker 316K, Sun black hole 169K, Earth falls 139K, oceans 136K, star incoming 55K,
+dinosaurs 50K, volcano 48K, meteor storm 42K, men vanish 38K, solar storm re-upload 16K.
+Channel: 10.3M views in 28 days, 830,730 on Nov 20 (653K Nov 19, 509K Nov 18), 1.53M in the last 48 h, 30,225 subscribers (+10K in 28 days).
+- Fast trillion made 199K on day one, the best first day on the channel. I had advised holding it for another pass (ten samey seconds on the
+  laps): wrong call. The question carried it. Planet weather 153K is second.
+- Day-one views since Nov 10, best first: fast trillion 199K, planet weather 153K, shrink 118K, heavy 112K, planet picker 82K, scream 76K,
+  trillion seconds 72K, asteroid sizes 69K, Earth falls 63K, Sun black hole 56K, planet stand 43K, dino asteroid 34K, meteor storm 24K, men
+  vanish 19K. The top eight are all trillion titles or pickers/size ladders. All 12 formula Shorts ever posted (7 trillion, 5 pickers/ladders)
+  are past 100K; of the 10 single-event Shorts since Nov 10, three are.
+- No wear on "trillion" yet: day ones in posting order 118K, 72K, 112K, 76K, 199K.
+- 0:30 does not sort this batch (scream and heavy both 62%, 131K and 224K). The 0:07 number sorts the seven with curves a little better
+  (planet weather 111, scream 108, heavy 108, asteroid 106, seconds 104, dino 101, stand 95), seven videos only.
+- Curves drift down as a Short reaches a wider audience: trillion seconds read 70% at 0:30 on Nov 18 and 66% now, dino asteroid 71% then 64%.
+- Monetization (Google's help pages, read Nov 21): Shorts start earning on the day the Shorts Monetization Module is accepted; views before
+  that day are never paid, but any Short, old or new, earns on the views it gets after. Review "typically about 1 month". Counts dropping
+  during review do not matter. From Feb 1, 2027 Shorts revenue each month needs 10M qualified views in the last 90 days.
+- Backlog is empty: every built Short is posted. Prompts given Nov 21: 1 trillion times stronger, other planets' gravity (picker), 1 trillion
+  times hotter, gravity off for 5 seconds (the non-formula test).
