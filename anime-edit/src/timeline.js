@@ -1,26 +1,25 @@
 // The whole edit as a function of time: where the camera is, what the puppet does, the grade, the text.
-// Times are seconds in the song (work/beats.json): one 9-beat phrase played twice, a drop in each.
+// Times are seconds in the song (MONTAGEM MERZYN, Ultra Slowed, from 16.249 s): a steady beat every 0.6914 s,
+// one 9-beat phrase played twice, a drop in each.
 
 export const DURATION = 11.05;
 export const FPS = 60;
 export const BEAT = 0.6914;
-
-export const DROP1 = 2.821, DROP2 = 9.044;
-// [time, strength]: the four heavy kicks, the drop, then the lighter hits after it
-export const KICKS = [
-  [0.058, 1], [0.749, 1], [1.440, 1], [2.130, 1], [DROP1, 1.5],
-  [3.048, 0.45], [3.593, 0.5], [3.936, 0.3], [4.203, 0.7], [4.423, 0.3], [4.824, 0.32], [5.114, 0.22], [5.364, 0.22], [5.497, 0.25],
-  [6.281, 1], [6.972, 1], [7.663, 1], [8.353, 0.9], [DROP2, 1.6],
-  [9.189, 0.3], [9.555, 0.4], [9.851, 0.35], [10.228, 0.4], [10.675, 0.35], [10.855, 0.8],
-];
+export const B0 = 0.058;                                  // the first beat
+export const DROP1 = B0 + 4 * BEAT, DROP2 = B0 + 13 * BEAT;   // 2.824, 9.046
+// every beat in the clip, [time, strength]: four heavy kicks, the drop, four lighter beats, again
+export const GRID = Array.from({ length: 16 }, (_, k) => {
+  const s = k === 4 ? 1.5 : k === 13 ? 1.6 : (k >= 5 && k <= 8) || k >= 14 ? 0.6 : 1;
+  return [B0 + k * BEAT, s];
+});
+// the last hit before the loop is a real drum hit (not on the beat): the end zoom lands on it
+export const LAST_HIT = 10.855;
+export const KICKS = [...GRID, [LAST_HIT, 0.8]];
 // half-time: every second beat (the chest and shoulders ride these)
-export const HALF = [0.058, 1.440, DROP1, 4.203, 5.586, 6.972, 8.353, 9.737];
-// the hits the head nods on (never closer than ~0.45 s, so each nod can finish)
-export const BOPS = [
-  [0.058, 1], [0.749, 1], [1.440, 1], [2.130, 1], [3.048, 0.85], [3.593, 0.9], [4.203, 1], [4.824, 0.85], [5.364, 0.8],
-  [6.281, 1], [6.972, 1], [7.663, 1], [8.353, 1], [9.555, 0.9], [10.228, 0.9], [10.675, 0.8],
-];
-export const LETTERS = [0.058, 0.749, 1.440, 2.130];     // e, em, emb, embi
+export const HALF = GRID.filter((_, k) => k % 2 === 0).map(([b]) => b);
+// the head nods on every beat
+export const BOPS = GRID.map(([b, s]) => [b, s >= 1 ? 1 : 0.85]);
+export const LETTERS = GRID.slice(0, 4).map(([b]) => b);  // e, em, emb, embi
 export const GLITCH_AT = 2.60;                            // the word breaks up, gone at DROP1
 
 // the character stands in the water in front of the shrine (world units: 1 = about half a metre)
@@ -54,86 +53,118 @@ const pulse = (x, decay) => (x < 0 ? 0 : Math.exp(-x * decay));
 const wob = (t, s) => Math.sin(t * 1.31 + s) * 0.5 + Math.sin(t * 2.17 + s * 2.3) * 0.3 + Math.sin(t * 3.73 + s * 4.1) * 0.2;
 
 // ---------------------------------------------------------------- camera
-// Each shot: lands at `t`, starts moving `lead` s earlier and takes `dur` s to arrive (fast in, soft landing).
-// p = position, g = look-at point, roll in degrees, fov in degrees; d* = drift per second after landing.
-const END_SHOT = { t: 10.855, dur: 0.17, lead: 0.03, p: [0.25, 3.85, -36.3], g: HEAD, roll: -14, fov: 30, dp: [0, 0, -1.2], droll: -30, blur: 1.6 };
-const SHOTS = [
-  { ...END_SHOT, t: END_SHOT.t - DURATION },                   // the end of the previous loop
-  { t: 0.0, dur: 0.42, lead: 0, p: [0.5, 3.0, -2.0], g: [0, 6.0, -60], roll: 13, fov: 40, dp: [0, 0, -1.7], droll: -4, blur: 1.5 },
-  { t: 0.749, dur: 0.2, lead: 0.05, p: [-1.7, 2.7, -11.0], g: [0, 4.9, -52], roll: -10, fov: 39, dp: [0.25, 0, -1.6], droll: 4, blur: 0.8 },
-  { t: 1.440, dur: 0.2, lead: 0.05, p: [1.9, 2.4, -17.5], g: [0.1, 3.9, -42], roll: 11, fov: 38, dp: [-0.3, 0, -1.6], droll: -4, blur: 0.8 },
-  { t: 2.130, dur: 0.2, lead: 0.05, p: [-1.0, 2.6, -22.3], g: BODY, roll: -8, fov: 37, dp: [0.2, 0, -1.4], droll: 3, blur: 0.9 },
-  // DROP 1: whip into a low medium shot
-  { t: DROP1, dur: 0.24, lead: 0.04, p: [1.4, 1.9, -28.6], g: [0.2, 3.2, CHAR.z], roll: -11, fov: 41, dp: [-0.35, 0.08, -0.55], droll: 3.2, blur: 1.5, whip: 1 },
-  { t: 4.203, dur: 0.2, lead: 0.05, p: [-1.25, 3.1, -31.6], g: [0.0, 3.7, CHAR.z], roll: 8, fov: 40, dp: [0.3, 0, -0.5], droll: -3, blur: 0.9 },
-  // whip out for the second phrase
-  { t: 6.281, dur: 0.5, lead: 0.42, p: [-3.3, 1.5, -5.5], g: [0.5, 6.6, -58], roll: -13, fov: 42, dp: [0.3, 0.05, -1.7], droll: 4, blur: 1.4, whip: -1 },
-  { t: 6.972, dur: 0.2, lead: 0.05, p: [2.5, 2.3, -13.5], g: [0.2, 4.6, -46], roll: 10, fov: 39, dp: [-0.3, 0, -1.6], droll: -4, blur: 0.8 },
-  { t: 7.663, dur: 0.2, lead: 0.05, p: [-1.9, 1.8, -21.5], g: BODY, roll: -8, fov: 37, dp: [0.3, 0, -1.4], droll: 3, blur: 0.9 },
-  { t: 8.353, dur: 0.2, lead: 0.05, p: [0.9, 3.3, -29.2], g: [0.1, 3.6, CHAR.z], roll: 6, fov: 38, dp: [-0.15, 0, -0.7], droll: -3, blur: 0.9 },
-  // DROP 2: the hero shot, low, the shrine looming behind
-  { t: DROP2, dur: 0.24, lead: 0.04, p: [-0.95, 1.25, -30.6], g: [0.1, 3.55, CHAR.z], roll: 12, fov: 47, dp: [0.3, 0.05, -0.45], droll: -4.5, blur: 1.6, whip: 1 },
-  { t: 10.02, dur: 0.18, lead: 0.04, p: [0.75, 3.45, -33.3], g: [0.08, 3.9, CHAR.z], roll: -6, fov: 40, dp: [-0.2, 0, -0.4], droll: 3, blur: 0.9 },
-  END_SHOT,
+// One long move per section (kodo style): the camera glides the whole time and surges forward on each beat
+// (a smooth push, never a jump to a new angle). Whips only on the two drops and the turn into the second phrase.
+const D2R = Math.PI / 180;
+const lerp3 = (a, b, u) => a.map((v, j) => mix(v, b[j], u));
+// a smooth step that starts with no speed and lands with no overshoot (~90% there after 0.27 s)
+const surge = (x, tau = 0.07) => (x <= 0 ? 0 : 1 - (1 + x / tau) * Math.exp(-x / tau));
+// progress along a section: part steady glide, part beat surges
+function prog(t, t0, t1, beats, glide) {
+  const L = clamp((t - t0) / (t1 - t0));
+  const S = beats.reduce((s, b) => s + surge(t - b + 0.04), 0) / beats.length;
+  return glide * L + (1 - glide) * S;
+}
+const orbit = (T, R, az, h) => [T[0] + R * Math.sin(az * D2R), h, T[2] + R * Math.cos(az * D2R)];
+const beatsIn = (a, b) => GRID.map(([k]) => k).filter((k) => k > a + 0.1 && k < b - 0.25);
+
+// intro: from the wide tilted shot, one push down the water toward him
+function sIntro(t) {
+  const uL = clamp(t / DROP1), u = prog(t, 0, DROP1, beatsIn(0, DROP1), 0.58);
+  return {
+    p: [mix(0.7, -1.1, uL) + 1.3 * Math.sin(Math.PI * uL), mix(3.0, 2.5, u), mix(-1.5, -25.5, u)],
+    g: lerp3([0, 6.0, -60], [0.15, 3.4, CHAR.z], u), roll: mix(13, -7, uL), fov: mix(40, 36, u),
+  };
+}
+// after the first drop: a slow orbit around him, closing in on the beats
+function sOrbit1(t) {
+  const uL = clamp((t - DROP1) / 3.3), u = prog(t, DROP1, 6.1, beatsIn(DROP1, 6.1), 0.5);
+  const T = [0.1, mix(3.35, 3.65, u), CHAR.z];
+  return { p: orbit(T, mix(10.5, 7.9, u), mix(15, -15, uL), mix(1.8, 2.9, uL)), g: T, roll: mix(-11, 5, uL), fov: mix(41, 38, u) };
+}
+// second phrase: from wide and low on the left, a second push in
+function sPush2(t) {
+  const uL = clamp((t - 5.95) / 3.1), u = prog(t, 6.0, DROP2, beatsIn(6.0, DROP2), 0.58);
+  return {
+    p: [mix(-3.3, 1.1, uL) - 1.1 * Math.sin(Math.PI * uL), mix(1.5, 2.3, u), mix(-4.0, -27.0, u)],
+    g: lerp3([0.5, 6.6, -58], [0.15, 3.3, CHAR.z], u), roll: mix(-13, 7, uL), fov: mix(42, 37, u),
+  };
+}
+// after the second drop: the low hero shot, craning up and round to his face
+function sHero(t) {
+  const uL = clamp((t - DROP2) / 1.85), u = prog(t, DROP2, LAST_HIT, beatsIn(DROP2, LAST_HIT), 0.5);
+  const T = [0.05, mix(3.75, 3.95, uL), CHAR.z];
+  return { p: orbit(T, mix(8.8, 4.5, u), mix(-10, 10, uL), mix(1.35, 3.45, smooth(0, 1, uL))), g: T, roll: mix(12, -5, uL), fov: mix(47, 38, u) };
+}
+// the end: a fast zoom into his face, into the loop's flash
+function sEnd(t) {
+  const k = t - LAST_HIT;
+  return { p: [0.25, 3.85, -36.3 - 1.2 * k], g: HEAD, roll: -14 - 30 * k, fov: 30 };
+}
+const easeIO = (x) => { x = clamp(x); return x * x * x * (x * (6 * x - 15) + 10); };
+// each section takes over from the one before: starting `lead` s before its time, over `dur` s
+const SECTIONS = [
+  { t: 0, lead: 0, dur: 0.42, f: sIntro, ease: (x) => easeOut(x, 3.2) },     // out of the previous loop's end
+  { t: DROP1, lead: 0.11, dur: 0.28, f: sOrbit1, ease: easeIO },
+  { t: 6.281, lead: 0.36, dur: 0.46, f: sPush2, ease: easeIO },
+  { t: DROP2, lead: 0.11, dur: 0.28, f: sHero, ease: easeIO },
+  { t: LAST_HIT, lead: 0.03, dur: 0.17, f: sEnd, ease: (x) => easeOut(x, 3.2) },
 ];
 
-function shotPose(s, t) {
-  const k = t - s.t, dp = s.dp || [0, 0, 0];
-  return {
-    p: [s.p[0] + dp[0] * k, s.p[1] + dp[1] * k, s.p[2] + dp[2] * k],
-    g: s.g.slice(), roll: s.roll + (s.droll || 0) * k, fov: s.fov + (s.dfov || 0) * k,
-  };
+function basePose(t) {
+  let pose = sEnd(t + DURATION);                       // before the first section: the end of the previous loop
+  for (const s of SECTIONS) {
+    const x = (t - (s.t - s.lead)) / s.dur;
+    if (x <= 0) break;
+    const e = s.ease(x), q = s.f(t);
+    pose = { p: lerp3(pose.p, q.p, e), g: lerp3(pose.g, q.g, e), roll: mix(pose.roll, q.roll, e), fov: mix(pose.fov, q.fov, e) };
+  }
+  // a little pull back just before each drop (the wind-up)
+  for (const d of [DROP1, DROP2]) {
+    const w = smooth(d - 0.36, d - 0.1, t) * (1 - smooth(d - 0.1, d + 0.05, t));
+    pose.p[2] += 1.3 * w; pose.fov += 3.0 * w; pose.roll += 2.5 * w;
+  }
+  return pose;
+}
+// how fast the view is turning/moving, in degrees per frame (drives the zoom and whip blur)
+function viewSpeed(t) {
+  const a = basePose(t - 1 / 60), b = basePose(t);
+  const dir = (q) => { const d = q.g.map((v, j) => v - q.p[j]), n = Math.hypot(...d); return d.map((v) => v / n); };
+  const da = dir(a), db = dir(b);
+  const turn = Math.acos(clamp(da[0] * db[0] + da[1] * db[1] + da[2] * db[2], -1, 1)) / D2R;
+  const dist = Math.hypot(...b.g.map((v, j) => v - b.p[j]));
+  const move = Math.hypot(...b.p.map((v, j) => v - a.p[j])) / Math.max(dist, 3) / D2R;
+  const side = da[0] * db[2] - da[2] * db[0];          // turning left or right
+  return { v: turn + 0.6 * move + Math.abs(b.fov - a.fov) + 0.25 * Math.abs(b.roll - a.roll), side };
 }
 
 export function camera(t) {
-  let pose = shotPose(SHOTS[0], t), blur = 0, whip = 0, focusOn = 0;
-  for (let i = 1; i < SHOTS.length; i++) {
-    const s = SHOTS[i], t0 = s.t - s.lead;
-    if (t < t0) break;
-    const x = (t - t0) / s.dur, e = easeOut(x, 3.2), q = shotPose(s, t);
-    pose = {
-      p: pose.p.map((v, j) => mix(v, q.p[j], e)), g: pose.g.map((v, j) => mix(v, q.g[j], e)),
-      roll: mix(pose.roll, q.roll, e), fov: mix(pose.fov, q.fov, e),
-    };
-    if (x < 1.6) {                                    // how fast the move is going right now
-      const v = Math.pow(1 - clamp(x), 2.2) * (x < 0.06 ? x / 0.06 : 1);
-      blur = Math.max(blur, v * s.blur * (i === 1 ? 1 : 1));
-      if (s.whip) whip = v * s.whip;
-    }
-  }
+  const pose = basePose(t), sp = viewSpeed(t);
+  let blur = clamp(sp.v * 0.32, 0, 1.7);
+  const whip = clamp(Math.max(0, sp.v - 1.2) * 0.35, 0, 1) * (sp.side > 0 ? 1 : -1);
   // the first frame has to match the last one: both sit inside the same full blur
   blur = Math.max(blur, 1.5 * smooth(DURATION - 0.19, DURATION - 0.03, t), 1.5 * (1 - smooth(0, 0.1, t)));
 
-  // a little pull back just before each drop (the wind-up)
-  for (const d of [DROP1, DROP2]) {
-    const w = smooth(d - 0.34, d - 0.06, t) * (1 - smooth(d - 0.05, d, t));
-    pose.p[2] += 1.3 * w; pose.fov += 3.5 * w; pose.roll += 2.5 * w;
-  }
-  // every kick: a small punch of the lens and a shake
+  // every beat: a small punch of the lens; a shake only on the drops
   let punch = 0, shake = 0;
-  for (const [k, s] of KICKS) {
-    punch += s * bop(t - k + 0.017, 0.05, 9, 13);
-    shake += s * pulse(t - k, 9) * (t >= k ? 1 : 0);
-  }
-  pose.fov -= 1.9 * punch;
-  // and the bump that makes the head bop read as a bounce: the picture jumps up and sideways on the kick,
-  // swings back past rest three frames later, settled by twelve
+  for (const [k, s] of KICKS) punch += s * bop(t - k + 0.017, 0.05, 8, 11);
+  for (const d of [DROP1, DROP2]) shake += 1.2 * pulse(t - d, 6) * (t >= d ? 1 : 0);
+  pose.fov -= 1.6 * punch;
+  // the bump that makes the head bop read as a bounce: the picture dips on the beat and settles softly
   let bx = 0, by = 0;
   KICKS.forEach(([k, s], i) => {
     const x = t - k;
-    if (x < -0.035) return;
-    const b = Math.min(s, 1.2) * (x < 0 ? smooth(-0.035, 0, x) : Math.exp(-x * 7) * Math.cos(x * 26));
+    if (x < -0.04) return;
+    const b = Math.min(s, 1.2) * (x < 0 ? smooth(-0.04, 0, x) : Math.exp(-x * 6) * Math.cos(x * 15));
     by += b; bx += b * (i % 2 ? 1 : -1);
   });
-  pose.pitch = -1.15 * by; pose.yaw = 0.85 * bx;
-  blur = Math.max(blur, 0.16 * Math.min(shake, 1.2));
-  // hand-held: never still
-  const hx = wob(t * 1.7, 1.0) * 0.10 + Math.sin(t * 47) * 0.035 * shake;
-  const hy = wob(t * 1.5, 5.2) * 0.07 + Math.sin(t * 53 + 1) * 0.04 * shake;
-  pose.p[0] += hx; pose.p[1] += hy;
-  pose.g[0] += wob(t * 1.3, 9.1) * 0.22 + Math.sin(t * 41 + 2) * 0.10 * shake;
-  pose.g[1] += wob(t * 1.2, 3.3) * 0.16 + Math.sin(t * 59) * 0.12 * shake;
-  pose.roll += wob(t * 0.9, 7.7) * 1.1 + Math.sin(t * 37) * 0.5 * shake;
+  pose.pitch = -0.9 * by; pose.yaw = 0.45 * bx;
+  // hand-held: never still, but slow
+  pose.p[0] += wob(t * 1.2, 1.0) * 0.12 + Math.sin(t * 43) * 0.03 * shake;
+  pose.p[1] += wob(t * 1.1, 5.2) * 0.08 + Math.sin(t * 51 + 1) * 0.035 * shake;
+  pose.g[0] += wob(t * 1.0, 9.1) * 0.22 + Math.sin(t * 39 + 2) * 0.08 * shake;
+  pose.g[1] += wob(t * 0.9, 3.3) * 0.15 + Math.sin(t * 55) * 0.10 * shake;
+  pose.roll += wob(t * 0.7, 7.7) * 1.2 + Math.sin(t * 35) * 0.4 * shake;
   pose.p[1] = Math.max(0.55, pose.p[1]);
   pose.blur = blur; pose.whip = whip; pose.shake = shake;
   return pose;
@@ -159,7 +190,7 @@ export function puppet(t) {
   for (const [d, amt] of [[DROP1, 1], [DROP2, 1.25]]) {
     const wind = smooth(d - 0.30, d - 0.05, t) * (1 - smooth(d - 0.03, d + 0.02, t));
     const x = t - d;
-    const snap = x < 0 ? 0 : Math.exp(-5.2 * x) * Math.cos(13 * x);         // overshooting spring
+    const snap = x < 0 ? 0 : Math.exp(-4.6 * x) * Math.cos(11 * x);         // overshooting spring
     const settle = x < 0 ? 0 : Math.exp(-2.2 * x);
     lean += amt * (2.6 * wind - 7.5 * snap * (x < 0.045 ? x / 0.045 : 1));  // back, then lunge
     bob += amt * (16 * wind - 20 * snap * (x < 0.045 ? x / 0.045 : 1));

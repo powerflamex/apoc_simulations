@@ -24,9 +24,14 @@ shrine background) turned into a moving 3D shot, cut to an 11 s clip of the song
 
 ## Song map (seconds)
 
-One 9-beat phrase (beat 0.691 s, 86.8 BPM) played twice. Heavy kicks at 0.06, 0.75, 1.44, 2.13, drop at 2.82;
-again at 6.28, 6.97, 7.66, 8.35, drop at 9.04. The letters land on the first four kicks, the word glitches out
-into the first drop, the grade flips cool -> fiery on each drop.
+The song is DJ Javi26's "MONTAGEM MERZYN (Ultra Slowed)" from 16.249 s, 11.05 s long, turned down 7 dB (the
+same cut kodoae2 used, but without the "kodo" tag on his sound). The beat is perfectly steady: every 0.6914 s
+from 0.058 s (86.8 BPM). One 9-beat phrase played twice: heavy kicks on beats 0-3, drop on beat 4 (2.82 s);
+heavy kicks on beats 9-12, drop on beat 13 (9.05 s). The head nods on every beat; the letters land on the
+first four; the grade flips cool -> fiery on each drop.
+
+The camera makes one long move per section and surges forward on each beat; it only whips on the two drops
+and the turn into the second phrase (~6.1 s). Its blur follows its real speed.
 
 ## To redo with other pictures
 
