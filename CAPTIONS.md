@@ -2676,43 +2676,43 @@ Cover: `week 9/fast-trillion/out/fast-trillion_v4_cover.png` (`node render.mjs -
 
 ## Next Short. What if Earth had other planets' gravity? — `week 9/planet-gravity/out/planet-gravity_v4_1080x1920_60fps_tiktok.mp4`
 
-44.5 s, loops. The next "picker", built like planet weather: one place, one camera spot just behind YOU, a quick wipe to
-the next world every ~7.5-9 s, a bar of the six worlds under the title with the neutron star as the finish line. The place is
-new: a packed outdoor basketball court in a city park (~700 people: a game round the far hoop, a crowd along the baseline and
-round a two-tier fountain, people on both sidewalks), parked cars, street trees and lamps, three rows of shops, flats and
-towers across the street. Each stop starts fresh (everything standing again). Counter: YOUR WEIGHT (150 lb on Earth), racing
-to each world's; the one line under it says how strong that gravity is.
-What you see, in order (Nov 21 fix pass: every stop has a second beat, the neutron star is one move):
-0:00 the Moon: the whole court hanging in the air mid-jump, arms up, the fountain's arcs reaching six times higher and
-farther, the owner's scream, the counter racing down from 150 to 25 LB. 0:01 a player dunks from way above the rim (a clang
-and a swish), the ball bouncing slowly away. 0:03 the whole court jumps at once (a few flip slowly), you too, ~10 ft up and
-~4 s in the air ("Every jump hangs in the air for 4 seconds"). 0:07 Pluto, 9 LB: you crouch and jump and the camera rises
-with you, close behind you, up past the backboard and over the hoop, the crowd floating up all round you, the fountain's
-jets arching across the plaza and its centre jet a column into the sky, the ball drifting up beside you ("One jump takes
-you 26 feet up", "oh my god"). 0:14.5 Jupiter, 380 LB: with a thud everyone staggers and drops to their knees (the ones
-caught mid-jump slam down flat), you too; the ball slams down and dies in a few low bounces; the trees sag. 0:17.3-0:18.3
-the big beat: limbs crack off the trees by the court and crash down, the benches snap in the middle, the hoop bends down,
-the parked cars sink onto their wheels one after another, and most of the crowd sinks onto all fours, you too, hands on
-the court; 0:18.8, 0:20 and 0:21.1 the hoop's post gives a little more each time with a groan and a bang (the board sinks
-lower every second) and people who tried to stand fall back. 0:22.5 the Sun, 4,200 LB: everyone is
-slammed flat at once, you too ("nooo"); tyres burst along both kerbs, the lamp posts bend over. 0:25.5-0:26.5 the second
-beat: the hoop's post buckles and the backboard crashes onto the court and shatters, the car roofs crush in, the windows
-burst out of the buildings across the street ("You weigh as much as a car"); 0:25.9-0:28.7 the trees snap one after
-another, about one every third of a second, the near ones by the court among them; 0:28.5 the tallest buildings' top floors
-give way in clouds of dust. 0:31 a white dwarf, 15 MILLION LB: 0:31.4 everything still
-standing (people, you, cars, trees, the hoop, the fountain) is pressed flat in a blink; 0:31.7-0:33.3 the towers at the back go down,
-then the blocks; 0:33.2-0:36.3 the shops on the street go down floor by floor, a puff of dust at each floor, the one at
-the left edge first, then the one left of the hoop, then the wide one right of it, coming toward you;
-0:36.6-0:38.4 a front of glowing cracks sweeps in from the horizon to your feet and the ground drops. 0:40 a neutron star,
-20 TRILLION LB: a flash and everything is one flat film, the sky goes black; one bright wave of heat sweeps in from the
-horizon over everything ("Everything pressed thinner than paper") straight into the white at 0:43.3, which clears onto
-frame 0 (the loop).
-Sound (Nov 21 sound pass): a big crowd yelling and whooping on frame 0 with the owner's scream, whoops at the dunk and
-the whole court's jump, laughing while everyone hangs in the air, a long whoosh as you float up on Pluto and the court
-cheering you on; at Jupiter the crowd groaning as they drop, steel straining, the hoop's groans and bangs and a low rumble
-that grows; at the Sun and the white dwarf a rumble that grows as more comes down, a snap and crash for every tree, a
-crunch and thump for every floor, a grinding roar under the crack front. Every second sits between about -5 and -14 dB
-(before: -16 to -22 dB on the Moon and Pluto).
+39.0 s, loops. The next "picker", built like planet weather: one place, one camera just behind YOU, a quick wipe to the
+next world, a bar of the six worlds under the title with the neutron star as the finish line. The place: a packed outdoor
+basketball court in a city park (a game round the far hoop, a crowd along the baseline and round a two-tier fountain,
+people on both sidewalks), parked cars, street trees and lamps, three rows of shops, flats and towers across the street.
+Counter: YOUR WEIGHT (150 lb on Earth), racing to each world's; the one line under it says how strong that gravity is.
+Nov 22 reorder (the owner's note: it opened light, then lighter, and people scrolled before anything heavy at 0:15): every
+switch is a reversal, light -> heavy -> light -> heavier, and each world takes over from where the last one left everyone
+(still in the air, on their knees). What Jupiter breaks stays broken on Pluto and the Sun. The white dwarf and the neutron
+star start fresh (everything standing again), as before.
+What you see, in order:
+0:00 the Moon, the counter racing down from 150 to 25 LB: the whole court hanging in the air mid-jump, arms up, the
+fountain's arcs six times higher, the owner's scream and a yelling crowd. 0:01 a player dunks from way above the rim (a
+clang and a swish), the ball bouncing slowly away. 0:03 the whole court jumps at once, you too, ~10 ft up ("Every jump
+hangs in the air for 4 seconds"). 0:04.5 Jupiter, 380 LB, while everyone is still up in the air: they drop like rocks (the
+camera comes down with you) and slam onto the court at 0:05 with a boom, knees buckling, some flat; the ball drops from
+~10 ft like a rock and dies in a few low bounces ("You land like you fell 2 stories"). 0:06.7-0:07.6 limbs crack off the
+trees by the court and crash down, the benches snap in the middle, the hoop bends down, the parked cars sink onto their
+wheels; many sink onto all fours, you fold forward onto your hands; 0:08.4 and 0:09.3 the hoop's post gives a little more
+with a groan and a bang, and people trying to stand fall back. 0:10 Pluto, 9 LB: the court on its knees pushes off and
+launches, a whoosh; one push takes you 26 ft up and over the hoop, the camera close behind you, the crowd floating up all
+round you, the ball drifting up beside you ("oh my god", "One push takes you 26 feet up"); the broken limbs, the snapped
+benches, the bent hoop and the sunk cars stay as Jupiter left them. 0:16 the Sun, 4,200 LB, while everyone is still up in
+the air: they drop like stones (you from 26 ft, a quarter of a second) and the camera drops after you; the biggest slam
+yet at 0:16.2, everyone flat ("nooo"); tyres burst along both kerbs, the lamp posts bend over. 0:19.2-0:19.6 the hoop's
+post folds the rest of the way and the backboard crashes onto the court beside you and shatters; the car roofs crush in,
+the windows burst out of the buildings across the street ("You weigh as much as a car"); 0:19.7-0:23.6 the trees snap one
+after another; 0:22.3 the tallest buildings' top floors give way in clouds of dust. 0:25.5 a white dwarf, 15 MILLION LB
+(everything standing again): 0:25.9 it is all pressed flat in a blink; 0:26.2-0:27.8 the towers at the back go down, then
+the blocks; 0:27.7-0:30.8 the shops on the street go down floor by floor, coming toward you; 0:31.1-0:32.9 a front of
+glowing cracks sweeps in from the horizon to your feet and the ground drops. 0:34.5 a neutron star, 20 TRILLION LB: a flash
+and everything is one flat film, the sky goes black; one bright wave of heat sweeps in from the horizon ("Everything
+pressed thinner than paper") straight into the white at 0:37.8, which clears onto frame 0 (the loop).
+Sound: a crowd yelling and whooping from frame 0 with the owner's scream, whoops at the dunk and the court's jump; a deep
+hit at 0:04.5 and the slam of the whole court landing at 0:05, then groans, cracks, splinters, clunks and straining steel;
+a whoosh up at 0:10 and the court cheering; the biggest slam at 0:16.2, then snaps, crashes, glass and rumbles; every
+floor of the white dwarf's buildings a crunch, a grinding roar under the crack front. Every second sits between about -4
+and -13 dB.
 
 The numbers (also at the top of `src/timeline.js`): your weight = 150 lb x the world's surface gravity / Earth's (9.80 m/s²).
 NASA fact sheets: the Moon 1.62 m/s² -> 24.8 lb (shown 25); Pluto 0.62 -> 9.5 lb (9); Jupiter 24.79 (at the 1-bar cloud
@@ -2722,17 +2722,21 @@ radius (NICER measured ~12-13 km), g = GM/R² ≈ 130 billion x Earth's -> 19.8 
 a 20-inch jump on Earth: on the Moon ~10 ft up and ~4 s in the air; on Pluto 7.9 m (26 ft) up, 5 s just to reach the top. A
 fountain jet's height and an arc's reach scale as 1/gravity (six times higher on the Moon, 16x on Pluto). An average new US
 car weighs ~4,000-4,300 lb.
-Honest notes: every stop switches gravity instantly and starts fresh. At 28x gravity (the Sun) real buildings would most likely
-fall all the way; the video only has the tallest ones' top floors give way and saves the full collapse for the white dwarf. Things would fall much faster than
-shown at the white dwarf and the neutron star (thousandths of a second): the buildings are slowed to about a third of a second
-each (the street's front row about a second, floor by floor) and set one after another (back row to front) so you can
-see them; real dust couldn't rise or spread at all there, it's
-drawn as a low sheet. The crack front and the neutron star's heat wave are stand-ins for the crust giving way and the heat of
-crushing everything; they're drawn as one sweep from the horizon so you can follow them. At Jupiter a steel hoop post would
-most likely hold 2.5x its weight; its sagging, step by step, is exaggerated to show the strain.
-A dropped ball bounces to the same share of its height on any world, only quicker; the Jupiter dribble is drawn as a dead,
-low bounce. White dwarfs range from ~10,000x to ~1,000,000x Earth's gravity; 100,000x is a typical one. The glow at the
-neutron star is a stand-in for the heat of crushing everything; the black sky comes from the glow outshining it.
+Jupiter's landing: the Moon's jumpers are ~2.7 m up when Jupiter takes over; at 24.79 m/s² they hit the court at
+sqrt(2 x 24.79 x 2.7) = 11.6 m/s, as fast as a 6.9 m (23 ft) fall on Earth ("You land like you fell 2 stories"). Pluto's
+push: the same 3.1 m/s as a 20-inch jump on Earth -> 7.9 m (26 ft) up.
+
+Honest notes: every world takes over instantly. At Jupiter the landing is the real fall from the Moon jump's height. A
+drop from 26 ft at the Sun's gravity would hit at ~145 mph (65 m/s), which nobody survives; it's drawn as lying flat. The
+cars stay sunk after Jupiter (their springs drawn as broken). At 28x gravity (the Sun) real buildings would most likely
+fall all the way; the video only has the tallest ones' top floors give way and saves the full collapse for the white
+dwarf, which starts with everything standing again. Things would fall much faster than shown at the white dwarf and the
+neutron star (thousandths of a second): the buildings are slowed to about a third of a second each (the street's front
+row about a second, floor by floor) and set one after another (back row to front) so you can see them; real dust couldn't
+rise or spread at all there, it's drawn as a low sheet. The crack front and the neutron star's heat wave are stand-ins for
+the crust giving way and the heat of crushing everything; they're drawn as one sweep from the horizon so you can follow
+them. At Jupiter a steel hoop post would most likely hold 2.5x its weight; its sagging, step by step, is exaggerated to
+show the strain. White dwarfs range from ~10,000x to ~1,000,000x Earth's gravity; 100,000x is a typical one.
 
 **YouTube title (59 chars)**
 What if Earth had other planets' gravity? 🪐 #whatif #space
@@ -2741,9 +2745,9 @@ What if Earth had other planets' gravity? 🪐 #whatif #space
 You're on a packed basketball court and you weigh 150 lb. Every few seconds, Earth gets another world's gravity.
 
 The Moon: 25 lb. Every jump hangs in the air for 4 seconds.
-Pluto: 9 lb. One jump takes you 26 feet up, over the hoop.
-Jupiter: 380 lb. Everyone drops to their knees and the trees start to break.
-The Sun: 4,200 lb, as much as a car. Tires burst, the hoop folds, trees snap, roofs cave in.
+Jupiter: 380 lb, in mid-jump. Everyone slams down like they fell 2 stories.
+Pluto: 9 lb. One push off your knees takes you 26 feet up, over the hoop.
+The Sun: 4,200 lb, as much as a car. Everyone drops like a stone, the hoop folds, trees snap, roofs cave in.
 A white dwarf: 15 million lb. The buildings go down one after another, then the ground.
 A neutron star: 20 trillion lb. Everything is pressed thinner than paper.
 
@@ -2751,7 +2755,7 @@ Which gravity could you survive? 👇
 
 #whatif #space #gravity #physics #simulation
 
-Cover: `week 9/planet-gravity/out/planet-gravity_v4_cover.png` (`node render.mjs --cover 26.2`: the Sun's second beat, everyone flat on the court with you in front, arms out, the backboard just smashed onto the court in a burst of glass and dust, the lamp posts bent over, the trees about to go; "WHAT IF EARTH HAD / the Sun's / gravity?")
+Cover: `week 9/planet-gravity/out/planet-gravity_v4_cover.png` (`node render.mjs --cover 19.7`: the Sun, seen from just above you lying flat on the court, arms out, the backboard smashing down beside you in a burst of glass and dust, the whole crowd flat behind, the bent hoop post; "WHAT IF EARTH HAD / the Sun's / gravity?")
 
 ## Next Short. What if gravity turned off for 5 seconds? 1 minute? 1 hour? — `week 9/gravity-off/out/gravity-off_v4_1080x1920_60fps_tiktok.mp4`
 

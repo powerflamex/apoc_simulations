@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TREES } from './layout.js';
 import { rng, smooth, clamp } from './util.js';
-import { JUP_SNAP, sunTreeT } from './sched.js';
+import { JUP_SNAP, sunTreeT, JUP_END } from './sched.js';
 
 function blobGeo(seed) {
   const g = mergeVertices(new THREE.IcosahedronGeometry(1, 3).deleteAttribute('normal').deleteAttribute('uv'));
@@ -113,10 +113,16 @@ export function makeTrees(scene, { plainMat, shadowy }) {
             fallLimb(L, tr, tt - js.t, 24.8 * 0.55);
             if (tt - js.t < 0.5 && burst) burst(tr, L, tt - js.t);
           }
+        } else if (key === 'pluto') {
+          // what Jupiter broke stays broken: its fallen limbs lie where they fell
+          for (const js of jupSnaps) if (js.ti === ti) fallLimb(tr.limbs[js.li], tr, JUP_END - js.t, 24.8 * 0.55);
         } else if (key === 'sun') {
           const T = tt;
           const s = smooth(0.0, 0.15, T);
+          const down = new Set(jupSnaps.filter((js) => js.ti === ti).map((js) => js.li));
+          for (const li of down) fallLimb(tr.limbs[li], tr, JUP_END - jupSnaps.find((js) => js.ti === ti && js.li === li).t, 24.8 * 0.55);
           tr.limbs.forEach((L, li) => {
+            if (down.has(li)) return;
             L.bend.rotation.x += (0.45 + 0.2 * L.seed) * s;
             // most limbs break off within the first second
             const tb = 0.2 + 0.9 * L.seed + 0.05 * ti;

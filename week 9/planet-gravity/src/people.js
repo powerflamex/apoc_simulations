@@ -1,17 +1,17 @@
-// The crowd at the court and what each world's gravity does to them. Everyone keeps their own spot (each stop starts
-// fresh); a person's pose is a pure function of (the stop, the seconds since its wipe). Positions are planned up front:
+// The crowd at the court and what each world's gravity does to them. Everyone keeps their own spot (Jupiter, Pluto and
+// the Sun each start from the pose the world before left them in; the white dwarf starts fresh); a person's pose is a pure function of (the stop, the seconds since its wipe). Positions are planned up front:
 // players round the far hoop, a packed crowd along the baseline and round the fountain (some sitting on its rim),
 // people on both sidewalks; nobody between you and the lens, nobody closer than ~3.6 m to it, nobody on the street.
 //   Moon: everyone bouncing, ~4 s in the air per jump (frame 0 has them all mid-air); a player dunks from way above
 //     the rim; then the whole court jumps at once, a few flipping slowly.
-//   Pluto: they hop and keep going up, arms and legs flailing, drifting higher and higher.
-//   Jupiter: their legs give way: deep crouches, hands on knees, some on all fours, a few flat; they try to get up.
-//   The Sun: slammed flat on the ground in an instant, and they stay there.
+//   Jupiter (from the Moon, mid-jump): they slam down onto the court, knees buckling, some flat, some on all fours.
+//   Pluto (from Jupiter, on their knees): one push and they launch, flailing, drifting higher and higher.
+//   The Sun (from Pluto, up in the air): they drop like stones and lie flat where they land.
 //   White dwarf / neutron star: flat (and pressed into the ground: heat.js uSq).
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
 import { YOU, HOOP, COURT, FOUNTAIN, TREES, LAMPS, BENCHES, Z, FACE_YAW, APRON } from './layout.js';
-import { GRAV, MOON_DUNK, MOON_ALL, JUP_BUCKLE, SUN_FLAT, WD_CRUSH } from './sched.js';
+import { GRAV, MOON_DUNK, MOON_ALL, JUP_BUCKLE, SUN_FLAT, WD_CRUSH, MOON_END, JUP_END, PLU_END } from './sched.js';
 
 const TOPS = [0xffffff, 0x222222, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4, 0x8e44ad, 0xd5d5d5, 0x16a085, 0xf2f2f2, 0xe8e2d0, 0xc0392b, 0x2e86c1, 0xff8c1a, 0x1abc9c];
 const PANTS = [0x1b2631, 0x2c3e50, 0x5d6d7e, 0xd5c4a1, 0x4a6fa5, 0x212121, 0x7f8c8d, 0xe8e2d0, 0xc0392b, 0x2e86c1];
@@ -180,79 +180,113 @@ export function personPose(p, key, tt) {
     } else if (t2 > 0) o.sit = Math.max(o.sit, 0.3 * (1 - smooth(2 * v2 / gM, 2 * v2 / gM + 0.3, t2)));
     return o;
   }
-  if (key === 'pluto') {
-    o.look = 0.4;
-    if (p.kind === 'walker') {
-      // a step on Pluto launches you: they drift up off the sidewalk, legs still walking
-      const t = tt - 0.3 - 1.5 * p.g1;
-      walker(o, p, Math.min(tt, 0.3 + 1.5 * p.g1), 'pluto');
-      if (t > 0 && p.walkK) { o.y = hop(t, 0.9 + 0.6 * p.g2, gP); o.armL = 1.0 + 0.5 * Math.sin(t * 3 + p.ph); o.armR = 1.0 + 0.5 * Math.sin(t * 2.6 + p.ph); o.walk = t * 2 + p.ph; o.stride = 0.5; o.x += Math.sin(p.yaw) * p.walkV * t; }
-      return o;
-    }
-    if (p.kind === 'rim') { o.look = 0.8; o.armL = 1.3; o.armR = 0.9 + 0.5 * Math.sin(tt * 3 + p.ph); return o; }
-    // they hop to see what happens: and keep going up, very slowly coming back
-    const goes = p.g4 > 0.2 || p.near || p.kind === 'player' || p.kind === 'dunker';
-    if (!goes) { o.armL = 1.5; o.armR = 1.45; o.look = 0.8; return o; }
-    const s = 0.25 + 1.5 * p.g1 + (p.near ? 0.3 : 0), v = 1.3 + 1.6 * p.g2;
-    const t = tt - s, y = hop(t, v, gP);
-    if (t > -0.18 && t < 0) o.sit = 0.35 * smooth(-0.18, -0.05, t);
-    if (y > 0) {
-      o.y = y; airborne(o, p, t, 1.2);
-      o.armL = 1.0 + 0.7 * Math.sin(t * 4.2 + p.ph); o.armR = 1.0 + 0.7 * Math.sin(t * 3.7 + p.ph * 1.7);
-      o.pitch += 0.25 * Math.sin(t * 0.9 + p.ph) * (p.g3 - 0.3); o.roll += 0.2 * Math.sin(t * 0.7 + p.ph * 2);
-      o.look = -0.3 + 0.5 * p.g3;
-    }
-    return o;
-  }
   if (key === 'jupiter') {
-    // at the wipe: the ones caught mid-jump slam down onto the court; everyone else staggers (a lurch, arms out) and
-    // drops to their knees; ~3 s in, as the trees break, many sink further onto all fours; some try to stand and fail
-    if (p.kind === 'walker') walker(o, p, tt, 'jupiter');
-    o.look = -0.15;
+    // it takes over while the court is still up in the air from the Moon's jump: they drop like rocks and slam down onto
+    // the court (as fast as a 23 ft fall), knees buckling, some flat; anyone still on the ground staggers and drops to
+    // their knees; ~2.3 s in, as the trees break, many sink further onto all fours; some try to stand and fail
     const g = GRAV.jupiter;
+    const c = fallFrom(p, 'moon', MOON_END, g);
+    o.x = c.a.x; o.z = c.a.z; o.yaw = c.a.yaw;
+    o.look = -0.15;
     if (p.kind === 'rim') { const k = smooth(0.06, 0.3, tt); o.pitch = 0.55 * k; o.armL = 0.6 * k; o.armR = 0.6 * k; return o; }
-    if (p.g4 > 0.72 && p.kind !== 'walker') {
-      // caught mid-jump: up 0.45 m and still rising, then down hard and flat
-      const v0 = 0.9 + 0.6 * p.g3, y = 0.45 + v0 * tt - 0.5 * g * tt * tt;
-      const tl = (v0 + Math.sqrt(v0 * v0 + 2 * g * 0.45)) / g;
-      if (tt < tl) { o.y = y; o.armL = 1.4; o.armR = 1.3; o.sit = 0.15; o.look = 0.3; return o; }
-      const k = smooth(tl, tl + 0.12, tt);
-      o.pitch = (p.g2 < 0.5 ? 1.45 : -1.45) * k; o.y = 0.1 * k; o.armL = 1.6 * k; o.armR = 1.5 * k; o.sit = 0.3 * (1 - k);
-      o.roll = 0.1 * Math.exp(-(tt - tl) / 0.1) * Math.sin((tt - tl) * 40);
+    let tl, flatK = 0.1;
+    if (c.tl > 0) {
+      if (tt < c.tl) {
+        // still falling: the Moon pose, arms flung up
+        Object.assign(o, c.a);
+        o.y = c.a.y + c.vy * tt - 0.5 * g * tt * tt;
+        o.armL = Math.max(c.a.armL, 1.55); o.armR = Math.max(c.a.armR, 1.5); o.sit = 0.08; o.look = 0.1;
+        return o;
+      }
+      tl = c.tl; flatK = 0.3;
+      o.pitch = wrapA(c.a.pitch) * (1 - smooth(tl, tl + 0.1, tt));
+    } else {
+      const t0 = JUP_BUCKLE + 0.2 * p.d;
+      // the stagger: a lurch to one side with a half step, arms thrown out
+      const st = smooth(t0, t0 + 0.12, tt) * (1 - smooth(t0 + 0.3, t0 + 0.45, tt));
+      const side = p.g1 < 0.5 ? -1 : 1;
+      o.roll = 0.28 * side * st; o.pitch = 0.22 * st; o.armL = 1.0 * st; o.armR = 1.0 * st;
+      o.x += Math.cos(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt); o.z -= Math.sin(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt);
+      o.walk = 1.2 * side; o.stride = 0.6 * st;
+      tl = t0 + 0.28;
+    }
+    const hard = c.tl > 0;
+    const k = smooth(tl, tl + (hard ? 0.12 : 0.2), tt) + (hard ? 0.14 : 0.08) * Math.exp(-Math.max(0, tt - tl - 0.12) / 0.12) * smooth(tl + 0.08, tl + 0.12, tt);
+    if (p.g3 < flatK) {             // flat
+      const kf = smooth(tl, tl + (hard ? 0.12 : 0.22), tt);
+      o.pitch = lerp(o.pitch, p.g2 < 0.5 ? 1.45 : -1.45, kf); o.roll *= 1 - kf; o.y = 0.1 * kf; o.armL = lerp(o.armL, 1.6, kf); o.armR = lerp(o.armR, 1.6, kf);
+      if (hard) o.roll += 0.1 * Math.exp(-(tt - tl) / 0.1) * Math.sin((tt - tl) * 40) * smooth(tl, tl + 0.05, tt);
       return o;
     }
-    const t0 = JUP_BUCKLE + 0.2 * p.d;
-    // the stagger: a lurch to one side with a half step, arms thrown out
-    const st = smooth(t0, t0 + 0.12, tt) * (1 - smooth(t0 + 0.3, t0 + 0.45, tt));
-    const side = p.g1 < 0.5 ? -1 : 1;
-    o.roll = 0.28 * side * st; o.pitch = 0.22 * st; o.armL = 1.0 * st; o.armR = 1.0 * st;
-    o.x += Math.cos(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt); o.z -= Math.sin(p.yaw) * 0.18 * side * smooth(t0, t0 + 0.3, tt);
-    o.walk = 1.2 * side; o.stride = 0.6 * st;
-    const k = smooth(t0 + 0.28, t0 + 0.48, tt) + 0.08 * Math.exp(-Math.max(0, tt - t0 - 0.48) / 0.12) * smooth(t0 + 0.4, t0 + 0.48, tt);
-    if (p.g3 < 0.1) {               // flat
-      const kf = smooth(t0 + 0.28, t0 + 0.5, tt);
-      o.pitch = lerp(o.pitch, 1.45, kf); o.roll *= 1 - kf; o.y = 0.1 * kf; o.armL = lerp(o.armL, 1.6, kf); o.armR = lerp(o.armR, 1.6, kf);
-      return o;
-    }
-    // ~3 s in, as the limbs come down: many of the kneelers sink onto all fours
-    const fours = p.g2 < 0.32 ? 1 : p.g2 < 0.7 ? smooth(2.9 + 0.9 * p.g1, 3.15 + 0.9 * p.g1, tt) : 0;
+    // ~2.3 s in, as the limbs come down: many of the kneelers sink onto all fours
+    const fours = p.g2 < 0.32 ? 1 : p.g2 < 0.7 ? smooth(2.3 + 0.9 * p.g1, 2.55 + 0.9 * p.g1, tt) : 0;
     const kneelY = -(0.36 + 0.08 * p.g2) * p.s, kneelP = 0.35 + 0.25 * p.g3;
     o.y = lerp(0, lerp(kneelY, -0.4 * p.s, fours), k);
-    o.pitch = lerp(o.pitch, lerp(kneelP, 1.0, fours), k); o.roll *= 1 - k;
+    o.pitch = lerp(o.pitch, lerp(kneelP, 1.0, fours), k); o.roll *= 1 - Math.min(1, k);
     o.armL = lerp(o.armL, lerp(0.35, 0.68, fours), k); o.armR = lerp(o.armR, lerp(0.35, 0.68, fours), k);
     o.look = lerp(o.look, lerp(-0.3, 0.3, fours), k);
     if (fours < 0.5) {
       // trying to stand, failing
-      const tr = 4.4 + 1.6 * p.g1;
-      const up = smooth(tr, tr + 0.6, tt) * (1 - smooth(tr + 0.9, tr + 1.15, tt));
+      const tr = 3.4 + 1.2 * p.g1;
+      const up = smooth(tr, tr + 0.5, tt) * (1 - smooth(tr + 0.8, tr + 1.0, tt));
       o.y += 0.25 * p.s * up; o.pitch -= 0.15 * up; o.roll = 0.05 * up * Math.sin(tt * 19 + p.ph);
     }
     return o;
   }
-  if (key === 'sun' || key === 'wd' || key === 'ns') {
-    // slammed flat in an instant: face down (most) or on their backs, arms flung out
-    const t0 = key === 'sun' ? SUN_FLAT + 0.08 * p.d : WD_CRUSH - 0.02;
-    const k = smooth(t0, t0 + (key === 'sun' ? 0.09 : 0.07), tt);
+  if (key === 'pluto') {
+    // it takes over with the court on its knees (or flat) from Jupiter: one push and they launch, way up, arms and
+    // legs flailing, very slowly coming back; a few stand up and watch
+    const J = snapEnd(p, 'jupiter');
+    Object.assign(o, J);
+    if (p.kind === 'rim') { const k = smooth(0.1, 0.5, tt); o.pitch = J.pitch * (1 - k); o.armL = lerp(J.armL, 1.3, k); o.armR = lerp(J.armR, 0.9 + 0.5 * Math.sin(tt * 3 + p.ph), k); o.look = 0.8; return o; }
+    const goes = p.g4 > 0.2 || p.near || p.kind === 'player' || p.kind === 'dunker' || (p.kind === 'walker' && p.walkK);
+    if (!goes) {
+      // getting up off the ground, looking up at them
+      const u = smooth(0.25 + 0.6 * p.g1, 0.75 + 0.6 * p.g1, tt);
+      o.y = J.y * (1 - u); o.pitch = J.pitch * (1 - u); o.roll = J.roll * (1 - u);
+      o.armL = lerp(J.armL, 1.5, u); o.armR = lerp(J.armR, 1.45, u); o.look = lerp(J.look, 0.8, u); o.sit = J.sit * (1 - u);
+      return o;
+    }
+    const s = 0.12 + 0.85 * p.g1 + (p.near ? 0.15 : 0), v = 1.3 + 1.6 * p.g2;
+    const t = tt - s;
+    if (t < 0) {
+      // the push: up off the knees (or the ground) into a crouch, then away
+      const u = smooth(-0.22, 0, t);
+      o.y = lerp(J.y, 0, u); o.pitch = lerp(J.pitch, 0.3, u); o.roll = J.roll * (1 - u); o.sit = lerp(J.sit, 0.4, u);
+      o.armL = lerp(J.armL, 0.3, u); o.armR = lerp(J.armR, 0.3, u);
+      return o;
+    }
+    o.y = hop(t, v, gP); o.roll = 0; o.pitch = 0;
+    airborne(o, p, t, 1.2);
+    o.armL = 1.0 + 0.7 * Math.sin(t * 4.2 + p.ph); o.armR = 1.0 + 0.7 * Math.sin(t * 3.7 + p.ph * 1.7);
+    o.pitch = 0.3 * (1 - smooth(0, 0.3, t)) + 0.25 * Math.sin(t * 0.9 + p.ph) * (p.g3 - 0.3); o.roll = 0.2 * Math.sin(t * 0.7 + p.ph * 2);
+    o.look = -0.3 + 0.5 * p.g3;
+    if (p.kind === 'walker') o.x += Math.sin(p.yaw) * p.walkV * 0.5 * t;
+    return o;
+  }
+  if (key === 'sun') {
+    // it takes over with the court still up in the air from Pluto: they drop like stones, flat on the court where they
+    // land; everyone on the ground is slammed flat at once
+    const g = GRAV.sun;
+    const c = fallFrom(p, 'pluto', PLU_END, g);
+    Object.assign(o, c.a);
+    const back = p.g2 < 0.25;
+    let t0, dur = 0.09;
+    if (c.tl > 0 && p.kind !== 'rim') {
+      if (tt < c.tl) { o.y = c.a.y + c.vy * tt - 0.5 * g * tt * tt; o.armL = Math.max(c.a.armL, 1.5); o.armR = Math.max(c.a.armR, 1.5); o.look = 0.2; return o; }
+      t0 = c.tl; dur = 0.05;
+    } else t0 = SUN_FLAT + 0.08 * p.d;
+    const k = smooth(t0, t0 + dur, tt);
+    o.y = c.a.y * (1 - k);
+    if (p.kind === 'rim') { o.sit = 1 - k; o.y = 0.06 + 0.45 * k; }
+    o.pitch = lerp(wrapA(c.a.pitch), back ? -1.5 : 1.5, k); o.y += 0.1 * k; o.armL = lerp(c.a.armL, 1.6, k); o.armR = lerp(c.a.armR, 1.2 + 0.4 * p.g1, k); o.look = 0;
+    o.roll = lerp(c.a.roll, (p.g4 - 0.5) * 0.2, k); o.sit *= 1 - k; o.stride *= 1 - k;
+    return o;
+  }
+  if (key === 'wd' || key === 'ns') {
+    // (each starts fresh: everyone standing, then slammed flat)
+    const t0 = WD_CRUSH - 0.02;
+    const k = smooth(t0, t0 + 0.07, tt);
     const back = p.g2 < 0.25;
     if (p.kind === 'rim') { o.sit = 1 - k; o.y = 0.06 + 0.45 * k; }
     o.pitch = (back ? -1.5 : 1.5) * k; o.y += 0.1 * k; o.armL = 1.6 * k; o.armR = (1.2 + 0.4 * p.g1) * k; o.look = 0;
@@ -261,4 +295,27 @@ export function personPose(p, key, tt) {
     return o;
   }
   return o;
+}
+
+// ---- carrying one world into the next ----
+const wrapA = (a) => a - 6.2832 * Math.round(a / 6.2832);
+// a person's pose at the end of a world (copied: personPose writes into one shared object); fixed, so kept per person
+function snapEnd(p, key) {
+  const c = p._end || (p._end = {});
+  if (!c[key]) {
+    const T = key === 'moon' ? MOON_END : key === 'jupiter' ? JUP_END : PLU_END;
+    const a = { ...personPose(p, key, T) };
+    const y0 = personPose(p, key, T - 0.02).y;
+    a.vy = (a.y - y0) / 0.02;
+    c[key] = a;
+  }
+  return c[key];
+}
+// someone up in the air when the next world takes over: their pose then, how fast they're rising, when they hit the
+// ground (tl: 0 if they're on the ground already)
+function fallFrom(p, key, T, g) {
+  const a = snapEnd(p, key);
+  if (a.y <= 0.04) return { a, vy: 0, tl: 0 };
+  const vy = a.vy;
+  return { a, vy, tl: (vy + Math.sqrt(vy * vy + 2 * g * a.y)) / g };
 }

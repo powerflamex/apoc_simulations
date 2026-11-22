@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STOPS, LAND, T_END } from './src/timeline.js';
 import {
   GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, PLU_TAKE, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, JUP_CREEP, jupCarT, SUN_FLAT, sunTyreT, SUN_LAMPS,
-  SUN_HOOP, SUN_BOARD_HIT, sunTreeT, sunRoofT, SUN_WINDOWS, SUN_TOP_LIST, WD_CRUSH, WD_BLDG_T, WD_FLOORS, WD_FLAT0, WD_FLAT1, NS_FILM, NS_WAVE0, NS_WAVE1,
+  SUN_HOOP, SUN_BOARD_HIT, sunTreeT, sunRoofT, SUN_WINDOWS, SUN_TOP_LIST, MOON_END, WD_CRUSH, WD_BLDG_T, WD_FLOORS, WD_FLAT0, WD_FLAT1, NS_FILM, NS_WAVE0, NS_WAVE1,
 } from './src/sched.js';
 import { CARS, BUILDINGS, TREES } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
@@ -54,12 +54,25 @@ function bounces(y, vy, g, e, n) {
 }
 
 const TREE_X = TREES.map((t) => t[0]);
+// the dunked ball on the Moon t s after the dunk (as world.js): its height and speed
+function moonBallAt(t) {
+  let y = 3.3, vy = -3.2; const g = GRAV.moon;
+  for (let b = 0; b < 10; b++) {
+    const disc = vy * vy + 2 * g * (y - 0.12), tHit = (vy + Math.sqrt(disc)) / g;
+    if (t < tHit) return { y: y + vy * t - 0.5 * g * t * t, vy: vy - g * t };
+    t -= tHit; vy = Math.sqrt(disc) * 0.72; y = 0.12;
+  }
+  return { y: 0.12, vy: 0 };
+}
+// when the court hits the ground: Jupiter (from the Moon's jump, ~2.7 m up) and the Sun (from Pluto, up to ~8 m)
+const JUP_SLAM = 0.5, SUN_SLAM = 0.2;
 export function makeSoundtrack(outFile) {
   const T0 = -LOOP - 2.5;
   const N = Math.round((VIDEO_DURATION - T0) * SR);
   const L = new Float32Array(N), R = new Float32Array(N);
   const R0 = rng(77), R1 = rng(91), R2 = rng(123), R3 = rng(321);
   const lands = STOPS.map((s) => s.land);
+  const KI = Object.fromEntries(STOPS.map((s, i) => [s.key, i]));   // (the stops by name: the order changed Nov 22)
   const gainOf = (k, v) => smooth(lands[k] - 0.02, lands[k] + 0.22, v) * (k + 1 < lands.length ? 1 - smooth(lands[k + 1] - 0.02, lands[k + 1] + 0.22, v) : 1) + (k === 0 && v < lands[0] ? 1 : 0);
 
   // ---- one-shot events: [time (video), kind, gain, pan, extra] ----
@@ -67,10 +80,10 @@ export function makeSoundtrack(outFile) {
   const add = (t, kind, g = 1, p = 0, x = 0) => ev.push({ t, kind, g, p, x });
   // Moon: the dunk, the ball, the court's jump
   add(LAND.moon + MOON_DUNK, 'clang', 0.55, -0.1); add(LAND.moon + MOON_DUNK + 0.12, 'swish', 0.35, -0.1);
-  for (const [t, v] of bounces(3.3, -3.2, GRAV.moon, 0.72, 5)) add(LAND.moon + MOON_DUNK + t, 'ball', 0.25 * Math.min(1, v / 4), -0.1);
+  for (const [t, v] of bounces(3.3, -3.2, GRAV.moon, 0.72, 5)) if (LAND.moon + MOON_DUNK + t < LAND.jupiter) add(LAND.moon + MOON_DUNK + t, 'ball', 0.25 * Math.min(1, v / 4), -0.1);
   add(LAND.moon + MOON_ALL, 'whomp', 0.5, 0);
   // Pluto: your take-off, and a big whoosh as you float up and up
-  add(LAND.pluto + PLU_TAKE, 'whomp', 0.45, 0.1); add(LAND.pluto + PLU_TAKE - 0.05, 'rise', 0.9, 0);
+  add(LAND.pluto + PLU_TAKE, 'whomp', 0.45, 0.1); add(LAND.pluto + PLU_TAKE - 0.05, 'rise', 0.9, 0); add(LAND.pluto + 0.02, 'rise', 0.6, 0.3);
   // ---- the crowd's voices: whoops on every big jump, laughing while they float (made here: a buzzy voice through
   // vowel filters, many at once so it reads as a crowd) ----
   const voices = [];
@@ -80,32 +93,37 @@ export function makeSoundtrack(outFile) {
   crowdWhoop(-0.4, 12, 1.0, 0.7);                                   // frame 0: the court already yelling
   crowdWhoop(LAND.moon + MOON_DUNK - 0.1, 8, 0.9, 0.4);             // the dunk
   crowdWhoop(LAND.moon + MOON_ALL - 0.1, 14, 1.0, 0.5);             // everyone jumps at once
-  crowdLaugh(LAND.moon + MOON_ALL + 0.4, LAND.pluto - 0.3, 16, 0.8); // hanging in the air for 4 s
-  crowdWhoop(LAND.moon + MOON_ALL + 3.4, 6, 0.7, 0.8);              // coming down
+  crowdLaugh(LAND.moon + MOON_ALL + 0.4, LAND.jupiter - 0.3, 8, 0.8); // hanging in the air (until Jupiter)
   voices.push({ t: LAND.pluto + PLU_TAKE + 0.1, kind: 'whoop', f: 165, dur: 1.1, p: 0, g: 1.1 });   // you, going up
   crowdWhoop(LAND.pluto + PLU_TAKE + 0.2, 10, 0.85, 0.6);           // the court cheering you on
   crowdLaugh(LAND.pluto + 1.0, LAND.pluto + 7.0, 14, 0.6);          // the floating crowd below
   crowdWhoop(LAND.pluto + 3.6, 6, 0.6, 0.8); crowdWhoop(LAND.pluto + 5.6, 6, 0.6, 0.8);
   const crowdGroan = (t, n, g, spread = 0.6) => { for (let k = 0; k < n; k++) voices.push({ t: t + RV() * spread, kind: 'groan', f: RV() < 0.5 ? 95 + 40 * RV() : 170 + 60 * RV(), dur: 0.8 + 0.8 * RV(), p: RV() * 1.6 - 0.8, g: g * (0.6 + 0.4 * RV()) }); };
-  crowdGroan(LAND.jupiter + 0.1, 14, 1.0, 0.5); crowdGroan(LAND.jupiter + 1.1, 10, 0.8, 0.9);
-  crowdGroan(LAND.jupiter + 4.4, 8, 0.7, 1.0); crowdGroan(LAND.jupiter + 5.9, 8, 0.7, 0.8);
+  crowdGroan(LAND.jupiter + JUP_SLAM + 0.05, 14, 1.0, 0.5); crowdGroan(LAND.jupiter + 1.3, 10, 0.8, 0.9);
+  crowdGroan(LAND.jupiter + 3.5, 8, 0.7, 1.0);
+  // (they yell as the floor drops away under them)
+  crowdWhoop(LAND.jupiter - 0.05, 8, 0.7, 0.3);
   // Jupiter: everyone drops (thuds as the jumpers slam down), the ball dies; ~3 s in: limbs, benches, the hoop, the cars
-  add(LAND.jupiter + JUP_BUCKLE, 'boom', 0.75, 0, 0.6);
-  for (let k = 0; k < 7; k++) add(LAND.jupiter + 0.2 + 0.05 * k, 'thud', 0.35, -0.6 + 0.2 * k);
-  for (const [t, v] of bounces(1.0, -1.5, GRAV.jupiter, 0.6, 6)) add(LAND.jupiter + t, 'ball', 0.3 * Math.min(1, v / 5), 0.3);
+  add(LAND.jupiter + 0.01, 'boom', 0.6, 0, 0.5);                  // gravity kicking in: a deep hit
+  add(LAND.jupiter + JUP_SLAM, 'boom', 1.25, 0, 1.0);             // the whole court slamming down
+  for (let k = 0; k < 16; k++) add(LAND.jupiter + JUP_SLAM - 0.08 + 0.016 * k, 'thud', 0.45, -0.8 + 0.1 * k);
+  { const m = moonBallAt(MOON_END - MOON_DUNK); for (const [t, v] of bounces(m.y, m.vy, GRAV.jupiter, 0.55, 6)) if (t < 5) add(LAND.jupiter + t, 'ball', 0.4 * Math.min(1, v / 5), 0.1); }
   JUP_SNAP.forEach((t, k) => { const p = [-0.6, 0.6, -0.5, 0.5, 0.3][k]; add(LAND.jupiter + t, 'snap', 0.5, p); add(LAND.jupiter + t + 0.62, 'crash', 0.45, p); });
   JUP_BENCH.forEach((t, k) => add(LAND.jupiter + t, 'splinter', 0.45, [-0.5, 0.2, 0.5, -0.1][k]));
-  add(LAND.jupiter + JUP_HOOP, 'groan', 0.55, -0.1); add(LAND.jupiter + 5.5, 'groan', 0.5, -0.1); add(LAND.jupiter + 5.95, 'clang', 0.25, -0.1);
-  for (let k = 0; k < 6; k++) add(LAND.jupiter + 5.9 + 0.12 * k, 'thud', 0.3, -0.5 + 0.2 * k);
+  add(LAND.jupiter + JUP_HOOP, 'groan', 0.55, -0.1);
+  for (let k = 0; k < 6; k++) add(LAND.jupiter + 4.3 + 0.12 * k, 'thud', 0.3, -0.5 + 0.2 * k);   // (the ones who tried to stand)
   CARS.forEach((c, k) => { if (Math.abs(c.x) < 22) add(LAND.jupiter + jupCarT(k), 'clunk', 0.35 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
   // the hoop's post giving a little more, in jerks: a groan and a metal bang each time
   JUP_CREEP.forEach((t) => { add(LAND.jupiter + t - 0.15, 'groan', 0.6, -0.1); add(LAND.jupiter + t + 0.2, 'bang', 0.55, -0.1); });
-  for (const [t, p] of [[4.0, 0.5], [5.0, -0.5], [6.1, 0.3]]) add(LAND.jupiter + t, 'crack', 0.4, p);
+  for (const [t, p] of [[3.6, 0.5], [4.5, -0.5]]) add(LAND.jupiter + t, 'crack', 0.4, p);
   // (the trees creaking under the weight, wood and steel straining, between the beats)
-  for (const [t, p] of [[1.3, -0.5], [1.9, 0.5], [4.8, -0.3], [6.6, 0.4], [7.1, -0.2]]) add(LAND.jupiter + t, 'groan', 0.4, p);
-  add(LAND.jupiter + 1.6, 'crack', 0.3, -0.4); add(LAND.jupiter + 6.8, 'crack', 0.35, 0.4);
+  for (const [t, p] of [[1.3, -0.5], [1.9, 0.5], [4.2, -0.3], [5.1, 0.4]]) add(LAND.jupiter + t, 'groan', 0.4, p);
+  add(LAND.jupiter + 1.6, 'crack', 0.3, -0.4);
   // the Sun: the slam, tyres, lamps; ~3 s in the hoop, the trees, the roofs, the windows; ~6 s in the building tops
-  add(LAND.sun + SUN_FLAT, 'boom', 1.1, 0, 1);
+  add(LAND.sun + 0.01, 'boom', 0.7, 0, 0.6);
+  add(LAND.sun + SUN_SLAM, 'boom', 1.6, 0, 1.4);                   // everyone hitting the court at once, you too
+  for (let k = 0; k < 16; k++) add(LAND.sun + 0.08 + 0.014 * k, 'thud', 0.5, -0.8 + 0.1 * k);
+  crowdWhoop(LAND.sun - 0.05, 8, 0.8, 0.15);                      // (a yell as they drop)
   CARS.forEach((c, k) => { if (Math.abs(c.x) < 22) add(LAND.sun + sunTyreT(k), 'pop', 0.3 * (c.z > -30 ? 1 : 0.6), clamp(c.x / 20, -0.9, 0.9)); });
   add(LAND.sun + SUN_LAMPS, 'groan', 0.3, 0.5);
   add(LAND.sun + SUN_HOOP, 'groan', 0.6, -0.1);
@@ -140,7 +158,7 @@ export function makeSoundtrack(outFile) {
     let l = 0, r = 0;
     // ===================== the place: crowd murmur, the fountain, distant traffic (quieter as things break) =====================
     {
-      const gm = gainOf(0, v), gp = gainOf(1, v), gj = gainOf(2, v), gs = gainOf(3, v), gw = gainOf(4, v), gn = gainOf(5, v);
+      const gm = gainOf(KI.moon, v), gp = gainOf(KI.pluto, v), gj = gainOf(KI.jupiter, v), gs = gainOf(KI.sun, v), gw = gainOf(KI.wd, v), gn = gainOf(KI.ns, v);
       const murm = flt('murm').run(w1, 700, 0.9).bp, murm2 = flt('murm2').run(w2, 1300, 1.2).bp;
       const mod = 0.7 + 0.3 * Math.sin(TAU * 0.7 * v) * Math.sin(TAU * 1.13 * v + 1);
       const crowd = (murm * 0.6 + murm2 * 0.3) * mod;

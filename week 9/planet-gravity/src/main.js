@@ -115,8 +115,8 @@ const finish = new ShaderPass({
 composer.addPass(finish);
 
 // the camera: just behind you on the half-court line, 1.9 m up, looking at the far hoop a little up. Each stop moves
-// it its own way: up after you on the Moon; on Pluto it rises with your jump and looks down over the hoop; the heavy
-// worlds push it down toward the ground.
+// it its own way: up after you on the Moon (and down with you when Jupiter takes over); on Pluto it rises with your
+// jump and looks down over the hoop; the Sun drops it from there to just above you; the heavy worlds push it down.
 function camAt(i, v) {
   const key = STOPS[i].key, tt = v - STOPS[i].land;
   let x = CAM0.x, y = CAM0.h, z = CAM0.z, pitch = 5;
@@ -125,11 +125,22 @@ function camAt(i, v) {
     // up with you: close behind and a little above, looking down past you; you stay big in the middle of the frame
     const J = youJump(key, tt), k = smooth(0.3, 6.0, J.h), k1 = smooth(0, 1.2, J.h);
     const back = 4.0 - 1.0 * k, above = 0.0 + 1.9 * k;                    // from your middle (~0.9 m above your feet)
-    x = lerp(CAM0.x, J.x, k1); y = lerp(CAM0.h, J.h + 0.9 + above, k1); z = J.z + back;
-    pitch = lerp(5, -Math.atan2(above + 0.25, back) / DEG + 9 * k, k1);       // (you a little below the middle, clear of the text)
+    const low = 1 - smooth(0.05, 0.5, tt);                                 // (coming up from where Jupiter left it)
+    x = lerp(CAM0.x, J.x, k1); y = lerp(CAM0.h - 0.4 * low, J.h + 0.9 + above, k1); z = J.z + back;
+    pitch = lerp(5 + 1.5 * low, -Math.atan2(above + 0.25, back) / DEG + 9 * k, k1);       // (you a little below the middle, clear of the text)
   }
-  else if (key === 'jupiter') { y -= 0.28 * smooth(0.04, 0.25, tt) + 0.12 * smooth(3.0, 3.3, tt); pitch += 1.5 * smooth(0.04, 0.25, tt); }
-  else if (key === 'sun') { y -= 0.42 * smooth(0.03, 0.12, tt); pitch += 1; }
+  else if (key === 'jupiter') {
+    // it starts where the Moon left it (up with your jump) and comes down with you, then dips at the slam
+    const J = youJump(key, tt), d = smooth(J.tl, J.tl + 0.2, tt);
+    y += 0.6 * J.h - 0.28 * d - 0.12 * smooth(2.4, 2.7, tt); pitch += 2.5 * J.h + 1.5 * d;
+  }
+  else if (key === 'sun') {
+    // it starts up over the hoop where Pluto left it: everyone drops away below like stones, and it follows them down,
+    // ending above and behind you lying on the court, looking down at you and the hoop
+    const P = camAt(STOPS.findIndex((s) => s.key === 'pluto'), LAND.sun - 1e-4), J = youJump(key, tt);
+    const u = smooth(0.12, 0.85, tt), ex = J.x * 0.5, ey = 3.2, ez = J.z + 5.3, ep = -17;
+    x = lerp(P.x, ex, u); y = lerp(P.y, ey, u * u * (1.6 - 0.6 * u)); z = lerp(P.z, ez, u); pitch = lerp(P.pitch, ep, u);
+  }
   else if (key === 'wd') { y -= 0.3 * smooth(WD_CRUSH, WD_CRUSH + 0.12, tt) + 0.4 * smooth(WD_FLAT1 - 0.2, WD_FLAT1 + 0.15, tt); pitch = 5 - 2 * smooth(WD_CRUSH, WD_CRUSH + 0.3, tt); }
   else if (key === 'ns') { y -= 0.4 * smooth(NS_FILM, NS_FILM + 0.12, tt); pitch = 5 - 3 * smooth(NS_FILM, NS_FILM + 0.3, tt); }
   return { x, y, z, pitch };
@@ -201,7 +212,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [43, 41.5, 40.2, 38, 34, 31.2, 28, 25, 22.7, 18, 14.7, 11, 7.2, 3, 0]) renderFrame(t);   // compile everything once
+  for (const t of [VIDEO_DURATION - 0.3, LAND.ns + 1.5, LAND.ns + 0.3, LAND.wd + 7, LAND.wd + 3, LAND.wd + 0.2, LAND.sun + 5, LAND.sun + 2, LAND.sun + 0.1, LAND.pluto + 3, LAND.pluto + 0.1, LAND.jupiter + 3, LAND.jupiter + 0.1, 3, 0]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world, state, comp: () => comp };

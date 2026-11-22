@@ -1,7 +1,6 @@
 // "What if Earth had other planets' gravity?" — the story as functions of VIDEO time v (seconds; STORY_START = 0).
-// One packed basketball court in a city park, one camera spot just behind YOU. Every ~7.5 s the gravity swaps to
-// another world's in one quick wipe; the park and the crowd stay, and each stop starts fresh (everything standing
-// again). At every stop the first effect lands within ~1 s of the wipe and a bigger beat ~3 s in (sched.js). A picker
+// One packed basketball court in a city park, one camera spot just behind YOU. Every ~6-9 s the gravity swaps to
+// another world's in one quick wipe; the park and the crowd stay (see the order note on STOPS). At every stop the first effect lands within ~1 s of the wipe and a bigger beat ~3 s in (sched.js). A picker
 // bar of the six worlds sits under the title (the neutron star, the last slot, is the finish line); the counter is
 // YOUR WEIGHT, racing to each world's; one line under it says how strong that gravity is.
 //
@@ -14,6 +13,10 @@
 //     ~130 billion x Earth's -> 1.98e13 lb (20 trillion).
 //   - jumps: the same push as a 0.5 m jump on Earth (3.1 m/s): the Moon 3 m up and ~4 s in the air; Pluto 7.9 m
 //     (26 ft) up, 5 s on the way up; Jupiter 20 cm. A fountain jet's height (v²/2g) and an arc's reach scale as 1/g.
+//   - the Jupiter landing: the Moon's jumpers are ~2.7 m up (near the top) when Jupiter's 24.79 m/s² takes over: they
+//     hit the court at sqrt(2 x 24.79 x 2.7) = 11.6 m/s, as fast as a fall of 11.6²/(2 x 9.8) = 6.9 m (23 ft) on Earth:
+//     "like you fell 2 stories" (a storey ~3-3.5 m).
+//   - Pluto's push: the same 3.1 m/s as the Moon jump, 7.9 m (26 ft) up.
 //   - a car weighs ~4,000 lb (US average new car, ~4,100-4,300 lb): at the Sun you weigh as much as one.
 import { smooth, clamp, lerp } from './util.js';
 
@@ -24,12 +27,15 @@ export const BASE_LB = 150;              // you, on Earth
 
 // land: when the wipe to this world starts; lb: your weight there; g: gravity in Earth g's; lines: [from, text]
 export const STOPS = [
+// (Nov 22 order: every switch a reversal, light -> heavy -> light -> heavier; each world starts from where the last one
+// left everyone: the Moon's jumpers are still in the air when Jupiter slams them down, Jupiter's kneelers launch on
+// Pluto, Pluto's floaters drop like stones on the Sun. What Jupiter breaks stays broken on Pluto and the Sun.)
   { key: 'moon', name: 'MOON', land: -1.6, lb: 25, g: 1.62 / 9.8, lines: [[-9, "THE MOON: 1/6 OF EARTH'S GRAVITY"]] },
-  { key: 'pluto', name: 'PLUTO', land: 7.0, lb: 9, g: 0.62 / 9.8, lines: [[0.12, "PLUTO: 1/16 OF EARTH'S GRAVITY"]] },
-  { key: 'jupiter', name: 'JUPITER', land: 14.5, lb: 380, g: 24.79 / 9.8, lines: [[0.12, "JUPITER: 2.5x EARTH'S GRAVITY"]] },
-  { key: 'sun', name: 'SUN', land: 22.5, lb: 4200, g: 274 / 9.8, lines: [[0.12, "THE SUN: 28x EARTH'S GRAVITY"]] },
-  { key: 'wd', name: 'WHITE DWARF', land: 31.0, lb: 15e6, g: 1e5, lines: [[0.12, "WHITE DWARF: 100,000x EARTH'S GRAVITY"]] },
-  { key: 'ns', name: 'NEUTRON STAR', land: 40.0, lb: 20e12, g: 1.3e11, lines: [[0.12, 'NEUTRON STAR: 130 BILLION x EARTH']], until: 3.0 },
+  { key: 'jupiter', name: 'JUPITER', land: 4.5, lb: 380, g: 24.79 / 9.8, lines: [[0.12, "JUPITER: 2.5x EARTH'S GRAVITY"]] },
+  { key: 'pluto', name: 'PLUTO', land: 10.0, lb: 9, g: 0.62 / 9.8, lines: [[0.12, "PLUTO: 1/16 OF EARTH'S GRAVITY"]] },
+  { key: 'sun', name: 'SUN', land: 16.0, lb: 4200, g: 274 / 9.8, lines: [[0.12, "THE SUN: 28x EARTH'S GRAVITY"]] },
+  { key: 'wd', name: 'WHITE DWARF', land: 25.5, lb: 15e6, g: 1e5, lines: [[0.12, "WHITE DWARF: 100,000x EARTH'S GRAVITY"]] },
+  { key: 'ns', name: 'NEUTRON STAR', land: 34.5, lb: 20e12, g: 1.3e11, lines: [[0.12, 'NEUTRON STAR: 130 BILLION x EARTH']], until: 3.0 },
 ];
 STOPS.forEach((s, i) => { s.i = i; });
 export const ST = Object.fromEntries(STOPS.map((s) => [s.key, s]));
@@ -43,9 +49,10 @@ export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 
 // captions: [from, to, text] (video time), low in the frame, each with "you" and one hard number
 export const CAPTIONS = [
-  [3.9, 6.6, 'Every jump hangs in the air for 4 seconds'],
-  [LAND.pluto + 2.3, LAND.pluto + 5.9, 'One jump takes you 26 feet up'],
-  [LAND.sun + 4.6, LAND.sun + 7.6, 'You weigh as much as a car', 1300],
+  [1.1, 4.3, 'Every jump hangs in the air for 4 seconds'],
+  [LAND.jupiter + 0.9, LAND.jupiter + 3.9, 'You land like you fell 2 stories', 1180],
+  [LAND.pluto + 1.9, LAND.pluto + 5.7, 'One push takes you 26 feet up'],
+  [LAND.sun + 4.8, LAND.sun + 7.8, 'You weigh as much as a car', 1300],
   [LAND.ns + 0.45, LAND.ns + 2.75, 'Everything pressed thinner than paper', 1300],
 ];
 export function captionAt(v) {

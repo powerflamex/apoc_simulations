@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { H, HEAT_GLSL, patchHeat } from './heat.js';
 import { COURT, HOOP, BOARD, POLE, APRON, Z, FOUNTAIN, LAMPS, BENCHES } from './layout.js';
-import { smooth, clamp } from './util.js';
-import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS, JUP_HOOP, JUP_BENCH, JUP_CREEP } from './sched.js';
+import { smooth, clamp, lerp } from './util.js';
+import { SUN_HOOP, SUN_BOARD_HIT, SUN_LAMPS, JUP_HOOP, JUP_BENCH, JUP_CREEP, JUP_END } from './sched.js';
 
 export const GU = {
   uCrack: { value: 0 }, uCrackR: { value: 1e5 }, uWave: { value: 1e5 }, uCrackGlow: { value: 0 }, uPlate: { value: 0 }, uFilm: { value: 0 }, uWet: { value: 0 },
@@ -251,22 +251,22 @@ export function makePark(scene, { plainMat, shadowy }) {
       // the hoop: the Sun buckles its post at the kink and the top crashes forward onto the court, the board
       // hitting first; it rocks a little where it lands
       let th = 0;
+      // the hoop as Jupiter bent it (it stays bent on Pluto; the Sun folds it the rest of the way)
+      const jupTh = (tt) => 0.035 * smooth(0, 0.3, tt) + 0.3 * smooth(JUP_HOOP, JUP_HOOP + 0.45, tt) + JUP_CREEP.reduce((a, t0, k) => a + [0.2, 0.22, 0.2][k] * smooth(t0, t0 + 0.22, tt) + 0.015 * Math.exp(-Math.max(0, tt - t0 - 0.22) / 0.12) * Math.sin((tt - t0) * 30) * smooth(t0 + 0.12, t0 + 0.22, tt), 0) + 0.02 * Math.exp(-Math.max(0, tt - JUP_HOOP - 0.45) / 0.15) * Math.sin((tt - JUP_HOOP) * 30) * smooth(JUP_HOOP + 0.3, JUP_HOOP + 0.45, tt);
       if (key === 'sun') {
-        const t = tt - SUN_HOOP, T = SUN_BOARD_HIT - SUN_HOOP;
-        if (t > 0) th = t < T ? thMax * (t / T) * (t / T) : thMax - 0.05 * Math.exp(-(t - T) / 0.12) * Math.abs(Math.sin((t - T) * 22));
-        th += 0.04 * smooth(0, 0.3, tt) * (t < 0 ? 1 : 0);              // (sagging before it goes)
-      } else if (key === 'jupiter') {
-        // the arm dips under the weight at once; ~3 s in the post bends and the board tips down toward the court
-        th = 0.035 * smooth(0, 0.3, tt) + 0.3 * smooth(JUP_HOOP, JUP_HOOP + 0.45, tt) + JUP_CREEP.reduce((a, t0, k) => a + [0.2, 0.22, 0.2][k] * smooth(t0, t0 + 0.22, tt) + 0.015 * Math.exp(-Math.max(0, tt - t0 - 0.22) / 0.12) * Math.sin((tt - t0) * 30) * smooth(t0 + 0.12, t0 + 0.22, tt), 0) + 0.02 * Math.exp(-Math.max(0, tt - JUP_HOOP - 0.45) / 0.15) * Math.sin((tt - JUP_HOOP) * 30) * smooth(JUP_HOOP + 0.3, JUP_HOOP + 0.45, tt);
-      }
-      
+        const t = tt - SUN_HOOP, T = SUN_BOARD_HIT - SUN_HOOP, th0 = jupTh(JUP_END) + 0.04 * smooth(0, 0.3, tt);
+        th = th0;
+        if (t > 0) th = t < T ? lerp(th0, thMax, (t / T) * (t / T)) : thMax - 0.05 * Math.exp(-(t - T) / 0.12) * Math.abs(Math.sin((t - T) * 22));
+      } else if (key === 'jupiter') th = jupTh(tt);
+      else if (key === 'pluto') th = jupTh(JUP_END);
       top.rotation.x = th;
       // the benches: Jupiter snaps them in the middle ~3 s in (the halves fold down, the middle on the ground); the Sun
       // flattens them at once
       benches.forEach((bn, i) => {
         let a = 0, dy = 0;
         if (key === 'jupiter') { const t0 = JUP_BENCH[i % JUP_BENCH.length]; const k = smooth(t0, t0 + 0.14, tt); a = 0.42 * k; dy = -0.4 * k; }
-        else if (key === 'sun') { const k = smooth(0.04, 0.12, tt); a = 0.05 * k; dy = -0.42 * k; }
+        else if (key === 'pluto') { a = 0.42; dy = -0.4; }                                 // (still broken)
+        else if (key === 'sun') { const k = smooth(0.04, 0.12, tt); a = lerp(0.42, 0.05, k); dy = lerp(-0.4, -0.42, k); }
         bn.halves.forEach((hf) => { hf.h.rotation.z = hf.sx * a; hf.h.position.y = 0.47 + dy; });
       });
       // the lamps: the Sun bends them over (the upper post more than the lower)

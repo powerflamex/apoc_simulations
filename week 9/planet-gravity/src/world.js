@@ -18,7 +18,7 @@ import { PEOPLE, personPose } from './people.js';
 import { YOU, FACE_YAW, HOOP, FOUNTAIN, CARS, BUILDINGS, COURT } from './layout.js';
 import { STOPS } from './timeline.js';
 import {
-  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, V_JUMP, PLU_TAKE, PLU_VX, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, jupCarT,
+  GRAV, MOON_DUNK, MOON_ALL, MOON_YOU, V_JUMP, PLU_TAKE, PLU_VX, PLU_VXX, MOON_END, JUP_END, PLU_END, JUP_BUCKLE, JUP_SNAP, JUP_BENCH, JUP_HOOP, jupCarT,
   SUN_FLAT, SUN_HOOP, SUN_BOARD_HIT, sunTyreT, sunRoofT, SUN_TREES, SUN_WINDOWS, SUN_TOP_LIST,
   WD_CRUSH, WD_BLDG_T, WD_FLOORS, WD_FLAT0, WD_FLAT1, wdFrontR, NS_FILM, NS_WAVE0, NS_WAVE1, nsWaveR, sqWD, sqNS,
 } from './sched.js';
@@ -41,7 +41,16 @@ export function youJump(key, tt) {
     const t = tt - PLU_TAKE;
     const h = t > 0 ? Math.max(0, V_JUMP * t - 0.5 * GRAV.pluto * t * t) : 0;
     const tc = Math.max(0, t);
-    return { x: YOU.x - 0.21 * tc, z: YOU.z - PLU_VX * tc, h, t };
+    return { x: YOU.x + PLU_VXX * tc, z: YOU.z - PLU_VX * tc, h, t };
+  }
+  // Jupiter and the Sun take over with you up in the air (from the Moon's jump, from Pluto's): you drop like a rock
+  if (key === 'jupiter' || key === 'sun') {
+    const P = key === 'jupiter' ? youJump('moon', MOON_END) : youJump('pluto', PLU_END);
+    const Q = key === 'jupiter' ? youJump('moon', MOON_END - 0.01) : youJump('pluto', PLU_END - 0.01);
+    const vy = (P.h - Q.h) / 0.01, g = GRAV[key];
+    const tl = P.h > 0 ? (vy + Math.sqrt(vy * vy + 2 * g * P.h)) / g : 0;
+    const h = tt < tl ? P.h + vy * tt - 0.5 * g * tt * tt : 0;
+    return { x: P.x, z: P.z, h, t: tt, tl };
   }
   return { x: YOU.x, z: YOU.z, h: 0, t: 0 };
 }
@@ -119,7 +128,14 @@ export function makeWorld(scene) {
       const J = youJump(key, tt);
       you.root.position.set(J.x, J.h, J.z);
       const cr = smooth(0.08, PLU_TAKE - 0.05, tt) * (1 - smooth(PLU_TAKE - 0.05, PLU_TAKE + 0.12, tt));
-      q.sink = 0.3 * cr; q.hunch = 0.2 * cr;
+      // (Jupiter left you on your hands and knees: one push off the court and you're up into a crouch, then away)
+      const kk = 1 - smooth(0.04, PLU_TAKE - 0.08, tt);
+      q.sink = lerp(0.3 * cr, 0.43, kk); q.hunch = lerp(0.2 * cr, 1.2, kk); q.kneel = kk;
+      if (kk > 0.001) {
+        q.holdR = youLocal(lerp(-0.13, -0.24, kk), lerp(0.62, 0.12, kk), lerp(0.3, 0.62, kk), new THREE.Vector3()); q.poleR = youLocal(-0.6, 1.0, -0.3, new THREE.Vector3());
+        q.holdL = youLocal(lerp(0.34, 0.45, kk), lerp(0.62, 0.12, kk), lerp(0.3, 0.62, kk), new THREE.Vector3()); q.poleL = youLocal(0.8, 1.0, -0.3, new THREE.Vector3());
+        q.head = [-0.2 * kk, -0.15 * kk];
+      }
       if (J.t > 0) {
         const k = smooth(0, 1.0, J.t);
         q.lift = [0.18 * k + 0.08 * Math.sin(J.t * 2.2) * k, 0.3 * k + 0.08 * Math.sin(J.t * 1.9 + 1) * k];
@@ -129,12 +145,22 @@ export function makeWorld(scene) {
         you.root.rotation.x = 0.12 * k;
       }
     } else if (key === 'jupiter') {
-      // a stagger (a lurch to the left, arms thrown out), down onto your knees, hands on your thighs; ~3 s in, as the
-      // trees break, you fold forward onto your hands
-      const st = smooth(JUP_BUCKLE, JUP_BUCKLE + 0.1, tt) * (1 - smooth(0.3, 0.45, tt));
-      const k = smooth(0.28, 0.48, tt) + 0.1 * Math.exp(-Math.max(0, tt - 0.48) / 0.12) * smooth(0.4, 0.48, tt);
-      const f = smooth(3.0, 3.3, tt);
-      const up = smooth(5.2, 5.7, tt) * (1 - smooth(6.0, 6.25, tt));       // (you try to push up, and can't)
+      // it takes over with you up in the air from the Moon: you drop like a rock, slam down onto your knees (a lurch, arms
+      // thrown out), hands on your thighs; ~2.4 s in, as the trees break, you fold forward onto your hands
+      const J = youJump(key, tt), tl = J.tl;
+      if (J.h > 0) {
+        you.root.position.y = J.h;
+        q.lift = [0.14, 0.22];
+        q.holdR = youLocal(-0.4, 2.1, 0.1, new THREE.Vector3()); q.poleR = youLocal(-0.8, 1.4, -0.2, new THREE.Vector3());
+        q.holdL = youLocal(0.4, 2.05, 0.1, new THREE.Vector3()); q.poleL = youLocal(0.8, 1.4, -0.2, new THREE.Vector3());
+        q.curlR = 0.3; q.curlL = 0.3; q.head = [-0.3, 0.1];
+        you.pose(q); you.root.updateMatrixWorld(true);
+        return;
+      }
+      const st = smooth(tl, tl + 0.06, tt) * (1 - smooth(tl + 0.2, tl + 0.35, tt));
+      const k = smooth(tl, tl + 0.13, tt) + 0.12 * Math.exp(-Math.max(0, tt - tl - 0.13) / 0.12) * smooth(tl + 0.08, tl + 0.13, tt);
+      const f = smooth(2.4, 2.7, tt);
+      const up = smooth(3.9, 4.35, tt) * (1 - smooth(4.6, 4.85, tt));       // (you try to push up, and can't)
       q.roll = -0.16 * st + 0.03 * up * Math.sin(tt * 23);
       q.sink = 0.43 * k; q.hunch = 0.12 * st + lerp(0.5, 1.2 - 0.25 * up, f) * k; q.head = [lerp(0.4, -0.2, f) * k, -0.15];
       const hy = lerp(0.62, 0.12 + 0.12 * up, f), hz = lerp(0.3, 0.62, f);
@@ -143,8 +169,22 @@ export function makeWorld(scene) {
       q.kneel = k;
       q.curlR = lerp(0.8, 0.2, f); q.curlL = q.curlR;
     } else {
-      // slammed flat on your front, arms flung forward
-      const k = key === 'sun' ? smooth(SUN_FLAT, SUN_FLAT + 0.08, tt) : smooth(WD_CRUSH - 0.02, WD_CRUSH + 0.05, tt);
+      // slammed flat on your front, arms flung forward (the Sun: you drop from up over the hoop like a stone first)
+      let k;
+      if (key === 'sun') {
+        const J = youJump(key, tt);
+        you.root.position.set(J.x, J.h, J.z);
+        if (J.h > 0) {
+          you.root.rotation.x = 0.12;
+          q.lift = [0.2, 0.3];
+          q.holdR = youLocal(-0.6, 2.0, 0.2, new THREE.Vector3()); q.poleR = youLocal(-0.8, 1.4, -0.2, new THREE.Vector3());
+          q.holdL = youLocal(0.6, 2.0, 0.2, new THREE.Vector3()); q.poleL = youLocal(0.8, 1.4, -0.2, new THREE.Vector3());
+          q.head = [0.6, 0.1]; q.curlR = 0.2; q.curlL = 0.2;
+          you.pose(q); you.root.updateMatrixWorld(true);
+          return;
+        }
+        k = smooth(J.tl, J.tl + 0.05, tt);
+      } else k = smooth(WD_CRUSH - 0.02, WD_CRUSH + 0.05, tt);
       you.root.rotation.set(1.53 * k, FACE_YAW, 0.05 * k);
       you.root.position.y = 0.14 * k;
       you.root.updateMatrixWorld(true);
@@ -164,9 +204,25 @@ export function makeWorld(scene) {
   }
 
   // ---- the ball ----
+  // the ball's flight with bounces from (y, vy) under gravity g after t s: its height and speed now
+  const bounceFrom = (y, vy, g, e, t) => {
+    for (let b = 0; b < 10; b++) {
+      const disc = vy * vy + 2 * g * (y - 0.12);
+      const tHit = (vy + Math.sqrt(Math.max(0, disc))) / g;
+      if (t < tHit) return { y: y + vy * t - 0.5 * g * t * t, vy: vy - g * t };
+      t -= tHit; vy = Math.sqrt(Math.max(0, disc)) * e; y = 0.12; if (vy < 0.3) return { y: 0.12, vy: 0 };
+    }
+    return { y: 0.12, vy: 0 };
+  };
+  const moonBall = (tt) => { const t = tt - MOON_DUNK; const b = bounceFrom(HOOP.y + 0.25, -3.2, GRAV.moon, 0.72, t); return { x: HOOP.x + 0.1 * t, y: b.y, z: HOOP.z + 0.55 * t, vy: b.vy }; };
+  const jupBall = (tt) => { const m = moonBall(MOON_END); const b = bounceFrom(m.y, m.vy, GRAV.jupiter, 0.55, tt); const d = Math.min(tt, 0.8); return { x: m.x + 0.1 * d, y: b.y, z: m.z + 0.3 * d }; };
+  const pluBall = (tt) => { const j = jupBall(JUP_END), t = Math.max(0, tt - 0.35); return { x: j.x + 0.15 * t, y: 0.12 + 2.6 * t - 0.5 * GRAV.pluto * t * t, z: j.z - 0.1 * t, vy: 2.6 - GRAV.pluto * t }; };
   function placeBall(key, tt, dunker) {
     ball.scale.set(1, 1, 1); ball.rotation.set(tt * 0.6, tt * 1.1, 0);
     const g = GV[key];
+    if (key === 'jupiter') { const b = jupBall(tt); ball.position.set(b.x, Math.max(0.12, b.y), b.z); return; }
+    if (key === 'pluto') { const b = pluBall(tt); ball.position.set(b.x, b.y, b.z); return; }
+    if (key === 'sun') { const p = pluBall(PLU_END), b = bounceFrom(p.y, p.vy, GRAV.sun, 0.2, tt); ball.position.set(p.x, Math.max(0.12, b.y), p.z); return; }
     if (key === 'moon') {
       if (tt < MOON_DUNK) { ball.position.set(dunker.x - 0.05, dunker.y + 2.32 * dunker.s, dunker.z - 0.15); return; }
       // slammed down through the hoop, then bouncing slowly across the court
@@ -252,9 +308,10 @@ export function makeWorld(scene) {
           sy = 1 - 0.045 * smooth(0, 0.18, tt) - 0.1 * smooth(t0, t0 + 0.08, tt) + 0.02 * Math.exp(-Math.max(0, tt - t0 - 0.08) / 0.1) * Math.sin((tt - t0) * 50) * smooth(t0, t0 + 0.08, tt);
           if (tt > t0 && tt < t0 + 0.7) dustAt(tt - t0, 8, 0.55);
         }
+        if (key === 'pluto') sy = 0.855;                  // (Jupiter broke their springs: they stay down)
         if (key === 'sun') {
           const t0 = sunTyreT(k), t1 = sunRoofT(k);
-          sy = 0.94 - 0.16 * smooth(t0, t0 + 0.05, tt) - 0.3 * smooth(t1, t1 + 0.07, tt);
+          sy = 0.855 - 0.03 * smooth(0, 0.1, tt) - 0.13 * smooth(t0, t0 + 0.05, tt) - 0.3 * smooth(t1, t1 + 0.07, tt);
           sy += 0.03 * Math.exp(-Math.max(0, tt - t0 - 0.05) / 0.08) * Math.sin((tt - t0) * 60) * smooth(t0, t0 + 0.05, tt);
           if (tt > t0 && tt < t0 + 0.7) dustAt(tt - t0, 14, 0.5);
           if (tt > t1 && tt < t1 + 0.4) for (let j = 0; j < 24; j++) {      // the windows burst as the roof comes down
@@ -346,8 +403,9 @@ export function makeWorld(scene) {
         out.shake = 0.04;
       } else if (key === 'jupiter') {
         const hits = [...JUP_SNAP.map((t) => t + 0.65), ...JUP_BENCH, JUP_HOOP + 0.4];
-        out.jolt = 0.9 * Math.exp(-Math.max(0, tt - 0.08) / 0.18) * smooth(0, 0.08, tt) + 0.45 * Math.max(...hits.map((t) => Math.exp(-Math.abs(tt - t) / 0.1)));
-        out.shake = 0.12 + 0.25 * smooth(2.8, 3.1, tt) * (1 - smooth(4.2, 5.0, tt));
+        const tl = youJump('jupiter', 0).tl;
+        out.jolt = 1.2 * Math.exp(-Math.max(0, tt - tl) / 0.2) * smooth(tl - 0.03, tl, tt) + 0.45 * Math.max(...hits.map((t) => Math.exp(-Math.abs(tt - t) / 0.1)));
+        out.shake = 0.12 + 0.25 * smooth(2.2, 2.5, tt) * (1 - smooth(3.6, 4.4, tt));
         // splinters where each bench breaks
         park.benches.forEach((bn, i) => {
           const t = tt - JUP_BENCH[i % JUP_BENCH.length];
@@ -359,9 +417,10 @@ export function makeWorld(scene) {
           smoke.puff(bn.x, 0.2, bn.z, 0.5 + 1.2 * t, 0.35 * (1 - t / 0.6), 0.75, 0, i * 0.3, 0.5);
         });
       } else if (key === 'sun') {
-        out.jolt = 1.3 * Math.exp(-Math.max(0, tt - 0.05) / 0.2) * smooth(0, 0.05, tt) + 0.8 * Math.exp(-Math.abs(tt - SUN_BOARD_HIT) / 0.08) + 0.7 * Math.exp(-Math.abs(tt - SUN_TREES - 0.3) / 0.15)
+        const tl = youJump('sun', 0).tl;
+        out.jolt = 1.6 * Math.exp(-Math.max(0, tt - tl) / 0.22) * smooth(tl - 0.03, tl, tt) + 0.8 * Math.exp(-Math.abs(tt - SUN_BOARD_HIT) / 0.08) + 0.7 * Math.exp(-Math.abs(tt - SUN_TREES - 0.3) / 0.15)
           + 0.5 * Math.max(...SUN_TOP_LIST.map((x) => Math.exp(-Math.abs(tt - x.t - 0.2) / 0.12)));
-        out.shake = 0.25 + 0.45 * Math.exp(-Math.abs(tt - 3.4) / 0.5) + 0.3 * Math.exp(-Math.abs(tt - 6.6) / 0.6);
+        out.shake = 0.25 + 0.45 * Math.exp(-Math.abs(tt - 3.65) / 0.5) + 0.3 * Math.exp(-Math.abs(tt - 6.85) / 0.6);
         // the backboard hits the court and bursts: glass and dust
         const bt = tt - SUN_BOARD_HIT;
         if (bt > 0 && bt < 1.2) {
