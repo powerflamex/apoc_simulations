@@ -42,7 +42,8 @@ async function init() {
     // embers rise faster after each drop
     let rise = t * 1.1;
     for (const d of [DROP1, DROP2]) if (t > d) rise += 2.2 * (1 - Math.exp(-(t - d) * 3));
-    S.update(t, { look: lk, puppet: puppet(t), focus, rise }, cam);
+    const pp = puppet(t); if (Q.has('armx')) pp.arms = pp.arms.map((a) => a * Number(Q.get('armx')));   // ?armx=5 exaggerates the arms (debug)
+    S.update(t, { look: lk, puppet: pp, focus, rise }, cam);
 
     // his mirror image for the water
     renderer.setRenderTarget(S.reflRT); renderer.clear(); renderer.render(S.mirrorScene, cam);
@@ -53,7 +54,7 @@ async function init() {
     const f = post.fin.uniforms;
     f.uTime.value = t; f.uHeat.value = lk.heat; f.uKick.value = lk.kick; f.uFlash.value = lk.flash; f.uLoop.value = lk.loop; f.uArc.value = lk.arc;
     f.uZoom.value = Math.min(0.42, pose.blur * 0.17);
-    f.uSpin.value = pose.blur * 0.035 * (pose.roll > 0 ? 1 : -1);
+    f.uSpin.value = pose.spin; f.uMirX.value = pose.mirror;
     f.uWhip.value = pose.whip;
     // lanterns -> lens flares (only while they are in front of the lens and inside the frame)
     S.lant.forEach((p, i) => {

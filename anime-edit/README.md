@@ -30,8 +30,14 @@ from 0.058 s (86.8 BPM). One 9-beat phrase played twice: heavy kicks on beats 0-
 heavy kicks on beats 9-12, drop on beat 13 (9.05 s). The head nods on every beat; the letters land on the
 first four; the grade flips cool -> fiery on each drop.
 
-The camera makes one long move per section and surges forward on each beat; it only whips on the two drops
-and the turn into the second phrase (~6.1 s). Its blur follows its real speed.
+The camera copies the reference kodoae2 edit's motion, measured frame by frame (`prep/kodo_curves.py` ->
+`src/kodo_curves.js`; the reference uses the same song cut, so the timing lines up): head-on to the shrine, a slow
+zoom wave (out to the wide shot, in through the drop, out again, then straight into him for the cut on beat 8 at
+5.59 s), a pendulum roll that swings fastest on each beat, a slow slide, and a one-frame jolt on every beat. The
+second half plays mirrored, like the reference. Its blur follows its real speed.
+
+His four arms each have joints (`scene.js`): they pump out with the nod on each beat, sway with the camera's
+swing, and flare out on the drops. `?armx=4` exaggerates them to check the joints.
 
 ## To redo with other pictures
 

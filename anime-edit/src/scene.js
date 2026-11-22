@@ -203,14 +203,16 @@ export function buildScene(A, L) {
   const charU = {
     map: { value: charTex }, tDepth: { value: charDepth }, ...U,
     uHead: { value: new THREE.Vector4() }, uBody: { value: new THREE.Vector3() }, uChest: { value: new THREE.Vector2() },
-    uSpearGust: { value: new THREE.Vector2() }, uHeadX: { value: 0 }, uMirror: { value: 0 }, uRelief: { value: 0.6 },
+    uSpearGust: { value: new THREE.Vector2() }, uArms: { value: new THREE.Vector4() }, uHeadX: { value: 0 }, uMirror: { value: 0 }, uRelief: { value: 0.6 },
     uImg: { value: new THREE.Vector2(CHAR.imgW, CHAR.imgH) }, uSize: { value: new THREE.Vector2(cw, CHAR.h) },
   };
   const charVS = /* glsl */`
-    uniform sampler2D tDepth; uniform vec4 uHead; uniform vec3 uBody; uniform vec2 uChest, uSpearGust, uImg, uSize;
+    uniform sampler2D tDepth; uniform vec4 uHead; uniform vec3 uBody; uniform vec2 uChest, uSpearGust, uImg, uSize; uniform vec4 uArms;
     uniform float uTime, uMirror, uRelief, uHeadX;
     varying vec2 vUv; varying float vY;
     vec2 rot(vec2 p, vec2 c, float a){ float s=sin(a), k=cos(a); p-=c; return c + vec2(k*p.x - s*p.y, s*p.x + k*p.y); }
+    // how much a limb segment owns p: full inside ~2/3 of r, none beyond r; s = where along a->b
+    float cap(vec2 p, vec2 a, vec2 b, float r, out float s){ vec2 ab = b-a; s = clamp(dot(p-a,ab)/dot(ab,ab), 0., 1.); return 1.-smoothstep(r*0.65, r, length(p-(a+ab*s))); }
     void main(){
       vUv = uv;
       vec2 p0 = vec2(uv.x*uImg.x, (1.-uv.y)*uImg.y);     // source-image pixels, y down
@@ -237,6 +239,22 @@ export function buildScene(A, L) {
       p.x += (p0.x-560.)*uChest.y*0.010*wc; p.y -= uChest.y*2.6*wc;
       // spear: stiff, turning about the grip so the hands stay put
       p = rot(p, vec2(232.,880.), uSpearGust.x*ws);
+      // arms (he has four). Each fades in along the arm so the shoulder stays put; child joints turn first.
+      float s1, s2, s3, s4, s5, s6;
+      // long right arm: forearm about the elbow, then the whole arm about the shoulder
+      float wRu = cap(p0, vec2(735.,600.), vec2(800.,830.), 95., s1) * smoothstep(0.,0.45,s1);
+      float wRf = cap(p0, vec2(800.,830.), vec2(760.,1190.), 100., s2);
+      p = rot(p, vec2(805.,830.), uArms.z*wRf*smoothstep(0.,0.3,s2));
+      p = rot(p, vec2(715.,580.), uArms.y*max(wRu, wRf));
+      // middle arm, its hand on the sword at his belt (the sheath rides along)
+      float wC = cap(p0, vec2(610.,800.), vec2(410.,1170.), 95., s3) * smoothstep(0.,0.4,s3);
+      wC = max(wC, 0.85*cap(p0, vec2(430.,1200.), vec2(670.,1265.), 45., s4));
+      p = rot(p, vec2(620.,790.), uArms.w*wC);
+      // both left arms and the spear, as one group about the left shoulder
+      float wL1 = cap(p0, vec2(300.,590.), vec2(190.,820.), 80., s4) * smoothstep(0.,0.4,s4);
+      float wL2 = cap(p0, vec2(190.,820.), vec2(185.,1060.), 85., s5);
+      float wL3 = cap(p0, vec2(340.,760.), vec2(240.,890.), 65., s6) * smoothstep(0.,0.3,s6);
+      p = rot(p, vec2(320.,560.), uArms.x*max(max(wL1, wL2), max(wL3, ws)));
       // whole body: bend from the hips
       vec2 root = vec2(520.,1250.);
       p = rot(p, root, uBody.x*wb); p.y += uBody.y*wb; p = root + (p-root)*(1.+uBody.z*wb);
@@ -390,6 +408,7 @@ export function buildScene(A, L) {
     charU.uBody.value.set(pp.lean * D, pp.bob, pp.scale); charU.uHeadX.value = pp.headDx;
     charU.uChest.value.set(pp.chestDy, pp.breath);
     charU.uSpearGust.value.set(pp.spear * D, pp.gust);
+    charU.uArms.value.set(pp.arms[0] * D, pp.arms[1] * D, pp.arms[2] * D, pp.arms[3] * D);
     emberMat.uniforms.uRise.value = st.rise;
     // smoke drawn far to near
     const order = puffs.map((q) => ({ q, d: tmp.set(q.p[0], q.p[1], q.p[2]).distanceToSquared(camera.position) })).sort((a, b) => b.d - a.d);

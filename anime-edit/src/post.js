@@ -62,7 +62,7 @@ export function buildPost(renderer, W, H, textTex) {
 
   const fin = mk(/* glsl */`
     uniform sampler2D tScene, tDepth, tB0, tB1, tB2, tB3, tStreak, tText; uniform vec2 uNF;
-    uniform vec2 uRes, uLeak; uniform float uTime, uZoom, uSpin, uWhip, uHeat, uKick, uFlash, uLoop, uArc, uGrain;
+    uniform vec2 uRes, uLeak; uniform float uMirX, uTime, uZoom, uSpin, uWhip, uHeat, uKick, uFlash, uLoop, uArc, uGrain;
     uniform vec3 uL0, uL1; uniform vec4 uTextA; uniform vec2 uTextB, uLD;
     varying vec2 vUv;
     ${NOISE}
@@ -102,6 +102,7 @@ export function buildPost(renderer, W, H, textTex) {
     }
     void main(){
       vec2 c = vec2(.5, .53), uv = vUv;
+      if(uMirX > 0.5) uv.x = 1. - uv.x;           // the second half plays mirrored
       // zoom blur toward the centre (punch-ins), a little spin, and a sideways smear on the whips; colours split along it
       float jit = hash21(gl_FragCoord.xy + fract(uTime)*91.7);
       float z = uZoom + 0.006;
@@ -164,7 +165,7 @@ export function buildPost(renderer, W, H, textTex) {
     }`, {
     tScene: { value: dofRT.texture }, tB0: { value: B[0].a.texture }, tB1: { value: B[1].a.texture }, tB2: { value: B[2].a.texture }, tB3: { value: B[3].a.texture },
     tStreak: { value: streakA.texture }, tText: { value: textTex }, uRes: { value: new THREE.Vector2(W, H) }, uLeak: { value: new THREE.Vector2(-2, 0) },
-    uTime: { value: 0 }, uZoom: { value: 0 }, uSpin: { value: 0 }, uWhip: { value: 0 }, uHeat: { value: 0 }, uKick: { value: 0 }, uFlash: { value: 0 },
+    uMirX: { value: 0 }, uTime: { value: 0 }, uZoom: { value: 0 }, uSpin: { value: 0 }, uWhip: { value: 0 }, uHeat: { value: 0 }, uKick: { value: 0 }, uFlash: { value: 0 },
     uLoop: { value: 0 }, uArc: { value: 0 }, uGrain: { value: 0.03 }, uL0: { value: new THREE.Vector3() }, uL1: { value: new THREE.Vector3() },
     uTextA: { value: new THREE.Vector4() }, uTextB: { value: new THREE.Vector2() },
     tDepth: { value: sceneRT.depthTexture }, uNF: { value: new THREE.Vector2(0.3, 1200) }, uLD: { value: new THREE.Vector2() },
