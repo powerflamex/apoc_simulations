@@ -950,3 +950,28 @@ Channel: 10.3M views in 28 days, 830,730 on Nov 20 (653K Nov 19, 509K Nov 18), 1
   Shorts-only RPM is known; if 22-26 is Shorts-only, ours should land near it.
 - Owner, Nov 21: the friend's 22-26 cents is Shorts only. So published country rates run about half of what a real channel with a mix like
   ours gets; working estimate for us is 20-25 cents per 1,000 Shorts views (about $2,000-2,600 a month at 10.3M views) until Studio shows the real number.
+
+## Nov 22 read (~11:15 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| hot trillion (`cj8_hhBQuRU`) | Nov 21, ~2:30 PM | 5,052 | 28,586 | 57,455 | | | 112.5K (20.7 h) | 68.4% | not out |
+| fast trillion (`BRjKnt24aKI`) | Nov 20 | 7,331 | 51,726 | 99,151 | 197,547 | 314,521 | 334.6K | 62.9% | 115 / 102 / 88 / **79** / 72 |
+| scream trillion | Nov 19, PM | 1,523 | 11,732 | 26,852 | 75,849 | 133,644 | 173.4K | 69.1% | 108 / 95 / 70 / **61** / 56 |
+| planet weather | Nov 19, AM | 5,764 | 36,837 | 74,979 | 152,831 | 225,218 | 265.7K | 66.9% | 112 / 93 / 76 / **70** / 55 |
+| asteroid sizes | Nov 18 | 6,594 | 17,352 | 28,664 | 68,797 | 116,146 | 164.4K | 64.6% | 106 / 93 / 72 / **65** / 60 |
+| heavy trillion | Nov 17 | 3,047 | 23,635 | 59,060 | 111,527 | 143,275 | 276.9K | 62.7% | 107 / 96 / 72 / **62** / 55 |
+| planet stand | Nov 17 | 1,533 | 12,094 | 24,774 | 42,276 | 56,950 | 122.0K | 60.4% | 95 / 86 / 70 / **63** / 56 |
+| trillion seconds | Nov 16 | 1,665 | 9,239 | 25,996 | 71,801 | 94,361 | 131.4K | 59.7% | 103 / 93 / 74 / **66** / 60 |
+List counts: shrink trillion 843K, Earth falls 149K, dino asteroid 80K, meteor storm 45K, men vanish 42K, solar storm re-upload 20K.
+Channel: 10.8M views in 28 days, 1,646,870 in the last 48 h, 30,850 subscribers.
+- Fast trillion's curve is the best on record: 79% still watching at 0:30 and 72% at 0:40 (speed doubles had 74% at 0:30). The laps I called
+  "ten samey seconds" (0:30-0:40) lost under 7 points. It is also the best first two days (315K at 48 h).
+- Hot trillion (posted after the owner's "you walk" + music pass): 112.5K before its first day is over, third-best start after fast trillion
+  and planet weather. Trillion day-ones in posting order: 118K, 72K, 112K, 76K, 198K, 112K+ (20.7 h). All 13 formula Shorts are past 100K.
+- 0:30 against views in this batch: fast 79% -> 335K and planet weather 70% -> 266K fit; heavy 62% -> 277K and scream 61% -> 173K do not.
+- Earn page (data as of Nov 17): 9.2M qualified Shorts views in the last 90 days of the 10M needed for Shorts ads; the page's count runs about
+  5 days behind. Status shown: "You're a YouTube Partner" (fan funding tier), ads listed under "Future milestone". The apply step for ads
+  appears once that count passes 10M.
+- Waiting, all rendered and checked Nov 22: planet gravity (sound pass), trillion stronger (ending passes), gravity off rebuilt as a time
+  ladder (5 SECONDS / 1 MINUTE / 10 MINUTES / 1 HOUR / 1 DAY; the first version, 5 real seconds in slow motion, got "nothing is going on"
+  from the owner). Planet gravity and gravity off share the court-and-fountain look: post them days apart.
