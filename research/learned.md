@@ -975,3 +975,31 @@ Channel: 10.8M views in 28 days, 1,646,870 in the last 48 h, 30,850 subscribers.
 - Waiting, all rendered and checked Nov 22: planet gravity (sound pass), trillion stronger (ending passes), gravity off rebuilt as a time
   ladder (5 SECONDS / 1 MINUTE / 10 MINUTES / 1 HOUR / 1 DAY; the first version, 5 real seconds in slow motion, got "nothing is going on"
   from the owner). Planet gravity and gravity off share the court-and-fountain look: post them days apart.
+
+## Nov 23 read (~8:40 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| trillion stronger (`puSHbFqwuME`) | Nov 22, ~12:15 PM | 6,455 | 30,087 | 46,177 | | | 69.3K (20.4 h) | 65.1% | not out |
+| hot trillion | Nov 21, ~2:30 PM | 4,907 | 28,429 | 57,282 | 134,527 | | 159.9K (42.2 h) | 67.0% | 99 / 83 / 58 / **52** / 50 |
+| fast trillion | Nov 20 | 7,331 | 51,726 | 99,151 | 197,551 | 314,447 | 417.4K (72 h) | 60.9% | 116 / 103 / 87 / **77** / 70 |
+| scream trillion | Nov 19, PM | | | | 75,849 | 133,644 | 205.4K | 68.5% | 107 / 93 / 68 / **59** / 55 |
+| planet weather | Nov 19, AM | | | | 152,831 | 225,218 | 285.5K | 66.3% | 111 / 93 / 75 / **69** / 54 |
+| asteroid sizes | Nov 18 | | | | 68,797 | 116,146 | 176.0K | 64.1% | 105 / 93 / 72 / **64** / 60 |
+| heavy trillion | Nov 17 | | | | 111,527 | 143,275 | 310.1K | 62.4% | 106 / 96 / 72 / **61** / 55 |
+Channel: 11.4M views in 28 days, 1,544,128 in the last 48 h (1.65M a day earlier), 31,248 subscribers. Planet gravity (reordered, 39 s) is
+scheduled for Nov 23 and gravity off (time ladder) for Nov 24. After those nothing is built.
+- Hot trillion's curve is the weakest of the trillion series: 52% at 0:30 (the others 59-77%). It is about 10 points under the others from 0:07
+  on and never closes the gap; it loses ~3 points a second from 0:04 to 0:18, then goes flat (58% at 0:20, 50% at 0:40). In the frames the
+  people are gone by 0:06 and from 0:09 the picture is an orange haze round a white figure. That fits the Nov 10 finding (hazy, near-blank
+  views bleed; keep people in frame); one video, so a fit and not proof. Its first day (135K) was the second best of the series, then it
+  slowed: +25K in the next 18 h (fast trillion added 117K from 24 h to 48 h). So the owner's "only doing well cause of momentum" was mostly
+  right: the question and the channel made day one, the video did not hold.
+- Trillion stronger: best first hour after fast trillion (6.5K), then ordinary: 46K at 12 h, on pace for ~80K at 24 h (like scream 76K and
+  trillion seconds 72K). Day ones in posting order: 118K, 72K, 112K, 76K, 198K, 135K, ~80K. No wear-off trend.
+- A lead, not a rule (9 trillion Shorts, the newest two still young): the five where you travel somewhere new at each step are the five
+  biggest (trillion years 2.2M, shrink 843K+, fast 417K, heavy 310K, grow 268K); the four that stay on one street are the four smallest
+  (scream 205K, hot 160K, trillion seconds 136K, stronger 69K at 20 h). At the same age it is less clean: hot had more than heavy at 24 h.
+- Prompts given Nov 23 (none checked on YouTube): it rains 1 trillion times harder (you rise with the water: street, rooftops, mountains,
+  space); Earth swaps places with other planets (picker; the Sun changes size over a beach, every switch a reversal); you are 1 trillion
+  times more magnetic (metal flies at you). Held back: "1 trillion times lighter" (you float up to space), too close to planet gravity and
+  gravity off this week; and a second time ladder ("X for 5 seconds / 1 minute / 1 hour") until gravity off has numbers.
