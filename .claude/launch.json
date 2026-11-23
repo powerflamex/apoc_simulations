@@ -305,6 +305,17 @@
       "env": {
         "PORT": "5351"
       }
+    },
+    {
+      "name": "rain-trillion",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 10/rain-trillion/server.mjs"
+      ],
+      "port": 5361,
+      "env": {
+        "PORT": "5361"
+      }
     }
   ]
 }
