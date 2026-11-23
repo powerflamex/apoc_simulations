@@ -46,7 +46,7 @@ if (STILLS) {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const N = Math.round(DUR * FPS), t0 = Date.now();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
-    '-i', path.join(ROOT, 'assets', 'song.wav'), '-map', '0:v', '-map', '1:a',
+    '-i', path.join(ROOT, 'assets', 'song_tagged.wav'), '-map', '0:v', '-map', '1:a',
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-maxrate', '32M', '-bufsize', '64M', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
     '-threads', '4', '-c:a', 'aac', '-b:a', '256k', '-t', String(DUR), '-movflags', '+faststart', OUT], { stdio: ['pipe', 'inherit', 'inherit'] });
   const done = new Promise((res, rej) => ff.on('close', (c) => (c ? rej(new Error('ffmpeg exit ' + c)) : res())));

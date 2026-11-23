@@ -190,14 +190,16 @@ export function puppet(t) {
 
 // ---------------------------------------------------------------- grade, light, text
 export function look(t) {
-  // 0 = dark and cool, 1 = fiery. Flips on each drop; cools again at the cut into the second phrase.
-  let heat = smooth(DROP1 - 0.012, DROP1 + 0.03, t) * (t < CUT ? 1 : 0) + smooth(DROP2 - 0.012, DROP2 + 0.03, t) * 1.18;
+  // 0 = dark and cool, 1 = fiery. Flips on the first drop and stays fiery through the cut, like the reference (a
+  // flip back to blue at the cut looked wrong); the second drop burns a little hotter. Back to cool only at the loop.
+  let heat = smooth(DROP1 - 0.012, DROP1 + 0.03, t) + 0.18 * smooth(DROP2 - 0.012, DROP2 + 0.03, t);
   let kick = 0, flash = 0;
   for (const [k, s] of KICKS) kick += s * pulse(t - k, 7) * (t >= k ? 1 : 0);
   flash += 0.55 * pulse(t - DROP1, 14) * (t >= DROP1 ? 1 : 0) + 0.75 * pulse(t - DROP2, 12) * (t >= DROP2 ? 1 : 0);
   // loop point: the cut sits inside a full bright flash
+  // the mid cut hides in the zoom blur with only a short warm glow, like the reference (no blank screen)
   const loop = Math.max(smooth(DURATION - 0.13, DURATION - 0.015, t), 1 - smooth(0.0, 0.085, t),
-    t < CUT ? smooth(CUT - 0.12, CUT - 0.01, t) : 1 - smooth(CUT, CUT + 0.085, t));     // and so does the mid cut
+    0.3 * (t < CUT ? smooth(CUT - 0.05, CUT - 0.01, t) : 1 - smooth(CUT, CUT + 0.04, t)));
   // lightning creeps in before each drop, and cracks on it
   const arc = Math.max(smooth(DROP1 - 0.62, DROP1 - 0.05, t) * (t < DROP1 ? 1 : pulse(t - DROP1, 10)),
     smooth(DROP2 - 0.62, DROP2 - 0.05, t) * (t < DROP2 ? 1 : pulse(t - DROP2, 10)));

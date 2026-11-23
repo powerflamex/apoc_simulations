@@ -74,7 +74,7 @@ async function init() {
   if (Q.has('render')) { renderFrame(0); window.__ready = true; return; }
   if (Q.has('t')) { renderFrame(Number(Q.get('t'))); window.__ready = true; return; }
   // live preview: loops, with the song
-  const audio = new Audio('assets/song.wav'); audio.loop = true;
+  const audio = new Audio('assets/song_tagged.wav'); audio.loop = true;
   let t0 = performance.now();
   addEventListener('click', () => { audio.currentTime = ((performance.now() - t0) / 1000) % DURATION; audio.play(); });
   const tick = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(tick); };

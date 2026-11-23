@@ -28,7 +28,13 @@ The song is DJ Javi26's "MONTAGEM MERZYN (Ultra Slowed)" from 16.249 s, 11.05 s 
 same cut kodoae2 used, but without the "kodo" tag on his sound). The beat is perfectly steady: every 0.6914 s
 from 0.058 s (86.8 BPM). One 9-beat phrase played twice: heavy kicks on beats 0-3, drop on beat 4 (2.82 s);
 heavy kicks on beats 9-12, drop on beat 13 (9.05 s). The head nods on every beat; the letters land on the
-first four; the grade flips cool -> fiery on each drop.
+first four; the grade flips cool -> fiery on the first drop and stays fiery through the cut (like the reference),
+back to cool only at the loop.
+
+On the first drop a deep voice says "embi", like kodoae2's spoken "kodo" tag (measured from his sound: a deep
+voice falling from ~80 to ~60 Hz, ~0.4 s, about as loud as the song, with an echo). `bash prep/voice_tag.sh`
+makes it offline from Windows' own voice (David), pitched down with a quiet octave-down copy, drive and echo, and
+writes `assets/song_tagged.wav`, which the video uses (`assets/song.wav` stays the clean song).
 
 The camera copies the reference kodoae2 edit's motion, measured frame by frame (`prep/kodo_curves.py` ->
 `src/kodo_curves.js`; the reference uses the same song cut, so the timing lines up): head-on to the shrine, a slow
