@@ -1003,3 +1003,24 @@ scheduled for Nov 23 and gravity off (time ladder) for Nov 24. After those nothi
   space); Earth swaps places with other planets (picker; the Sun changes size over a beach, every switch a reversal); you are 1 trillion
   times more magnetic (metal flies at you). Held back: "1 trillion times lighter" (you float up to space), too close to planet gravity and
   gravity off this week; and a second time ladder ("X for 5 seconds / 1 minute / 1 hour") until gravity off has numbers.
+
+## Nov 23 (midday): the three week-10 builds checked, and how low the text sits
+- Owner's note: the caption line sits so low that YouTube's own overlay (channel name, title, the "Search ..." suggestion) covers it, worst
+  on hot trillion. Measured in every project's `index.html` (`#caption top`, of 1920 px): 1190 px in weeks 1-5 and the pickers (star
+  picker, planet picker, asteroid sizes); 1495-1500 in oceans, planet weather, planet gravity, planet swap; 1560 in week 6-8 (shrink, heavy,
+  Earth falls, trillion seconds...); 1640 in fast, scream, hot, strong, gravity off, rain, magnet. Gold popups sit at 1545.
+  YouTube publishes no safe zone for Shorts; third-party overlays put the covered strip at the bottom 300-670 px, so 1640 (280 px from the
+  bottom) is inside every estimate and 1190 (730 px) is clear of all of them.
+- Does it move views? Not visibly: the lowest-text group holds the best recent Short (fast trillion 417K, 77% at 0:30) and the weak one (hot
+  160K, 52%); the 1560 group runs from shrink 843K to solar storm 22K; the 1190 group has planet picker 474K and asteroid sizes 176K. So it
+  does not explain hot trillion, but text nobody can read is wasted: from now on captions and popups end above ~1250 px.
+- Planet swap (week 10, 45.2 s): 0:00-0:07 is a normal beach going hazy (Venus' Sun is only 1.4x wider, invisible on a phone); the crowd
+  turns to grey statues at Mars; "you" shivers with elbows in and forearms out sideways; frost on the red shirt reads as blood; flames are
+  flat yellow cones; Pluto's crowd becomes flat white cut-outs. Fix prompt given: Earth for 1 s, then Mercury first, bar drawn as a map.
+- Rain trillion (week 10, 47.9 s): the rain is thin streaks and the water a flat grey sheet with white glare, so neither the downpour nor
+  the rising level reads in the first seconds; the hood is a yellow ball not joined to the jacket; the white bus roof fills half the frame
+  for most of the video; the "mountain" is a grey striped wedge that reads as a wall; "EVEREST GOES UNDER" shows only open sea; the Earth
+  barely grows in the space shot; 0:45-0:46 is teal murk. Fix prompt given.
+- Magnet trillion (week 10, 47.2 s): you are buried by 0:09 and the same locked shot of the same pile runs to 0:43, with the new arrivals
+  (cars, towers, ships) up behind the counter text; 0.4 s of near silence at 0:36.0-0:36.4 (-47 dB); 2.3 s of full white at the end
+  (0:44.0-0:46.3; fast trillion's is ~0.5 s); the "atoms stretch" look is pale pixel blocks that read as a glitch. Fix prompt given.
