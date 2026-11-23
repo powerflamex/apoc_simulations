@@ -42,10 +42,11 @@ function bop(x, down = 0.066, damp = 7.5, freq = 15) {
 }
 // the head nod, as measured in reference head-bop edits: it starts a frame before the kick, is lowest about 40 ms
 // after it, then comes back slowly and almost straight, with no bounce (the bounce is the camera's)
-// Softened (owner, Nov 22: "too brusque"): down over 0.14 s instead of 0.09, and the way back up eases out of the
-// bottom (no sharp turn there) and settles gently, still well before the next beat.
+// Softened (owner, Nov 22: "too brusque"): down over 0.125 s instead of 0.09, and the way back up eases out of the
+// bottom (no sharp turn there) and settles gently, still well before the next beat. It starts early enough that the
+// head is lowest ~35 ms after the beat, as in the reference (lowest at +90 ms felt late against the voice).
 function nod(x, ret = 0.43) {
-  const a0 = -0.05, a1 = 0.09;
+  const a0 = -0.09, a1 = 0.035;
   if (x < a0) return 0;
   if (x < a1) { const u = (x - a0) / (a1 - a0); return u * u * (3 - 2 * u); }
   const u = (x - a1) / (ret + 0.05);
