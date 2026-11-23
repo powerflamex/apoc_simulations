@@ -36,8 +36,9 @@ zoom wave (out to the wide shot, in through the drop, out again, then straight i
 5.59 s), a pendulum roll that swings fastest on each beat, a slow slide, and a one-frame jolt on every beat. The
 second half plays mirrored, like the reference. Its blur follows its real speed.
 
-His four arms each have joints (`scene.js`): they pump out with the nod on each beat, sway with the camera's
-swing, and flare out on the drops. `?armx=4` exaggerates them to check the joints.
+His four arms each have joints (`scene.js`): they pump out with the nod on each beat, swing about 8 degrees side
+to side with the camera's swing (the right forearm a little later), and flare out on the drops. On the drops his
+body makes one push forward that eases back, with no spring rocking. `?armx=4` exaggerates them to check the joints.
 
 ## To redo with other pictures
 

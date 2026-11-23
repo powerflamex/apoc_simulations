@@ -145,7 +145,7 @@ export function puppet(t) {
   for (const k of HALF) chest += bop(t - k - 0.035, 0.11, 5, 9.5);
   const breath = Math.sin(t * 2.3) * 0.5 + 0.5;
 
-  // the drops: crouch for a quarter second, then snap
+  // the drops: a small crouch, then one push forward that eases back (no spring rocking: the owner disliked it)
   let lean = 0, bob = 0, scale = 0, headRot = 0, spear = 0, headZ = 0;
   // arms (degrees; + turns clockwise in the picture). On each beat they pump out with the nod (the right forearm a
   // frame later, so it follows through) and sway side to side with the camera's swing; on the drops they pull in,
@@ -153,17 +153,18 @@ export function puppet(t) {
   let fore = 0;
   for (const [k, a] of BOPS) fore = Math.max(fore, a * nod(t - k - 0.05, 0.5));
   const sway = Math.sin(Math.PI * (t - B0) / BEAT);
-  let armL = 3.5 * body + 2.0 * sway, armR = -4.2 * body - 2.3 * sway, armRf = -4.5 * fore + 1.0 * Math.sin(t * 2.1), armC = 2.6 * body - 1.2 * sway;
+  const swayF = Math.sin(Math.PI * (t - B0 - 0.09) / BEAT);             // the forearm follows a little later
+  let armL = 5 * body + 7.5 * sway, armR = -6 * body - 8.5 * sway, armRf = -6.5 * fore - 4.5 * swayF, armC = 4 * body - 5 * sway;
   for (const [d, amt] of [[DROP1, 1], [DROP2, 1.25]]) {
-    const wind = smooth(d - 0.30, d - 0.05, t) * (1 - smooth(d - 0.03, d + 0.02, t));
+    const wind = 0.5 * smooth(d - 0.30, d - 0.05, t) * (1 - smooth(d - 0.03, d + 0.02, t));
     const x = t - d;
-    const snap = x < 0 ? 0 : Math.exp(-4.6 * x) * Math.cos(11 * x);         // overshooting spring
+    const snap = x < 0 ? 0 : 0.55 * (1 - Math.exp(-x * 40)) * Math.exp(-x * 3.2);   // one push, eased back
     const settle = x < 0 ? 0 : Math.exp(-2.2 * x);
     lean += amt * (2.6 * wind - 7.5 * snap * (x < 0.045 ? x / 0.045 : 1));  // back, then lunge
     bob += amt * (16 * wind - 20 * snap * (x < 0.045 ? x / 0.045 : 1));
     scale += amt * (-0.025 * wind + 0.085 * snap + 0.03 * settle);
     headRot += amt * (3.0 * wind - 8.0 * snap);
-    spear += amt * (-1.2 * wind + 4.6 * (x < 0 ? 0 : Math.exp(-3.4 * x) * Math.cos(9 * x - 0.5)));
+    spear += amt * (-1.2 * wind + 4.4 * snap);
     headZ += amt * 0.35 * settle;
     gust += amt * 2.6 * settle;
     const fl = x < 0 ? 0 : (1 - Math.exp(-x * 22)) * Math.exp(-x * 2.6);     // flare out, then ease back
