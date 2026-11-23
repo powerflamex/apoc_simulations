@@ -294,6 +294,17 @@
       "env": {
         "PORT": "5341"
       }
+    },
+    {
+      "name": "planet-swap",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 10/planet-swap/server.mjs"
+      ],
+      "port": 5351,
+      "env": {
+        "PORT": "5351"
+      }
     }
   ]
 }
