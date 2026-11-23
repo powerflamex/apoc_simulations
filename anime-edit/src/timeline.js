@@ -19,10 +19,16 @@ export const LAST_HIT = 10.855;
 export const KICKS = [...GRID, [LAST_HIT, 0.8]];
 // half-time: every second beat (the chest and shoulders ride these)
 export const HALF = GRID.filter((_, k) => k % 2 === 0).map(([b]) => b);
-// the head nods on every beat
-export const BOPS = GRID.map(([b, s]) => [b, s >= 1 ? 1 : 0.85]);
+// The head nods on every beat, ON THE MELODY: the song's strongest melody note in each beat comes 90 ms before the
+// kick (measured over the whole clip), and nods timed to the kick looked late against it (owner). nod() is lowest
+// 35 ms after its time, so each nod is set 125 ms before the kick grid. Beat 16 (just past the end) keeps the loop seamless.
+export const MELODY = -0.09;
+export const BOPS = [...GRID, [B0 + 16 * BEAT, 1]].map(([b, s]) => [b + MELODY - 0.035, s >= 1 ? 1 : 0.85]);
 export const LETTERS = GRID.slice(0, 4).map(([b]) => b);  // e, em, emb, embi
-export const GLITCH_AT = 2.60;                            // the word breaks up, gone at DROP1
+// The word stays up while the voice says "em-BI" (BI on the drop), pops on the drop, then breaks up and is gone half
+// a beat later (it used to vanish on the drop, right as the voice said it: the owner saw the mismatch).
+export const TEXT_OUT = DROP1 + BEAT / 2;
+export const GLITCH_AT = DROP1 + 0.1;
 
 // the character stands in the water in front of the shrine (world units: 1 = about half a metre)
 export const CHAR = { x: 0.0, z: -38, h: 5.6, sink: 0.62, imgW: 901, imgH: 1316 };
@@ -217,11 +223,11 @@ export function look(t) {
 export function text(t) {
   let n = 0;
   for (const k of LETTERS) if (t >= k - 0.017) n++;
-  if (n === 0 || t >= DROP1) return { n: 0 };
-  const since = t - (LETTERS[n - 1] - 0.017);
-  const pop = pulse(since, 11);
-  const g = smooth(GLITCH_AT, DROP1 - 0.09, t);            // break-up
-  const bar = smooth(DROP1 - 0.105, DROP1 - 0.05, t);      // squash to a white bar
-  const slide = smooth(DROP1 - 0.06, DROP1, t);            // and off to the left
-  return { n, pop, glitch: g, bar, slide, alpha: 1 - smooth(DROP1 - 0.02, DROP1, t) };
+  if (n === 0 || t >= TEXT_OUT) return { n: 0 };
+  const since = t - (t >= DROP1 - 0.017 ? DROP1 - 0.017 : LETTERS[n - 1] - 0.017);   // one more pop on the "BI"
+  const pop = pulse(since, 11) * (t >= DROP1 - 0.017 ? 1.4 : 1);
+  const g = smooth(GLITCH_AT, TEXT_OUT - 0.09, t);           // break-up
+  const bar = smooth(TEXT_OUT - 0.105, TEXT_OUT - 0.05, t);  // squash to a white bar
+  const slide = smooth(TEXT_OUT - 0.06, TEXT_OUT, t);        // and off to the left
+  return { n, pop, glitch: g, bar, slide, alpha: 1 - smooth(TEXT_OUT - 0.02, TEXT_OUT, t) };
 }

@@ -16,10 +16,13 @@ SPEED = 0.9
 OUT = sys.argv[2] if len(sys.argv) > 2 else None             # a sample: the first 4.5 s of the mix, to this file
 BEAT, B0 = 0.6914, 0.058
 DROP1 = B0 + 4 * BEAT
-# (text, time its first sound lands, gain, echo)
+# (text, time its attack lands, gain, echo). The word's attack is its strongest hit, the "BI": it lands on the drop and
+# the softer "em" rolls in before it, out of the "I" ("I... em-BI!"). With "em" on the drop the BI came 0.48 s later,
+# between beats, and sounded late (owner).
 PARTS = [('Ee.', B0 + 0.0 * BEAT, 1.0, 'short'), ('Em.', B0 + 1 * BEAT, 1.0, 'short'),
-         ('Bee.', B0 + 2 * BEAT, 1.0, 'short'), ('Eye.', B0 + 3 * BEAT, 1.0, 'carry'),
-         ('Embee.', DROP1 + 0.025, 1.15, 'long')]
+         ('Bee.', B0 + 2 * BEAT, 1.0, 'short'), ('Eye.', B0 + 3 * BEAT, 1.0, 'short'),
+         ('Embee.', DROP1 + 0.02, 1.15, 'long')]
+WORD_SPEED = 0.9
 LEAD = 0.0            # each letter's attack lands right on the beat
 VOICE_GAIN = 0.62     # voice level in the mix (peak, after processing)
 DUCK = 0.5            # the music dips to half (-6 dB) under the voice
@@ -59,7 +62,7 @@ WORD_FX = {
 }
 WORD = os.environ.get('WORD', 'radio')                     # the owner's pick
 WORD_DUCK = 0.35      # the music dips much less under "embi", so the drop keeps its punch
-SWELL = 0.55          # a reversed-echo swell of "embi" rising out of the "I" into the word (smooth handoff)
+SWELL = 0.0           # (the reversed-echo swell into the word: not needed now that "em" leads into the drop)
 
 def ff(args):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', *args], check=True)
@@ -76,7 +79,7 @@ song, sr = sf.read(os.path.join(A, 'song.wav'), always_2d=True); assert sr == SR
 clips = []
 for i, (text, at, gain, echo) in enumerate(PARTS):
     word = echo == 'long'
-    a, ksr = kok.create(text, voice=VOICE, speed=0.8 if word else SPEED, lang='en-us')
+    a, ksr = kok.create(text, voice=VOICE, speed=WORD_SPEED if word else SPEED, lang='en-us')
     raw = os.path.join(tmp, f'{i}_raw.wav'); out = os.path.join(tmp, f'{i}.wav')
     sf.write(raw, a, ksr)
     fx = WORD_FX[WORD] if word else LETTERS_FX + ECHO[echo]
@@ -113,9 +116,10 @@ def place(shift, word_scale=1.0):
 def attacks(track, shift):
     o = librosa.onset.onset_strength(y=track.astype(np.float32), sr=SR, hop_length=HOP)
     t = librosa.times_like(o, sr=SR, hop_length=HOP); res = []
-    for (text, at, gain, v, on), sh in zip(clips, shift):
+    for k, ((text, at, gain, v, on), sh) in enumerate(zip(clips, shift)):
         start = at - LEAD + sh                                  # where its first sound is
-        m = np.where((t > start - 0.01) & (t < start + 0.15))[0]
+        span = 0.8 if k == len(clips) - 1 else 0.15             # the word: its strongest hit anywhere (the "BI")
+        m = np.where((t > start - 0.01) & (t < start + span))[0]
         res.append(t[m[np.argmax(o[m])]])
     return np.array(res)
 shift = np.zeros(len(clips))
