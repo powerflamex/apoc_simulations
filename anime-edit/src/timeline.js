@@ -42,12 +42,14 @@ function bop(x, down = 0.066, damp = 7.5, freq = 15) {
 }
 // the head nod, as measured in reference head-bop edits: it starts a frame before the kick, is lowest about 40 ms
 // after it, then comes back slowly and almost straight, with no bounce (the bounce is the camera's)
+// Softened (owner, Nov 22: "too brusque"): down over 0.14 s instead of 0.09, and the way back up eases out of the
+// bottom (no sharp turn there) and settles gently, still well before the next beat.
 function nod(x, ret = 0.43) {
-  const a0 = -0.05, a1 = 0.04;
+  const a0 = -0.05, a1 = 0.09;
   if (x < a0) return 0;
   if (x < a1) { const u = (x - a0) / (a1 - a0); return u * u * (3 - 2 * u); }
-  const u = (x - a1) / ret;
-  return u >= 1 ? 0 : Math.pow(1 - u, 1.35);
+  const u = (x - a1) / (ret + 0.05);
+  return u >= 1 ? 0 : 1 - u * u * (3 - 2 * u);
 }
 // plain decaying pulse (for light, shake, blur)
 const pulse = (x, decay) => (x < 0 ? 0 : Math.exp(-x * decay));
@@ -177,8 +179,8 @@ export function puppet(t) {
     gust += amt * 2.6 * settle;
   }
   return {
-    headRot: -6.0 * head + headRot + wob(t * 0.8, 2.2) * 0.5,            // degrees (negative = nod forward)
-    headDy: 19 * head,                                                   // source-image pixels, down
+    headRot: -4.8 * head + headRot + wob(t * 0.8, 2.2) * 0.5,            // degrees (negative = nod forward)
+    headDy: 15 * head,                                                   // source-image pixels, down
     headDx: -11 * slide,
     headScale: 0.02 * head,
     headZ: 0.14 * head + headZ,

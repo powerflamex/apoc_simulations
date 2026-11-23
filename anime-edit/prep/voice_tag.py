@@ -80,11 +80,23 @@ for i, (text, at, gain, echo) in enumerate(PARTS):
     raw = os.path.join(tmp, f'{i}_raw.wav'); out = os.path.join(tmp, f'{i}.wav')
     sf.write(raw, a, ksr)
     fx = WORD_FX[WORD] if word else LETTERS_FX + ECHO[echo]
+    # "E" and "I" open with a click, a 5 ms gap, then the vowel: the shape of a "b", so the E read as "bee" (owner).
+    # Fade them in over 35 ms, before the effects, so they open as a clean vowel.
+    soft = 'afade=t=in:d=0.035:curve=hsin,' if text in ('Ee.', 'Eye.') else ''
     ff(['-i', raw, '-filter_complex',
         f"[0:a]aresample={SR},silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
-        f"silenceremove=start_periods=1:start_threshold=-50dB,areverse,{fx}", '-ar', str(SR), out])
+        f"silenceremove=start_periods=1:start_threshold=-50dB,areverse,{soft}{fx}", '-ar', str(SR), out])
     v = load(out)
     v /= np.max(np.abs(v)) + 1e-9
+    if soft:
+        # the compressor brings the click back up: cut everything before the vowel really starts (first 5 ms within
+        # 6 dB of the vowel's level), with a 10 ms fade-in
+        on0 = int(np.argmax(np.abs(v) > 0.02)); W5 = int(0.005 * SR)
+        rms = np.array([np.sqrt(np.mean(v[k:k + W5] ** 2)) for k in range(on0, on0 + int(0.2 * SR), W5)])
+        lvl = np.median(rms[6:30]); k0 = on0 + int(np.argmax(rms > lvl * 0.5)) * W5
+        f0 = max(0, k0 - int(0.01 * SR))
+        v[:f0] = 0; v[f0:k0] *= np.sin(np.linspace(0, np.pi / 2, k0 - f0)) ** 2
+        print(f'{text}: cut {1000 * (k0 - on0) / SR:.0f} ms of click before the vowel')
     clips.append((text, at, gain, v, int(np.argmax(np.abs(v) > 0.05))))   # + its first real sound
 
 # Each letter's ATTACK (its sharpest rise, e.g. the "b" pop) goes on the beat, not its first sound: Lewis's "B" hums
