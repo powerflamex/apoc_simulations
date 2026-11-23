@@ -27,6 +27,36 @@ SR = 44100
 
 ECHO = {'short': 'aecho=0.8:0.5:70|150:0.30|0.16',
         'long': 'aecho=0.85:0.55:60|120|200|300:0.38|0.28|0.18|0.10'}
+LETTERS_FX = (f"asplit=2[a][b];"
+              f"[a]asetrate={SR}*0.86,aresample={SR},atempo=1.10[m];"                         # ~2.6 semitones deeper
+              f"[b]asetrate={SR}*0.5,aresample={SR},atempo=1.9,lowpass=f=800,volume=0.35[s];"   # octave-down shadow
+              f"[m][s]amix=inputs=2:normalize=0,highpass=f=55,equalizer=f=120:t=q:w=1:g=4,"
+              f"equalizer=f=3000:t=q:w=1.4:g=5,lowpass=f=10000,"
+              f"acompressor=threshold=-22dB:ratio=5:attack=1:release=80:makeup=6,asoftclip=type=tanh,apad=pad_dur=0.8,")
+# The final "embi" sounds like a different, bigger voice than the letters (owner, Nov 22): same Lewis voice, slower,
+# with its own character. Pick with WORD=<name>.
+WORD_FX = {
+    # a demon: 6 semitones deeper (and deeper body), slower, a loud octave-down growl, driven hard, long echo
+    'demon': (f"asplit=2[a][b];[a]asetrate={SR}*0.71,aresample={SR},atempo=1.08[m];"
+              f"[b]asetrate={SR}*0.355,aresample={SR},atempo=2.16,lowpass=f=700,volume=0.6[s];"
+              f"[m][s]amix=inputs=2:normalize=0,highpass=f=40,equalizer=f=100:t=q:w=1:g=5,equalizer=f=2500:t=q:w=1.4:g=4,"
+              f"volume=2.5,asoftclip=type=atan,acompressor=threshold=-20dB:ratio=4:attack=2:release=120:makeup=3,"
+              f"apad=pad_dur=1.2,aecho=0.85:0.6:80|170|280|420:0.40|0.30|0.20|0.12"),
+    # a giant: 8 semitones deeper and slowed down (no tempo fix), a wide chorus, a huge echo
+    'giant': (f"asplit=2[a][b];[a]asetrate={SR}*0.64,aresample={SR}[m];"
+              f"[b]asetrate={SR}*0.32,aresample={SR},atempo=2.0,lowpass=f=600,volume=0.5[s];"
+              f"[m][s]amix=inputs=2:normalize=0,chorus=0.6:0.9:50|60:0.4|0.32:0.25|0.4:2|2.3,highpass=f=40,"
+              f"equalizer=f=110:t=q:w=1:g=4,equalizer=f=2200:t=q:w=1.4:g=5,"
+              f"acompressor=threshold=-22dB:ratio=5:attack=2:release=120:makeup=6,asoftclip=type=tanh,"
+              f"apad=pad_dur=1.6,aecho=0.8:0.7:120|260|420|640:0.45|0.35|0.25|0.15"),
+    # a broadcast: crushed, narrow "radio" voice over a deep sub, with a slapback echo
+    'radio': (f"asplit=2[a][b];[a]asetrate={SR}*0.8,aresample={SR},atempo=1.1,highpass=f=400,lowpass=f=3200,"
+              f"acrusher=bits=8:samples=2:mix=0.6,volume=3,asoftclip=type=tanh[m];"
+              f"[b]asetrate={SR}*0.4,aresample={SR},atempo=2.2,lowpass=f=400,volume=0.7[s];"
+              f"[m][s]amix=inputs=2:normalize=0,acompressor=threshold=-20dB:ratio=4:attack=2:release=100:makeup=4,"
+              f"apad=pad_dur=1.0,aecho=0.8:0.6:90|180:0.40|0.25"),
+}
+WORD = os.environ.get('WORD', 'demon')
 
 def ff(args):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', *args], check=True)
@@ -42,18 +72,14 @@ tmp = tempfile.mkdtemp()
 song, sr = sf.read(os.path.join(A, 'song.wav'), always_2d=True); assert sr == SR
 clips = []
 for i, (text, at, gain, echo) in enumerate(PARTS):
-    a, ksr = kok.create(text, voice=VOICE, speed=SPEED, lang='en-us')
+    word = echo == 'long'
+    a, ksr = kok.create(text, voice=VOICE, speed=0.8 if word else SPEED, lang='en-us')
     raw = os.path.join(tmp, f'{i}_raw.wav'); out = os.path.join(tmp, f'{i}.wav')
     sf.write(raw, a, ksr)
+    fx = WORD_FX[WORD] if word else LETTERS_FX + ECHO[echo]
     ff(['-i', raw, '-filter_complex',
         f"[0:a]aresample={SR},silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
-        f"silenceremove=start_periods=1:start_threshold=-50dB,areverse,asplit=2[a][b];"
-        f"[a]asetrate={SR}*0.86,aresample={SR},atempo=1.10[m];"                         # ~2.6 semitones deeper
-        f"[b]asetrate={SR}*0.5,aresample={SR},atempo=1.9,lowpass=f=800,volume=0.35[s];"   # octave-down shadow
-        f"[m][s]amix=inputs=2:normalize=0,highpass=f=55,equalizer=f=120:t=q:w=1:g=4,"
-        f"equalizer=f=3000:t=q:w=1.4:g=5,lowpass=f=10000,"
-        f"acompressor=threshold=-22dB:ratio=5:attack=1:release=80:makeup=6,asoftclip=type=tanh,"
-        f"apad=pad_dur=0.8,{ECHO[echo]}", '-ar', str(SR), out])
+        f"silenceremove=start_periods=1:start_threshold=-50dB,areverse,{fx}", '-ar', str(SR), out])
     v = load(out)
     v /= np.max(np.abs(v)) + 1e-9
     clips.append((text, at, gain, v, int(np.argmax(np.abs(v) > 0.05))))   # + its first real sound
@@ -96,7 +122,7 @@ peak = np.max(np.abs(mix))
 if peak > 0.94: mix *= 0.94 / peak
 print('peak before trim', round(float(peak), 3))
 if OUT:
-    sf.write(OUT, mix[:int(4.5 * SR)], SR, subtype='PCM_16'); print('sample', OUT); sys.exit()
+    sf.write(OUT, mix[:int(5.0 * SR)], SR, subtype='PCM_16'); print('sample', OUT); sys.exit()
 sf.write(os.path.join(A, 'song_tagged.wav'), mix, SR, subtype='PCM_16')
 sf.write(os.path.join(A, 'tag_embi.wav'), voice[:int((DROP1 + 1.2) * SR)], SR, subtype='PCM_16')
 print('wrote assets/song_tagged.wav, assets/tag_embi.wav')

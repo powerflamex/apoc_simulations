@@ -36,7 +36,9 @@ drop, with an echo): "E, M, B, I" on the first four beats (with the letters on s
 drop, the music dipping under it. `python -P prep/voice_tag.py [voice]` makes it offline with Kokoro (voice bm_lewis, the owner's pick; each letter's attack is measured and put on its beat; model files in
 `assets/kokoro/`, from github.com/thewh1teagle/kokoro-onnx releases, `pip install kokoro-onnx`), pitched down a
 little with an octave-down copy, drive and echo, and writes `assets/song_tagged.wav`, which the video uses
-(`assets/song.wav` stays the clean song). `python -P prep/voice_tag.py <voice> <file.wav>` writes a 4.5 s sample.
+(`assets/song.wav` stays the clean song). The final "embi" is the same voice made to sound like a different, bigger
+one, slower: `WORD=demon|giant|radio` picks its effect. `python -P prep/voice_tag.py <voice> <file.wav>` writes a
+5 s sample.
 
 The camera copies the reference kodoae2 edit's motion, measured frame by frame (`prep/kodo_curves.py` ->
 `src/kodo_curves.js`; the reference uses the same song cut, so the timing lines up): head-on to the shrine, a slow
@@ -44,8 +46,8 @@ zoom wave (out to the wide shot, in through the drop, out again, then straight i
 5.59 s), a pendulum roll that swings fastest on each beat, a slow slide, and a one-frame jolt on every beat. The
 second half plays mirrored, like the reference. Its blur follows its real speed.
 
-His four arms each have joints (`scene.js`): they pump out with the nod on each beat, swing about 8 degrees side
-to side with the camera's swing (the right forearm a little later), and flare out on the drops. On the drops his
+His four arms each have joints (`scene.js`): they sway slowly and smoothly on their own, not on the beat, each arm
+at its own speeds (about 7-10 degrees each way; the right forearm trails its upper arm). On the drops his
 body makes one push forward that eases back, with no spring rocking. `?armx=4` exaggerates them to check the joints.
 
 ## To redo with other pictures

@@ -154,14 +154,15 @@ export function puppet(t) {
 
   // the drops: a small crouch, then one push forward that eases back (no spring rocking: the owner disliked it)
   let lean = 0, bob = 0, scale = 0, headRot = 0, spear = 0, headZ = 0;
-  // arms (degrees; + turns clockwise in the picture). On each beat they pump out with the nod (the right forearm a
-  // frame later, so it follows through) and sway side to side with the camera's swing; on the drops they pull in,
-  // then flare out with the lunge.
-  let fore = 0;
-  for (const [k, a] of BOPS) fore = Math.max(fore, a * nod(t - k - 0.05, 0.5));
-  const sway = Math.sin(Math.PI * (t - B0) / BEAT);
-  const swayF = Math.sin(Math.PI * (t - B0 - 0.09) / BEAT);             // the forearm follows a little later
-  let armL = 5 * body + 7.5 * sway, armR = -6 * body - 8.5 * sway, armRf = -6.5 * fore - 4.5 * swayF, armC = 4 * body - 5 * sway;
+  // arms (degrees; + turns clockwise in the picture): a slow, smooth, continuous sway of their own, not on the beat
+  // (owner, Nov 22: the beat pumps looked choppy). Each arm mixes two slow waves with its own speeds and timing, so
+  // they never move in step; the right forearm trails its upper arm. The speeds are whole cycles per clip, so the
+  // loop joins up.
+  const cyc = (n, p) => Math.sin(2 * Math.PI * n * t / DURATION + p);
+  let armL = 7 * cyc(4, 0.3) + 2.5 * cyc(7, 1.7);
+  let armR = -8 * cyc(5, 1.1) - 2.5 * cyc(8, 2.9);
+  let armRf = -5 * Math.sin(2 * Math.PI * 5 * (t - 0.28) / DURATION + 1.1) + 2.5 * cyc(6, 0.4);   // trails the upper arm
+  let armC = 5 * cyc(3, 2.2) + 2 * cyc(7, 0.8);
   for (const [d, amt] of [[DROP1, 1], [DROP2, 1.25]]) {
     const wind = 0.5 * smooth(d - 0.30, d - 0.05, t) * (1 - smooth(d - 0.03, d + 0.02, t));
     const x = t - d;
@@ -174,9 +175,6 @@ export function puppet(t) {
     spear += amt * (-1.2 * wind + 4.4 * snap);
     headZ += amt * 0.35 * settle;
     gust += amt * 2.6 * settle;
-    const fl = x < 0 ? 0 : (1 - Math.exp(-x * 22)) * Math.exp(-x * 2.6);     // flare out, then ease back
-    armL += amt * (-3.5 * wind + 10 * fl); armR += amt * (4 * wind - 11 * fl);
-    armRf += amt * (3 * wind - 8 * fl); armC += amt * (-2 * wind + 5.5 * fl);
   }
   return {
     headRot: -6.0 * head + headRot + wob(t * 0.8, 2.2) * 0.5,            // degrees (negative = nod forward)
