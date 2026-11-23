@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { groundY, CAM0 } from './layout.js';
 
-export const SU = { uSpark: { value: 0.4 }, uDepth: { value: 0 }, uLiquid: { value: 0 }, uT: { value: 0 }, uTint: { value: new THREE.Color(1, 1, 1) } };
+export const SU = { uSpark: { value: 0.4 }, uDepth: { value: 0 }, uFar: { value: 0 }, uLiquid: { value: 0 }, uT: { value: 0 }, uTint: { value: new THREE.Color(1, 1, 1) } };
 
 export function makeSnow(scene) {
   const NR = 260, NA = 420, R0 = 0.4, R1 = 9000;
@@ -44,24 +44,28 @@ export function makeSnow(scene) {
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, SU);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', `#include <common>\nattribute float aBase; uniform float uDepth; varying vec3 vSW; ${NOISE}`)
+      .replace('#include <common>', `#include <common>\nattribute float aBase; uniform float uDepth; uniform float uFar; varying vec3 vSW; varying float vDl; ${NOISE}`)
       .replace('#include <beginnormal_vertex>', `
         // the drifts' height and slope (the normal comes first in the vertex shader)
-        float snowY = aBase + uDepth * (0.78 + 0.44 * drift(position.xz));
+        // deeper far off (Pluto's air-snow drifts in from the sea): uDepth near you, uFar beyond ~240 m
+        float rr = length(position.xz - vec2(${CAM0.x.toFixed(2)}, ${CAM0.z.toFixed(2)}));
+        float dl = mix(uDepth, max(uFar, uDepth), pow(clamp((rr - 5.0) / 235.0, 0.0, 1.0), 0.5));
+        vDl = dl;
+        float snowY = aBase + dl * (0.78 + 0.44 * drift(position.xz));
         float sE = 0.6;
-        float sHx = uDepth * 0.44 * (drift(position.xz + vec2(sE, 0.0)) - drift(position.xz - vec2(sE, 0.0))) / (2.0 * sE);
-        float sHz = uDepth * 0.44 * (drift(position.xz + vec2(0.0, sE)) - drift(position.xz - vec2(0.0, sE))) / (2.0 * sE);
+        float sHx = dl * 0.44 * (drift(position.xz + vec2(sE, 0.0)) - drift(position.xz - vec2(sE, 0.0))) / (2.0 * sE);
+        float sHz = dl * 0.44 * (drift(position.xz + vec2(0.0, sE)) - drift(position.xz - vec2(0.0, sE))) / (2.0 * sE);
         vec3 objectNormal = normalize(vec3(-sHx, 1.0, -sHz));`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         transformed.y = snowY;
         vSW = vec3(position.x, snowY, position.z);`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform float uDepth; uniform float uLiquid; uniform float uT; uniform float uSpark; uniform vec3 uTint; varying vec3 vSW; ${NOISE}`)
+      .replace('#include <common>', `#include <common>\nuniform float uDepth; uniform float uLiquid; uniform float uT; uniform float uSpark; uniform vec3 uTint; varying vec3 vSW; varying float vDl; ${NOISE}`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float liq = 0.0;
         {
           // a dusting is patchy; it closes up as it deepens
-          float cov = smoothstep(0.0, 0.12, uDepth);
+          float cov = smoothstep(0.0, 0.12, vDl);
           float pn = sn2(vSW.xz * 1.7) * 0.6 + sn2(vSW.xz * 6.0) * 0.4;
           if (pn > cov * 1.25) discard;
           vec3 sc = mix(vec3(0.86, 0.9, 0.97), vec3(1.0), sn2(vSW.xz * 3.0));
@@ -73,9 +77,9 @@ export function makeSnow(scene) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {
           // glints: single sparkling grains
-          vec2 g = floor(vSW.xz * 24.0);
-          float s = sh2(g + floor(uT * 3.0) * 0.0);
-          float tw = step(0.993, s) * (0.5 + 0.5 * sin(uT * 6.0 + s * 80.0));
+          vec2 g = floor(vSW.xz * 24.0), gf = fract(vSW.xz * 24.0) - 0.5;
+          float s = sh2(g);
+          float tw = step(0.993, s) * (0.5 + 0.5 * sin(uT * 6.0 + s * 80.0)) * smoothstep(0.2, 0.05, length(gf));
           totalEmissiveRadiance += vec3(1.0, 1.0, 1.05) * tw * uSpark * (1.0 - liq);
         }`);
   };

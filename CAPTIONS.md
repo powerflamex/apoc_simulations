@@ -2996,69 +2996,83 @@ Cover: `week 9/strong-trillion/out/strong-trillion_v4_cover.png` (`node render.m
 
 ## Next Short. What if Earth swapped places with other planets? — `week 10/planet-swap/out/planet-swap_v4_1080x1920_60fps_tiktok.mp4`
 
-45.2 s, loops. A picker built like planet weather and planet gravity: planet weather's packed Santa Monica beach (the pier
-and its Ferris wheel on the right, umbrellas, lifeguard trucks on the sand), one camera just behind YOU, the Sun low over
-the sea in front of you, a bar of the five planets under the title (Pluto is the finish line), a quick wipe between stops.
-Counter: MILES FROM THE SUN, racing to each planet's distance; the one line under it says how wide and how bright the Sun
-is there. Every switch flips hot and cold, and each hot or cold stop is stronger than the last (Venus < Mercury; Mars <
-Jupiter < Pluto). The last switch, Jupiter -> Pluto, is cold to colder: after Mercury there is no hotter place to go.
-Nothing resets at a wipe: people carry on from where they were, what burned at Mercury stays burnt, the snow stays.
-**Each stop shows where the weather would end up, sped up** (the real change would take years).
+44.5 s, loops. Reworked Nov 23 (the owner's notes: you couldn't tell you were on Venus in the first seconds; your arms
+looked weird when freezing; 0:00-0:07 was a normal beach day that only went hazy). A picker built like planet weather and
+planet gravity: planet weather's packed Santa Monica beach (the pier and its Ferris wheel on the right, umbrellas,
+lifeguard trucks on the sand), one camera just behind YOU, the Sun low over the sea in front of you, a quick wipe between
+stops. The bar under the title is a map: the Sun glowing at the left end, then Mercury, Venus, Earth, Mars, Jupiter, Pluto
+in their real order; at each stop the Earth marker (blue ring, glassy tile) and that planet visibly trade slots (Earth arcs
+over the top, the planet under). Counter: MILES FROM THE SUN, racing to each place's distance; the one line under it says
+how wide and how bright the Sun is there. Order Earth -> Mercury -> Mars -> Venus -> Jupiter -> Pluto: every switch a
+reversal (hot, cold, hot, cold, colder). Nothing resets at a wipe: people carry on from where they were, what burned at
+Mercury stays burnt, the sea stays lower, the snow stays.
+**Each stop shows where the weather would end up, sped up** (the real change would take months to years).
 What you see, in order:
-0:00 Venus' place, the counter already racing down from 92,960,000: the Sun swelling over the sea (1.4x wider), you
-shading your eyes, the crowd staring and filming, the owner's scream. 0:00.5 the heat hits: arms over faces; 0:01 everyone
-runs for the umbrellas and crouches in the shade, the ones in the sea duck under. Heat shimmer; the sea starts steaming,
-then 0:03 a bank of steam rises off the whole bay with a boom ("Your beach, 26 million miles closer"; line: 1.9x THE
-SUNLIGHT). 0:07 Mars' place: the Sun shrinks to 2/3, the light goes thin and blue, the steam is gone; the sea skins over
-with ice out from the shore, 0:08 a white frost front races up the beach to you; everyone stands up hugging themselves,
-shivering, their breath steaming; 0:09.6 people walk out of the shade toward the weak Sun (the ones in the water wade
-out), ice crystals glitter down (UNDER HALF THE SUNLIGHT). 0:15 Mercury's place: the Sun balloons to 2.6x in a blast of
-light ("nooo"), the frost and the sea ice flash to steam, everyone flinches and runs up the beach and dives down; 0:16 the
-sea boils, 0:17.4 a wall of steam off the bay; the towels start smoking, 0:17 they catch, 0:18 the umbrellas go up in
-flames one after another, the trucks' paint smokes and their tyres burn, 0:19 the lifeguard hut's roof ("Anything dark in
-the sun catches fire"; 6.7x THE SUNLIGHT). 0:24 Jupiter's place: the Sun a small bright dot, the light 1/27 (a gasp); the
-flames go out, burnt umbrellas smoulder; the boiling stops and a freeze front races in from the horizon, every wave frozen
-where it stood, a boom at the shore; snow starts falling and piles up over the burnt towels and the trucks' wheels; the
-Ferris wheel stops, its lights on; everyone gets up and bunches together in little groups ("It's noon. This is as bright
-as it gets"). 0:33 Pluto's place: the Sun is a point, a star with spikes; the sky goes black and fills with stars as the
-air rains out of it ("oh my god"); pale-blue drops of liquid air fall and pool glossy on the snow ("The air itself turns
-to liquid"); 0:37.4 a white front runs up the beach and everyone freezes where they stand, you last, hand out; then the
-frozen air snows down and piles up over the crowd and over you ("Then it snows down, 30 ft deep"); 0:41.4 frost creeps
-over the lens, the snow closes over it, solid white at 0:44, which clears onto frame 0 (the loop).
-Sound: a hot wind and a yelling crowd with the scream, a whoomp as the heat hits, steam hiss and a roar; a thin cold
-whistle, ice cracking, the frost's crackling rush, tinkling crystals; a huge boom and roar at Mercury, a great hiss of
-steam, boiling, fire crackling and whooshes as things go up; at Jupiter a drop to a low cold drone, ice cracking in to a
-boom at the shore, the hush of snow; at Pluto an eerie hum, the patter of liquid air, a crackling freeze and a deep
-muffled rush as the snow buries the lens. Every second sits between about -5 and -16 dB.
+0:00 Earth: the normal packed beach, EARTH lit in the map, the counter at 92,960,000 and already starting to fall. 0:00.3
+Earth and Mercury start trading slots on the map; 0:00.9 the wipe: Mercury's place. 0:01 the Sun balloons in a blast of
+white-hot light, everyone flinches, arms over faces, and screams (the owner's scream); 0:01.5 they run up the beach and
+dive down (the near ones a short way out to the side, so they stay big in frame); 0:02 the Sun is 2.6x wider (THE SUN:
+2.6x WIDER), the towels round you and the umbrellas burst into flickering orange flames under columns of black smoke
+("Anything dark in the sun catches fire"); 0:03 the sea boils white; 0:04.5 6.7x THE SUNLIGHT; 0:04.6 the pier catches
+and burns out to sea under a tower of black smoke, the crowd gets up and runs again ("nooo"); 0:06.3 the trucks' tyres go
+up; 0:06.5 the boiling bay throws up steam and its level drops. 0:08.6 Mars' place: the Sun shrinks to 2/3, the light
+goes thin and blue, the flames die to smoke and the boiling stops dead; 0:09.3 a white frost front races up the beach to
+you ("It drops to -88°F"); everyone gets up hugging themselves, shivering, stamping, breath steaming, you with your arms
+crossed tight, hands tucked under your arms, hunched, knees bent; 0:10.8 the ones near the trucks run for them and crowd
+round; 0:12.1 the sea skins over with ice racing out from the shore (UNDER HALF THE SUNLIGHT); 0:13.9 ice crystals glitter
+down. 0:16.3 Venus' place: the Sun swells back to 1.4x, warm gold light; the frost and the sea ice melt; everyone uncurls,
+stretches, shades their eyes; 0:18 towers of steam rise off the whole bay (0:19.3 1.9x THE SUNLIGHT); 0:19.7 the steam closes the
+sky into one dark, heaving cloud deck from the horizon up, the Sun a bright smear through it, thunder ("The sea boils off
+into the sky"); 0:21.7 hot rain pours down; everyone holds their arms over their heads, you with your hands on your head,
+half of them run. 0:24 Jupiter's place: the light drops to a dark overcast noon (a gasp), the rain turns to snow at once,
+a freeze front races in from the horizon, every wave frozen where it stood, a boom at the shore (1/27 OF THE SUNLIGHT);
+everyone hugs themselves again, huddles, crowds round the trucks; 0:27.7 the cloud snows itself out and breaks open on a
+dot of a Sun (THE SUN: 1/5 AS WIDE); everyone looks up; the snow drifts up the trucks to the windows; the Ferris wheel
+stops, its lights on ("It's noon. This is as bright as it gets"). 0:31.7 Pluto's place: the Sun is a point, a star with
+spikes; the sky goes black and fills with stars as the air rains out of it ("oh my god"); 0:32.7 pale-blue drops of liquid
+air fall and pool glossy on the snow ("The air itself turns to liquid"); 0:33.9 frost grows over everyone from the head
+down over ~3 s (lit, keeping a hint of their colours), and they freeze where they stand, you last, hand out; 0:36.3 the
+frozen air snows down and piles up: past the trucks (~0:38.5), then over the pier's deck (~0:40.5), then up over you (~0:42.2) and,
+from the bottom up, over the lens ("Then it snows down, 30 ft deep"); solid white at 0:43.3, which clears onto frame 0
+(the loop).
+Sound: surf and chatter for a second; at Mercury a huge boom and roar, the scream, the crowd yelling, fire crackling and
+whooshing, boiling, a roar and boom as the pier goes up ("nooo"), the tyres going up, steam; at Mars the fires hissing out,
+a thin cold whistle, the frost's crackling rush, stamping feet, ice cracking, tinkling crystals; at Venus a warm wind,
+dripping ice, a roar and boom of steam, rolling thunder, then pouring rain; at Jupiter a gasp, the rain stopping dead, ice
+cracking in to a boom at the shore, a low drone, a gust as the cloud breaks, the hush of snow; at Pluto an eerie hum,
+"oh my god", the patter of liquid air, crackling, a deep muffled rush as the snow buries the lens.
 
-The numbers (also at the top of `src/timeline.js`): NASA Planetary Fact Sheet mean distances (10^6 km: Earth 149.6, Venus
-108.2, Mars 228.0, Mercury 57.9, Jupiter 778.5, Pluto 5,906.4) -> miles 92.96 M, 67.23 M, 141.67 M, 35.98 M, 483.74 M,
-3,670 M (shown to the nearest 10,000). How wide the Sun looks = 1/distance (AU): Venus 1.38x, Mars 0.656x (2/3), Mercury
-2.58x, Jupiter 0.192x (1/5), Pluto 0.0253x (1/40). Sunlight = 1/distance²: 1.91x, 0.43x (under half), 6.68x, 1/27.1,
-1/1,559 (shown as 1/1,600). Where the weather goes (the temperature a planet settles at, with Earth's 30% reflectivity and
-no greenhouse): Venus' place 80°F before the greenhouse runs away (the seas steam off, as on Venus), Mars' -88°F (frost, the
-sea freezes over), Mercury's 278°F before any greenhouse (the sea boils), Jupiter's -259°F (the sea freezes solid; water
-and carbon dioxide snow out of the air), Pluto's -387°F (41 K): oxygen turns liquid at 90 K and nitrogen at 77 K, then they
-freeze, so the air rains down and then snows down. Earth's air weighs 10.3 t per m², about 10 m (~30-33 ft) of it frozen.
-Mercury's place right away: ~6,800 W/m² of sunlight at the ground heats a dark surface facing it to ~300°C (~600°F), past
-where cloth and paper catch fire (~230-260°C). Noon at Jupiter's place ~3,700 lux, like a dark overcast day; at Pluto's
-~64 lux (~250x the full Moon).
+The numbers (also at the top of `src/timeline.js`): NASA Planetary Fact Sheet mean distances (10^6 km: Earth 149.6,
+Mercury 57.9, Mars 228.0, Venus 108.2, Jupiter 778.5, Pluto 5,906.4) -> miles 92.96 M, 35.98 M, 141.67 M, 67.23 M,
+483.74 M, 3,670 M (shown to the nearest 10,000). How wide the Sun looks = 1/distance (AU): Mercury 2.58x, Mars 0.656x
+(2/3), Venus 1.38x, Jupiter 0.192x (1/5), Pluto 0.0253x (1/40). Sunlight = 1/distance²: 6.68x, 0.43x (under half), 1.91x,
+1/27.1, 1/1,559 (shown as 1/1,600). Where the weather goes (the temperature a planet settles at, with Earth's 30%
+reflectivity and no greenhouse): Mercury's place 278°F (the sea boils), Mars' -88°F (frost, the sea freezes over), Venus'
+80°F before the greenhouse, but 1.9x the sunlight is past the runaway limit (~1.1-1.4x), so the seas steam off into a
+sky-wide cloud, as on Venus; Jupiter's -259°F (the sea freezes solid; the water snows out of the air), Pluto's -387°F
+(41 K): oxygen turns liquid at 90 K and nitrogen at 77 K, then they freeze, so the air rains down and then snows down.
+Earth's air weighs 10.3 t per m², about 10 m (~30-33 ft) of it frozen. Mercury's place right away: ~6,800 W/m² of
+sunlight at the ground heats a dark surface facing it to ~300°C (~600°F), past where cloth, paper and dry wood catch fire
+(~230-300°C). Noon at Jupiter's place ~3,700 lux, like a dark overcast day; at Pluto's ~64 lux (~250x the full Moon).
 
 Honest notes: the Sun is drawn 7x wider than it looks in real life at every stop so it reads on a phone (the real one is a
 16 px dot); the sizes between stops are true. The far stops are exposed brighter for the phone (Pluto's real noon is deep
-dusk). Each stop's weather is where it would end up, squeezed into seconds (the real freezing or boiling would take months
-to years). How deep the snow gets at Jupiter's place (0.7 m) is a guess. People are never shown hurt; they freeze in place.
+dusk). Each stop's weather is where it would end up, squeezed into seconds. How deep the snow gets at Jupiter's place
+(0.35 m on the open sand, drifting to the trucks' windows) is a guess. Pluto's 10 m of air-snow is drawn drifting deepest
+far off first, so you see it bury the trucks and the pier before it reaches you. People are never shown hurt; they freeze
+in place. The map's trades are literal (Earth swaps slots with each planet in turn), so by the end the planets are out of
+their real order.
 
 **YouTube title (66 chars)**
 What if Earth swapped places with other planets? 🪐 #whatif #space
 
 **YouTube description**
-You're on a packed beach. Every few seconds, Earth jumps into another planet's spot around the Sun.
+You're on a packed beach. Then Earth starts trading places with the other planets.
 
-Venus: 67 million miles from the Sun. The Sun looks 1.4x wider and the sea starts steaming.
-Mars: 142 million miles. Under half the sunlight: frost races up the beach and the sea freezes over.
-Mercury: 36 million miles. 6.7x the sunlight: the ice flashes to steam, the sea boils, umbrellas catch fire.
-Jupiter: 484 million miles. 1/27 of the sunlight: noon looks like a dark overcast day, the sea freezes solid, snow piles up.
+Mercury: 36 million miles from the Sun. 6.7x the sunlight: umbrellas, towels and the pier catch fire, the sea boils.
+Mars: 142 million miles. Under half the sunlight: -88°F, frost races up the beach and the sea freezes over.
+Venus: 67 million miles. The sea boils off into a cloud that closes the whole sky, then hot rain pours.
+Jupiter: 484 million miles. 1/27 of the sunlight: noon is a dark overcast day, the sea freezes solid, snow buries the cars.
 Pluto: 3.7 billion miles. The Sun is just a bright star, and the air itself turns to liquid, then snows down 30 ft deep.
 
 Each stop shows where the weather would end up, sped up.
@@ -3067,7 +3081,7 @@ Which planet's spot could you survive? 👇
 
 #whatif #space #planets #sun #simulation
 
-Cover: `week 10/planet-swap/out/planet-swap_v4_cover.png` (`node render.mjs --cover 21`: the huge Sun over the sea at Mercury's place, umbrellas and a truck in flames on the beach, the crowd ducking, you with your arms over your head; "WHAT IF EARTH TOOK / Mercury's / place?")
+Cover: `week 10/planet-swap/out/planet-swap_v4_cover.png` (`node render.mjs --cover 5.6`: the 2.6x Sun over the boiling sea at Mercury's place, umbrellas, towels and a truck in flames under columns of black smoke, the crowd ducking, you with your arms over your face; "WHAT IF EARTH TOOK / Mercury's / place?")
 
 ## Next Short. What if you were 1 trillion times more magnetic? — `week 10/magnet-trillion/out/magnet-trillion_v4_1080x1920_60fps_tiktok.mp4`
 

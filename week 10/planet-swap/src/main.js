@@ -89,7 +89,12 @@ const mix = new ShaderPass({
         vec3 ic = mix(vec3(0.74, 0.82, 0.93), vec3(1.0, 1.0, 1.03), fern) * (0.95 + 0.15 * k);
         col = mix(col, ic, ice * mix(0.78, 1.0, k));
       }
-      col = mix(col, vec3(0.9, 0.94, 1.0), bury);
+      // the snow climbing over the lens from the bottom up (a soft, lumpy edge)
+      if (bury > 0.0) {
+        float edge = bury * 1.35 - 0.12 + 0.06 * (n(vec2(vUv.x * 9.0, 3.0)) - 0.5) + 0.03 * (n(vec2(vUv.x * 31.0, 7.0)) - 0.5);
+        float b = smoothstep(edge + 0.02, edge - 0.04, vUv.y);
+        col = mix(col, vec3(0.9, 0.94, 1.0) * (0.92 + 0.08 * vUv.y), b);
+      }
       return col;
     }
     void main() {
@@ -202,7 +207,7 @@ async function boot() {
   await document.fonts.load('700 40px Cormorant');
   await document.fonts.ready;
   if (!params.has('dom')) comp = await makeCompositor(renderer.domElement, stage);
-  for (const t of [44, 42, 38, 35, 33.1, 30, 26, 24.1, 21, 17, 15.1, 12, 9, 7.1, 4, 0]) renderFrame(t);   // compile everything once
+  for (const t of [44, 42, 40, 37, 34, 31.8, 29, 27, 24.1, 22, 19, 16.4, 13, 10, 8.7, 6, 4, 1.0, 0]) renderFrame(t);   // compile everything once
   window.renderFrame = renderFrame;
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, world, state, comp: () => comp };

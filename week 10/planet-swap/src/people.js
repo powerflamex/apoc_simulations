@@ -3,21 +3,21 @@
 // pure function of (the stop, the seconds since its wipe). Positions are planned up front: thick round you and down to
 // the water (some wading), thinning out along the beach; nobody between you and the lens, nobody closer than ~3.6 m
 // to the lens.
-//   Venus: staring and filming as the Sun swells; the heat hits: arms over faces; they run for the umbrellas and crouch
-//     in the shade (each umbrella has four places, booked at load; nobody runs across you or the lens); the ones in the
-//     sea duck under; the rest crouch where they are, arms over their heads.
-//   Mars: they stand up, hugging themselves, shivering and stamping; then walk out of the shade toward the thin Sun;
-//     the ones in the water wade out; the frost whitens them; a few point at the frozen sea.
-//   Mercury: they flinch from the blast of light, arms over faces, turn away; most run up the beach and dive down,
-//     arms over their heads; the rest drop where they are.
-//   Jupiter: they get up slowly, look up at the dot of a Sun, then bunch together in little groups, hunched, shivering.
-//   Pluto: they look up at the black sky; arms over heads as the liquid air rains down, a few holding out a hand; then
-//     they freeze where they stand, a white front running up the beach, and the snow piles up over them.
+//   Earth: a normal day: standing about, a few filming.
+//   Mercury: they flinch from the blast of light, arms over faces, turn away; most run up the beach (the near ones a
+//     short way out to the side, so they stay big in frame) and dive down; halfway some get up and run again.
+//   Mars: up off the sand, hugging themselves, shivering and stamping, breath steaming; the ones near the trucks run
+//     for them and crowd round; a few point at the sea skinning over. Alive and in colour.
+//   Venus: they uncurl and stretch, look up at the swelling Sun, then at the cloud closing over; the hot rain: arms
+//     over heads, half of them run a few steps.
+//   Jupiter: cold again: hugging themselves, to the trucks or into little huddles; they look up when the cloud breaks.
+//   Pluto: they look up at the black sky; arms over heads or a hand out as the liquid air rains down; frost grows over
+//     them from the head down; then they freeze where they stand, and the snow piles up over them.
 import { rng, smooth, clamp, lerp } from './util.js';
 import { SKIN, HAIR } from './crowd.js';
 import { landY, UMBRELLAS, LIFEGUARD, VEHICLES, CAM0, CAM_FWD, CAM_RIGHT, YOU, FACE_YAW, PIER } from './layout.js';
 import { STOPS, DUR } from './timeline.js';
-import { VEN_HEAT, VEN_RUN, MARS_HUDDLE, marsFrostF, JUP_HUDDLE, PLU_RAIN, PLU_STATUE } from './sched.js';
+import { MER_FLASH, MER_RUN, MER_RUN2, MARS_CARS, MARS_ICE, VEN_CLOUD, VEN_RAIN, JUP_HUDDLE, JUP_CLEAR, PLU_RAIN, PLU_STATUE } from './sched.js';
 
 const TOPS = [0xffffff, 0x222222, 0xe94f37, 0x3b8ed0, 0xf6c445, 0x6dbf73, 0xff9ec4, 0x8e44ad, 0xd5d5d5, 0x16a085, 0xf2f2f2, 0xe8e2d0, 0xc0392b, 0x2e86c1, 0xff8c1a, 0x1abc9c];
 const PANTS = [0x1b2631, 0x2c3e50, 0x5d6d7e, 0xd5c4a1, 0x4a6fa5, 0x212121, 0x7f8c8d, 0xe8e2d0, 0xc0392b, 0x2e86c1];
@@ -68,34 +68,36 @@ const OBS = [...UMBRELLAS.map((u) => [u.x, u.z, 0.5]), ...LIFEGUARD.map((l) => [
     p.d = 0.05 + p.seed * 0.3;
     p.wade = p.x < 0;
   }
-  // Venus: book the shade. Each umbrella has four places round its pole; the nearest people get them, as long as the
-  // run there stays clear of the lens and of you
-  const slots = UMBRELLAS.map((u) => ({ u, left: [0, 1, 2, 3] }));
+  // Mars and Jupiter: places round the three trucks (ten each), booked by the nearest people, as long as the run there
+  // stays clear of you and the lens
   const segDist = (ax, az, bx, bz, px, pz) => {
     const vx = bx - ax, vz = bz - az, t = clamp(((px - ax) * vx + (pz - az) * vz) / (vx * vx + vz * vz + 1e-9));
     return Math.hypot(ax + vx * t - px, az + vz * t - pz);
   };
-  const order = PEOPLE.filter((p) => !p.wade && p.g4 > 0.08).map((p) => {
-    let best = null, bd = 11;
-    for (const s of slots) { const d = Math.hypot(s.u.x - p.x, s.u.z - p.z); if (d < bd && s.left.length) { bd = d; best = s; } }
-    return { p, best, bd };
-  }).filter((e) => e.best).sort((a, b) => a.bd - b.bd);
-  for (const { p } of order) {
-    let pick = null, pd = 11;
+  const slots = VEHICLES.map((c) => ({ c, left: Array.from({ length: 10 }, (_, k) => k) }));
+  const cand = PEOPLE.filter((p) => !p.kid && p.g3 < 0.7).map((p) => {
+    let bd = 1e9;
+    for (const s of slots) bd = Math.min(bd, Math.hypot(s.c.x - p.x, s.c.z - p.z));
+    return { p, bd };
+  }).filter((e) => e.bd < 16).sort((a, b) => a.bd - b.bd);
+  for (const { p } of cand) {
+    let pick = null, pd = 16;
     for (const s of slots) {
       if (!s.left.length) continue;
-      const d = Math.hypot(s.u.x - p.x, s.u.z - p.z);
+      const d = Math.hypot(s.c.x - p.x, s.c.z - p.z);
       if (d >= pd) continue;
       const k = s.left[0];
-      const a = k * Math.PI / 2 + s.u.seed * 6.28, r = 0.62;
-      const tx = s.u.x + Math.cos(a) * r, tz = s.u.z + Math.sin(a) * r;
+      const a = (k / 10) * Math.PI * 2 + 0.3, rx = 1.55, rz = 3.05;
+      const ca = Math.cos(s.c.yaw), sa = Math.sin(s.c.yaw);
+      const lx = Math.cos(a) * rx, lz = Math.sin(a) * rz;
+      const tx = s.c.x + lx * ca + lz * sa, tz = s.c.z - lx * sa + lz * ca;
       const fr = frameOf(tx, tz);
-      if (fr.f < 3.8) continue;
-      if (segDist(p.x, p.z, tx, tz, YOU.x, YOU.z) < 1.1) continue;
-      if (segDist(p.x, p.z, tx, tz, CAM0.x, CAM0.z) < 3.4) continue;
-      pick = { s, k, tx, tz }; pd = d;
+      if (fr.f < 4) continue;
+      if (segDist(p.x, p.z, tx, tz, YOU.x, YOU.z) < 1.2) continue;
+      if (segDist(p.x, p.z, tx, tz, CAM0.x, CAM0.z) < 3.6) continue;
+      pick = { s, tx, tz }; pd = d;
     }
-    if (pick) { pick.s.left.shift(); p.shade = { x: pick.tx, z: pick.tz, faceU: Math.atan2(pick.s.u.x - pick.tx, pick.s.u.z - pick.tz) }; }
+    if (pick) { pick.s.left.shift(); p.truck = { x: pick.tx, z: pick.tz, faceX: pick.s.c.x, faceZ: pick.s.c.z }; }
   }
   // Jupiter: who bunches with whom (5 m cells); the centres come from where everyone is when Jupiter starts
   for (const p of PEOPLE) p.cell = `${Math.floor(p.x / 5)}:${Math.floor(p.z / 5)}`;
@@ -122,13 +124,27 @@ function moveAlong(o, p, dx, dz, d, k, stepLen = 0.85) {
   o.walk = d / stepLen * Math.PI + p.ph; o.stride = 1.6 * k;
 }
 // running away from the sea: up the beach and out to their own side of the frame (the ones close to the camera
-// straight out to the side, so nobody runs through you or the lens)
+// straight out to the side, a short way, so they stay big in frame and nobody runs through you or the lens)
 function runDir(p, o) {
   const fr = frameOf(o.x, o.z);
   const side = fr.l > YOU_L ? 1 : -1;
   let df = -0.85, dl = side * 0.52;
   if (fr.f < 10 || Math.abs(fr.l - YOU_L) < 1.6) { df = -0.12; dl = side * 0.99; }
   return [CAM_FWD.x * df + CAM_RIGHT.x * dl, CAM_FWD.z * df + CAM_RIGHT.z * dl];
+}
+// going to a place (x, z) from S, starting at tr; returns how far along (stop 0..1)
+function goTo(o, p, S, x, z, tt, tr, vmax, k = 1) {
+  const dx = x - S.x, dz = z - S.z, L = Math.hypot(dx, dz);
+  if (L < 0.2) return 1;
+  const c = capped(tt, tr, 4, vmax, L);
+  moveAlong(o, p, dx / L, dz / L, c.d, c.k * k);
+  return c.stop;
+}
+// cold: hugging themselves, hunched, shivering, stamping on the spot
+function shiver(o, p, tt, k) {
+  o.armL = lerp(o.armL, 0.6, k); o.armR = lerp(o.armR, 0.55, k); o.pitch = lerp(o.pitch, 0.18, k); o.look = lerp(o.look, -0.1, k);
+  o.roll = 0.035 * Math.sin(tt * 29 + p.ph) * k;
+  if (o.stride < 0.05 && p.g2 < 0.55) { o.walk = tt * 9 + p.ph; o.stride = 0.22 * k; }
 }
 
 // ---- where each stop leaves everyone ----
@@ -146,8 +162,9 @@ let CELLS = null;
 function cellCentre(p) {
   if (!CELLS) {
     CELLS = new Map();
+    const ij = KEYS.indexOf('jupiter');
     for (const q of PEOPLE) {
-      const s = startOf(q, 3);
+      const s = startOf(q, ij);
       const c = CELLS.get(q.cell) || { x: 0, z: 0, n: 0 };
       c.x += s.x; c.z += s.z; c.n++;
       CELLS.set(q.cell, c);
@@ -156,10 +173,8 @@ function cellCentre(p) {
   }
   return CELLS.get(p.cell);
 }
-// Pluto: a white front runs up the beach from the frozen sea to you; everyone it reaches freezes in place
-export const pluFrontF = (tt) => 70 - 67 * Math.pow(clamp((tt - PLU_STATUE) / 1.5), 0.8);
-const pluFreezeT = (f) => PLU_STATUE + 1.5 * Math.pow(clamp((70 - f) / 67), 1 / 0.8);
-export { marsFrostF };
+// Pluto: when each person freezes where they stand (the near ones a little later, so you see it happen)
+const pluFreezeT = (p) => PLU_STATUE + 0.4 * p.g4 + 1.0 * clamp(1 - p.f / 40);
 
 export function personPose(p, key, tt) {
   const i = KEYS.indexOf(key);
@@ -170,102 +185,117 @@ export function personPose(p, key, tt) {
   // what the last stop left (crouched, arms up...) eases out as this one takes over
   const carry = i === 0 ? 0 : 1 - smooth(0.05 + p.d * 0.5, 0.75 + p.d * 0.5, tt);
   const keep = (field, val) => { o[field] = lerp(val, S[field], carry); };
-  if (key === 'venus') {
-    // staring at the swelling Sun: pointing, filming, a hand shading the eyes
-    o.look = 0.22 + 0.1 * p.g3;
-    if (p.g1 < 0.35) o.armR = 1.15 + 0.15 * p.g3;
-    else if (p.g1 < 0.55) o.armR = 1.3;                   // (shading their eyes)
-    const heat = smooth(VEN_HEAT + p.d * 0.5, VEN_HEAT + 0.35 + p.d * 0.5, tt);
-    o.armL = lerp(o.armL, 1.35, heat); o.armR = lerp(o.armR, p.g1 < 0.7 ? 1.3 : 0.15, heat); o.pitch = 0.2 * heat; o.look = lerp(o.look, -0.15, heat);
-    const tr = VEN_RUN + p.d * 1.3;
-    if (p.shade && tt > tr) {
-      // to the shade: straight to their place under the umbrella, then down, facing the pole
-      const L = Math.hypot(p.shade.x - p.x, p.shade.z - p.z);
-      const c = capped(tt, tr, 6, 3 + 1.6 * p.g3, L);
-      moveAlong(o, p, (p.shade.x - p.x) / L, (p.shade.z - p.z) / L, c.d, c.k);
-      o.armL = lerp(1.4, 0.35, c.stop); o.armR = lerp(p.g1 < 0.7 ? 1.3 : 0.2, 0.3, c.stop); o.pitch = lerp(0.15, 0.25, c.stop);
-      turnTo(o, p.shade.faceU, c.stop * 0.8);
-      o.sit = 0.62 * c.stop;
-    } else if (p.wade && tt > tr) {
-      const k = smooth(tr, tr + 0.5, tt);
-      o.sit = 0.75 * k; o.armL = lerp(o.armL, 0.4, k); o.armR = lerp(o.armR, 0.4, k);       // (ducking under the water)
-    } else if (tt > tr + 0.4) {
-      const k = smooth(tr + 0.4, tr + 0.9, tt);
-      o.sit = 0.6 * k; o.pitch += 0.35 * k; o.armL = lerp(o.armL, 1.55, k); o.armR = lerp(o.armR, 1.5, k);
-    }
-    return o;
-  }
-  if (key === 'mars') {
-    // up, hugging themselves, shivering and stamping
-    keep('sit', 0); keep('pitch', 0.15); keep('armL', 0.55); keep('armR', 0.55); keep('look', 0.1);
-    o.roll = 0.035 * Math.sin(tt * 29 + p.ph) * smooth(0.4, 1.0, tt);
-    if (p.g2 < 0.5) { o.walk = tt * 9 + p.ph; o.stride = 0.22 * smooth(0.6, 1.2, tt); }
-    // out of the shade, toward the thin Sun (the ones in the water wade out, up the beach)
-    const tw = MARS_HUDDLE + p.d * 1.6;
-    if (tt > tw) {
-      const len = p.wade || S.x < 0 ? 3 + 2 * p.g3 : 1.2 + 2.2 * p.g3;
-      const c = capped(tt, tw, 2, 1.1 + 0.4 * p.g1, len);
-      const dir = p.wade || S.x < 0 ? -1 : 1;
-      moveAlong(o, p, CAM_FWD.x * dir, CAM_FWD.z * dir, c.d, c.k * 0.6, 0.6);
-      o.armL = 0.55; o.armR = 0.55;
-      if (dir < 0) turnTo(o, FACE_YAW, c.stop);
-    }
-    // a few point at the frozen sea
-    if (p.g1 < 0.18) o.armR = lerp(o.armR, 1.12, smooth(4.6 + r, 5.0 + r, tt));
+  if (key === 'earth') {
+    // a normal day: standing about, a few filming the sea or pointing
+    o.look = 0.1 + 0.08 * p.g3;
+    if (p.g1 < 0.2) o.armR = 1.1 + 0.1 * p.g3;
+    o.roll = 0.01 * Math.sin(tt * 1.3 + p.ph);
     return o;
   }
   if (key === 'mercury') {
     // the blast of light: arms over faces, half of them turn their backs on it
-    const fl = smooth(0.08 + p.d * 0.3, 0.3 + p.d * 0.3, tt);
-    o.sit = lerp(S.sit, 0, fl); o.stride = 0;
-    o.armL = lerp(S.armL, 1.45, fl); o.armR = lerp(S.armR, 1.4, fl); o.pitch = lerp(S.pitch, 0.32, fl); o.look = -0.3 * fl; o.roll = 0;
-    if (p.g3 < 0.5) turnTo(o, S.yaw + Math.PI * (p.g2 < 0.5 ? 1 : -1), smooth(0.25, 0.9, tt) * 0.85);
-    // most run up the beach and dive down, arms over their heads; the rest drop where they are
-    const tr = 0.75 + p.d * 1.4;
-    if (p.g4 > 0.3 && tt > tr) {
+    const fl = smooth(MER_FLASH - 0.05 + p.d * 0.3, MER_FLASH + 0.2 + p.d * 0.3, tt);
+    o.armL = lerp(S.armL, 1.45, fl); o.armR = lerp(S.armR, 1.4, fl); o.pitch = lerp(S.pitch, 0.32, fl); o.look = -0.3 * fl;
+    if (p.g3 < 0.5) turnTo(o, S.yaw + Math.PI * (p.g2 < 0.5 ? 1 : -1), smooth(0.2, 0.8, tt) * 0.85);
+    // most run up the beach (screaming) and dive down, arms over their heads; the rest drop where they are
+    const tr = MER_RUN + p.d * 1.0;
+    let down = 0;
+    if (p.g4 > 0.25 && tt > tr) {
       const near = frameOf(S.x, S.z).f < 10;
       const [dx, dz] = runDir(p, S);
-      const c = capped(tt, tr, 7, 3.2 + 1.8 * p.g3, near ? 1.6 + 1.2 * p.g1 : 4 + 6 * p.g1);
+      const c = capped(tt, tr, 7, 3.4 + 1.8 * p.g3, near ? 1.4 + 1.0 * p.g1 : 4 + 6 * p.g1);
       moveAlong(o, p, dx, dz, c.d, Math.max(c.k, 0.001));
       o.armL = lerp(1.5, 1.55, c.stop); o.armR = lerp(p.g2 < 0.5 ? 1.45 : 0.3, 1.5, c.stop); o.pitch = 0.2 + 0.4 * c.stop;
-      if (p.g1 < 0.22) { o.pitch = lerp(o.pitch, 1.42, c.stop); o.y += 0.1 * c.stop; }        // (flat on the sand)
-      else o.sit = 0.62 * c.stop;
+      down = c.stop;
+      // halfway (the pier going up) some get up and run again, then drop again
+      const t2 = MER_RUN2 + p.d * 0.8;
+      if (p.g2 < 0.45 && tt > t2) {
+        const c2 = capped(tt, t2, 6, 3.0 + 1.2 * p.g1, near ? 1.2 : 3 + 3 * p.g3);
+        moveAlong(o, p, dx, dz, c2.d, Math.max(c2.k, 0.001));
+        down = Math.max(c2.stop, 1 - smooth(t2, t2 + 0.3, tt));
+        o.pitch = lerp(0.25, 0.6, down);
+      }
+      if (p.g1 < 0.22) { o.pitch = lerp(o.pitch, 1.42, down); o.y += 0.1 * down; }        // (flat on the sand)
+      else o.sit = 0.62 * down;
     } else {
       const k = smooth(1.0 + p.d, 1.4 + p.d, tt);
       o.sit = 0.6 * k; o.pitch += 0.3 * k; o.armL = lerp(o.armL, 1.55, k); o.armR = lerp(o.armR, 1.5, k);
     }
     return o;
   }
-  if (key === 'jupiter') {
-    // up slowly, looking up at the dot of a Sun, then hugging themselves
-    const up = smooth(0.4 + p.d, 1.6 + p.d, tt);
-    o.sit = lerp(S.sit, 0, up); o.pitch = lerp(S.pitch, 0.22, up); o.y = landY(o.x);
-    o.armL = lerp(S.armL, 0.55, up); o.armR = lerp(S.armR, p.g1 < 0.3 ? 1.1 : 0.55, up);
-    o.look = 0.45 * up * (1 - smooth(3.5, 4.5, tt)) - 0.15 * smooth(3.5, 4.5, tt);
-    o.roll = 0.03 * Math.sin(tt * 31 + p.ph) * up;
-    if (p.g1 < 0.3) o.armR = lerp(o.armR, 0.55, smooth(3.0, 3.6, tt));
-    // they bunch together in little groups (a third of the way in toward each group's middle)
-    const th = JUP_HUDDLE + 0.4 + p.d * 1.5;
-    if (tt > th) {
-      const c0 = cellCentre(p);
-      const dx = c0.x - S.x, dz = c0.z - S.z, L = Math.hypot(dx, dz);
-      if (L > 0.3) {
-        const c = capped(tt, th, 1.5, 0.9 + 0.3 * p.g3, L * 0.36);
-        moveAlong(o, p, dx / L, dz / L, c.d, c.k * 0.5, 0.55);
-        if (c.stop > 0) turnTo(o, Math.atan2(dx, dz), 0.3 * c.stop);
+  if (key === 'mars') {
+    // up off the sand, hugging themselves, shivering and stamping; then running for the trucks (the ones near them)
+    // or pulling together
+    keep('sit', 0); keep('pitch', 0.15); o.y = landY(o.x);
+    if (Math.abs(S.pitch) > 1) o.y += 0.1 * carry;
+    shiver(o, p, tt, smooth(0.3 + p.d, 0.9 + p.d, tt));
+    if (p.truck) {
+      const stop = goTo(o, p, S, p.truck.x, p.truck.z, tt, MARS_CARS + p.d * 1.6, 2.6 + 1.2 * p.g1, 0.8);
+      o.armL = 0.6; o.armR = 0.55;
+      if (stop > 0) { turnTo(o, Math.atan2(p.truck.faceX - o.x, p.truck.faceZ - o.z), stop * 0.8); o.pitch = 0.22; }
+    }
+    // a few point at the sea skinning over
+    if (p.g1 < 0.15 && !p.truck) o.armR = lerp(o.armR, 1.12, smooth(MARS_ICE + 0.6 + r, MARS_ICE + 1.0 + r, tt));
+    return o;
+  }
+  if (key === 'venus') {
+    // warm again: they uncurl, stretch, look up at the swelling Sun; then up at the cloud closing over; the hot rain:
+    // arms over heads, and half of them run a few steps
+    keep('armL', 0.1); keep('armR', 0.1); keep('pitch', 0.0);
+    o.look = lerp(S.look, 0.35 + 0.1 * p.g3, smooth(0.5 + p.d, 1.2 + p.d, tt));
+    if (p.g1 < 0.3) o.armR = lerp(o.armR, 1.3, smooth(1.3 + p.d, 1.7 + p.d, tt));               // (shading their eyes)
+    else if (p.g1 < 0.45) { const st = smooth(0.8 + p.d, 1.4 + p.d, tt) * (1 - smooth(2.6, 3.2, tt)); o.armL = lerp(o.armL, 1.55, st); o.armR = lerp(o.armR, 1.55, st); }  // (a stretch)
+    const cl = smooth(VEN_CLOUD + 0.4 + p.d, VEN_CLOUD + 1.0 + p.d, tt);
+    o.look = lerp(o.look, 0.75, cl);
+    if (p.g1 > 0.8) o.armR = lerp(o.armR, 1.12, cl);                                              // (pointing up at it)
+    const rk = smooth(VEN_RAIN + p.d * 0.5, VEN_RAIN + 0.35 + p.d * 0.5, tt);
+    o.armL = lerp(o.armL, 1.6, rk); o.armR = lerp(o.armR, 1.55, rk); o.look = lerp(o.look, -0.2, rk); o.pitch = lerp(o.pitch, 0.25, rk);
+    if (p.g4 > 0.5) {
+      const tr = VEN_RAIN + 0.2 + p.d;
+      if (tt > tr) {
+        const [dx, dz] = runDir(p, S);
+        const c = capped(tt, tr, 5, 2.6 + p.g3, frameOf(S.x, S.z).f < 10 ? 1.0 : 2.5 + 2 * p.g1);
+        moveAlong(o, p, dx, dz, c.d, Math.max(c.k, 0.001));
       }
     }
     return o;
   }
+  if (key === 'jupiter') {
+    // cold again, worse: hugging themselves, shivering; to the trucks or into little huddles; they look up when the
+    // cloud breaks
+    keep('armL', 0.6); keep('armR', 0.55); o.y = landY(o.x);
+    shiver(o, p, tt, smooth(0.2 + p.d, 0.7 + p.d, tt));
+    o.pitch = Math.max(o.pitch, 0.22 * smooth(0.2, 0.8, tt));
+    if (p.truck) {
+      const stop = goTo(o, p, S, p.truck.x, p.truck.z, tt, 0.6 + p.d, 2.8 + p.g1);
+      if (stop > 0) turnTo(o, Math.atan2(p.truck.faceX - o.x, p.truck.faceZ - o.z), stop * 0.8);
+    } else {
+      const th = JUP_HUDDLE + p.d * 1.5;
+      if (tt > th) {
+        const c0 = cellCentre(p);
+        const dx = c0.x - S.x, dz = c0.z - S.z, L = Math.hypot(dx, dz);
+        if (L > 0.3) {
+          const c = capped(tt, th, 1.5, 1.0 + 0.3 * p.g3, L * 0.4);
+          moveAlong(o, p, dx / L, dz / L, c.d, c.k * 0.6, 0.55);
+          if (c.stop > 0) turnTo(o, Math.atan2(dx, dz), 0.3 * c.stop);
+        }
+      }
+    }
+    const lk = smooth(JUP_CLEAR + 0.6 + p.d, JUP_CLEAR + 1.2 + p.d, tt) * (1 - smooth(JUP_CLEAR + 3.0, JUP_CLEAR + 3.6, tt));
+    o.look = lerp(o.look, 0.6, lk);
+    if (p.g1 < 0.2) o.armR = lerp(o.armR, 1.1, lk);
+    return o;
+  }
   if (key === 'pluto') {
-    // they freeze where the white front reaches them: everything is held from that moment
-    const t = Math.min(tt, pluFreezeT(frameOf(S.x, S.z).f));
-    keep('sit', 0); keep('pitch', 0.12); keep('armL', 0.55); keep('armR', 0.55);
+    // they look up at the black sky; arms over heads or a hand out as the liquid air rains down; the frost grows over
+    // them; then they freeze where they stand
+    const t = Math.min(tt, pluFreezeT(p));
     o.look = lerp(S.look, 0.85, smooth(0.2 + p.d, 0.8 + p.d, t));
     o.roll = 0.03 * Math.sin(t * 31 + p.ph) * (1 - carry);
+    if (o.stride > 0.05) o.stride *= 1 - smooth(0, 0.5, t);
     const rk = smooth(PLU_RAIN + 0.3 + p.d, PLU_RAIN + 0.8 + p.d, t);
-    if (p.g1 < 0.55) { o.armL = lerp(o.armL, 1.6, rk); o.armR = lerp(o.armR, 1.55, rk); o.look = lerp(o.look, 0.3, rk); }
-    else if (p.g1 < 0.75) o.armR = lerp(o.armR, 0.85, rk);
+    if (p.g1 < 0.5) { o.armL = lerp(o.armL, 1.6, rk); o.armR = lerp(o.armR, 1.55, rk); o.look = lerp(o.look, 0.3, rk); }
+    else if (p.g1 < 0.72) o.armR = lerp(o.armR, 0.9, rk);
     return o;
   }
   return o;

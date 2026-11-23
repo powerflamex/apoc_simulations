@@ -2,11 +2,11 @@
 // uScorch browns the chair's cloth (Venus), uDust coats the tops red (Mars), uFrost grows white rime (Pluto),
 // uMelt slumps the chair's plastic (Mercury; only materials patched with melt = true), uWet darkens nothing yet.
 export const FX = {
-  uFrost: { value: 0 }, uDust: { value: 0 }, uScorch: { value: 0 }, uMelt: { value: 0 }, uHeat: { value: 0 }, uBurn: { value: 0 },
+  uFrost: { value: 0 }, uFxTop: { value: 3 }, uDust: { value: 0 }, uScorch: { value: 0 }, uMelt: { value: 0 }, uHeat: { value: 0 }, uBurn: { value: 0 },
 };
 
 const GLSL = /* glsl */ `
-uniform float uFrost; uniform float uDust; uniform float uScorch; uniform float uMelt; uniform float uHeat; uniform float uBurn;
+uniform float uFrost; uniform float uFxTop; uniform float uDust; uniform float uScorch; uniform float uMelt; uniform float uHeat; uniform float uBurn;
 varying vec3 vFxN; varying vec3 vFxW;
 float fxh(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float fxn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -17,7 +17,12 @@ vec3 applyFX(vec3 c, float scorchable) {
   float n = fxn(vFxW * 38.0) * 0.6 + fxn(vFxW * 140.0) * 0.4;
   c = mix(c, c * vec3(0.22, 0.13, 0.07), scorchable * smoothstep(0.25, 0.75, n * 0.8 + uScorch * 1.1 - 0.45) * step(0.001, uScorch));
   c = mix(c, vec3(0.6, 0.27, 0.12), uDust * smoothstep(0.15, 0.85, up + 0.4 * n - 0.15));
-  c = mix(c, vec3(0.88, 0.94, 1.0), smoothstep(0.0, 0.35, up * 0.5 + n * 0.5 + uFrost * 1.2 - 0.95));
+  // frost: an even white dusting that starts on the hair and shoulders and works down as uFrost grows (no blotches)
+  float yf = uFxTop - vFxW.y;
+  float reach = uFrost * 2.1;
+  float fk = smoothstep(reach + 0.02, reach - 0.3, yf) * step(0.001, uFrost);
+  float grain = fxn(vFxW * 220.0);
+  c = mix(c, vec3(0.86, 0.91, 0.98), fk * (0.5 + 0.32 * up + 0.12 * grain) * min(1.0, 0.45 + uFrost));
   return c;
 }
 `;

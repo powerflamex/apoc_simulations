@@ -18,12 +18,13 @@ export const H = {
   uFrostF: { value: -1e5 },     // a frost front: only things more than uFrostF metres ahead of the camera are frosted yet
   uCamXZ: { value: new THREE.Vector2() }, uFwdXZ: { value: new THREE.Vector2(-1, 0) },
   uFrostAll: { value: 0 },      // 0: rime on the tops .. 1: frozen white all over (statues)
+  uPplFrost: { value: 0 },      // people only (patched with people: true): frost growing from the tops down, 0 .. 1
 };
 
 export const HEAT_GLSL = /* glsl */ `
 uniform vec3 uSunW; uniform float uTK; uniform float uAmbK; uniform float uGlowGain; uniform float uCharK; uniform float uFrost;
 uniform float uTKP; uniform float uAmbKP; uniform float uDust; uniform float uWetK;
-uniform float uFrostF; uniform vec2 uCamXZ; uniform vec2 uFwdXZ; uniform float uFrostAll;
+uniform float uFrostF; uniform vec2 uCamXZ; uniform vec2 uFwdXZ; uniform float uFrostAll; uniform float uPplFrost;
 float h3f(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 float n3f(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h3f(i), h3f(i + vec2(1, 0)), f.x), mix(h3f(i + vec2(0, 1)), h3f(i + vec2(1, 1)), f.x), f.y); }
@@ -31,7 +32,15 @@ float n3f(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
 float frostFront(vec3 p) { float f = dot(p.xz - uCamXZ, uFwdXZ); float rag = 2.5 * (n3f(p.xz * 0.15) - 0.5); return smoothstep(uFrostF - 0.6, uFrostF + 0.6, f + rag); }
 vec3 dusted(vec3 c, vec3 n) { return mix(c, vec3(0.6, 0.3, 0.16), uDust * (0.35 + 0.6 * clamp(n.y, 0.0, 1.0))) * (1.0 - 0.32 * uWetK); }
 // rime: white-blue, thickest on surfaces facing up
-vec3 frosted(vec3 c, vec3 n, vec3 p) { return mix(c, vec3(0.86, 0.92, 0.99), uFrost * frostFront(p) * mix(0.3 + 0.55 * clamp(n.y, 0.0, 1.0), 0.94, uFrostAll)); }
+vec3 frosted(vec3 c, vec3 n, vec3 p) { return mix(c, vec3(0.86, 0.92, 0.99), uFrost * frostFront(p) * mix(0.3 + 0.55 * clamp(n.y, 0.0, 1.0), 0.9, uFrostAll)); }
+// people: rime that grows from the tops (heads, shoulders, arms) down the sides over a few seconds, keeping a hint of
+// their colours and all of their shading
+vec3 pplFrosted(vec3 c, vec3 n, vec3 p) {
+  float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
+  float a = uPplFrost * 1.7 - (1.0 - up) * 1.05 + 0.3 * (n3f(p.xz * 9.0 + p.y * 7.0) - 0.5) * (1.0 - uPplFrost);
+  float k = smoothstep(0.0, 0.3, a) * step(0.001, uPplFrost);
+  return mix(c, vec3(0.84, 0.9, 0.98), k * mix(0.55, 0.84, uPplFrost));
+}
 // blackbody colour (normalised) for T in K (fit to the Planck locus, 800 K - 12,000 K)
 vec3 bbCol(float T) {
   float t = T / 100.0;
@@ -61,7 +70,7 @@ float surfTP(vec3 n, float k) {
 
 // patch a MeshStandardMaterial: char + glow. opts.charCol: what it burns to; opts.burnK: how readily it chars
 // (wood/plastic 1, stone/glass 0.4, metal 0.6); opts.glow: glow multiplier
-export function patchHeat(mat, key, { charCol = new THREE.Color(0.05, 0.04, 0.035), burnK = 1, glow = 1, prev = null } = {}) {
+export function patchHeat(mat, key, { charCol = new THREE.Color(0.05, 0.04, 0.035), burnK = 1, glow = 1, prev = null, people = false } = {}) {
   const old = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader, r) => {
     if (prev) prev(shader, r);
@@ -90,9 +99,8 @@ export function patchHeat(mat, key, { charCol = new THREE.Color(0.05, 0.04, 0.03
           float Ts = surfT(normalize(vHeatN), 1.0);
           float ch = smoothstep(560.0, ${(900 / burnK).toFixed(1)}, surfTP(normalize(vHeatN), 1.0)) * uCharK;
           diffuseColor.rgb = mix(diffuseColor.rgb, uCharCol, ch);
-          diffuseColor.rgb = frosted(dusted(diffuseColor.rgb, normalize(vHeatN)), normalize(vHeatN), vHeatP);
+          ${people ? 'diffuseColor.rgb = pplFrosted(dusted(diffuseColor.rgb, normalize(vHeatN)), normalize(vHeatN), vHeatP);' : 'diffuseColor.rgb = frosted(dusted(diffuseColor.rgb, normalize(vHeatN)), normalize(vHeatN), vHeatP);'}
           totalEmissiveRadiance += heatGlow(Ts) * uGlowGain * ${glow.toFixed(2)};
-          totalEmissiveRadiance += vec3(0.8, 0.86, 0.95) * 0.1 * uFrost * uFrostAll * frostFront(vHeatP);
         }`);
   };
   mat.customProgramCacheKey = () => `heat-${key}`;

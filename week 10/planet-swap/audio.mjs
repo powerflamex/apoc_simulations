@@ -1,17 +1,19 @@
 // Procedural soundtrack, synced to the same timeline as the picture.
 //   node audio.mjs            -> out/soundtrack.wav
 // An action-weather topic, so the sound is the weather itself (a wind / roar bed, no music), changing at each wipe:
-//   Venus: a hot wind rising, the crowd yelling and the owner's scream (sfx/scream.mp3) in the first second, a deep
-//     whoomp as the heat hits, the sea hissing, then a roar and a boom as the steam wall towers up.
-//   Mars: a thin cold whistle; the sea's new ice cracking and creaking; a crackling sweep as the frost races up the
-//     beach to you; tiny glassy tinkles as the ice crystals glitter down.
-//   Mercury: a huge boom and roar as the Sun balloons, the owner's "nooo"; the ice flashing to steam with a great hiss;
-//     the sea boiling and bubbling, a roar of steam off the bay; fires crackling, whooshes as the umbrellas go up.
-//   Jupiter: everything drops away (a gasp); the fires hiss out; the freeze front groans and cracks in across the sea
-//     to a boom at the shore; a low cold drone, the hush of falling snow.
+//   Earth: a normal beach for a second (surf, a breeze, people chatting).
+//   Mercury: a huge boom and roar as the Sun balloons, the owner's scream (sfx/scream.mp3); the crowd yelling as they
+//     run; fires crackling, whooshes as the umbrellas go up; the sea boiling and bubbling; a roar and a boom as the
+//     pier goes up (the owner's "nooo"); the trucks' tyres going up; steam roaring off the bay.
+//   Mars: the fires hiss out; a thin cold whistle; a crackling sweep as the frost races up the beach to you; feet
+//     stamping; the sea's new ice cracking and creaking; tiny glassy tinkles as the ice crystals glitter down.
+//   Venus: a warm wind rising; the ice dripping; a roar and a boom as the steam towers up off the bay; a long rumble
+//     of thunder as the cloud closes; then the hot rain pouring.
+//   Jupiter: everything drops away (a gasp); the rain stops dead; the freeze front groans and cracks in across the sea
+//     to a boom at the shore; a low cold drone, the hush of falling snow; a gust as the cloud breaks.
 //   Pluto: thin and eerie (the air is going); "oh my god" as the sky goes black; the liquid air pattering down; a
-//     crackling front as everyone freezes; the snow hissing down, then a deep muffled rush as it piles over the lens.
-// Every wipe: a whoosh and a deep hit; the picker clicks as its cursor locks on.
+//     crackling as everyone freezes; the snow hissing down, then a deep muffled rush as it piles over the lens.
+// Every wipe: a whoosh and a deep hit; a click as Earth's marker locks into its new slot.
 // The loop: the whole track is made in one run that starts before frame 0; under the white at the end it fades over
 // into the moments just before frame 0, so the last sample runs straight into the first.
 import fs from 'node:fs';
@@ -19,8 +21,9 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VIDEO_DURATION, T_SWITCH, LOOP, STOPS, LAND, T_END } from './src/timeline.js';
-import { VEN_HEAT, VEN_STEAM, venSteam, MARS_ICE, MARS_FROST, MARS_DUST, MER_FLASH, MER_BOIL, MER_WALL, MER_FIRE, MER_UMB, MER_HUT,
-  JUP_OUT, JUP_FZ0, JUP_FZDUR, JUP_SNOW, PLU_RAIN, PLU_FREEZE, PLU_STATUE, snowDepth } from './src/sched.js';
+import { MER_FLASH, MER_FIRE, MER_UMB, MER_RUN, MER_BOIL, MER_PIER, MER_RUN2, MER_TRUCK, MER_WALL,
+  MARS_OUT, MARS_FROST, MARS_ICE, MARS_DUST, VEN_THAW, VEN_STEAM, VEN_CLOUD, VEN_RAIN,
+  JUP_SNOW, JUP_FZ0, JUP_FZDUR, JUP_CLEAR, PLU_RAIN, PLU_FREEZE, PLU_STATUE, snowDepth, snowFar } from './src/sched.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -50,15 +53,16 @@ export function makeSoundtrack(outFile) {
   const gainOf = (k, v) => smooth(lands[k] - 0.02, lands[k] + 0.22, v) * (k + 1 < lands.length ? 1 - smooth(lands[k + 1] - 0.02, lands[k + 1] + 0.22, v) : 1) + (k === 0 && v < lands[0] ? 1 : 0);
   // random event lists (deterministic)
   const evts = (t0, t1, rate, rr) => { const o = []; let t = t0; while (t < t1) { t += -Math.log(1 - rr() * 0.999) / rate; if (t < t1) o.push([t, rr(), rr()]); } return o; };
-  const iceCracks = evts(LAND.mars + MARS_ICE + 0.2, LAND.mercury, 9, rng(9));
-  const frostTinks = [...evts(LAND.mars + MARS_FROST, LAND.mars + MARS_FROST + 1.4, 55, rng(5)), ...evts(LAND.mars + MARS_FROST + 1.4, LAND.mercury, 6, rng(15))];
-  const dustTinks = evts(LAND.mars + MARS_DUST - 0.4, LAND.mercury, 18, rng(25));
-  const bubbles = evts(LAND.mercury + MER_BOIL, LAND.jupiter, 30, rng(6));
-  const crackles = evts(LAND.mercury + MER_FIRE - 0.4, LAND.jupiter + JUP_OUT + 0.6, 45, rng(7));
-  const umbWhoosh = [0, 0.7, 1.3, 2.1, 2.9].map((d, j) => [LAND.mercury + MER_UMB + d, j]);
+  const bubbles = evts(LAND.mercury + MER_BOIL, LAND.mars + 0.8, 34, rng(6));
+  const crackles = evts(LAND.mercury + MER_FIRE - 0.3, LAND.mars + MARS_OUT + 1.4, 55, rng(7));
+  const umbWhoosh = [0, 0.5, 0.9, 1.4, 2.0].map((d, j) => [LAND.mercury + MER_UMB + d, j]);
+  const iceCracks = evts(LAND.mars + MARS_ICE + 0.1, LAND.venus + 1.5, 9, rng(9));
+  const frostTinks = [...evts(LAND.mars + MARS_FROST, LAND.mars + MARS_FROST + 1.4, 55, rng(5)), ...evts(LAND.mars + MARS_FROST + 1.4, LAND.venus, 6, rng(15))];
+  const dustTinks = evts(LAND.mars + MARS_DUST - 0.4, LAND.venus, 18, rng(25));
+  const drips = evts(LAND.venus + VEN_THAW + 0.3, LAND.venus + VEN_STEAM + 1.0, 14, rng(41));
   const jupCracks = evts(LAND.jupiter + JUP_FZ0 + 0.2, LAND.jupiter + JUP_FZ0 + JUP_FZDUR + 0.5, 20, rng(19));
   const plinks = evts(LAND.pluto + PLU_RAIN + 0.2, LAND.pluto + PLU_FREEZE + 0.6, 40, rng(29));
-  const pluCracks = evts(LAND.pluto + PLU_STATUE, LAND.pluto + PLU_STATUE + 1.6, 40, rng(39));
+  const pluCracks = evts(LAND.pluto + PLU_STATUE, LAND.pluto + PLU_STATUE + 1.8, 40, rng(39));
   const wipes = lands.slice(1);
 
   // every call site gets its own filter (a filter run twice in one sample would run at double speed)
@@ -69,94 +73,116 @@ export function makeSoundtrack(outFile) {
     const v = T0 + n / SR;
     const w1 = R0() * 2 - 1, w2 = R1() * 2 - 1, w3 = R2() * 2 - 1, w4 = R3() * 2 - 1;
     let l = 0, r = 0;
-    // ===================== Venus =====================
-    const gV = gainOf(0, v);
-    if (gV > 0.001) {
-      const tt = v - LAND.venus;
-      const hk = smooth(0.0, 2.6, tt);
-      const wind = flt('vWind', 'SVF').run(w1, 380 + 300 * hk + 80 * Math.sin(tt * 1.3), 0.7).bp * (0.55 + 0.6 * hk) + flt('vLow', 'SVF').run(w2, 90, 0.7).lp * 1.8;
-      // the crowd yelling, loudest as the heat hits and they run
-      const yell = (flt('vy1', 'SVF').run(w3, 760, 0.45).bp * 0.5 + flt('vy2', 'SVF').run(w4, 1200, 0.4).bp * 0.35 + flt('vy3', 'SVF').run(w1, 2500, 0.5).bp * 0.16)
-        * (0.8 + 0.2 * Math.sin(TAU * 2.7 * v) * Math.sin(TAU * 0.9 * v)) * (0.35 + 0.65 * env(tt - VEN_HEAT, 0.3, 2.2)) * 1.1;
-      const whoomp = boom(tt - VEN_HEAT, 40, 32, 6, 0.03, 0.55) * 0.9 + flt('vWh', 'SVF').run(w2, 200, 0.7).lp * env(tt - VEN_HEAT, 0.04, 0.4) * 2.0;
-      const sk = venSteam(tt);
-      const hiss = flt('vHiss', 'SVF').run(w3, 2200, 0.9).bp * 0.24 * sk * (0.8 + 0.2 * Math.sin(tt * 11));
-      const se = tt - VEN_STEAM;
-      const sRoar = flt('vSR', 'SVF').run(w4, 800 + 1200 * smooth(0, 2, se), 0.6).bp * smooth(-0.2, 0.6, se) * 0.6 + flt('vSL', 'SVF').run(w1, 150, 0.7).lp * smooth(-0.2, 0.5, se) * 1.5;
-      const sBoom = boom(se, 36, 30, 5, 0.03, 0.8) * 0.75;
-      l += gV * (wind + yell + whoomp + hiss + sRoar + sBoom); r += gV * (wind * 0.95 + yell * 0.96 + whoomp + hiss * 0.92 + sRoar * 0.95 + sBoom);
+    // ===================== Earth: a normal beach (surf, a breeze, people chatting) =====================
+    const gE = gainOf(0, v);
+    if (gE > 0.001) {
+      const surf = flt('eSurf', 'SVF').run(w1, 500, 0.8).lp * (0.5 + 0.35 * Math.sin(TAU * 0.13 * v)) * 0.9 + flt('eLow', 'SVF').run(w2, 90, 0.7).lp * 0.9;
+      const chat = (flt('eC1', 'SVF').run(w3, 700, 0.5).bp * 0.25 + flt('eC2', 'SVF').run(w4, 1300, 0.5).bp * 0.12) * (0.7 + 0.3 * Math.sin(TAU * 1.9 * v) * Math.sin(TAU * 0.7 * v));
+      l += gE * (surf + chat); r += gE * (surf * 0.95 + chat * 0.9);
+    }
+    // ===================== Mercury =====================
+    const gR = gainOf(1, v);
+    if (gR > 0.001) {
+      const tt = v - LAND.mercury;
+      // the blast as the Sun balloons: a huge low boom and a roar of heat that stays
+      const bt = tt - MER_FLASH + 0.1;
+      const blast = boom(bt, 30, 45, 4, 0.02, 1.1) * 1.3 + flt('rBl', 'SVF').run(w1, 300 + 1200 * env(bt, 0.05, 0.4), 0.6).lp * env(bt, 0.03, 0.9) * 2.2;
+      const roar = flt('rRoar', 'SVF').run(w2, 420 + 120 * Math.sin(tt * 1.7), 0.6).lp * (0.6 + 0.4 * smooth(0, 2, tt)) + flt('rSub', 'SVF').run(w3, 60, 0.7).lp * 1.4;
+      // the crowd yelling as they run, again when the pier goes up
+      const yell = (flt('ry1', 'SVF').run(w3, 760, 0.45).bp * 0.5 + flt('ry2', 'SVF').run(w4, 1200, 0.4).bp * 0.35 + flt('ry3', 'SVF').run(w1, 2200, 0.5).bp * 0.12)
+        * (0.8 + 0.2 * Math.sin(TAU * 2.7 * v) * Math.sin(TAU * 0.9 * v)) * (0.25 + 0.75 * env(tt - MER_RUN, 0.3, 2.0) + 0.6 * env(tt - MER_RUN2, 0.3, 1.6)) * 1.0;
+      // boiling: a bubbling bed and bursts
+      let bub = 0;
+      for (const [t, a, b] of bubbles) { const d = v - t; if (d >= 0 && d < 0.12) bub += Math.sin(TAU * (90 + 160 * a) * (1 + 2 * d) * d) * env(d, 0.004, 0.035) * 0.16 * (0.5 + b); }
+      const boilBed = flt('rBoil', 'SVF').run(w2, 600, 0.9).bp * 0.28 * smooth(MER_BOIL, MER_BOIL + 1.0, tt);
+      // the steam off the bay
+      const se = tt - MER_WALL;
+      const sRoar = flt('rSR', 'SVF').run(w3, 700 + 900 * smooth(0, 2.5, se), 0.6).bp * smooth(-0.3, 0.8, se) * 0.5 + flt('rSL', 'SVF').run(w4, 140, 0.7).lp * smooth(-0.3, 0.6, se) * 1.4;
+      // fire: crackles (soft, low-passed), a roaring bed, and whooshes as things go up (the umbrellas, the pier, the trucks)
+      let cr = 0;
+      for (const [t, a] of crackles) { const d = v - t; if (d >= 0 && d < 0.03) cr += (R2() * 2 - 1) * env(d, 0.003, 0.006) * (0.1 + 0.3 * a); }
+      const fireK = smooth(MER_FIRE - 0.3, MER_FIRE + 1.5, tt);
+      const crS = flt('rCr', 'SVF').run(cr, 2400, 0.8).lp * 1.1 * fireK + flt('rFire', 'SVF').run(w1, 240, 0.7).lp * 1.5 * fireK;
+      let wh = 0;
+      for (const [t, j] of umbWhoosh) { const d = v - t; if (d > -0.05 && d < 1.5) wh += flt('rWh' + j, 'SVF').run(w2, 300 + 900 * env(d, 0.15, 0.4), 0.6).lp * env(d, 0.12, 0.45) * 1.3; }
+      const pr = tt - MER_PIER;
+      wh += flt('rPier', 'SVF').run(w3, 200 + 700 * env(pr, 0.2, 0.6), 0.6).lp * env(pr, 0.2, 0.9) * 2.0 + boom(pr, 34, 26, 4, 0.02, 0.9) * 0.6;
+      const tr = tt - MER_TRUCK;
+      wh += flt('rTruck', 'SVF').run(w4, 250 + 900 * env(tr, 0.12, 0.4), 0.6).lp * env(tr, 0.1, 0.7) * 2.2 + boom(tr, 40, 40, 6, 0.01, 0.6) * 0.8;
+      l += gR * (blast + roar + yell + bub + boilBed + sRoar + crS + wh); r += gR * (blast + roar * 0.95 + yell * 0.96 + bub * 0.8 + boilBed + sRoar * 0.95 + crS * 1.1 + wh * 0.9);
     }
     // ===================== Mars =====================
-    const gM = gainOf(1, v);
+    const gM = gainOf(2, v);
     if (gM > 0.001) {
       const tt = v - LAND.mars;
       const cold = flt('mWh', 'SVF').run(w1, 950 + 90 * Math.sin(tt * 0.7), 0.06).bp * 0.2 + flt('mWh2', 'SVF').run(w2, 1520 + 120 * Math.sin(tt * 0.5 + 1), 0.07).bp * 0.1;
       const air = flt('mAir', 'SVF').run(w3, 260, 0.8).lp * 0.55 + flt('mSub', 'SVF').run(w4, 70, 0.7).lp * 1.2;
+      // the fires and the boiling hiss out
+      const out = flt('mOut', 'SVF').run(w3, 1700, 0.8).bp * env(tt - MARS_OUT, 0.1, 0.9) * 0.35;
       // the sea's new ice: cracks (a sharp-ish tick with a low thump under it) and a slow creak
       let ic = 0;
       for (const [t, a] of iceCracks) { const d = v - t; if (d >= 0 && d < 0.4) ic += (w4 * env(d, 0.003, 0.025 + 0.04 * a) * 0.3 + Math.sin(TAU * (80 + 70 * a) * d) * env(d, 0.004, 0.16) * 0.3); }
       const icS = flt('mIc', 'SVF').run(ic, 1600, 0.7).lp;
       const creak = flt('mCreak', 'SVF').run(w2, 180 + 60 * Math.sin(tt * 1.1), 0.08).bp * 0.12 * smooth(MARS_ICE, MARS_ICE + 1, tt) * (0.5 + 0.5 * Math.sin(tt * 1.9));
+      const iceBoom = boom(tt - MARS_ICE, 44, 26, 5, 0.01, 0.5) * 0.5;
       // the frost racing up the beach: a rushing crackle sweeping toward you
       const fs2 = tt - MARS_FROST;
       const sweep = flt('mSweep', 'SVF').run(w1, 2400 + 2000 * clamp(fs2 / 1.3), 0.7).bp * (fs2 > 0 ? env(fs2, 0.9, 0.5) : 0) * 0.5;
       const reach = boom(tt - MARS_FROST - 1.2, 50, 30, 7, 0.01, 0.3) * 0.45;
+      // feet stamping on the frozen sand
+      let stamp = 0;
+      { const ph = (tt * 3.0) % 1; stamp = Math.sin(TAU * 70 * ph) * env(ph, 0.004, 0.04) * 0.12 * smooth(0.8, 1.6, tt); }
       let tk = 0;
       for (const [t, a, b] of frostTinks) { const d = v - t; if (d >= 0 && d < 0.3) tk += Math.sin(TAU * (2400 + 2200 * a) * d) * env(d, 0.002, 0.06) * (0.03 + 0.03 * b); }
       for (const [t, a, b] of dustTinks) { const d = v - t; if (d >= 0 && d < 0.5) tk += Math.sin(TAU * (3600 + 3000 * a) * d) * env(d, 0.003, 0.12) * (0.015 + 0.02 * b); }
-      l += gM * (cold + air + icS + creak + sweep + reach + tk); r += gM * (cold * 0.85 + air + icS * 0.9 + creak * 0.9 + sweep * 0.9 + reach + tk * 0.8);
+      l += gM * (cold + air + out + icS + creak + iceBoom + sweep + reach + stamp + tk); r += gM * (cold * 0.85 + air + out * 0.9 + icS * 0.9 + creak * 0.9 + iceBoom + sweep * 0.9 + reach + stamp * 0.9 + tk * 0.8);
     }
-    // ===================== Mercury =====================
-    const gR = gainOf(2, v);
-    if (gR > 0.001) {
-      const tt = v - LAND.mercury;
-      // the blast as the Sun balloons: a huge low boom and a roar that stays
-      const blast = boom(tt, 30, 45, 4, 0.02, 1.1) * 1.3 + flt('rBl', 'SVF').run(w1, 300 + 1200 * env(tt, 0.05, 0.4), 0.6).lp * env(tt, 0.03, 0.9) * 2.2;
-      const roar = flt('rRoar', 'SVF').run(w2, 420 + 120 * Math.sin(tt * 1.7), 0.6).lp * (0.7 + 0.5 * smooth(0, 2, tt)) + flt('rSub', 'SVF').run(w3, 60, 0.7).lp * 1.6;
-      // the ice flashing to steam: a great hiss
-      const fl = tt - MER_FLASH;
-      const fsh = flt('rFsh', 'SVF').run(w4, 1500 + 1200 * clamp(fl / 0.3), 0.7).bp * env(fl, 0.08, 1.2) * 0.9 + flt('rFsh2', 'SVF').run(w1, 3200, 0.8).bp * env(fl, 0.06, 0.6) * 0.15;
-      // boiling
-      let bub = 0;
-      for (const [t, a, b] of bubbles) { const d = v - t; if (d >= 0 && d < 0.12) bub += Math.sin(TAU * (90 + 160 * a) * (1 + 2 * d) * d) * env(d, 0.004, 0.035) * 0.15 * (0.5 + b); }
-      const boilBed = flt('rBoil', 'SVF').run(w2, 600, 0.9).bp * 0.25 * smooth(MER_BOIL, MER_BOIL + 1.2, tt);
-      // the steam wall
-      const se = tt - MER_WALL;
-      const sRoar = flt('rSR', 'SVF').run(w3, 700 + 1400 * smooth(0, 2.5, se), 0.6).bp * smooth(-0.3, 0.8, se) * 0.7 + flt('rSL', 'SVF').run(w4, 140, 0.7).lp * smooth(-0.3, 0.6, se) * 1.8;
-      const sBoom = boom(se, 34, 30, 5, 0.03, 0.9) * 0.85;
-      // fire: crackles (soft, low-passed) and whooshes as things go up
-      let cr = 0;
-      for (const [t, a] of crackles) { const d = v - t; if (d >= 0 && d < 0.03) cr += (R2() * 2 - 1) * env(d, 0.003, 0.006) * (0.1 + 0.3 * a); }
-      const fireK = smooth(MER_FIRE - 0.5, MER_FIRE + 2.5, tt);
-      const crS = flt('rCr', 'SVF').run(cr, 2400, 0.8).lp * 1.1 * fireK + flt('rFire', 'SVF').run(w1, 240, 0.7).lp * 1.4 * fireK;
-      let wh = 0;
-      for (const [t, j] of umbWhoosh) { const d = v - t; if (d > -0.05 && d < 1.5) wh += flt('rWh' + j, 'SVF').run(w2, 300 + 900 * env(d, 0.15, 0.4), 0.6).lp * env(d, 0.12, 0.45) * 1.4; }
-      const hut = tt - MER_HUT;
-      wh += flt('rHut', 'SVF').run(w3, 250 + 800 * env(hut, 0.2, 0.5), 0.6).lp * env(hut, 0.18, 0.7) * 1.8;
-      l += gR * (blast + roar + fsh + bub + boilBed + sRoar + sBoom + crS + wh); r += gR * (blast + roar * 0.95 + fsh * 0.95 + bub * 0.8 + boilBed + sRoar * 0.95 + sBoom + crS * 1.1 + wh * 0.9);
+    // ===================== Venus =====================
+    const gV = gainOf(3, v);
+    if (gV > 0.001) {
+      const tt = v - LAND.venus;
+      const hk = smooth(0.0, 2.6, tt);
+      const wind = flt('vWind', 'SVF').run(w1, 380 + 300 * hk + 80 * Math.sin(tt * 1.3), 0.7).bp * (0.45 + 0.5 * hk) + flt('vLow', 'SVF').run(w2, 90, 0.7).lp * 1.6;
+      // the ice melting: drips and trickles
+      let dr = 0;
+      for (const [t, a, b] of drips) { const d = v - t; if (d >= 0 && d < 0.15) dr += Math.sin(TAU * (600 + 900 * a) * (1 + 3 * d) * d) * env(d, 0.003, 0.04) * (0.04 + 0.04 * b); }
+      // the steam roaring up off the bay, a boom as it towers
+      const se = tt - VEN_STEAM;
+      const sRoar = flt('vSR', 'SVF').run(w4, 800 + 1100 * smooth(0, 2, se), 0.6).bp * smooth(-0.2, 0.6, se) * 0.55 + flt('vSL', 'SVF').run(w1, 150, 0.7).lp * smooth(-0.2, 0.5, se) * 1.5;
+      const sBoom = boom(se, 36, 30, 5, 0.03, 0.8) * 0.7;
+      // the cloud closing: a long rolling rumble of thunder
+      const ct = tt - VEN_CLOUD - 1.2;
+      const thunder = flt('vTh', 'SVF').run(w2, 70 + 60 * env(ct, 0.3, 1.0), 0.7).lp * env(ct, 0.25, 1.4) * 4.0 + boom(ct, 30, 22, 3, 0.05, 1.2) * 0.6;
+      // the hot rain: a heavy hiss, and a sizzle where it lands
+      const rk = smooth(VEN_RAIN - 0.2, VEN_RAIN + 0.4, tt);
+      const rainS = flt('vRain', 'SVF').run(w3, 1500, 0.5).bp * 0.4 * rk + flt('vRainL', 'SVF').run(w4, 400, 0.6).lp * 0.5 * rk;
+      l += gV * (wind + dr + sRoar + sBoom + thunder + rainS); r += gV * (wind * 0.95 + dr * 0.8 + sRoar * 0.95 + sBoom + thunder + rainS * 0.95);
     }
     // ===================== Jupiter =====================
-    const gJ = gainOf(3, v);
+    const gJ = gainOf(4, v);
     if (gJ > 0.001) {
       const tt = v - LAND.jupiter;
       ph1 += 55 / SR; ph2 += 82.4 / SR;
-      const drone = (Math.sin(TAU * ph1) * 0.14 + Math.sin(TAU * ph2) * 0.08) * smooth(0, 1.2, tt) + flt('jWind2', 'SVF').run(w4, 420 + 120 * Math.sin(tt * 0.8), 0.5).bp * 0.35 * smooth(3, 5, tt);
+      const drone = (Math.sin(TAU * ph1) * 0.14 + Math.sin(TAU * ph2) * 0.08) * smooth(0, 1.2, tt) + flt('jWind2', 'SVF').run(w4, 420 + 120 * Math.sin(tt * 0.8), 0.5).bp * 0.35 * smooth(0.5, 2, tt);
       const air = flt('jAir', 'SVF').run(w1, 240, 0.8).lp * 0.5 + flt('jWh', 'SVF').run(w2, 700 + 60 * Math.sin(tt * 0.6), 0.08).bp * 0.08;
-      // the fires and the boiling hiss out
-      const out = flt('jOut', 'SVF').run(w3, 1900, 0.8).bp * env(tt, 0.08, JUP_OUT * 1.2) * 0.35;
+      // the rain stops dead (it is snow now)
+      const rainOut = (flt('jRain', 'SVF').run(w3, 1500, 0.5).bp * 0.4) * (1 - smooth(0.0, JUP_SNOW + 0.3, tt));
       // the freeze front cracking in across the sea, a boom where it hits the shore
       const nearK = 0.3 + 0.7 * smooth(JUP_FZ0, JUP_FZ0 + JUP_FZDUR, tt);
       let ic = 0;
       for (const [t, a] of jupCracks) { const d = v - t; if (d >= 0 && d < 0.4) ic += (w4 * env(d, 0.003, 0.03 + 0.05 * a) * 0.32 + Math.sin(TAU * (90 + 60 * a) * d) * env(d, 0.004, 0.18) * 0.26) * nearK; }
       const icS = flt('jIc', 'SVF').run(ic, 1700, 0.7).lp;
       const groan = flt('jGroan', 'SVF').run(w2, 140 + 90 * Math.sin(tt * 1.3), 0.08).bp * 0.14 * smooth(JUP_FZ0, JUP_FZ0 + 0.5, tt) * (0.5 + 0.5 * Math.sin(tt * 2.1));
-      const shore = boom(tt - JUP_FZ0 - JUP_FZDUR, 36, 28, 4, 0.01, 0.9) * 1.0 + boom(tt - JUP_FZ0, 40, 20, 4, 0.01, 0.6) * 0.4;
+      const shore = boom(tt - JUP_FZ0 - JUP_FZDUR, 36, 28, 4, 0.01, 0.9) * 1.0;
+      // the cloud breaking open: a long rising gust
+      const cb = tt - JUP_CLEAR;
+      const gust = flt('jGust', 'SVF').run(w1, 300 + 500 * env(cb, 0.8, 1.0), 0.6).bp * env(cb, 0.8, 1.2) * 0.7;
       // the hush of snow
-      const hush = flt('jHush', 'SVF').run(w3, 1800, 0.5).bp * 0.12 * smooth(JUP_SNOW, JUP_SNOW + 2, tt);
-      l += gJ * (drone + air + out + icS + groan + shore + hush); r += gJ * (drone + air * 0.95 + out * 0.9 + icS * 0.9 + groan * 0.9 + shore + hush * 0.92);
+      const hush = flt('jHush', 'SVF').run(w3, 1800, 0.5).bp * 0.12 * smooth(JUP_SNOW, JUP_SNOW + 1.5, tt);
+      l += gJ * (drone + air + rainOut + icS + groan + shore + gust + hush); r += gJ * (drone + air * 0.95 + rainOut + icS * 0.9 + groan * 0.9 + shore + gust * 0.9 + hush * 0.92);
     }
     // ===================== Pluto =====================
-    const gP = gainOf(4, v);
+    const gP = gainOf(5, v);
     if (gP > 0.001) {
       const tt = v - LAND.pluto;
       ph3 += 440 / SR;
@@ -167,15 +193,15 @@ export function makeSoundtrack(outFile) {
       const patter = flt('pPat', 'SVF').run(w2, 2800, 0.7).bp * 0.1 * rk + flt('pPat2', 'SVF').run(w4, 1100, 0.6).bp * 0.45 * rk;
       let pk = 0;
       for (const [t, a, b] of plinks) { const d = v - t; if (d >= 0 && d < 0.1) pk += Math.sin(TAU * (900 + 1500 * a) * (1 - 0.3 * d) * d) * env(d, 0.002, 0.03) * (0.04 + 0.05 * b); }
-      // everyone freezing: a crackling front running up the beach, a boom as it all locks
+      // everyone freezing: crackles running over the beach, a boom as the rain locks into snow
       let ic = 0;
       for (const [t, a] of pluCracks) { const d = v - t; if (d >= 0 && d < 0.3) ic += w4 * env(d, 0.003, 0.02 + 0.03 * a) * 0.3 * (0.4 + 0.6 * clamp((t - LAND.pluto - PLU_STATUE) / 1.5)); }
       const icS = flt('pIc', 'SVF').run(ic, 2200, 0.7).lp;
       const lock = boom(tt - PLU_FREEZE, 38, 30, 5, 0.01, 0.8) * 0.8;
-      // the snow: a hiss that grows to a muffled rush as it piles over the lens
-      const dep = snowDepth('pluto', tt);
+      // the snow: a hiss that grows to a muffled rush as it piles up and over the lens
+      const dep = snowDepth('pluto', tt), far = snowFar('pluto', tt);
       const sn = smooth(PLU_FREEZE - 0.2, PLU_FREEZE + 1, tt);
-      const rush = flt('pRush', 'SVF').run(w3, 1100 - 850 * smooth(1.4, 2.0, dep), 0.6).bp * (0.5 * sn + 0.5 * smooth(1.2, 1.9, dep));
+      const rush = flt('pRush', 'SVF').run(w3, 1100 - 850 * smooth(1.4, 2.0, dep), 0.6).bp * (0.5 * sn + 0.3 * smooth(2, 9, far) + 0.4 * smooth(1.2, 1.9, dep));
       const thud = flt('pThud', 'SVF').run(w1, 90, 0.7).lp * 2.4 * smooth(1.5, 1.95, dep);
       l += gP * (eerie + low + patter + pk + icS + lock + rush + thud); r += gP * (eerie + low + patter * 0.9 + pk * 0.8 + icS * 0.9 + lock + rush * 0.95 + thud);
     }
@@ -212,8 +238,8 @@ export function makeSoundtrack(outFile) {
     }
     console.log(`audio: ${name} at ${at}s, gain ${g.toFixed(2)}`);
   };
-  clip('scream.mp3', 0.08, 2.4, 0.15, 0.85, 0.0, 2.5);
-  clip('nooo.mp3', 0.13, 2.2, LAND.mercury + 0.35, 0.5, LAND.mercury + 0.2, LAND.mercury + 2.5);
+  clip('scream.mp3', 0.08, 2.4, LAND.mercury + MER_FLASH, 0.85, LAND.mercury, LAND.mercury + 2.5);
+  clip('nooo.mp3', 0.13, 2.2, LAND.mercury + MER_PIER + 0.15, 0.5, LAND.mercury + MER_PIER, LAND.mercury + MER_PIER + 2.2);
   clip('gasp.mp3', 0.23, 0.42, LAND.jupiter + 0.25, 0.6, LAND.jupiter + 0.2, LAND.jupiter + 1.5);
   clip('omg.mp3', 0.0, 0.9, LAND.pluto + 1.4, 0.9, LAND.pluto + 1.0, LAND.pluto + 3.0);
 

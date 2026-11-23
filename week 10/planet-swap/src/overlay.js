@@ -1,20 +1,20 @@
-// The overlay: the opening title, the planet picker, the counter (your miles from the Sun) with its one line, a
-// caption now and then, and the white at the end. The picker is a bar with five slots drawn on its own canvas: a small
-// picture of each planet with its name under it, in story order; a glassy cursor sits on the planet whose place Earth
-// has taken and slides to the next at each wipe; the track under the names lights up as far as the cursor, and the
-// last slot (Pluto) carries a finish ring.
-import { STOPS, lineAt, milesAt, fmtMi, captionAt } from './timeline.js';
-const PLANETS = STOPS;
+// The overlay: the opening title, the map bar, the counter (your miles from the Sun) with its one line, a caption now
+// and then, and the white at the end. The map is drawn on its own canvas: the Sun glowing at the left end, then the six
+// planets in their real order out from it (Mercury, Venus, Earth, Mars, Jupiter, Pluto), each a small picture with its
+// name under it. Earth sits in a glassy tile with a bright ring; at each stop it trades slots with that planet (Earth
+// arcs over the top, the other planet under). The far slot (Pluto's) carries a finish ring.
+import { lineAt, milesAt, fmtMi, captionAt, MAP, STOPS } from './timeline.js';
 import { clamp, smooth } from './util.js';
 
 const PW = 1080, PH = 196;
-const SLOT_X = (i) => 124 + i * 208;
-const ICON_R = (i) => [23, 19, 16, 31, 15][i];
+const SLOT_X = (x) => 194 + x * 158;
+const ICON_R = { mercury: 17, venus: 22, earth: 24, mars: 19, jupiter: 31, pluto: 15 };
+const NAMES = { mercury: 'MERCURY', venus: 'VENUS', earth: 'EARTH', mars: 'MARS', jupiter: 'JUPITER', pluto: 'PLUTO' };
 const CY = 74;
 
-// a small picture of planet i at (x, y), radius r
-function icon(ctx, i, x, y, r) {
-  i = { jupiter: 5, mars: 1, venus: 2, mercury: 7, pluto: 8 }[STOPS[i].key];
+// a small picture of planet `key` at (x, y), radius r
+function icon(ctx, key, x, y, r) {
+  const i = { jupiter: 5, mars: 1, venus: 2, mercury: 7, pluto: 8, earth: 10 }[key];
   const ball = (stops) => {
     const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
     stops.forEach(([o, c]) => g.addColorStop(o, c));
@@ -74,6 +74,17 @@ function icon(ctx, i, x, y, r) {
     ctx.fillStyle = 'rgba(60,58,56,0.45)';
     for (const [dx, dy, rr] of [[-0.35, -0.2, 0.18], [0.25, -0.38, 0.14], [0.15, 0.25, 0.22], [-0.3, 0.42, 0.12], [0.5, 0.05, 0.1]]) { ctx.beginPath(); ctx.arc(x + dx * r, y + dy * r, rr * r, 0, 7); ctx.fill(); }
     ctx.restore();
+  } else if (i === 10) {     // Earth: blue sea, green-brown land, white cloud
+    ball([[0, '#6fb2ff'], [1, '#1c4fb0']]);
+    clipDisc();
+    ctx.fillStyle = 'rgba(86,160,82,0.95)';
+    ctx.beginPath(); ctx.ellipse(x - 0.28 * r, y - 0.1 * r, 0.34 * r, 0.52 * r, 0.3, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 0.42 * r, y + 0.3 * r, 0.3 * r, 0.24 * r, -0.4, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(205,180,120,0.8)';
+    ctx.beginPath(); ctx.ellipse(x - 0.2 * r, y + 0.25 * r, 0.16 * r, 0.12 * r, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    for (const [dx, dy, a, b, rot] of [[0.1, -0.55, 0.5, 0.1, -0.2], [0.3, 0.0, 0.35, 0.08, 0.3], [-0.45, 0.55, 0.4, 0.08, 0.1]]) { ctx.beginPath(); ctx.ellipse(x + dx * r, y + dy * r, a * r, b * r, rot, 0, 7); ctx.fill(); }
+    ctx.restore();
   } else if (i === 8) {      // Pluto: tan, its pale heart
     ball([[0, '#e6cfae'], [1, '#8f6f52']]);
     clipDisc();
@@ -113,57 +124,73 @@ export function makeOverlay() {
 
   function drawPicker(s) {
     ctx.clearRect(0, 0, PW, PH);
-    const cur = s.cursor;
-    const cx = SLOT_X(cur);
-    // the track under the names: dim all the way, lit as far as the cursor
+    const M = s.map;
     const ty = 170;
+    // the Sun at the left end: a glowing disc half off the edge
+    {
+      const g = ctx.createRadialGradient(18, CY - 4, 10, 18, CY - 4, 150);
+      g.addColorStop(0, 'rgba(255,240,190,0.95)'); g.addColorStop(0.3, 'rgba(255,190,90,0.45)'); g.addColorStop(1, 'rgba(255,150,60,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(18, CY - 4, 150, 0, 7); ctx.fill();
+      const d = ctx.createRadialGradient(4, CY - 14, 6, 18, CY - 4, 62);
+      d.addColorStop(0, '#fffbe8'); d.addColorStop(0.6, '#ffd36b'); d.addColorStop(1, '#ff9a2e');
+      ctx.fillStyle = d; ctx.beginPath(); ctx.arc(18, CY - 4, 62, 0, 7); ctx.fill();
+      ctx.save();
+      ctx.font = '700 22px Cormorant'; ctx.letterSpacing = '2.4px'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
+      ctx.fillStyle = 'rgb(255,226,160)'; ctx.fillText('SUN', 46, 136);
+      ctx.restore();
+    }
+    // the track: from the Sun out to the far slot, warm near the Sun, a dot at each slot
     ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(255,246,230,0.28)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(SLOT_X(0), ty); ctx.lineTo(SLOT_X(4), ty); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,217,138,0.95)'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(SLOT_X(0), ty); ctx.lineTo(cx, ty); ctx.stroke();
-    PLANETS.forEach((p, i) => {
-      ctx.fillStyle = i <= cur + 0.02 ? 'rgba(255,217,138,1)' : 'rgba(255,246,230,0.45)';
-      ctx.beginPath(); ctx.arc(SLOT_X(i), ty, i <= cur + 0.02 ? 6 : 4.5, 0, 7); ctx.fill();
-    });
-    // the finish: a ring round the last slot's dot
-    ctx.strokeStyle = cur > 3.98 ? 'rgba(255,217,138,1)' : 'rgba(255,246,230,0.7)'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(SLOT_X(4), ty, 11, 0, 7); ctx.stroke();
-    // the cursor: a dark glassy tile with a bright edge (it swells a little as it snaps on)
+    const tg = ctx.createLinearGradient(90, 0, SLOT_X(5), 0);
+    tg.addColorStop(0, 'rgba(255,217,138,0.85)'); tg.addColorStop(1, 'rgba(255,246,230,0.3)');
+    ctx.strokeStyle = tg; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(96, ty); ctx.lineTo(SLOT_X(5), ty); ctx.stroke();
+    for (let j = 0; j < 6; j++) { ctx.fillStyle = 'rgba(255,246,230,0.6)'; ctx.beginPath(); ctx.arc(SLOT_X(j), ty, 4.5, 0, 7); ctx.fill(); }
+    // the finish: a ring round the far slot's dot
+    ctx.strokeStyle = M.earth.x > 4.98 ? 'rgba(255,217,138,1)' : 'rgba(255,246,230,0.7)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(SLOT_X(5), ty, 11, 0, 7); ctx.stroke();
+    // Earth's tile: a dark glassy tile with a bright edge that rides with it (it swells a little as it snaps on)
+    const ex = SLOT_X(M.earth.x), ey = M.earth.arc * 44;
     const k = 1 + 0.07 * s.snap;
-    const bw = 176 * k, bh = 150 * k, bx = cx - bw / 2, by = CY + 6 - bh / 2;
+    const bw = 146 * k, bh = 150 * k, bx = ex - bw / 2, by = CY + 6 - bh / 2 + ey;
     ctx.fillStyle = 'rgba(10, 12, 18, 0.5)';
     ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 24); ctx.fill();
-    ctx.strokeStyle = `rgba(255, 236, 196, ${(0.7 + 0.3 * s.snap).toFixed(3)})`; ctx.lineWidth = 3;
+    ctx.strokeStyle = `rgba(150, 210, 255, ${(0.75 + 0.25 * s.snap).toFixed(3)})`; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 24); ctx.stroke();
-    // the planets
-    PLANETS.forEach((p, i) => {
-      const mid = 1 - smooth(0.0, 0.6, Math.abs(i - cur));         // 1 on the cursor's slot
-      const x = SLOT_X(i), r = ICON_R(i) * (0.92 + 0.16 * mid) * (1 + 0.06 * s.snap * mid);
+    ctx.fillStyle = 'rgba(150,210,255,1)'; ctx.beginPath(); ctx.arc(ex, ty, 6.5, 0, 7); ctx.fill();
+    // the planets (the one trading with Earth, then Earth, drawn last so they pass over the others)
+    const moving = MAP.filter((p) => M[p].arc !== 0 && p !== 'earth');
+    const order = [...MAP.filter((p) => p !== 'earth' && !moving.includes(p)), ...moving, 'earth'];
+    for (const p of order) {
+      const isE = p === 'earth', mv = M[p].arc !== 0;
+      const x = SLOT_X(M[p].x), y = CY - 8 + M[p].arc * 44;
+      const r = ICON_R[p] * (isE ? 1 + 0.06 * s.snap : 1) * (mv ? 1 + 0.15 * Math.abs(M[p].arc) : 1);
       ctx.save();
-      ctx.globalAlpha = 0.5 + 0.5 * mid;
-      if (mid > 0.01) {       // a soft glow behind the chosen one
-        const g = ctx.createRadialGradient(x, CY - 8, r * 0.6, x, CY - 8, r * 2.1);
-        g.addColorStop(0, `rgba(255,236,196,${(0.35 * mid).toFixed(3)})`); g.addColorStop(1, 'rgba(255,236,196,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, CY - 8, r * 2.1, 0, 7); ctx.fill();
+      ctx.globalAlpha = isE || mv ? 1 : 0.75;
+      if (isE) {        // a soft blue glow and a ring round Earth
+        const g = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 2.2);
+        g.addColorStop(0, 'rgba(150,210,255,0.45)'); g.addColorStop(1, 'rgba(150,210,255,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.2, 0, 7); ctx.fill();
       }
-      icon(ctx, i, x, CY - 8, r);
-      ctx.font = `700 ${(22 + 3 * mid).toFixed(1)}px Cormorant`;
-      ctx.letterSpacing = '2.4px';
+      icon(ctx, p, x, y, r);
+      if (isE) { ctx.strokeStyle = 'rgba(190,230,255,0.95)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 6, 0, 7); ctx.stroke(); }
+      ctx.font = `700 ${isE ? 27 : 23}px Cormorant`;
+      ctx.letterSpacing = '2.2px';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
-      const sh = Math.round(170 + 85 * mid);
-      ctx.fillStyle = mid > 0.5 ? '#ffe2a0' : `rgb(${sh + 4},${sh},${Math.round(sh * 0.94)})`;
-      ctx.fillText(p.name, x + 1.2, 136);
+      ctx.fillStyle = isE ? '#bfe4ff' : mv ? '#ffe2a0' : 'rgb(232,226,214)';
+      ctx.globalAlpha *= 1 - Math.min(1, Math.abs(M[p].arc) * 1.6);       // (the names fade while the two trade places)
+      ctx.fillText(NAMES[p], x + 1.2, 136);
       ctx.restore();
-    });
+    }
   }
 
   let lastValue = '';
   return function update(v, s) {
     if (window.__cover) {   // cover art: just the frame and the big title
       cover.style.opacity = '1';
-      const st = STOPS[s.b], name = st.name[0] + st.name.slice(1).toLowerCase() + "'s";       // the planet whose place Earth has
+      const st = STOPS[Math.max(1, s.b)], name = st.name[0] + st.name.slice(1).toLowerCase() + "'s";       // the planet whose place Earth has
       const w = cover.querySelector('.w');
       if (w.textContent !== name) w.textContent = name;
       for (const el of [title, flash, picker, line, counter, caption]) el.style.opacity = '0';

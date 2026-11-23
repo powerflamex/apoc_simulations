@@ -22,6 +22,7 @@ uniform vec3 uSunD; uniform vec3 uSunCol; uniform float uSunR; uniform float uSu
 uniform float uPoint; uniform float uPx;
 uniform float uCloud; uniform vec3 uCloudLit; uniform vec3 uCloudDark; uniform vec2 uDrift; uniform vec2 uWindD; uniform float uStreak; uniform float uCloudH; uniform float uCloudScale;
 uniform float uNight; uniform float uT;
+uniform float uDeck; uniform vec3 uDeckLit; uniform vec3 uDeckDark; uniform float uDeckSun;
 float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float noise3(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hash13(i), hash13(i + vec3(1,0,0)), f.x), mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
@@ -100,6 +101,18 @@ void main() {
     cc += uAurCol * uAur * 0.6 * exp(-off / 0.25);
     c = mix(c, cc, clamp(cov, 0.0, 1.0));
   }
+  // a thick cloud deck closing over the whole sky from the horizon up (uDeck 0 .. 1 overhead), heaped and billowing,
+  // the Sun a bright smear through it (uDeckSun)
+  if (uDeck > 0.0) {
+    vec3 dq = v * vec3(4.0, 9.0, 4.0) + vec3(uDrift.x, 0.0, uDrift.y) * 0.002;
+    float b = fbm(dq + vec3(0.0, uT * 0.05, 0.0));
+    float b2 = fbm(dq * 3.1 + 4.0 + vec3(uT * 0.08));
+    float edge = uDeck * 1.25 - 0.08;
+    float cov = smoothstep(edge + 0.04, edge - 0.06, h + 0.18 * (b - 0.5) + 0.06 * (b2 - 0.5));
+    vec3 dc = mix(uDeckDark, uDeckLit, smoothstep(0.3, 0.62, b * 0.8 + b2 * 0.45 - 0.4 + 0.14 * smoothstep(0.0, 0.5, h)));
+    dc += uSunCol * uDeckSun * (exp(-off / 0.06) * 1.2 + exp(-off / 0.25) * 0.35);
+    c = mix(c, dc, cov);
+  }
   gl_FragColor = vec4(clamp(c, 0.0, 60.0), 1.0);
 }`;
 
@@ -113,6 +126,7 @@ export function makeSky() {
     uCloud: { value: 0.3 }, uCloudLit: C(1, 1, 1), uCloudDark: C(0.6, 0.65, 0.7), uDrift: { value: new THREE.Vector2() }, uWindD: { value: new THREE.Vector2(1, 0) },
     uStreak: { value: 0 }, uCloudH: { value: 2000 }, uCloudScale: { value: 1 },
     uNight: { value: 0 }, uT: { value: 0 },
+    uDeck: { value: 0 }, uDeckLit: C(1, 0.97, 0.9), uDeckDark: C(0.6, 0.6, 0.6), uDeckSun: { value: 0 },
   };
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(1000, 64, 32), new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, side: THREE.BackSide, depthWrite: false, depthTest: false }));
   mesh.frustumCulled = false;

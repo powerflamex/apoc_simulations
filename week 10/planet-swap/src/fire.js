@@ -16,13 +16,17 @@ export function makeFire(scene, max = 3000) {
     transparent: true, depthWrite: false, blending: THREE.CustomBlending,
     blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
     vertexShader: /* glsl */ `
+      uniform float uTime;
       attribute vec4 aC; attribute vec3 aK; varying vec2 vUv; varying vec3 vK;
       void main() {
         vUv = uv; vK = aK;
         vec3 c = aC.xyz;
         vec3 toCam = cameraPosition - c; toCam.y = 0.0;
         vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), normalize(toCam + vec3(1e-4, 0.0, 0.0))));
-        vec3 wp = c + side * position.x * aC.w + vec3(0.0, position.y * aK.x, 0.0);
+        // the flame leaps and drops (each its own rhythm)
+        float t = uTime + aK.z * 37.0;
+        float flick = 0.8 + 0.16 * sin(t * 7.3) + 0.1 * sin(t * 13.1 + 1.7) + 0.07 * sin(t * 23.0 + 4.0);
+        vec3 wp = c + side * position.x * aC.w * (1.0 + 0.08 * sin(t * 9.0)) + vec3(0.0, position.y * aK.x * flick, 0.0);
         gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
       }`,
     fragmentShader: /* glsl */ `
@@ -32,18 +36,24 @@ export function makeFire(scene, max = 3000) {
         return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
       void main() {
         float x = (vUv.x - 0.5) * 2.0, y = vUv.y;
-        float t = uTime * 2.2 + vK.z * 50.0;
-        // turbulence rising through the flame
-        float n = n2(vec2(x * 2.5 + vK.z * 9.0, y * 3.5 - t * 1.6)) * 0.6 + n2(vec2(x * 6.0, y * 7.0 - t * 2.7)) * 0.4;
-        float w = (1.0 - y) * (0.75 + 0.25 * sin(t * 1.3 + vK.z * 20.0)) ;
-        float xs = x + (n - 0.5) * 0.9 * y;
-        float body = smoothstep(w, w * 0.25, abs(xs)) * smoothstep(0.0, 0.08, y);
-        float dens = body * smoothstep(0.15, 0.7, n + (1.0 - y) * 0.6);
-        if (dens < 0.01) discard;
-        float core = smoothstep(0.55, 1.0, dens) * (1.0 - y);
-        vec3 col = mix(vec3(0.9, 0.12, 0.02), vec3(1.0, 0.5, 0.08), smoothstep(0.1, 0.5, dens));
-        col = mix(col, vec3(1.0, 0.75, 0.3), core);
-        gl_FragColor = vec4(col * dens * vK.y * uGain * 1.1, clamp(dens * vK.y * uOcc * 1.6, 0.0, 1.0));
+        float t = uTime + vK.z * 50.0;
+        // the whole flame sways more the higher up; turbulence races up through it
+        float sway = (n2(vec2(y * 1.6 - t * 1.4, vK.z * 7.0)) - 0.5) * 0.8 * y;
+        float xs = x - sway;
+        float n = n2(vec2(xs * 2.6 + vK.z * 9.0, y * 3.6 - t * 3.4)) * 0.55 + n2(vec2(xs * 6.5 - vK.z * 3.0, y * 8.0 - t * 5.6)) * 0.3
+                + n2(vec2(xs * 14.0, y * 16.0 - t * 8.5)) * 0.15;
+        // a wide base narrowing into licking tongues that tear off at the top
+        float w = pow(1.0 - y, 0.7);
+        float edge = w - abs(xs) * (1.0 + 0.6 * y) + (n - 0.5) * (0.5 + 0.9 * y);
+        float dens = smoothstep(-0.02, 0.22, edge) * smoothstep(0.0, 0.07, y);
+        dens *= smoothstep(0.0, 0.2, n + (1.0 - y) * 1.05 - 0.5);
+        if (dens < 0.02) discard;
+        float hot = clamp(edge * 1.6 * (1.1 - 0.8 * y), 0.0, 1.0);
+        vec3 col = mix(vec3(0.62, 0.06, 0.01), vec3(1.0, 0.36, 0.035), smoothstep(0.05, 0.35, hot));   // red edges -> orange
+        col = mix(col, vec3(1.0, 0.55, 0.1), smoothstep(0.4, 0.7, hot));                                  // a deeper orange body
+        col = mix(col, vec3(1.0, 0.8, 0.38), smoothstep(0.72, 0.95, hot) * (1.0 - y));                   // a small hot heart low down
+        float I = (0.7 + 1.5 * hot) * vK.y * uGain;
+        gl_FragColor = vec4(col * dens * I, clamp(dens * vK.y * uOcc * 1.5, 0.0, 1.0));
       }`,
   });
   const mesh = new THREE.InstancedMesh(geo, mat, max);

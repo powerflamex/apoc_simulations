@@ -18,7 +18,8 @@ export function makeParts(scene, max = 9000) {
   geo.setAttribute('aP', aP); geo.setAttribute('aV', aV); geo.setAttribute('aC', aC); geo.setAttribute('aS', aS);
   const mat = new THREE.ShaderMaterial({
     uniforms: { uShutter: { value: 1 / 60 }, uT: { value: 0 } },
-    transparent: true, depthWrite: false,
+    // (double-sided: a streak's quad faces away from the camera when it falls)
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
     blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
     vertexShader: /* glsl */ `
       attribute vec4 aP; attribute vec4 aV; attribute vec4 aC; attribute float aS;

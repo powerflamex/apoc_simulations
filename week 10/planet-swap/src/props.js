@@ -1,17 +1,18 @@
 // What stands on the beach and the pier, and what each place does to it. Nothing resets at a wipe: what burned at
 // Mercury's place stays burnt (a canopy that burned away is gone; towels stay black) through Jupiter and Pluto.
-//   other people's umbrellas: shade at Venus; frosted at Mars; smoking, then burning away at Mercury
-//   towels and chairs: frosted; towels smoke and catch fire at Mercury (dark cloth in 6.7x sunlight)
-//   the lifeguard hut and the trucks parked on the sand: their paint blisters and chars at Mercury, the hut's roof
-//     burns; snow on them at Jupiter, buried at Pluto (the snow itself is snow.js)
-//   the pier, its Ferris wheel (turning, its lights on once it's dark; it stops at Jupiter) and roller coaster
+//   other people's umbrellas: smoking, then burning away at Mercury; their flames die at Mars
+//   towels and chairs: towels smoke and catch fire at Mercury (dark cloth in 6.7x sunlight), black after
+//   the trucks parked on the sand: their paint smokes at Mercury, then the tyres go up; people crowd round them in
+//     the cold; snow on them at Jupiter, buried at Pluto (the snow itself is snow.js)
+//   the pier: it catches halfway through Mercury and burns out to sea under a column of black smoke; its Ferris wheel
+//     (turning, its lights on once it's dark; it stops at Jupiter) and roller coaster
 // Every surface takes the shared heat patch (heat.js): char at Mercury, rime at Mars / Jupiter / Pluto.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { UMBRELLAS, TOWELS, CHAIRS, LIFEGUARD, VEHICLES, PIER, WHEEL, landY, groundY, CAM0, CAM_FWD, CAM_RIGHT } from './layout.js';
 import { makeFleet } from './cars.js';
 import { patchHeat } from './heat.js';
-import { MER_SMOKE, MER_FIRE, MER_UMB, MER_HUT, JUP_OUT, LAND, DUR } from './sched.js';
+import { MER_FIRE, MER_UMB, MER_PIER, MER_TRUCK, MARS_OUT, LAND, DUR } from './sched.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
@@ -20,9 +21,13 @@ const tmpC = new THREE.Color(), WET = new THREE.Color(0, 0, 0);
 const blown = (t, acc, vmax) => (t <= 0 ? 0 : t < vmax / acc ? 0.5 * acc * t * t : vmax * vmax / (2 * acc) + vmax * (t - vmax / acc));
 const fOf = (x, z) => (x - CAM0.x) * CAM_FWD.x + (z - CAM0.z) * CAM_FWD.z;
 // Mercury: when each umbrella / towel catches (seconds after Mercury's wipe), and how far it has burned at tt
-const umbT0 = (u) => MER_UMB + u.seed * 2.6 + Math.max(0, u.f - 30) * 0.004;
-const towT0 = (t) => MER_FIRE + t.seed * 2.8;
-const burnK = (tt, t0, dur = 3.0) => clamp((tt - t0) / dur);
+const umbT0 = (u) => MER_UMB + u.seed * 1.8 + Math.max(0, u.f - 30) * 0.004;
+const towT0 = (t) => MER_FIRE + t.seed * 1.6;
+const burnK = (tt, t0, dur = 4.5) => clamp((tt - t0) / dur);
+const RTX = CAM_RIGHT.x, RTZ = CAM_RIGHT.z;
+// the pier's fires: along the part in view (from the shore end out), two rows; [x, z, delay after it catches, seed]
+const PIER_FIRE = [];
+for (let x = -168, j = 0; x > -330; x -= 9, j++) for (const dz of [-5, 4]) PIER_FIRE.push([x + (dz > 0 ? 4 : 0), PIER.z + dz, (-168 - x) / 160 * 2.2 + (dz > 0 ? 0.25 : 0), ((j * 0.37 + dz * 0.11) % 1 + 1) % 1]);
 
 export function makeProps(scene, { plainMat, shadowy, glowMat }) {
   const charred = (m, key, burnK = 1) => patchHeat(m, key, { burnK });
@@ -190,6 +195,25 @@ export function makeProps(scene, { plainMat, shadowy, glowMat }) {
     fleet.set(i, m4, false);
   });
   fleet.commit();
+  // the snow drifting up the trucks (Jupiter on): a lumpy mound round each one, growing up to the windows
+  const driftGeo = new THREE.SphereGeometry(1, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+  {
+    const pa = driftGeo.attributes.position;
+    for (let i = 0; i < pa.count; i++) {
+      const x = pa.getX(i), y = pa.getY(i), z = pa.getZ(i);
+      const k = 1 + 0.08 * Math.sin(x * 7.1 + z * 3.3) + 0.06 * Math.sin(z * 11.7 - x * 5.2);
+      pa.setXYZ(i, x * k, y * (1 + 0.1 * Math.sin(x * 5 + z * 9)), z * k);
+    }
+    driftGeo.computeVertexNormals();
+  }
+  const driftMat = new THREE.MeshStandardMaterial({ color: 0xf1f5fc, roughness: 0.92 });
+  const drifts = VEHICLES.map((c) => {
+    const m = shadowy(new THREE.Mesh(driftGeo, driftMat));
+    m.position.set(c.x, landY(c.x) - 0.05, c.z); m.rotation.y = c.yaw;
+    m.visible = false;
+    scene.add(m);
+    return m;
+  });
 
   const v3 = new THREE.Vector3();
   const MER_END = DUR.mercury;
@@ -200,11 +224,22 @@ export function makeProps(scene, { plainMat, shadowy, glowMat }) {
     frame(key, tt, k) {
       const { fire, smoke, glows, cam } = k;
       const cx = cam.position.x, cz = cam.position.z;
-      const MER = key === 'mercury', AFTER = key === 'jupiter' || key === 'pluto';
-      // Mercury's clock as seen from this stop (after Mercury it is stuck at the end of Mercury's stay)
-      const mt = MER ? tt : AFTER ? MER_END : -1e9;
-      // Jupiter: the flames go out, what's left smoulders and the smoke thins away
-      const ash = key === 'jupiter' ? 1 - smooth(JUP_OUT, JUP_OUT + 3.5, tt) : 0;
+      const MER = key === 'mercury';
+      // Mercury's clock as seen from this stop (before it: never; after it: stuck at the end of Mercury's stay)
+      const mt = key === 'earth' ? -1e9 : MER ? tt : MER_END;
+      // the flames: full at Mercury; at Mars they die down in a second or so; the smoke thins away after them
+      const flame = MER ? 1 : key === 'mars' ? 1 - smooth(MARS_OUT, MARS_OUT + 1.3, tt) : 0;
+      const fume = MER ? 1 : key === 'mars' ? 1 - smooth(MARS_OUT + 0.6, MARS_OUT + 4.5, tt) : 0;
+      // dark smoke above a fire: rising, spreading, drifting with the wind (frame-right), lit orange at its foot
+      const smokeCol = (x, y, z, w, hgt, a, n, seed, tSpeed = 0.5) => {
+        n = Math.max(n, Math.ceil(hgt / (w * 1.05)));
+        if (Math.hypot(x - cx, z - cz) > 80) n = Math.min(n, 14);
+        for (let j = 0; j < n; j++) {
+          const ph = (tt * tSpeed + seed * 5 + j / n) % 1;
+          const dr = ph * hgt * 0.35;
+          smoke.puff(x + RTX * dr, y + ph * hgt, z + RTZ * dr, w * (0.7 + 1.9 * ph), a * Math.sin(Math.PI * Math.pow(ph, 0.7)), 0.07, 0.6 * flame * Math.pow(1 - ph, 3), seed + j * 0.13);
+        }
+      };
       // ---- umbrellas ----
       umb.forEach((u, i) => {
         const t0 = umbT0(u);
@@ -217,29 +252,22 @@ export function makeProps(scene, { plainMat, shadowy, glowMat }) {
           m4.compose(p.set(top.x, top.y, top.z), q, sc.set(left, left, left));
           canopies.setMatrixAt(i, m4);
         } else canopies.setMatrixAt(i, hide);
-        canopies.setColorAt(i, tmpC.set(u.col).lerp(SCORCH, smooth(t0 - 1.6, t0 + 0.2, mt) * 0.6).lerp(CHAR, smooth(0.05, 0.5, kb)));
+        canopies.setColorAt(i, tmpC.set(u.col).lerp(SCORCH, smooth(t0 - 1.0, t0 + 0.2, mt) * 0.6).lerp(CHAR, smooth(0.05, 0.5, kb)));
         const dc = Math.hypot(u.x - cx, u.z - cz);
-        if (MER) {
-          const burning = kb > 0 && kb < 1 ? Math.sin(Math.PI * Math.pow(kb, 0.55)) : 0;
-          const smo = smooth(t0 - 1.8, t0, tt) * (1 - smooth(0.2, 0.6, kb));
-          if (smo > 0.02 && dc < 120) for (let j = 0; j < 4; j++) {
-            const ph = (tt * 0.9 + u.seed * 7 + j / 4) % 1;
-            smoke.puff(top.x + ph * 0.6, top.y + 0.1 + ph * 3.5, top.z, 0.25 + ph * 0.6, 0.16 * smo * Math.sin(Math.PI * ph), 0.32, 0.0, u.seed + j);
+        if (flame > 0.01) {
+          const burning = (kb > 0 && kb < 1 ? Math.sin(Math.PI * Math.pow(kb, 0.5)) : 0) * flame;
+          const smo = MER ? smooth(t0 - 1.0, t0, tt) * (1 - smooth(0.1, 0.4, kb)) : 0;
+          if (smo > 0.02 && dc < 120) for (let j = 0; j < 3; j++) {
+            const ph = (tt * 0.9 + u.seed * 7 + j / 3) % 1;
+            smoke.puff(top.x + ph * 0.6, top.y + 0.1 + ph * 3, top.z, 0.25 + ph * 0.6, 0.18 * smo * Math.sin(Math.PI * ph), 0.25, 0.0, u.seed + j);
           }
-          if (burning > 0 && dc < 900) {
-            fire.add(top.x, top.y - 0.35, top.z, 1.9 * left + 0.4, 1.9 + 0.9 * burning, burning, u.seed);
-            if (dc < 60) fire.add(top.x + 0.4, top.y - 0.4, top.z - 0.3, 1.4 * left + 0.3, 1.4 + 0.6 * burning, burning * 0.8, u.seed + 0.27);
-            if (i % 2 === 0 && dc > 12) for (let j = 0; j < 3; j++) {
-              const ph = (tt * 0.5 + u.seed * 5 + j / 3) % 1;
-              smoke.puff(top.x + ph * 1.5, top.y + 1 + ph * 6, top.z, 0.7 + ph * 1.4, 0.22 * burning * Math.sin(Math.PI * ph), 0.1, 0.5 * burning * (1 - ph), u.seed + j);
-            }
-          }
-        } else if (ash > 0.02 && kb > 0.2 && dc < 120 && i % 2 === 0) {
-          for (let j = 0; j < 2; j++) {
-            const ph = (tt * 0.6 + u.seed * 5 + j / 2) % 1;
-            smoke.puff(top.x + ph * 0.4, top.y - 0.2 + ph * 3, top.z, 0.3 + ph * 0.9, 0.18 * ash * Math.sin(Math.PI * ph), 0.4, 0.12 * ash * (1 - ph) * (1 - smooth(JUP_OUT - 0.2, JUP_OUT + 0.2, tt) * 0.8), u.seed + j);
+          if (burning > 0.01 && dc < 900) {
+            fire.add(top.x, top.y - 0.45, top.z, 2.0 * left + 0.5, 2.0 + 1.0 * burning, burning, u.seed);
+            if (dc < 60) fire.add(top.x + 0.4, top.y - 0.5, top.z - 0.3, 1.4 * left + 0.4, 1.5 + 0.7 * burning, burning * 0.85, u.seed + 0.27);
+            if (dc < 200) smokeCol(top.x, top.y + 1.2, top.z, 0.8, 9, 0.3 * burning, dc < 40 ? 5 : 3, u.seed, 0.45);
           }
         }
+        if (!MER && fume > 0.02 && kb > 0.2 && dc < 120 && i % 2 === 0) smokeCol(top.x, top.y - 0.2, top.z, 0.4, 4, 0.16 * fume * (1 - flame * 0.5), 2, u.seed, 0.35);
       });
       canopies.instanceMatrix.needsUpdate = true; poles.instanceMatrix.needsUpdate = true;
       if (canopies.instanceColor) canopies.instanceColor.needsUpdate = true;
@@ -249,13 +277,16 @@ export function makeProps(scene, { plainMat, shadowy, glowMat }) {
         m4.compose(p.set(t.x, t.y, t.z), q, sc.set(1, 1, 1));
         towels.setMatrixAt(i, m4);
         const tb = towT0(t);
-        towels.setColorAt(i, tmpC.set(t.col).lerp(SCORCH, smooth(tb - 1.2, tb, mt) * 0.5).lerp(TCHAR, smooth(tb, tb + 1.5, mt) * 0.9));
+        towels.setColorAt(i, tmpC.set(t.col).lerp(SCORCH, smooth(tb - 0.8, tb, mt) * 0.5).lerp(TCHAR, smooth(tb, tb + 1.5, mt) * 0.9));
         const dc = Math.hypot(t.x - cx, t.z - cz);
-        if (MER && dc < 70 && dc > 3) {
-          const sm = smooth(tb - 1.2, tb - 0.2, tt) * (1 - smooth(tb + 0.2, tb + 0.8, tt));
+        if (flame > 0.01 && dc < 70 && dc > 3) {
+          const sm = MER ? smooth(tb - 0.8, tb - 0.1, tt) * (1 - smooth(tb + 0.2, tb + 0.8, tt)) : 0;
           if (sm > 0.02 && i % 2 === 0) { const ph = (tt * 0.8 + t.seed * 6) % 1; smoke.puff(t.x, t.y + 0.1 + ph * 1.6, t.z, 0.15 + ph * 0.5, 0.2 * sm * Math.sin(Math.PI * ph), 0.4, 0, t.seed); }
-          const b = smooth(tb, tb + 0.6, tt) * (1 - smooth(tb + 2.5, tb + 4, tt));
-          if (b > 0.02) for (let j = 0; j < 2; j++) fire.add(t.x + (j - 0.5) * 0.45, t.y, t.z + (j - 0.5) * 0.3, 0.6, 0.45 + 0.35 * b, b, t.seed + j * 0.31);
+          const b = smooth(tb, tb + 0.5, mt) * (1 - smooth(tb + 4.5, tb + 6.5, mt)) * flame;
+          if (b > 0.02) {
+            for (let j = 0; j < 3; j++) fire.add(t.x + (j - 1) * 0.35, t.y, t.z + (j - 1) * 0.25, 0.55, 0.55 + 0.45 * b, b, t.seed + j * 0.31);
+            if (dc < 25) smokeCol(t.x, t.y + 0.8, t.z, 0.25, 4, 0.22 * b, 3, t.seed, 0.6);
+          }
         }
       });
       towels.instanceMatrix.needsUpdate = true; if (towels.instanceColor) towels.instanceColor.needsUpdate = true;
@@ -266,29 +297,44 @@ export function makeProps(scene, { plainMat, shadowy, glowMat }) {
         chairs.setMatrixAt(i, m4);
       });
       chairs.instanceMatrix.needsUpdate = true;
-      // ---- the lifeguard huts: the roof catches at Mercury ----
+      // ---- the lifeguard huts (out of sight but for their flags) ----
       huts.forEach((h, hi) => {
         h.g.position.set(h.x0, h.y0, h.z0); h.g.rotation.set(0, h.lg.yaw, 0);
         h.flag.rotation.set(0, 0.12 * Math.sin(tt * 3 + hi), 0.15 * Math.sin(tt * 11 + hi));
-        h.flag.visible = !(mt > MER_HUT + 0.6);
-        const b = MER ? smooth(MER_HUT, MER_HUT + 1.2, tt) : 0;
-        const sm = MER ? smooth(MER_HUT - 1.5, MER_HUT, tt) : ash * (mt > MER_HUT ? 1 : 0);
-        if (b > 0) for (let j = 0; j < 5; j++) fire.add(h.x0 + (j - 2) * 0.6, h.y0 + 4.2, h.z0 + (j % 2) * 0.8 - 0.4, 1.2, 1.4 + 1.2 * b * Math.abs(Math.sin(j * 1.7 + tt * 2)), b, 0.3 + j * 0.13);
-        if (sm > 0.02) for (let j = 0; j < 3; j++) { const ph = (tt * 0.4 + j / 3) % 1; smoke.puff(h.x0 + ph * 3, h.y0 + 5 + ph * 12, h.z0, 1 + ph * 3, 0.28 * sm * Math.sin(Math.PI * ph), MER ? 0.08 : 0.35, 0.4 * b * (1 - ph), j * 0.3); }
       });
-      // ---- the trucks: smoke off their blistering paint, then the tyres catch (Mercury) ----
+      // ---- the trucks: smoke off their blistering paint, then the tyres burst into flame (Mercury) ----
       VEHICLES.forEach((c, i) => {
-        const tb = MER_SMOKE + 0.6 + i * 0.5;
-        const sm = MER ? smooth(tb, tb + 1.5, tt) : ash;
-        if (sm > 0.02) for (let j = 0; j < 5; j++) {
-          const ph = (tt * 0.55 + j / 5 + i * 0.3) % 1;
-          smoke.puff(c.x + (j - 2) * 0.7, landY(c.x) + 1.2 + ph * 4, c.z + (j % 2 - 0.5) * 1.2, 0.3 + ph * 1.2, 0.22 * sm * Math.sin(Math.PI * ph), MER ? 0.15 : 0.4, 0, i + j * 0.17);
+        const tb = MER_TRUCK + i * 0.45;
+        const sm = MER ? smooth(MER_FIRE + i * 0.4, MER_FIRE + 1.5 + i * 0.4, tt) * (1 - smooth(tb, tb + 0.5, tt)) : 0;
+        if (sm > 0.02) for (let j = 0; j < 4; j++) {
+          const ph = (tt * 0.55 + j / 4 + i * 0.3) % 1;
+          smoke.puff(c.x + (j - 1.5) * 0.7, landY(c.x) + 1.4 + ph * 3, c.z + (j % 2 - 0.5) * 1.2, 0.25 + ph * 1.0, 0.18 * sm * Math.sin(Math.PI * ph), 0.3, 0, i + j * 0.17);
         }
-        if (MER && tt > MER_HUT + 0.8 + i * 0.6) {
-          const b = smooth(MER_HUT + 0.8 + i * 0.6, MER_HUT + 1.6 + i * 0.6, tt);
-          for (let j = 0; j < 4; j++) fire.add(c.x + (j - 1.5) * 0.9, landY(c.x) + 0.3 + 0.5 * (j % 2), c.z + 0.5 * (j - 1.5), 1.3, 1.2 + 0.9 * b * Math.abs(Math.sin(j * 1.9 + tt * 3)), b, 0.7 + i * 0.2 + j * 0.11);
+        const b = smooth(tb, tb + 0.4, mt) * flame;
+        if (b > 0.01) {
+          const ca = Math.cos(c.yaw), sa = Math.sin(c.yaw);
+          for (const [lx, lz] of [[-0.85, 1.4], [0.85, 1.4], [-0.85, -1.4], [0.85, -1.4]]) {
+            const wx = c.x + lx * ca + lz * sa, wz = c.z - lx * sa + lz * ca;
+            fire.add(wx, landY(c.x) + 0.05, wz, 1.0, 1.3 + 0.5 * b, b, 0.7 + i * 0.2 + lx * 0.1 + lz * 0.05);
+          }
+          fire.add(c.x, landY(c.x) + 0.6, c.z, 1.8, 1.8 * b, b * 0.7, 0.9 + i * 0.3);
+          smokeCol(c.x, landY(c.x) + 2.0, c.z, 0.9, 14, 0.4 * b, 6, i * 0.37, 0.4);
         }
+        if (!MER && fume > 0.02 && mt > tb) smokeCol(c.x, landY(c.x) + 1.2, c.z, 0.6, 8, 0.25 * fume * (1 - 0.5 * flame), 3, i * 0.37, 0.3);
       });
+      // ---- the snow drifting up the trucks ----
+      const dh = key === 'jupiter' ? 1.5 * smooth(1.6, 7.2, tt) : key === 'pluto' ? 1.5 + 0.6 * smooth(4.6, 8, tt) : 0;
+      drifts.forEach((m, i) => { m.visible = dh > 0.05; m.scale.set(1.5 + 0.25 * dh, dh, 2.9 + 0.3 * dh); });
+      // ---- the pier: it catches halfway through Mercury and burns from the shore end out to sea ----
+      if (fume > 0.01 && mt > MER_PIER - 0.1) {
+        for (let j = 0; j < PIER_FIRE.length; j++) {
+          const [x, z, d, seed] = PIER_FIRE[j];
+          const b = smooth(MER_PIER + d, MER_PIER + d + 0.8, mt);
+          if (b <= 0.01) continue;
+          fire.add(x, PIER.deck, z, 7, 5.5 + 3 * b, b * flame, seed);
+          if (j % 2 === 0) smokeCol(x, PIER.deck + 5, z, 4, 55, 0.4 * b * fume, 5, seed, 0.25);
+        }
+      }
       // ---- the pier and the wheel (turning until Jupiter's cold stops it; one clock for every stop) ----
       const vv = LAND[key] + tt;
       const stopT = LAND.jupiter + 1.8;
