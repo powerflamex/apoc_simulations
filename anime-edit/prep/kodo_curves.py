@@ -48,6 +48,12 @@ inc[:, 2] = despike(inc[:, 2]); inc[:, 3] = despike(inc[:, 3])
 t = np.arange(len(frames)) / fps
 CUT = 0.058 + 8 * 0.6914                      # the mid cut, on beat 8
 cut_i = int(np.ceil(CUT * fps))
+# the last frames before the cut are blurred too much to track: they measure as "no motion", which froze the camera
+# for 0.1 s at the fastest point of the zoom (felt like lag). Carry the last real motion on into the cut instead.
+for i in range(cut_i - 6, cut_i):
+    if abs(inc[i, 0]) < 0.3 * abs(inc[i - 1, 0]): inc[i] = inc[i - 1]
+# (RANSAC is random: a rerun shifts the whole camera slightly. src/kodo_curves.js is the approved run; timeline.js
+# also bridges the freeze when it reads it.)
 cum = np.cumsum(inc, axis=0)
 Z, R, X, Y = cum.T.copy()
 # second half on the first half's scale: same widest zoom, its own level horizon

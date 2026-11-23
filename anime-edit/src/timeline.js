@@ -62,6 +62,13 @@ const wob = (t, s) => Math.sin(t * 1.31 + s) * 0.5 + Math.sin(t * 2.17 + s * 2.3
 const D2R = Math.PI / 180;
 export const CUT = KODO.cut;                              // 5.589
 const CUT_I = Math.ceil(CUT * KODO.fps);
+// The reference's last frames before the cut are blurred too much to track, so they measured as "no motion": the
+// camera froze for 0.1 s at the fastest point of the zoom, which felt like lag. Keep the last real motion going.
+{
+  const frozen = [];
+  for (let i = CUT_I - 4; i < CUT_I; i++) if (Math.abs(KODO.z[i] - KODO.z[i - 1]) < 1) frozen.push(i);
+  for (const a of [KODO.z, KODO.r, KODO.x, KODO.y]) for (const i of frozen) a[i] = a[i - 1] + (a[i - 1] - a[i - 2]);
+}
 function curve(a, t) {
   const n = a.length, lo = t < CUT ? 0 : CUT_I, hi = t < CUT ? CUT_I - 1 : n - 1;
   const x = clamp(t * KODO.fps, lo, hi), i = Math.min(Math.floor(x), hi - 1), u = x - i;

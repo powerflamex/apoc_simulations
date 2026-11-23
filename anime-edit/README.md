@@ -31,10 +31,12 @@ heavy kicks on beats 9-12, drop on beat 13 (9.05 s). The head nods on every beat
 first four; the grade flips cool -> fiery on the first drop and stays fiery through the cut (like the reference),
 back to cool only at the loop.
 
-On the first drop a deep voice says "embi", like kodoae2's spoken "kodo" tag (measured from his sound: a deep
-voice falling from ~80 to ~60 Hz, ~0.4 s, about as loud as the song, with an echo). `bash prep/voice_tag.sh`
-makes it offline from Windows' own voice (David), pitched down with a quiet octave-down copy, drive and echo, and
-writes `assets/song_tagged.wav`, which the video uses (`assets/song.wav` stays the clean song).
+A deep voice spells the tag like kodoae2's spoken "kodo" tag (his: a deep voice falling from ~80 to ~60 Hz, on the
+drop, with an echo): "E, M, B, I" on the first four beats (with the letters on screen), then "embi" on the first
+drop, the music dipping under it. `python -P prep/voice_tag.py [voice]` makes it offline with Kokoro (model files in
+`assets/kokoro/`, from github.com/thewh1teagle/kokoro-onnx releases, `pip install kokoro-onnx`), pitched down a
+little with an octave-down copy, drive and echo, and writes `assets/song_tagged.wav`, which the video uses
+(`assets/song.wav` stays the clean song). `python -P prep/voice_tag.py <voice> <file.wav>` writes a 4.5 s sample.
 
 The camera copies the reference kodoae2 edit's motion, measured frame by frame (`prep/kodo_curves.py` ->
 `src/kodo_curves.js`; the reference uses the same song cut, so the timing lines up): head-on to the shrine, a slow
