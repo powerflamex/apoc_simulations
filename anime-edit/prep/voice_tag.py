@@ -11,7 +11,7 @@ import os, subprocess, tempfile, numpy as np, soundfile as sf
 
 HERE = os.path.dirname(os.path.abspath(__file__)); A = os.path.join(HERE, '..', 'assets')
 import sys
-VOICE = sys.argv[1] if len(sys.argv) > 1 else 'am_onyx'     # the owner picks from samples
+VOICE = sys.argv[1] if len(sys.argv) > 1 else 'bm_lewis'    # the owner picked voice 2 (Lewis) from samples
 SPEED = 0.9
 OUT = sys.argv[2] if len(sys.argv) > 2 else None             # a sample: the first 4.5 s of the mix, to this file
 BEAT, B0 = 0.6914, 0.058
@@ -20,7 +20,7 @@ DROP1 = B0 + 4 * BEAT
 PARTS = [('Ee.', B0 + 0.0 * BEAT, 1.0, 'short'), ('Em.', B0 + 1 * BEAT, 1.0, 'short'),
          ('Bee.', B0 + 2 * BEAT, 1.0, 'short'), ('Eye.', B0 + 3 * BEAT, 1.0, 'short'),
          ('Embee.', DROP1 + 0.025, 1.15, 'long')]
-LEAD = 0.012          # the voice starts a hair before the beat so its consonant lands on it
+LEAD = 0.0            # each letter's attack lands right on the beat
 VOICE_GAIN = 0.62     # voice level in the mix (peak, after processing)
 DUCK = 0.5            # the music dips to half (-6 dB) under the voice
 SR = 44100
@@ -34,12 +34,13 @@ def ff(args):
 def load(p):
     a, sr = sf.read(p, always_2d=True); assert sr == SR; return a.mean(1)
 
+import librosa
 from kokoro_onnx import Kokoro
 K = os.path.join(A, 'kokoro')
 kok = Kokoro(os.path.join(K, 'kokoro-v1.0.onnx'), os.path.join(K, 'voices-v1.0.bin'))
 tmp = tempfile.mkdtemp()
 song, sr = sf.read(os.path.join(A, 'song.wav'), always_2d=True); assert sr == SR
-voice = np.zeros(len(song))
+clips = []
 for i, (text, at, gain, echo) in enumerate(PARTS):
     a, ksr = kok.create(text, voice=VOICE, speed=SPEED, lang='en-us')
     raw = os.path.join(tmp, f'{i}_raw.wav'); out = os.path.join(tmp, f'{i}.wav')
@@ -55,12 +56,34 @@ for i, (text, at, gain, echo) in enumerate(PARTS):
         f"apad=pad_dur=0.8,{ECHO[echo]}", '-ar', str(SR), out])
     v = load(out)
     v /= np.max(np.abs(v)) + 1e-9
-    on = int(np.argmax(np.abs(v) > 0.05))                     # first real sound
-    s0 = int((at - LEAD) * SR) - on
-    v = v[max(0, -s0):]; s0 = max(0, s0)
-    n = min(len(v), len(voice) - s0)
-    voice[s0:s0 + n] += gain * VOICE_GAIN * v[:n]
-    print(f'{text:8s} lands {(s0 + on) / SR:6.3f} s  (beat {at:6.3f})')
+    clips.append((text, at, gain, v, int(np.argmax(np.abs(v) > 0.05))))   # + its first real sound
+
+# Each letter's ATTACK (its sharpest rise, e.g. the "b" pop) goes on the beat, not its first sound: Lewis's "B" hums
+# for ~0.12 s before the pop, which put the heard B a tenth of a second late. Place by first sound, measure each
+# attack in the voice track, shift by the error, place again.
+HOP = 220
+def place(shift):
+    out = np.zeros(len(song))
+    for (text, at, gain, v, on), sh in zip(clips, shift):
+        s0 = int((at - LEAD + sh) * SR) - on
+        w = v[max(0, -s0):]; s0 = max(0, s0); n = min(len(w), len(out) - s0)
+        out[s0:s0 + n] += gain * VOICE_GAIN * w[:n]
+    return out
+def attacks(track, shift):
+    o = librosa.onset.onset_strength(y=track.astype(np.float32), sr=SR, hop_length=HOP)
+    t = librosa.times_like(o, sr=SR, hop_length=HOP); res = []
+    for (text, at, gain, v, on), sh in zip(clips, shift):
+        start = at - LEAD + sh                                  # where its first sound is
+        m = np.where((t > start - 0.01) & (t < start + 0.15))[0]
+        res.append(t[m[np.argmax(o[m])]])
+    return np.array(res)
+shift = np.zeros(len(clips))
+for _ in range(3):
+    err = attacks(place(shift), shift) - np.array([c[1] for c in clips])
+    shift -= err
+voice = place(shift)
+for c, a in zip(clips, attacks(voice, shift)):
+    print(f'{c[0]:8s} attack {a:6.3f} s  (beat {c[1]:6.3f})')
 # the music dips under the voice: smooth envelope, fast down, slow back up
 env = np.abs(voice); a_up, a_dn = np.exp(-1 / (0.004 * SR)), np.exp(-1 / (0.16 * SR))
 e = np.zeros_like(env); x = 0.0

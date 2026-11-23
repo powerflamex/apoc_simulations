@@ -33,7 +33,7 @@ back to cool only at the loop.
 
 A deep voice spells the tag like kodoae2's spoken "kodo" tag (his: a deep voice falling from ~80 to ~60 Hz, on the
 drop, with an echo): "E, M, B, I" on the first four beats (with the letters on screen), then "embi" on the first
-drop, the music dipping under it. `python -P prep/voice_tag.py [voice]` makes it offline with Kokoro (model files in
+drop, the music dipping under it. `python -P prep/voice_tag.py [voice]` makes it offline with Kokoro (voice bm_lewis, the owner's pick; each letter's attack is measured and put on its beat; model files in
 `assets/kokoro/`, from github.com/thewh1teagle/kokoro-onnx releases, `pip install kokoro-onnx`), pitched down a
 little with an octave-down copy, drive and echo, and writes `assets/song_tagged.wav`, which the video uses
 (`assets/song.wav` stays the clean song). `python -P prep/voice_tag.py <voice> <file.wav>` writes a 4.5 s sample.
