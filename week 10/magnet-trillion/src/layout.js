@@ -13,7 +13,7 @@ export const CZ = -60, CW = 6;                       // the cross street (centre
 export const PLAZA_Z = -118, QUAY_Z = -150;          // the promenade ends; the quay edge (the water beyond, 1.6 m down)
 export const WATER_Y = -1.6;
 export const YOU = { x: 0, z: 0 };
-export const FOUNTAIN = { x: -3.4, z: -19.5, r: 2.4 };
+export const FOUNTAIN = { x: 3.6, z: -13, r: 2.4 };   // (near you, on the right: from the high camera it shows under the counter)
 export const KIOSK = { x: -1.6, z: -27, w: 2.6, d: 2.0, h: 2.7 };
 export const BRIDGE = { z: -1100, y: 62, x0: -2600, x1: 2600, towers: [-430, 520], th: 190 };
 export const NEAR_R = 220;

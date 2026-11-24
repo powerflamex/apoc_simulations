@@ -17,15 +17,15 @@ export const SMALLS = [];
   const R = rng(1357);
   const P = {};
   for (const p of PEOPLE) {
-    if (p.r > 15 || p.kind === 'plaza') continue;
+    if (p.r > 15 || p.kind === 'plaza' || p.back) continue;   // (not the people behind the first camera: their things would fly past the lens)
     const items = [];
-    if (p.film && R() < 0.7) items.push('phone'); else if (p.film) p.film = false;
+    if (p.film && R() < 0.4) items.push('phone'); else if (p.film) p.film = false;
     if (R() < 0.8) items.push('key');
     if (R() < 0.4) items.push('key');
     if (R() < 0.6) items.push('coin');
     if (R() < 0.4) items.push('coin');
     if (R() < 0.25) items.push('coin');
-    if (!p.film && R() < 0.12) items.push('phone');
+    if (!p.film && R() < 0.05) items.push('phone');
     let first = 99;
     items.forEach((kind, k) => {
       // (nearest first, but overlapping: a steady stream from before frame 0 to ~4 s)
@@ -54,7 +54,7 @@ function geos() {
     ni(new THREE.TorusGeometry(0.016, 0.0015, 4, 14).rotateX(Math.PI / 2).translate(-0.03, 0, 0))]);
   const coin = ni(new THREE.CylinderGeometry(0.014, 0.014, 0.0025, 16));
   const phone = box(0.074, 0.009, 0.152);
-  const screen = box(0.067, 0.001, 0.14, 0, 0.0048, 0);
+  const screen = box(0.067, 0.001, 0.14, 0, -0.0048, 0);   // (screen on the underside: stuck to you, the bright case shows)
   const fork = mergeGeometries([box(0.13, 0.004, 0.014, -0.03, 0, 0), box(0.05, 0.004, 0.024, 0.06, 0, 0)]);
   const knife = mergeGeometries([box(0.1, 0.006, 0.014, -0.05, 0, 0), box(0.11, 0.002, 0.02, 0.055, 0, 0)]);
   return { key, coin, phone, screen, fork, knife };
@@ -99,9 +99,10 @@ export function makeSmalls(scene, you) {
     s.f = flight({ p0: s.src, q0, p1: best.wp.clone(), q1: qW.clone(), tR: s.tR, acc: 26, dMin: 0.22, dMax: 0.9, arc: 0.15 + 0.5 * R(), spin: 5 + 8 * R(), shake: s.onTable ? 0.3 : 0.12, size: 0.1 }, R);
   }
   const G = geos();
-  const steel = new THREE.MeshStandardMaterial({ color: 0xb4b8bd, roughness: 0.3, metalness: 0.85 });
-  const brass = new THREE.MeshStandardMaterial({ color: 0xc8a050, roughness: 0.32, metalness: 0.85 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x16171a, roughness: 0.3, metalness: 0.4 });
+  // (bright, not true metal: with no reflections to show, a metalness near 1 renders them nearly black)
+  const steel = new THREE.MeshStandardMaterial({ color: 0xe4e9ef, roughness: 0.22, metalness: 0.25, emissive: 0x3a3f46 });
+  const brass = new THREE.MeshStandardMaterial({ color: 0xf6c95a, roughness: 0.25, metalness: 0.25, emissive: 0x4a3410 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.28, metalness: 0.2, emissive: 0x2a2a2e });   // phone cases (instance colours)
   const scr = new THREE.MeshStandardMaterial({ color: 0x0b0e12, roughness: 0.12, metalness: 0.3, emissive: 0x5a7898, emissiveIntensity: 0.18 });
   const TYPES = { key: [[G.key, brass]], coin: [[G.coin, steel]], phone: [[G.phone, dark], [G.screen, scr]], fork: [[G.fork, steel]], knife: [[G.knife, steel]] };
   const groups = [];
@@ -109,11 +110,12 @@ export function makeSmalls(scene, you) {
     const list = SMALLS.filter((s) => s.kind === kind);
     if (!list.length) continue;
     const meshes = parts2.map(([g, m]) => { const im = new THREE.InstancedMesh(g, m, list.length); im.castShadow = true; im.frustumCulled = false; scene.add(im); return im; });
+    if (kind === 'phone') { const PC = [0xb4b9c0, 0xd6b878, 0x8d939c, 0xc9ccd2, 0xd8c08e, 0x9aa0a8]; /* silver, gold, graphite: metal phones */ list.forEach((s2, i) => meshes[0].setColorAt(i, new THREE.Color(PC[i % PC.length]))); }
     groups.push({ list, meshes });
   }
   const tp = new THREE.Vector3(), tq = new THREE.Quaternion();
   // (a touch bigger than life, so a key reads on a phone screen)
-  const m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), q = new THREE.Quaternion(), mq = new THREE.Quaternion(), sc = new THREE.Vector3(1.35, 1.35, 1.35), zero = new THREE.Matrix4().makeScale(0, 0, 0);
+  const m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), q = new THREE.Quaternion(), mq = new THREE.Quaternion(), sc = new THREE.Vector3(1.45, 1.45, 1.45), scP = new THREE.Vector3(1.0, 1.0, 1.0), zero = new THREE.Matrix4().makeScale(0, 0, 0);
   return {
     // after you've been posed this frame (your matrices up to date)
     frame(v, glows) {
@@ -133,9 +135,9 @@ export function makeSmalls(scene, you) {
           } else {
             flyPose(s.f, v, pos, q);
             // a short silver streak behind it while it flies
-            if (glows && v < s.f.tL && v > s.tR + 0.02) for (let j = 1; j <= 4; j++) { flyPose(s.f, v - j * 0.018, tp, tq); glows.add(tp.x, tp.y, tp.z, 0.035 - j * 0.005, 0.5, 0.52, 0.56); }
+            if (glows && v < s.f.tL && v > s.tR + 0.02) for (let j = 1; j <= 7; j++) { if (v - j * 0.016 < s.tR) break; flyPose(s.f, v - j * 0.016, tp, tq); const g = 1 - j / 8; glows.add(tp.x, tp.y, tp.z, 0.05 * g + 0.012, 1.1 * g, 1.12 * g, 1.2 * g); }
           }
-          m4.compose(pos, q, sc);
+          m4.compose(pos, q, s.kind === 'phone' ? scP : sc);
           for (const m of meshes) m.setMatrixAt(i, m4);
         });
         for (const m of meshes) m.instanceMatrix.needsUpdate = true;

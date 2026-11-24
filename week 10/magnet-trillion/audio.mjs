@@ -238,7 +238,7 @@ export function makeSoundtrack(outFile) {
   {
     const f = new SVF(), ph = new Float64Array(12);
     add(V_TRILLION + 0.1, V_WHITE - V_TRILLION + 2.5, (dt) => {
-      const t = V_TRILLION + 0.1 + dt, k = smooth(V_TRILLION, V_WHITE, t) * (1 - smooth(V_WHITE + 0.3, T_SWITCH, t));
+      const t = V_TRILLION + 0.1 + dt, k = smooth(V_TRILLION, V_WHITE, t);   // (held into the loop: the crossfade takes it down)
       let o = 0;
       for (let j = 0; j < 12; j++) { const fq = (300 + j * 170) * Math.pow(2, 1.4 * smooth(V_TRILLION, V_WHITE, t)) * (1 + 0.003 * j); ph[j] += fq / SR; o += Math.sin(TAU * ph[j]) * (0.5 + 0.5 * Math.sin(t * (1.3 + j * 0.4) + j)) / 12; }
       const roar = f.run(white(), 200 + 2500 * k, 1.1).bp * k * 0.5;
@@ -247,7 +247,7 @@ export function makeSoundtrack(outFile) {
     });
   }
   // the people: screams on frame 0 (round you, as their things are torn away), a gasp, "oh my god", screams as the cars come
-  for (const [name, ss, len, t0, gain, rate, pan] of [['scream.mp3', 0.0, 1.2, -0.15, 1.0, 1.1, -0.3], ['scream.mp3', 0.15, 1.1, 0.25, 0.75, 0.93, 0.35], ['scream.mp3', 0.3, 0.9, 0.9, 0.5, 1.22, 0.1],
+  for (const [name, ss, len, t0, gain, rate, pan] of [['scream.mp3', 0.0, 1.2, -0.45, 1.0, 1.1, -0.3], ['scream.mp3', 0.15, 1.1, 0.25, 0.75, 0.93, 0.35], ['scream.mp3', 0.3, 0.9, 0.9, 0.5, 1.22, 0.1],
     ['gasp.mp3', 0, 1.4, 2.0, 0.4, 1.0, 0.4], ['omg.mp3', 0, 1.8, 4.3, 0.45, 1.0, -0.3], ['scream.mp3', 0.4, 0.9, 10.6, 0.45, 0.88, -0.5], ['scream.mp3', 0.1, 1.0, 11.4, 0.4, 1.05, -0.2],
     ['scream.mp3', 0.25, 0.9, 13.7, 0.35, 0.97, 0.4], ['omg.mp3', 0, 1.8, 17.4, 0.35, 0.92, 0.2], ['scream.mp3', 0.05, 1.0, 26.2, 0.3, 0.9, -0.3]]) {
     const c = loadClip(name, ss, len + 0.2);
@@ -276,7 +276,7 @@ export function makeSoundtrack(outFile) {
     for (let n = 0; n < N; n++) {
       const t = T0 + n / SR;
       const ch = chordAt(t);
-      const g = (0.6 + 0.75 * smooth(0, 36, t) + 0.3 * smooth(26, 36, t)) * (1 - 0.6 * smooth(V_WHITE + 0.3, T_SWITCH, t));
+      const g = (0.6 + 0.75 * smooth(0, 36, t) + 0.3 * smooth(26, 36, t)) * (1 - 0.6 * smooth(V_WHITE, T_SWITCH + 0.35, t));
       const cut = 320 + 700 * smooth(0, 22, t) + 1800 * smooth(22, 36.8, t);
       lp[0].set(cut); lp[1].set(cut * 1.06);
       const bend = 1 + 0.05 * Math.pow(smooth(30, 36.5, t), 2);
@@ -313,8 +313,10 @@ export function makeSoundtrack(outFile) {
   const ML = new Float32Array(N), MR = new Float32Array(N);
   for (let n = 0; n < N; n++) {
     const t = T0 + n / SR;
-    const hush = 1 - 0.985 * smooth(V_HUSH[0], V_HUSH[0] + 0.1, t) * (1 - smooth(V_HUSH[1] - 0.03, V_HUSH[1], t));
-    ML[n] = (L[n] + BL[n] * gBed + UL[n] * gMus) * hush; MR[n] = (R[n] + BR[n] * gBed + UR[n] * gMus) * hush;
+    // (the held breath before 1 trillion: the music drops away, but the roar keeps running under it, never silence)
+    const duck = smooth(V_HUSH[0], V_HUSH[0] + 0.1, t) * (1 - smooth(V_HUSH[1] - 0.03, V_HUSH[1], t));
+    const gb = gBed * (1 + 0.8 * duck), gm = gMus * (1 - 0.7 * duck);
+    ML[n] = L[n] + BL[n] * gb + UL[n] * gm; MR[n] = R[n] + BR[n] * gb + UR[n] * gm;
   }
   const M = Math.round(VIDEO_DURATION * SR), o0 = Math.round(-T0 * SR), sw = Math.round(T_SWITCH * SR), xf = Math.round(0.35 * SR);
   const OL = new Float32Array(M), OR = new Float32Array(M);
@@ -334,7 +336,6 @@ export function makeSoundtrack(outFile) {
     for (let k = 0; k < K; k++) { let q = 0; for (let n = k * W; n < Math.min(M, (k + 1) * W); n++) q += OL[n] * OL[n] + OR[n] * OR[n]; lev[k] = Math.sqrt(q / (2 * W)); }
     const envl = new Float32Array(K); let y = ref;
     for (let k = 0; k < K; k++) {
-      const tk = k * W / SR; if (tk > V_HUSH[0] - 0.05 && tk < V_HUSH[1] + 0.5) { envl[k] = Math.max(y, 1e-6); continue; }
       const a = lev[k] > y ? 0.25 : 0.06; y += a * (lev[k] - y); envl[k] = Math.max(y, 1e-6); }
     const gk = new Float32Array(K); for (let k = 0; k < K; k++) gk[k] = clamp(Math.pow(ref / envl[k], 0.7), 0.5, 4);
     let gs = gk[0];

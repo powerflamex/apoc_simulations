@@ -58,6 +58,12 @@ export const PEOPLE = [];
     const x = (R() - 0.5) * 46, z = PLAZA_Z - 2 - R() * (PLAZA_Z - QUAY_Z - 5);
     if (!tooClose(x, z)) add({ x, z, kind: 'plaza', film: R() < 0.35 });
   }
+  // people behind the first camera (out of frame 0), filling the open pavement under the later, higher shots
+  for (let k = 0, n = 0; k < 2000 && n < 55; k++) {
+    const x = -3 + R() * 9, z = 7 + R() * 11;
+    if (!inWedge(x, z) || !clear(x, z) || tooClose(x, z)) continue;
+    add({ x, z, kind: 'prom', film: R() < 0.4, back: true }); n++;
+  }
   for (const p of PEOPLE) { p.r = Math.hypot(p.x, p.z); p.a = Math.atan2(p.x, p.z); }
   // dives: out of the way of the cars and the bus sliding in
   const paths = [...CARS.filter((c) => c.f && c.f.mode === 'slide').map((c) => ({ f: c.f, w: 1.6 })), { f: BUSF, w: 2.4 }];
@@ -106,7 +112,7 @@ export function personAt(p, v, out) {
   const fl = smooth(tk, tk + 0.15, v) * (1 - smooth(tk + 0.6, tk + 1.5, v));
   pitch -= 0.15 * fl; armL = Math.max(armL, 0.9 * fl);
   // shouting at you: arms up and down, hands on heads
-  if (v > 1 && p.r < 20 && p.rnd < 0.4) { armL = Math.max(armL, 1.5 + 0.15 * Math.sin(v * 3 + p.ph)); armR = Math.max(armR, p.film ? armR : 1.5); }
+  if (p.r < 20 && p.rnd < 0.5) { const yk = smooth(-1.5, -0.5, v); armL = Math.max(armL, yk * (1.5 + 0.25 * Math.sin(v * 3.3 + p.ph))); armR = Math.max(armR, p.film ? armR : yk * (1.5 + 0.25 * Math.sin(v * 2.9 + p.ph + 2))); }
   // backing off (walking backwards, facing you; running if it's fast, turned away)
   if (spd > 0.25 && v < 16.9) {
     const run = smooth(1.6, 2.6, spd);

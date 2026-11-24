@@ -151,7 +151,7 @@ const finish = new ShaderPass({
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.79) / 0.09, 2.0));
       col *= 1.0 - uCounter * 0.42 * exp(-pow((vUv.y - 0.6) / 0.085, 2.0)) * smoothstep(1.1, 0.2, vUv.x);
-      col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.125) / 0.045, 2.0));
+      col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.385) / 0.04, 2.0));
       // the light from you swallowing the frame
       vec2 fd = (vUv - uFloodC) * vec2(${(W / H_PX).toFixed(4)}, 1.0);
       float e = length(fd), fa = atan(fd.y, fd.x);
@@ -177,10 +177,23 @@ for (const d of DECK) if (d.f) HITLIST.push({ t: d.f.tL, x: d.f.p1.x, y: d.f.p1.
 HITLIST.sort((a, b) => a.t - b.t);
 
 // ---------- the camera: keys relative to you, [t, x, y, z, target x, y, z, fov] ----------
+// One move per step, each pulling back and up as bigger things come, so each new kind of thing flies through the clear
+// middle of the frame (between the counter and the caption) with you in the lower middle, over the low pile; then at
+// 1 trillion the camera swings round to your face (camsolve.mjs in this folder placed you and the horizon on screen).
 const CAMK = [
-  [-2, 0.55, 1.66, 2.9, -0.25, 1.0, -6, 56], [0, 0.55, 1.66, 2.9, -0.25, 1.0, -6, 56], [4, 0.75, 1.8, 3.2, -0.15, 0.95, -6, 56], [8, 1.7, 2.6, 4.8, 0.2, 0.8, -7, 57],
-  [10.4, 2.3, 4.0, 6.4, -4.4, 0.0, -12, 58], [14.6, 2.6, 4.4, 7.0, -3.6, 0.4, -13, 59], [17.4, 1.6, 4.8, 8.6, -0.6, 0.9, -12, 60], [22.5, 3.1, 6.2, 10.0, 0.3, 1.6, -12, 61], [25.6, 1.4, 2.7, 5.7, -1.5, 0.8, -60, 66], [30, 1.35, 2.6, 5.6, -1.5, 1.6, -60, 66],
-  [34.5, 1.35, 2.6, 5.6, -1.5, 1.2, -60, 66], [38, 1.9, 2.4, 5.4, -0.1, 1.6, -5, 60], [44.6, 1.4, 2.1, 3.8, 0, 1.25, -4, 56], [48, 1.4, 2.1, 3.8, 0, 1.25, -4, 56]];
+  [-2, 0.55, 1.66, 2.9, -0.25, 1.0, -6, 56], [0, 0.55, 1.66, 2.9, -0.25, 1.0, -6, 56], [3.6, 0.8, 1.85, 3.3, -0.15, 0.95, -6, 56],
+  [4.6, 1.2, 3.2, 4.5, -22.3, -19.3, -90.1, 60.5], [6.8, 1.7, 3.9, 5.4, -27.4, -20.7, -87.1, 62.5],               // bikes, signs: up over your shoulder
+  [7.6, 2.4, 5.4, 7.0, -34.7, -25.1, -80.7, 64], [9.8, 2.6, 6.0, 8.0, -33, -24.9, -80.2, 63.5],                // carts, covers, chairs: higher, looking left over you
+  [10.8, -1.6, 8.2, 10.2, 11.3, -26, -82.9, 68.5], [13.0, 0.5, 8.6, 10.8, -2.2, -26, -83, 68.5],              // cars: up and back
+  [13.8, -2.2, 8.0, 9.6, 31.2, -27, -77.9, 72], [16.4, -2.5, 8.6, 10.6, 31.5, -26.4, -76.7, 71],             // the bus: from the left, looking right at it
+  [17.6, -1.0, 6.0, 9.0, 12, -14, -80, 62], [20.6, -1.3, 6.6, 10.2, 12, -15, -80, 62],                  // the push: high, the ring and the fountain
+  [21.6, 3.0, 6.4, 11.0, -22.6, -16.9, -82.8, 55.5], [25.0, 3.6, 7.6, 13.0, -22.3, -17, -80.4, 55.5],          // beams: down, looking up the street walls
+  [26.6, 3.4, 10.5, 13.5, -17.9, -24.5, -77.7, 63.5], [28.8, 3.6, 11.2, 15, -16.7, -23, -76.7, 61.5],         // towers, ships: well back and up
+  [31.0, 3.4, 11.8, 16.5, -14, -21.6, -76.1, 59.5], [33.8, 3.0, 11.8, 16.5, -13.9, -21.6, -76.2, 59.5],          // the bridge
+];
+// 1 trillion: a hard cut on the beat (36.5) from the high view to your face, low in the clear lane in front of you
+CAMK.push([36.483, 2.7, 12.1, 17.3, -13.9, -21.6, -76.2, 59.5], [36.5, 0.55, 3.6, -8.6, 0, 1.45, 0, 50],
+  [44.6, 0.45, 3.1, -7.0, 0, 1.4, 0, 50], [46, 0.45, 3.1, -7.0, 0, 1.4, 0, 50]);
 const camSpl = [1, 2, 3, 4, 5, 6, 7].map((j) => {
   const x = CAMK.map((k) => k[0]), y = CAMK.map((k) => k[j]), n = x.length, d = [], m = [];
   for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
@@ -274,12 +287,13 @@ function update(v, cover = -1) {
   // ---------- post ----------
   tv.set(0, 1.0, 0).project(camera);
   const sx = tv.x * 0.5 + 0.5, sy = tv.y * 0.5 + 0.5;
+  FU.uYS.value.set(sx * W, sy * H_PX);
   // the ripple from the last step
   let rk = 0, rr = 0;
   for (const h of HITS) { const a = v - h; if (a >= 0 && a < 0.9) { rk = 1 - a / 0.9; rr = a * 1.6; } }
   ripple.uniforms.uC.value.set(sx, sy); ripple.uniforms.uR.value = rr; ripple.uniforms.uK.value = rk * rk;
   finish.uniforms.uFloodC.value.set(sx, sy);
-  finish.uniforms.uFlood.value = 1.15 * Math.pow(smooth(V_WHITE - 1.6, V_WHITE, v), 2.4);
+  finish.uniforms.uFlood.value = 1.15 * Math.pow(smooth(V_WHITE - 0.9, V_WHITE, v), 2.2);
   finish.uniforms.uWhite.value = window.__cover ? 0 : white;
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 1 - smooth(0.6, 1, white);

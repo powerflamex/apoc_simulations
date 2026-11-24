@@ -49,8 +49,8 @@ export const BEATS = [
 export const V_TRILLION = 36.5;
 export const V_WHITE = 44.6;
 export const V_FLASH = V_WHITE - 0.06;
-export const T_SWITCH = 46.3;            // full white since V_WHITE: the loop point
-export const LOOP = 0.9;
+export const T_SWITCH = V_WHITE + 0.2;   // full white since V_WHITE: the loop point (a short flash, like fast-trillion)
+export const LOOP = 0.6;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 export const HITS = BEATS.map((b) => b[0]);
 const JUMP = 0.35;

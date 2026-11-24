@@ -113,17 +113,17 @@ export const LANDINGS = [];    // { t, kind, x, y, z, size } for the sound
   };
   // long things (lamp posts, beams) land lying along the line to you, so they never reach across the camera's gap
 const radialQ = (p1, axis, R) => { const d = V3(p1.x, 0.25 * (R() - 0.3), p1.z).normalize(); return new THREE.Quaternion().setFromUnitVectors(axis === 'y' ? V3(0, 1, 0) : V3(1, 0, 0), d); };
-  const NEARR = { rMin: 0.55, rMax: 2.1, yMin: 0.0, yMax: 0.9 };
+  const NEARR = { rMin: 0.9, rMax: 2.7, yMin: 0.0, yMax: 0.45 };   // (low: your chest, arms and head stay out of the pile)
   const BIKEC = [0x1f8a8a, 0x1f8a8a, 0xd23a2a, 0x2a2a2a, 0xe8c040];
   for (const b of BIKES) add('bike', b.x, 0, b.z, b.yaw, 'bike', NEARR, { range: [2, 32], col: b.rack ? 0x1f8a8a : BIKEC[Math.floor(R() * BIKEC.length)] });
   for (const a of ASIGNS) {
-    if (a.kind === 0) add('aframe', a.x, 0, a.z, a.yaw, 'sign', { ...NEARR, yMax: 1.2 }, { range: [2, 30], kind: 'sign' });
-    else if (a.kind === 1) add('panel', a.x, 2.6, a.z, a.yaw, 'sign', { ...NEARR, rMin: 0.8, yMax: 1.4 }, { range: [2, 30], cell: [1, 2, 3, 6, 7][Math.floor(R() * 5)], kind: 'sign' });
-    else add('street', a.x, 0, a.z, a.yaw, 'sign', { ...NEARR, rMin: 0.8, yMax: 1.0 }, { range: [2, 50], cell: R() < 0.5 ? 4 : 5, kind: 'sign', shake: 0.9 });
+    if (a.kind === 0) add('aframe', a.x, 0, a.z, a.yaw, 'sign', { ...NEARR, yMax: 0.6 }, { range: [2, 30], kind: 'sign' });
+    else if (a.kind === 1) add('panel', a.x, 2.6, a.z, a.yaw, 'sign', { ...NEARR, rMin: 1.0, yMax: 0.7 }, { range: [2, 30], cell: [1, 2, 3, 6, 7][Math.floor(R() * 5)], kind: 'sign' });
+    else add('street', a.x, 0, a.z, a.yaw, 'sign', { ...NEARR, rMin: 1.0, yMax: 0.5 }, { range: [2, 50], cell: R() < 0.5 ? 4 : 5, kind: 'sign', shake: 0.9 });
   }
   for (const c of CARTS) add('cart', c.x, 0, c.z, c.yaw, 'cart', NEARR, { range: [10, 26] });
   COVERS.forEach((c, i) => {
-    const t = add('cover', c.x, 0, c.z, R() * 6, 'cover', { ...NEARR, rMin: 0.45, yMax: 1.3 }, { range: [4, 40], arc: 0.3 + 0.6 * R(), shake: 0.6 });
+    const t = add('cover', c.x, 0, c.z, R() * 6, 'cover', { ...NEARR, rMin: 0.8, yMax: 0.6 }, { range: [4, 40], arc: 0.3 + 0.6 * R(), shake: 0.6 });
     GU.uCov.value[i].set(c.x, c.z, t.f.tR, 0);
   });
   for (const c of CAFE) {
@@ -134,10 +134,10 @@ const radialQ = (p1, axis, R) => { const d = V3(p1.x, 0.25 * (R() - 0.3), p1.z).
   for (const l of LAMPS) {
     const d = Math.hypot(l.x, l.z);
     if (l.z > 3 || d > 70) continue;
-    add('lamp', l.x, 0, l.z, l.x > 0 ? Math.PI / 2 : -Math.PI / 2, 'lamp', { rMin: 2.2, rMax: 4.6, yMin: 0.3, yMax: 2.0 }, { range: [7, 70], bend: 0.75, bendT: 3.2, shake: 1.2, acc: 14, dMax: 2.6, size: 2, long: 'y' });
+    add('lamp', l.x, 0, l.z, l.x > 0 ? Math.PI / 2 : -Math.PI / 2, 'lamp', { rMin: 2.6, rMax: 5.0, yMin: 0.3, yMax: 1.2 }, { range: [7, 70], bend: 0.75, bendT: 3.2, shake: 1.2, acc: 14, dMax: 2.6, size: 2, long: 'y' });
   }
-  for (const r of RAILS) add('bollard', r.x, 0, r.z, 0, 'rail', { rMin: 2.4, rMax: 5.5, yMin: 0.2, yMax: 2.2 }, { range: [8, 60], shake: 0.9, kind: 'bollard' });
-  for (const b of BENCHES) { if (b.z > 3) continue; add('bench', b.x, 0, b.z, b.yaw, 'rail', { rMin: 2.6, rMax: 5.8, yMin: 0.3, yMax: 2.4 }, { range: [5, 60], kind: 'bollard', size: 1.5 }); }
+  for (const r of RAILS) add('bollard', r.x, 0, r.z, 0, 'rail', { rMin: 2.8, rMax: 5.8, yMin: 0.2, yMax: 1.4 }, { range: [8, 60], shake: 0.9, kind: 'bollard' });
+  for (const b of BENCHES) { if (b.z > 3) continue; add('bench', b.x, 0, b.z, b.yaw, 'rail', { rMin: 3.0, rMax: 6.0, yMin: 0.3, yMax: 1.6 }, { range: [5, 60], kind: 'bollard', size: 1.5 }); }
   add('kiosk', KIOSK.x, 0, KIOSK.z, 0, 'rail', { rMin: 5.5, rMax: 6.5, yMin: 0.5, yMax: 1.5 }, { range: [0, 30], tR: 18.4, acc: 10, size: 3, kind: 'kiosk', shake: 1.0 });
   // the beams: one from every window torn open in the street walls within 75 m (city.js's hash)
   const hash = (ix, iy, seed, face) => { const a = Math.fround(ix * 13 + iy * 71 + seed * 29 + face * 3); const m = Math.fround(a * Math.fround(0.61803398)); return m - Math.floor(m); };

@@ -22,11 +22,11 @@ const PAINT = [0xa8a8a4, 0x1a1c20, 0x8a1c1c, 0x2a3e66, 0x3a6a9a, 0x5a5e66, 0xb07
     c.paint = PAINT[Math.floor(R() * PAINT.length)];
     const q0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), c.yaw);
     if (near) {
-      const p1 = pileSlot(c.x, c.z, { rMin: 3.4, rMax: 8.5, yMin: 0.0, yMax: 1.0 }, R);
+      const p1 = pileSlot(c.x, c.z, { rMin: 3.4, rMax: 8.5, yMin: 0.0, yMax: 1.0, lane: 40 }, R);
       const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler((R() - 0.5) * 1.0, R() * 6.28, (R() - 0.5) * 1.6));
       c.f = flight({ p0: new THREE.Vector3(c.x, 0, c.z), q0, p1, q1, tR: releaseAt('car', d, 13, 36, 0.25 * R()), acc: 9, dMin: 1.2, dMax: 3.0, mode: 'slide', spin: (R() - 0.5) * 3, shake: 0.7, size: 2, s1: 0.82 }, R);
     } else if (d < 140) {
-      const p1 = pileSlot(c.x, c.z, { rMin: 8, rMax: 17, yMin: 0.3, yMax: 3 }, R);
+      const p1 = pileSlot(c.x, c.z, { rMin: 8, rMax: 17, yMin: 0.3, yMax: 3, lane: 34 }, R);
       c.f = flight({ p0: new THREE.Vector3(c.x, 0, c.z), q0, p1, q1: randQuat(R), tR: 18.2 + 6.5 * Math.pow((d - 36) / 104, 0.85) + 0.3 * R(), acc: 30, dMin: 1.0, dMax: 3.0, arc: 4 + 6 * R(), spin: 2 + 3 * R(), shake: 0.6, size: 2 }, R);
     } else c.stay = true;
   }

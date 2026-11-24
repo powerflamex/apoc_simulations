@@ -3085,30 +3085,34 @@ Cover: `week 10/planet-swap/out/planet-swap_v4_cover.png` (`node render.mjs --co
 
 ## Next Short. What if you were 1 trillion times more magnetic? — `week 10/magnet-trillion/out/magnet-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
-47.2 s, loops. Trillion formula, one continuous shot: you (red hoodie) stand in the middle of a packed tree-lined
-promenade that runs down to a harbour, the camera just behind you; everything steel comes to you and piles up round you
-(the side facing the camera and a lane straight up the street stay clear, so you're never hidden). Counter: TIMES STRONGER
-(1x = a fridge magnet, 0.005 tesla), the one line under it says what your pull beats. In order: 0:00 316x "STRONGER THAN A
-SUPER MAGNET": keys, coins, phones and forks already flying at you from the crowd (people filming you lose their phones
-out of their hands) and stuck all over your back, arms and legs; screams. 0:04 1,000x "Bikes and shop signs rip loose."
-(the bike-share rack, menu boards, the kiosk's signs, street signs). 0:05 "STRONGER THAN A HOSPITAL MRI". 0:07 3,200x
-"Even 250-pound manhole covers." (they fly out and leave black holes), carts, cafe chairs and tables, bins. 0:10 10,000x
-"Parked cars slide toward you." (they skid across the road and the paving, leaving scuff marks; the crowd scatters, some
-dive out of the way; lamp posts bend toward you and snap). 0:13.5 "A 12-ton bus tips over and drags." 0:17 100,000x
-"Now water and people are pushed away.": the fountain's jets bend away from you, the crowd slides back in a ring, trees
-lean away; "Everything is a little magnetic."; bollards, benches, the kiosk come. 0:21 "Steel beams tear out of the
-buildings." (windows ripped open into holes, a beam out of each). 0:26 1,000,000x "STRONGER THAN ANY FIELD EVER MADE",
-the camera drops low behind you: "Towers bend toward you." (the street walls and the waterfront towers lean in over
-the street and come apart from the top into flying chunks; the trees are knocked flat away from you). 0:28.5 "Ships are
-pulled out of the harbor." (tugs, yachts, a container ship, the cruise ship crashing across the end of the street).
-0:30.8 "The bridge comes off its towers." "STRONG ENOUGH TO STRETCH ATOMS". 0:36.5 1,000,000,000,000x "AS STRONG AS A
-MAGNETAR", "The strongest magnets in the universe.": the sky goes dark violet, loops of light round you, everything near
-you stretched toward you into threads of blue-white light and coming apart ("Everything near you comes apart."), white
-at 0:44.6, which clears onto frame 0. Sound: a magnet's electric hum that rises with every step, the crowd yelling until
-it's pushed away, a deep thoom at every step, a different landing sound for each kind of thing (keys tink, phones tock,
-bikes clatter, manhole covers clang like a bell, lamp posts and beams ring, cars crunch after a scrape, the bus scrapes
-and crunches, buildings boom, ships groan and boom, the bridge's cables snap), the black-hole-style music under it, half a
-second of silence before 1 trillion, a rising shimmer into the white; about -12 dB every second.
+45.4 s, loops (fix pass Nov 23: no sound gap at 0:36, a 0.5 s white ending, captions above 1250 px, a new camera move
+at every step, bright metal on frame 0, the fountain and crowd pushed away on screen, needles at the end). Trillion
+formula on one street: you (red hoodie) stand in the middle of a packed tree-lined promenade that runs down to a harbour;
+everything steel comes to you and piles up round you, kept low (your chest, arms and head stay out of it) and kept off
+the camera's side and a lane straight up the street. Counter: TIMES STRONGER (1x = a fridge magnet, 0.005 tesla), the
+one line under it says what your pull beats. Captions sit under the counter (end above 1250 px). In order: 0:00 316x
+"STRONGER THAN A SUPER MAGNET", camera just behind you: gold keys, silver coins and phones streaking out of the yelling
+crowd's hands and pockets and sticking all over your back, arms and legs; screams. 0:04 1,000x the camera rises over
+your shoulder: "Bikes and shop signs rip loose." 0:05 "STRONGER THAN A HOSPITAL MRI". 0:07 3,200x higher, looking over
+you: "Even 250-pound manhole covers." (they fly out and leave black holes), carts, cafe chairs and tables, bins. 0:10
+10,000x up and back: "Parked cars slide toward you." (they skid in across the road, the crowd scatters, some dive out of
+the way; lamp posts bend and snap). 0:13.5 the camera swings left to look across at the bus: "A 12-ton bus tips over and
+drags." and lands beside you. 0:17 100,000x a high view over you to the fountain: "Now water and people are pushed
+away.": the fountain's jets bend away from you, the crowd slides back in a ring, people fall; "Everything is a little
+magnetic."; bollards, benches, the kiosk come. 0:21 down lower, looking up the street walls: "Steel beams tear out of the
+buildings." 0:26 1,000,000x well back and up: "STRONGER THAN ANY FIELD EVER MADE", "Towers bend toward you." (the street
+walls and waterfront towers lean in over the street and come apart from the top). 0:28.5 "Ships are pulled out of the
+harbor." (the cruise ship crashes across the end of the street). 0:30.8 "The bridge comes off its towers." "STRONG ENOUGH
+TO STRETCH ATOMS". 0:36.5 1,000,000,000,000x "AS STRONG AS A MAGNETAR": a hard cut on the beat to your face, low in the
+clear lane in front of you; "The strongest magnets in the universe."; the sky goes dark violet and everything round you
+breaks into long thin needles of blue-white light that all point at you and stream in ("Everything near you comes
+apart."); you stay solid. 0:44.6 a white flash for about half a second, which clears onto frame 0. Sound: a magnet's
+electric hum that rises with every step, the crowd yelling until it's pushed away, a deep thoom at every step, a
+different landing sound for each kind of thing (keys tink, phones tock, bikes clatter, manhole covers clang like a bell,
+lamp posts and beams ring, cars crunch after a scrape, the bus scrapes and crunches, buildings boom, ships groan and
+boom, the bridge's cables snap), the black-hole-style music under it; before 1 trillion the music drops away for half a
+second but the roar keeps running (no silence: -10 to -13 dB every 0.1 s); a rising shimmer and roar into the white,
+held into the loop; about -12 dB.
 
 The numbers (also at the top of `src/timeline.js`), the field at your skin, 1x = 0.005 T: 300x = 1.5 T, more than the best
 "super" (neodymium) magnet holds (1.48 T). 1,500x = 7.5 T: more than a hospital MRI (most are 1.5 or 3 T; the strongest
@@ -3124,7 +3128,7 @@ cars from 35-140 m, buildings, ships and the bridge from hundreds of metres to a
 pulled just as hard per kilo whatever its size (a car flies as easily as a key once it's in reach, it just has tyres to
 beat), bolted things go after loose ones, and ships float, so they drag first. Water and people really are pushed away
 by any strong magnet (they're weakly "diamagnetic": a frog floats in a 16 T lab magnet), but honestly only within about
-1 m of you at 100,000x; the video pushes the crowd, the fountain and the trees out 15-20 m. The coins are steel coins
+1 m of you at 100,000x; the video pushes the crowd, the fountain (13 m from you) and the trees out 15-20 m. The coins are steel coins
 (euro cents, UK pennies; US coins wouldn't stick). You survive, and so does the camera. The ending (atoms stretched,
 everything coming apart into light) stands for what a magnetar's field does to matter near it.
 
@@ -3147,7 +3151,7 @@ What's the first thing you'd pull to you? 👇
 
 #whatif #science #physics #simulation
 
-Cover: `week 10/magnet-trillion/out/magnet-trillion_v4_cover.png` (`node render.mjs --cover 31.5`: the cruise ship flying over the street toward you, the towers either side breaking into chunks, you covered in keys and phones in the pile of bikes, carts and cars; "WHAT IF YOU WERE / 1 trillion / times more magnetic?")
+Cover: `week 10/magnet-trillion/out/magnet-trillion_v4_cover.png` (`node render.mjs --cover 41.5`: you face-on in your red hoodie, covered in keys, with everything round you breaking into blue-white needles that all point at you, under a dark violet sky; "WHAT IF YOU WERE / 1 trillion / times more magnetic?")
 
 ## Long video 2. 6 more ways the world could end — `longform/out/6-more-ways-the-world-ends_1920x1080.mp4`
 

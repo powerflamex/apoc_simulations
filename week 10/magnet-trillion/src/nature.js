@@ -48,18 +48,19 @@ export function makeNature(scene, ctx) {
   const basin = new THREE.Mesh(mergeGeometries([ni(new THREE.TorusGeometry(F.r, 0.22, 8, 48).rotateX(Math.PI / 2).translate(0, 0.45, 0)), ni(new THREE.CylinderGeometry(F.r + 0.15, F.r + 0.25, 0.45, 48, 1, true).translate(0, 0.225, 0)),
     ni(new THREE.CylinderGeometry(0.35, 0.5, 1.1, 16).translate(0, 0.55, 0)), ni(new THREE.CylinderGeometry(0.9, 0.7, 0.18, 24).translate(0, 1.15, 0))]), stone);
   basin.position.set(F.x, 0, F.z); basin.castShadow = true; basin.receiveShadow = true; scene.add(basin);
-  const waterM = stretchy(new THREE.MeshStandardMaterial({ color: 0x9ec8d8, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.85, emissive: 0x1a3440, emissiveIntensity: 0.4 }), 'fwater');
+  const waterM = stretchy(new THREE.MeshStandardMaterial({ color: 0xe2f4ff, roughness: 0.08, metalness: 0.05, transparent: true, opacity: 0.9, emissive: 0x6a9ab8, emissiveIntensity: 0.55 }), 'fwater');
   const pool = new THREE.Mesh(new THREE.CircleGeometry(F.r - 0.05, 48, 0).rotateX(-Math.PI / 2), waterM);
   pool.position.set(F.x, 0.36, F.z); scene.add(pool);
   const JETS = [{ x: 0, z: 0, y: 1.25, vy: 7.2, vh: 0 }];
   for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; JETS.push({ x: Math.cos(a) * 1.45, z: Math.sin(a) * 1.45, y: 0.4, vy: 4.6, vh: 0.55, a: a + Math.PI }); }
-  const PER = 60, NDROP = JETS.length * PER;
+  const PER = 90, NDROP = JETS.length * PER;
   const drops = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), waterM, NDROP);
   drops.frustumCulled = false; scene.add(drops);
   // away from you at the fountain
   const away = new THREE.Vector2(F.x, F.z).normalize();
   const rF = Math.hypot(F.x, F.z);
 
+  const vel = new THREE.Vector3(), UPV = new THREE.Vector3(0, 1, 0);
   const m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), e = new THREE.Euler(), zero = new THREE.Matrix4().makeScale(0, 0, 0);
   return {
     frame(v) {
@@ -93,8 +94,12 @@ export function makeNature(scene, ctx) {
           const y = J.y + J.vy * age - 4.9 * age * age;
           const px = F.x + J.x + hx * age + 0.5 * ah * away.x * age * age, pz = F.z + J.z + hz * age + 0.5 * ah * away.y * age * age;
           if (y < 0.36 && age > 0.2) { drops.setMatrixAt(i, zero); continue; }
-          const s = (J.x === 0 ? 0.09 : 0.06) * (1 - 0.4 * (1 - age / T)) * (1 - fling);
-          drops.setMatrixAt(i, m4.compose(pos.set(px, y, pz), q.identity(), sc.set(s, s * 1.6, s)));
+          // (big, and drawn out along their path, so the jets read as streams that bend away from you)
+          const s = (J.x === 0 ? 0.17 : 0.12) * (1 - 0.35 * (1 - age / T)) * (1 - fling);
+          vel.set(hx + ah * away.x * age, J.vy - 9.8 * age, hz + ah * away.y * age);
+          const sp = vel.length();
+          q.setFromUnitVectors(UPV, vel.multiplyScalar(1 / Math.max(sp, 1e-3)));
+          drops.setMatrixAt(i, m4.compose(pos.set(px, y, pz), q, sc.set(s, s * (1.6 + 0.35 * sp), s)));
         }
       });
       drops.instanceMatrix.needsUpdate = true;

@@ -11,7 +11,8 @@ const GAP = 62 * Math.PI / 180, LANE = 22 * Math.PI / 180;
 const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
 // a landing spot for something coming from (sx, sz): ring [rMin, rMax], height [yMin, yMax]
-export function pileSlot(sx, sz, { rMin, rMax, yMin, yMax }, R) {
+export function pileSlot(sx, sz, { rMin, rMax, yMin, yMax, lane }, R) {
+  const LN = lane ? lane * Math.PI / 180 : LANE;   // (wider for big things: a car's body reaches well past its centre)
   let az = Math.atan2(sx, sz);
   const d = angDiff(az, CAM_AZ);
   if (Math.abs(d) < GAP) az = CAM_AZ + Math.sign(d || 1) * (GAP + R() * 0.35);
@@ -19,7 +20,7 @@ export function pileSlot(sx, sz, { rMin, rMax, yMin, yMax }, R) {
   // (and a lane straight ahead, past you up the street, so the camera sees over you to what's coming: within 60 m
   // nothing lands in it; the pile grows down both sides like the walls of a canyon)
   const fwd = Math.PI, d2 = angDiff(az, fwd);
-  if (r < 60 && Math.abs(d2) < LANE) az = fwd + Math.sign(d2 || 1) * (LANE + R() * 0.3);
+  if (r < 60 && Math.abs(d2) < LN) az = fwd + Math.sign(d2 || 1) * (LN + R() * 0.3);
   return new THREE.Vector3(Math.sin(az) * r, yMin + (yMax - yMin) * R(), Math.cos(az) * r);
 }
 export const randQuat = (R) => new THREE.Quaternion().setFromEuler(new THREE.Euler(R() * 6.28, R() * 6.28, R() * 6.28));
