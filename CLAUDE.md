@@ -68,6 +68,11 @@ Use this for every new video and every rework:
   stall at <300 views; same-channel twins that open on the spectacle get the first ~1,000.
 - **Scenes:** bright and busy, with people, cars and city lights, so the viewer pictures themselves there.
 - **On-screen captions:** short, put "you" somewhere concrete, and give one hard number.
+- **Text height** (owner, Nov 23): YouTube's own overlay (channel name, title, the "Search ..." suggestion) covers the
+  bottom of a Short. The caption line and the gold popups must end above ~1250 px of 1920 (`#caption { top }` in
+  `index.html`; it was 1190 in the early videos and had drifted down to 1640), and nothing important goes in the right
+  ~190 px (the like/comment buttons). YouTube gives no official number; third-party guides put the covered strip at the
+  bottom 300-670 px. It did not sort views (fast trillion 417K had the lowest text), so don't blame it for a weak Short.
 - **Length:** 45-50 s (owner's call, Nov 3). Viewers watch ~32-36 s of every Short whatever its length, so shorter
   ones get a bigger share watched (49 s -> 73%, 55 s -> 65%, 63 s -> 51%). **Loop:** always (nobody else in the niche does it).
 - **Loop point on a plain screen:** TikTok and Shorts freeze the last frame for a moment when they loop, so the cut
