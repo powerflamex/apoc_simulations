@@ -12,6 +12,9 @@ export function makeWater(scene) {
     uSkyTop: { value: new THREE.Color(0.06, 0.07, 0.09) }, uSkyLow: { value: new THREE.Color(0.17, 0.18, 0.22) },
     uBand: { value: new THREE.Color(0.95, 0.42, 0.2) }, uOrigin: { value: new THREE.Vector2() },
     uFlow: { value: new THREE.Vector2() }, uSpace: { value: 0 }, uSun: { value: new THREE.Vector3(0.5, 0.45, -0.75).normalize() }, uFoam: { value: 0.5 },
+    // things standing in the current (boxes: centre xz, cos/sin yaw; half width, half length, on) and the avenue's walls
+    uObs: { value: Array.from({ length: 24 }, () => new THREE.Vector4()) }, uObsS: { value: Array.from({ length: 24 }, () => new THREE.Vector4()) },
+    uWall: { value: 0 }, uRefl: { value: 1 }, uBrown: { value: 1 },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms: u, transparent: true, depthWrite: false,
@@ -21,6 +24,7 @@ export function makeWater(scene) {
     fragmentShader: /* glsl */ `
       uniform float uTime; uniform vec3 uFogC; uniform float uFogD; uniform float uFlash; uniform vec3 uGlow;
       uniform float uChop; uniform float uRain; uniform vec2 uOrigin; uniform vec2 uFlow; uniform float uSpace; uniform vec3 uSun; uniform float uFoam; uniform vec3 uMurk; uniform vec3 uSkyTop; uniform vec3 uSkyLow; uniform vec3 uBand;
+      uniform vec4 uObs[24]; uniform vec4 uObsS[24]; uniform float uWall; uniform float uRefl; uniform float uBrown;
       varying vec3 vW;
       float h1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n2(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 s = f * f * (3.0 - 2.0 * f);
@@ -61,16 +65,35 @@ export function makeWater(scene) {
         vec3 Rf = reflect(-V, N);
         Rf.y = abs(Rf.y);
         float fres = 0.04 + 0.62 * pow(1.0 - max(dot(N, V), 0.0), 4.0);
-        vec3 body = uMurk * (1.0 + 0.5 * n2(p * 0.05) + 0.4 * n2(p * 0.7));
-        vec3 col = mix(body, sky(Rf), fres);
+        fres *= mix(1.0, 0.55, uBrown);
+        // the flood: muddy brown-olive water, silt swirling in it
+        vec3 silt = mix(vec3(0.075, 0.055, 0.03), vec3(0.05, 0.045, 0.026), n2(p * 0.12 + vec2(0.0, uTime * 0.3)));
+        vec3 body = mix(uMurk, silt, uBrown) * (1.0 + 0.5 * n2(p * 0.05) + 0.4 * n2(p * 0.7));
+        vec3 col = mix(body, sky(Rf) * uRefl, fres);
         // a soft sheen of the flash
         col += vec3(0.6, 0.65, 0.8) * uFlash * fres * 0.4;
         // the current's foam streaks (stretched along the flow), the Sun's glint once it is out
         float fo = n2(vec2(p.x * 0.9, p.y * 0.12)) * n2(p * 0.5 + 7.0);
-        col += vec3(0.55, 0.55, 0.5) * smoothstep(0.32, 0.6, fo) * uFoam * (1.0 - smoothstep(20.0, 120.0, d));
+        float foam = smoothstep(0.5, 0.68, fo) * uFoam * 0.4 * (1.0 - smoothstep(20.0, 120.0, d));
+        // foam heaped against whatever stands in the current, a wake trailing downstream (-z), and along the walls
+        float fn = n2(p * 2.2) * 0.6 + n2(p * 6.0) * 0.4;
+        vec2 wp = vW.xz;
+        for (int i = 0; i < 24; i++) {
+          vec4 O = uObs[i], OS = uObsS[i];
+          if (OS.z <= 0.0) continue;
+          vec2 q = wp - O.xy;
+          q = vec2(q.x * O.z - q.y * O.w, q.x * O.w + q.y * O.z);
+          vec2 e = abs(q) - OS.xy;
+          float sd = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0);
+          float wake = (1.0 - smoothstep(-1.0, 0.0, (wp.y - O.y) + OS.y)) * exp(-abs(q.x) / (OS.x + 0.6)) * exp(-max(0.0, -(wp.y - O.y) - OS.y) / 5.0);
+          foam += OS.z * (exp(-max(sd, 0.0) / 0.18) * smoothstep(0.35, 0.65, fn) * 0.7 + wake * 0.35 * smoothstep(0.45, 0.75, fn));
+        }
+        float wd = 14.0 - abs(vW.x);
+        foam += uWall * exp(-max(wd, 0.0) / 0.4) * smoothstep(0.3, 0.6, fn) * step(-0.5, wd);
+        col = mix(col, vec3(0.5, 0.48, 0.43) * (0.75 + 0.35 * fn), clamp(foam, 0.0, 0.75));
         vec3 Hs = normalize(normalize(uSun) + V);
         col += vec3(1.0, 0.92, 0.8) * (pow(max(dot(N, Hs), 0.0), 300.0) * 6.0 + pow(max(dot(N, Hs), 0.0), 30.0) * 0.15) * uSpace;
-        float a = mix(0.72, 1.0, fres);
+        float a = mix(mix(0.72, 0.9, uBrown), 1.0, fres);
         float fog = 1.0 - exp(-uFogD * uFogD * d * d);
         col = mix(col, uFogC, fog);
         a = mix(a, 1.0, fog);

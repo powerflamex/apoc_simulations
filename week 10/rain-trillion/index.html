@@ -26,7 +26,7 @@
   .wide #stampw { top: 372px; }
   .wide #stamp { top: 410px; }
   /* ?clean=1: no title, counter or captions (montage shots for the long video's intro) */
-  .clean #counter, .clean #caption, .clean #title, .clean #cover, .clean #you, .clean #stamp, .clean #stampw { display: none !important; }
+  .clean #counter, .clean #caption, .clean #title, .clean #cover, .clean #you, .clean #stamp, .clean #stampw, .clean #moonlab, .clean #ringlab { display: none !important; }
 
   .serif { font-family: 'Cormorant', Georgia, serif; color: #f4efe6; }
 
@@ -39,14 +39,14 @@
   #counter .badge { font: 700 24px 'Cormorant', serif; letter-spacing: .2em; margin-top: 14px; padding: 6px 14px 4px;
     background: rgba(200, 40, 40, .75); color: #fff6ee; display: none; }
 
-  #caption { position: absolute; left: 60px; right: 60px; top: 1640px; text-align: center;
+  #caption { position: absolute; left: 60px; right: 60px; top: 1105px; text-align: center;
     font: italic 500 58px/1.15 'Cormorant', serif;
     text-shadow: 0 2px 22px rgba(0,0,0,.7), 0 1px 3px rgba(0,0,0,.8); }
 
-  #stamp { position: absolute; left: 50px; right: 50px; top: 1545px; text-align: center; opacity: 0; line-height: 1.05;
+  #stamp { position: absolute; left: 50px; right: 50px; top: 1100px; text-align: center; opacity: 0; line-height: 1.05;
     font: italic 500 138px/1 'Cormorant', serif; color: #ffd98a;
     text-shadow: 0 0 3px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.85); }
-  #stampw { position: absolute; left: 0; right: 0; top: 1402px; text-align: center; opacity: 0;
+  #stampw { position: absolute; left: 0; right: 0; top: 1050px; text-align: center; opacity: 0;
     font: 700 30px 'Cormorant', serif; letter-spacing: .4em; padding-left: .4em; color: #f4efe6;
     text-shadow: 0 2px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
 
@@ -66,6 +66,10 @@
     text-shadow: 0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9); }
   #you .t { font: 700 38px 'Cormorant', serif; letter-spacing: .32em; padding-left: .32em; }
   #you .ln { width: 3px; height: 62px; margin: 4px auto 0; background: rgba(255, 246, 236, .92); }
+  #moonlab, #ringlab { position: absolute; left: 0; top: 0; width: 240px; text-align: center; opacity: 0;
+    font: 700 30px 'Cormorant', serif; letter-spacing: .3em; padding-left: .3em; white-space: nowrap;
+    text-shadow: 0 2px 14px rgba(0,0,0,.9), 0 1px 3px rgba(0,0,0,.9); }
+  #ringlab { width: 400px; color: #fff3e0; }
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
   #endcard { position: absolute; inset: 0; background: #000; opacity: 0; display: flex;
     flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -100,6 +104,8 @@
     <div class="t">What if it rained 1 trillion times harder?</div>
   </div>
   <div id="you" class="serif"><div class="t">YOU</div><div class="ln"></div></div>
+  <div id="moonlab" class="serif">MOON</div>
+  <div id="ringlab" class="serif">EARTH BEFORE</div>
   <div id="cover" class="serif">
     <div class="k">WHAT IF IT RAINED</div>
     <div class="w">1 trillion</div>

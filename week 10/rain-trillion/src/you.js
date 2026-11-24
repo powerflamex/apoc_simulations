@@ -214,7 +214,7 @@ export function makeYou(scene, opts = {}) {
   torso.add(new THREE.Mesh(lathe([[0.168, T0 - 0.005], [0.172, T0 + 0.045]], 0.66, 32).translate(0, 0, 0), M.hoodie));
   torso.add(new THREE.Mesh(new RoundedBoxGeometry(0.19, 0.1, 0.012, 2, 0.005).translate(0, 0.1, 0.1), M.hoodie));
   for (const sx of [-0.035, 0.035]) torso.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.15, 6).translate(sx, 0.42, 0.112).rotateX(0.0), M.cord));
-  {
+  if (!opts.hoodUp) {
     // the hood lies bunched round the back of the neck only (a 220° roll, wide enough to clear the neck), its two ends
     // tucked down at the collar bones; nothing crosses the front of the neck
     const A = Math.PI * 1.22;

@@ -9,6 +9,7 @@ import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { CARS, TAXI_I, LANES, WALK, B, BAL, BOATS, WRECK, TOWER, SUMMIT, busAt, YOU0 } from './layout.js';
 import { depthAt, vAtDepth, V_BUS } from './timeline.js';
 import { drownMat } from './drown.js';
+import { mtnH, TO_CITY } from './mountain.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 const ROOF_H = [1.45, 1.46, 1.83, 2.0];
@@ -63,6 +64,14 @@ export function carFrame(c, v, level) {
   }
   return { x, y, z, yaw, pitch, roll, lift, sink };
 }
+// a car between the camera and you (within 2.8 m of that line, on the camera's side of you) is not drawn
+export const VIEW_T = new THREE.Vector3(1e9, 0, 0);
+function blocksView(x, z, cam) {
+  const ax = VIEW_T.x - cam.x, az = VIEW_T.z - cam.z, l2 = ax * ax + az * az;
+  if (l2 > 400) return false;
+  const t = Math.max(0, Math.min(1, ((x - cam.x) * ax + (z - cam.z) * az) / l2));
+  return t < 0.92 && Math.hypot(cam.x + ax * t - x, cam.z + az * t - z) < 2.8;
+}
 const carObj = new THREE.Object3D();
 // a point on car c's roof (local x, z offsets) in world space
 export function carRoof(c, v, level, ox = 0, oz = 0, out = new THREE.Vector3()) {
@@ -105,6 +114,10 @@ export const PEOPLE = [];
   add({ kind: 'bus', lx: -0.45, lz: 4.9, helper: true, col: [0x2a5ad8, 0x1f2328, 0x9a6440, 0x151515] });
   add({ kind: 'bus', lx: 0.55, lz: -3.2, col: [0x2a9a3a, 0x2a2018, 0xf1c8a6, 0xa07a48] });
   add({ kind: 'bus', lx: -0.6, lz: -2.4, col: [0xf2f2f2, 0x2f3f5f, 0xc68a62, 0x1d1612] });
+  // a mother and her kid near the middle, a man at the front edge
+  add({ kind: 'bus', lx: -0.75, lz: -0.4, col: [0xc83a6a, 0x1f2328, 0xf1c8a6, 0x6b4a2a] });
+  add({ kind: 'bus', lx: -0.3, lz: -0.75, s: 0.62, col: [0x3aa0c8, 0x2a2018, 0xf1c8a6, 0x6b4a2a] });
+  add({ kind: 'bus', lx: 0.7, lz: -5.4, col: [0xe85a12, 0x2a2018, 0x9a6440, 0x151515] });
   // the balconies: people at the rail on the floors the bus rises past, reaching out; they step back inside before
   // the water comes over their floor
   const bays = []; for (let z = BAL.z1 - 3.2; z > BAL.z0 + 2; z -= 5.4) bays.push(z);
@@ -125,7 +138,12 @@ export const PEOPLE = [];
   for (const wi of [3, 11, 19]) add({ kind: 'wreck', w: wi });
   // the tower's roof deck (the corner facing the bus) and the summit's viewing deck
   for (let k = 0; k < 7; k++) add({ kind: 'deck', x: TOWER.x - TOWER.w / 2 + 2 + R() * 9, y: TOWER.h + 0.05, z: TOWER.z + TOWER.w / 2 - 2 - R() * 9 });
-  for (let k = 0; k < 9; k++) add({ kind: 'summit', x: SUMMIT.x - 6 + R() * 10, y: SUMMIT.h + 0.4, z: SUMMIT.z + 4.5 + R() * 5.5 });
+  // the last climbers on the summit, round the cross, bright jackets, facing the city side (where the water comes from)
+  for (const [u, sd, pose] of [[2.5, -3.2, 'kneel'], [3.6, -1.2, 'wave'], [3.0, 0.9, 'hug'], [1.4, 2.6, 'wave'], [-0.6, -1.0, 'cross'], [4.6, 1.8, 'point'], [0.8, -2.2, 'kneel']]) {
+    const x = SUMMIT.x + TO_CITY.x * u - TO_CITY.y * sd, z = SUMMIT.z + TO_CITY.y * u + TO_CITY.x * sd;
+    const jackets = [0xe8261c, 0xf0b020, 0x2a6ae8, 0xe85a12, 0x2a9a3a, 0xd83a8a, 0xf2f2f2];
+    add({ kind: 'summit', x, y: mtnH(x, z) - 0.05, z, pose, col: [jackets[PEOPLE.length % 7], 0x1b1b1b, SKIN[Math.floor(R() * SKIN.length)], 0x151515] });
+  }
 }
 
 // ---- boats and wreckage meshes ----
@@ -184,6 +202,8 @@ export function makeActors(scene) {
       CARS.forEach((c, i) => {
         if (!showStreet || v > c.vSink + 6) { fleet.set(i, zero, false); return; }
         const f = carFrame(c, v, L);
+        // never right in front of the lens
+        if (camPos.distanceTo(tmpV.set(f.x, f.y + 0.8, f.z)) < 4.2 || blocksView(f.x, f.z, camPos)) { fleet.set(i, zero, false); return; }
         dummy.position.set(f.x, f.y, f.z); dummy.rotation.set(f.pitch, f.yaw, f.roll, 'YXZ'); dummy.scale.setScalar(1); dummy.updateMatrix();
         const on = v < c.vSink + 1.2 && !c.wedged;
         fleet.set(i, dummy.matrix, on);
@@ -264,6 +284,7 @@ export function makeActors(scene) {
             if (go > 0 && go < 1) yaw = Math.PI;
           }
           if (v > 6.2 && v < 26) { armL = 0.3 + 0.9 * panic * smooth(8, 9, v); }
+          if (p.sitting) { sit = Math.max(sit, p.sitting); pitch = 0.15; armL = 0.5; armR = 0.6 + 0.3 * panic; }
           sit = Math.max(sit, 0.9 * press);
           pitch = Math.max(pitch, 0.45 * press);
           const o = local({ x: bus.x, y: bus.roof, z: bus.z, yaw: bus.yaw, pitch: bus.pitch, roll: bus.roll }, lx, 0.07, lz);
@@ -292,7 +313,21 @@ export function makeActors(scene) {
           const up = smooth(w.v0 + 1, w.v0 + 2, v);
           return { x: bus.x + w.dx + 2 * Math.sin(v * 0.3 + w.seed * 8), y: L + 0.15 - 1.5 * (1 - up), z: bus.z + w.dz + 2 * Math.cos(v * 0.23 + w.seed * 5), yaw: w.yaw, s: p.s, sit: 0.9, pitch: 0.3, armL: waveArm(1), armR: 0.6, look: 0.5 };
         }
-        case 'deck': case 'summit': {
+        case 'summit': {
+          if (L > p.y + 0.3) return null;
+          const yawTo = Math.atan2(TO_CITY.x, TO_CITY.y);
+          const fear = smooth(28.6, 29.6, v);
+          const base = { x: p.x, y: p.y, z: p.z, yaw: yawTo + (p.seed - 0.5) * 0.8, s: p.s, look: -0.35 - 0.2 * fear };
+          switch (p.pose) {
+            case 'kneel': return { ...base, sit: 0.8, pitch: 0.2, armL: 0.9, armR: 0.9 };
+            case 'wave': return { ...base, armL: waveArm(1), armR: waveArm(2), look: 0.1 };
+            case 'hug': return { ...base, yaw: yawTo + 2.6, armL: 1.0, armR: 1.0, look: 0.0 };
+            case 'cross': return { ...base, yaw: yawTo + 0.3, armL: 1.5, armR: 0.4, look: 0.2 };
+            case 'point': return { ...base, armL: 0.4, armR: 1.2 + 0.1 * Math.sin(v * 3), look: -0.5 };
+          }
+          return base;
+        }
+        case 'deck': {
           if (L > p.y + 1.7) return null;
           const yawTo = Math.atan2(bus.x - p.x, bus.z - p.z);
           return { x: p.x, y: p.y, z: p.z, yaw: yawTo + 0.4 * Math.sin(v * 0.8 + ph), s: p.s, armL: waveArm(1), armR: p.seed > 0.5 ? waveArm(2) : 0.5, look: 0.2 + (bus.roof - p.y) * 0.002 };

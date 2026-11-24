@@ -1,9 +1,6 @@
-// Land beyond the city, as polar meshes (fine near their centre, coarse far out) with one shader:
-//   - the region round Seattle out to 200 km: its hills (Queen Anne, Capitol Hill, West Seattle...), the Olympic
-//     Mountains across the Sound to the west (to ~2,400 m), the Cascade foothills and crest to the east
-//   - Mount Rainier (4,392 m), 95 km south-east, with its own fine mesh
-//   - the Himalaya round Everest (everest.js uses the same builder and shader)
-// Colour from height and slope: forest, rock, snow and glaciers; distant haze; under the water line the murk.
+// Land beyond the city as polar meshes (fine near their centre, coarse far out) with one shader: the mountain
+// (mountain.js) and the Himalaya round Everest (everest.js). Colour from height and slope: forest, meadow, rock, snow;
+// distant haze; a band of surf where the water meets the slope; under the water line the murk.
 import * as THREE from 'three';
 import { DW } from './drown.js';
 
@@ -27,42 +24,6 @@ export function ridged(x, y, oct = 6) {
 export function fbm(x, y, oct = 5) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < oct; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= 0.5; } return s; }
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const g2 = (x, z, cx, cz, r) => Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (r * r));
-
-// ---- heights (m above old sea level) ----
-export function seattleH(x, z) {
-  let h = 0;
-  // the city's hills
-  h += 140 * g2(x, z, 1900, -600, 900) + 130 * g2(x, z, 300, 1900, 1100) + 110 * g2(x, z, -1300, 1300, 700) + 105 * g2(x, z, -3200, 1700, 1300);
-  h += 125 * g2(x, z, -3600, -3600, 1600) + 115 * g2(x, z, 3200, -2700, 1200) + 90 * g2(x, z, 5500, 1500, 2500) + 120 * g2(x, z, -1000, 6000, 2600);
-  // Bainbridge Island and the Kitsap side
-  h += 90 * g2(x, z, 1500, -12000, 3500) * (0.6 + 0.8 * fbm(x / 2500, z / 2500)) + 140 * g2(x, z, -2000, -22000, 9000) * fbm(x / 4000 + 3, z / 4000);
-  // the Sound: west of the city everything dips under the old sea level
-  const sound = sm(-900, -2500, z) * (1 - sm(-16000, -26000, z)) * (1 - g2(x, z, 1500, -12000, 3500));
-  h -= 60 * sound;
-  // the Olympics: a high block of ridges 60-110 km west
-  {
-    const k = sm(-48000, -62000, z) * (1 - sm(-120000, -140000, z)) * sm(-30000, -10000, x) * (1 - sm(70000, 90000, x));
-    if (k > 0) h += k * (300 + 2100 * ridged(x / 14000, z / 14000, 6));
-  }
-  // the Cascades: foothills from 20 km east, the crest at 80-110 km
-  {
-    const foot = sm(18000, 40000, z), crest = sm(55000, 85000, z) * (1 - sm(130000, 160000, z));
-    if (foot > 0) h += foot * (250 + 700 * ridged(x / 9000 + 7, z / 9000, 5)) + crest * 1500 * ridged(x / 16000 + 2, z / 16000 + 5, 6);
-  }
-  // the city itself is flat (the street plane covers it): sink the terrain just under it there
-  const city = (1 - sm(1300, 1700, Math.abs(x - 100))) * (1 - sm(1200, 1600, Math.abs(z - 200)));
-  return h * (1 - city) - 3 * city;
-}
-// Mount Rainier: a broad cone with glacier-cut ridges, a domed summit, Little Tahoma on the east flank
-export function rainierH(dx, dz) {
-  const r = Math.hypot(dx, dz), a = Math.atan2(dz, dx);
-  const ridges = fbm(Math.cos(a) * 3.5 + r / 9000, Math.sin(a) * 3.5 - r / 7000, 5);   // glacier-cut ribs, irregular
-  const prof = Math.pow(Math.max(0, 1 - r / 15500), 1.75);
-  let h = 520 + 3870 * prof * (1 - 0.2 * (1 - ridges) * Math.min(1, r / 2500)) - 30 * Math.min(1, Math.pow(r / 900, 2)) + 30;
-  h += 520 * g2(dx, dz, -2000, 3400, 900);                  // Little Tahoma
-  h += 380 * (ridged(dx / 4000, dz / 4000, 6) - 0.5) * Math.min(1, r / 3000);
-  return Math.max(h, 0);
-}
 
 // ---- the shader: rock, forest, snow, haze, murk ----
 export const TU = {
@@ -92,10 +53,15 @@ export function terrainMaterial(extra = {}) {
         float px = max(d * 0.0006, 0.5);
         float nn = fbm(vW.xz / (40.0 * px)) * 0.6 + fbm(vW.xz / 900.0) * 0.4;
         // forest low down, open rock and scree higher, snow and glaciers on the gentle slopes up high
-        vec3 forest = mix(vec3(0.035, 0.06, 0.04), vec3(0.06, 0.08, 0.05), nn);
-        vec3 rock = mix(vec3(0.07, 0.07, 0.08), vec3(0.15, 0.145, 0.15), nn);
-        vec3 col = mix(forest, rock, smoothstep(uTree - 250.0, uTree + 250.0, y + (nn - 0.5) * 400.0));
-        col = mix(col, rock * 0.75, smoothstep(0.25, 0.45, steep));
+        // forest: dark green, speckled with tree crowns; an alpine meadow just above the tree line; then rock
+        float crowns = fbm(vW.xz / (9.0 * px));
+        vec3 forest = mix(vec3(0.03, 0.07, 0.03), vec3(0.075, 0.13, 0.05), nn) * (0.75 + 0.5 * crowns);
+        vec3 meadow = mix(vec3(0.11, 0.15, 0.06), vec3(0.16, 0.18, 0.09), nn);
+        vec3 rock = mix(vec3(0.09, 0.09, 0.095), vec3(0.19, 0.18, 0.17), nn);
+        float tl = y + (nn - 0.5) * 160.0;
+        vec3 col = mix(forest, meadow, smoothstep(uTree - 40.0, uTree + 40.0, tl));
+        col = mix(col, rock, smoothstep(uTree + 120.0, uTree + 420.0, y + (nn - 0.5) * 300.0));
+        col = mix(col, rock * 0.75, smoothstep(0.25, 0.45, steep) * smoothstep(uTree - 300.0, uTree + 100.0, y) + smoothstep(0.42, 0.6, steep) * (1.0 - smoothstep(uTree - 300.0, uTree + 100.0, y)));
         // snow and glaciers hold on the gentler slopes; the steep faces and ridges stay dark rock
         float snow = smoothstep(uSnow - 300.0, uSnow + 300.0, y + (nn - 0.5) * 700.0) * (1.0 - smoothstep(0.3, 0.5, steep + (nn - 0.5) * 0.25));
         // close up: rock strata (bands that follow the height) and streaks of snow down the gullies
@@ -117,6 +83,12 @@ export function terrainMaterial(extra = {}) {
         float fog = 1.0 - exp(-uFogD * uFogD * d * d);
         c = mix(c, uFogC, fog);
         float dd = uLevel - y;
+        // the surf where the climbing water meets the slope: a band of white foam just above the water line
+        if (dd < 0.0 && dd > -18.0) {
+          float fz = fbm(vW.xz * 0.05 + vec2(0.0, uLevel * 0.02)) * 0.7 + fbm(vW.xz * 0.4) * 0.3;
+          float band = smoothstep(-18.0, -1.0, dd + (fz - 0.5) * 14.0);
+          c = mix(c, vec3(0.62, 0.66, 0.68) * (0.6 + 0.6 * fz), band * 0.85);
+        }
         if (dd > 0.0) c = mix(c * vec3(0.5, 0.65, 0.55), uMurk, 1.0 - exp(-dd / 1.6));
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>

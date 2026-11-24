@@ -1,10 +1,10 @@
-// The city (metres). y up, 0 = the street. The avenue runs along z; you look up it toward -z, where the city's
-// tallest tower stands at the foot of a sheer granite mountain (1,850 m) that walls in the end of the avenue.
+// The city (metres). y up, 0 = the street. The avenue runs along z; you look up it toward -z, toward the city's
+// tallest tower and, 5 km beyond the city, a mountain (2,300 m) standing on a 600 m upland with a town at its foot.
 //   roadway |x| < 10.5 (four lanes), sidewalks to |x| < 14, buildings beyond.
 // Story places: the bus stuck in the right lane next to you; a residential block with balconies on the right a little
-// further up (the bus drifts past it while it rises); the tower 0.4 km up; the summit 1.2 km up.
+// further up (the bus drifts past it while it rises); the tower 0.4 km up; the summit 5.5 km up.
 import { rng, clamp, lerp, smooth } from './util.js';
-import { V_BUS, depthAt } from './timeline.js';
+import { V_BUS, levelR } from './timeline.js';
 
 export const ROAD = 10.5, WALK = 14;
 export const LANES = [-7.9, -4.4, 4.4, 7.9];
@@ -14,15 +14,16 @@ export const TAXI = { x: 7.5, z: 2.0 };                                  // wedg
 export const YOU0 = { x: 5.0, z: 4.6 };                                  // where you stand at frame 0
 export const BAL = { x0: 14, x1: 34, z0: -96 + 30, z1: -24, floors: 22, g0: 5.0, fh: 3.8 };   // the balcony block
 export const TOWER = { x: 92, z: -420, w: 42, h: 400, spire: 58 };
-export const SUMMIT = { x: 46, z: -1185, h: 1850 };
+export const SUMMIT = { x: -1000, z: -5600, h: 2300 };          // 5 km beyond the city's end, on a 600 m upland
+export const TOWN = { x: -1000 + 0.1854 * 1150, z: -5600 + 0.9827 * 1150, r: 260 };   // the town on its lower slope, facing the city
 export const BUS_TOP = 0.85;                                               // roof above the water once it floats
 
 // ---- the bus's path: parked, then afloat (drifting up the avenue past the balconies, out toward the tower, then
-// carried across to the mountain as it rises; the summit passes ~40 m off its side) ----
+// on out over the drowned city toward the mountain) ----
 const BP = [
   [-99, BUS0.x, BUS0.z], [V_BUS, BUS0.x, BUS0.z], [10.5, 8.0, -11], [12.5, 8.7, -22], [15.0, 9.0, -38], [17.0, 8.6, -55],
-  [19.0, 7.0, -85], [21.0, 12, -150], [23.0, 30, -260], [25.1, 50, -380], [26.6, 52, -520], [28.2, 35, -700],
-  [29.34, 22, -930], [30.4, 10, -1120], [31.6, -20, -1260], [36, -40, -1380], [60, -80, -1600],
+  [19.0, 7.0, -85], [21.0, 12, -150], [23.0, 30, -260], [25.1, 50, -380], [26.6, 52, -455], [28.2, 46, -520],
+  [29.8, 36, -575], [31.6, 22, -630], [36, -10, -730], [60, -80, -1000],
 ];
 function spl(i, v) {                                       // Catmull-Rom over BP in time
   if (v <= BP[0][0]) return BP[0][i];
@@ -37,17 +38,9 @@ function spl(i, v) {                                       // Catmull-Rom over B
 }
 // the bus at video time v: centre (x, z), roof height, heading, sway
 export function busAt(v) {
-  const L = depthAt(v);
+  const L = levelR(v);
   const fl = smooth(V_BUS, V_BUS + 0.8, v);
   let x = spl(1, v), z = spl(2, v);
-  // past the mountain: the current carries the bus up its city face, just off the waterline (the face is ~74°, so the
-  // waterline creeps in toward the summit as the water climbs); the summit station comes down to meet you at the end
-  const hug = smooth(25.8, 27.4, v) * (1 - smooth(29.7, 30.6, v));
-  if (hug > 0) {
-    const d = Math.max(34, (SUMMIT.h - L) / 3.3 + 34);
-    const hx = SUMMIT.x - 26 - 0.1 * d, hz = SUMMIT.z + d;
-    x = x + (hx - x) * hug; z = z + (hz - z) * hug;
-  }
   const roofParked = 3.15;
   const roof = Math.max(roofParked, L + BUS_TOP) + fl * (0.06 * Math.sin(v * 1.9) + 0.03 * Math.sin(v * 3.7));
   // heading: along the avenue, swinging a little once afloat, then turning with the drift

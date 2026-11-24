@@ -1,46 +1,19 @@
 // Everything that stays put: the street, the buildings (facade.js), the balconies on the residential block, shop
-// signs, street lamps, trees, the tallest tower's deck, crown and spire, and the mountain with the summit station.
+// signs, street lamps, trees, the tallest tower's deck, crown and spire, and the mountain (mountain.js).
 // Everything under the water line fades into the murk (drown.js); the water itself is water.js.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { B, BAL, ROAD, WALK, LAMPS, SIGNS, TREES, TOWER, TOWER_B, SUMMIT } from './layout.js';
 import { facadeMaterial } from './facade.js';
 import { drownMat } from './drown.js';
-import { polarTerrain, terrainMaterial, ridged, fbm } from './terrain.js';
+import { polarTerrain, terrainMaterial } from './terrain.js';
+import { mtnH, makeMountainStuff } from './mountain.js';
 import { rng } from './util.js';
 
-const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-function peak(x, z, cx, cz, H, faces, slope) {
-  const dx = x - cx, dz = z - cz;
-  let m = 0;
-  for (const [f, s] of faces) { const a = f * Math.PI / 180; m = Math.max(m, (dx * Math.cos(a) + dz * Math.sin(a)) * (s ?? slope)); }
-  return H - m;
-}
-// the mountain: a sheer granite peak (its city face ~74°), a lower range round it, flat land elsewhere (the city
-// plane covers the city; the terrain dips just under it there)
-export function mtnH(x, z) {
-  const dx = x - SUMMIT.x, dz = z - SUMMIT.z, r = Math.hypot(dx, dz);
-  // faces: angle (0 = +x, 90 = +z toward the city) and steepness (rise per metre)
-  let h = peak(x, z, SUMMIT.x, SUMMIT.z, SUMMIT.h, [[90, 3.3], [20, 1.6], [160, 1.7], [-60, 1.25], [-120, 1.3]], 1.5);
-  h += 70 * (ridged(x / 420 + 3, z / 420 - 2, 5) - 0.5) * sm(30, 260, r) * sm(150, 900, h);
-  h += 20 * (ridged(x / 90, z / 90, 4) - 0.5) * sm(25, 120, r);
-  // the summit: a small flat-topped crown for the station
-  if (r < 45) h = Math.max(h, SUMMIT.h - 0.004 * r * r - Math.max(0, r - 19) * 4.0);
-  h = Math.min(h, SUMMIT.h - 0.004 * r * r);
-  // the range behind (all lower than the summit)
-  h = Math.max(h, peak(x, z, -900, -1900, 1420, [[90, 1.4], [0, 1.2], [180, 1.2], [-90, 1.1]], 1.2) + 60 * (ridged(x / 500, z / 500 + 4, 5) - 0.5));
-  h = Math.max(h, peak(x, z, 1250, -2100, 1560, [[90, 1.5], [0, 1.1], [180, 1.3], [-90, 1.0]], 1.2) + 60 * (ridged(x / 520 + 7, z / 520, 5) - 0.5));
-  h = Math.max(h, peak(x, z, -2600, -3400, 1300, [[60, 0.9], [-30, 0.8], [150, 0.9], [240, 0.8]], 0.9));
-  h = Math.max(h, peak(x, z, 2900, -3800, 1480, [[100, 0.9], [10, 0.8], [190, 0.8], [280, 0.9]], 0.9));
-  h = Math.max(h, peak(x, z, 300, -4200, 1650, [[90, 0.8], [0, 0.9], [180, 0.9], [270, 0.8]], 0.8));
-  // low hills round the far edges of the plain
-  const far = sm(6000, 14000, Math.hypot(x, z + 600));
-  h = Math.max(h, far * (60 + 500 * ridged(x / 6000 + 1, z / 6000 + 2, 5)));
-  // flat where the city is
-  const city = (1 - sm(1500, 2200, Math.abs(x))) * sm(-700, -560, z) * (1 - sm(2000, 2600, z));
-  return h * (1 - city) - 3 * city;
-}
+export { mtnH };
 
+let seedR = 7;
+const rnd = () => ((seedR = (seedR * 16807) % 2147483647) / 2147483647);   // seeded (both render Chromes must draw the same)
 export function makeWorld(scene) {
   const group = [];
   const P = (c, r = 0.85, extra = {}) => drownMat(new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0, ...extra }));
@@ -51,7 +24,7 @@ export function makeWorld(scene) {
     const cv = document.createElement('canvas'); cv.width = 256; cv.height = 1024;
     const g = cv.getContext('2d');
     g.fillStyle = '#2a2b2d'; g.fillRect(0, 0, 256, 1024);
-    for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},0.05)`; g.fillRect(Math.random() * 256, Math.random() * 1024, 2, 2); }
+    for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,255' : '0,0,0'},0.05)`; g.fillRect(rnd() * 256, rnd() * 1024, 2, 2); }
     g.fillStyle = '#d8b030'; g.fillRect(126, 0, 2, 1024); g.fillRect(130, 0, 2, 1024);   // double yellow
     g.fillStyle = '#d8d8d0';
     for (const x of [0.5 - 6.15 / 21, 0.5 + 6.15 / 21]) for (let y = 0; y < 1024; y += 64) g.fillRect(x * 256 - 1, y, 3, 30);
@@ -174,30 +147,12 @@ export function makeWorld(scene) {
     deck.position.set(t.x, 0, t.z); add(deck);
   }
 
-  // ---- the mountain and the summit station ----
-  const tmat = terrainMaterial({ uSnow: { value: 1050 }, uTree: { value: 420 } });
-  const terrain = polarTerrain(mtnH, SUMMIT.x, SUMMIT.z, 0.8, 90000, 720, 340, tmat);
+  // ---- the mountain (its town, road, trail, summit cross: mountain.js) ----
+  const tmat = terrainMaterial({ uSnow: { value: 1750 }, uTree: { value: 1350 } });
+  const terrain = polarTerrain(mtnH, SUMMIT.x, SUMMIT.z, 0.6, 90000, 900, 360, tmat);
   add(terrain);
-  {
-    const y = SUMMIT.h - 0.2;
-    const st = new THREE.Mesh(mergeGeometries([
-      new THREE.BoxGeometry(14, 5.2, 9).translate(-6, y + 2.6, -4),                  // the station
-      new THREE.BoxGeometry(15, 0.3, 10).translate(-6, y + 5.3, -4),                 // its roof
-      new THREE.CylinderGeometry(0.18, 0.35, 26, 6).translate(-11, y + 13, -7),      // the mast
-      new THREE.BoxGeometry(20, 0.35, 14).translate(3, y + 0.2, 4),                  // the deck
-    ]), P(0xc8c4bc, 0.7));
-    st.position.set(SUMMIT.x, 0, SUMMIT.z); add(st);
-    const win = new THREE.Mesh(new THREE.BoxGeometry(14.1, 1.6, 9.1).translate(-6, y + 3.0, -4), P(0x223040, 0.2, { emissive: 0xffd9a0, emissiveIntensity: 0.9 }));
-    win.position.set(SUMMIT.x, 0, SUMMIT.z); add(win);
-    const rail = [];
-    for (const [x0, z0, x1, z1] of [[-7, 11, 13, 11], [13, 11, 13, -3], [-7, 11, -7, 0.5]]) {
-      const L = Math.hypot(x1 - x0, z1 - z0), a = Math.atan2(z1 - z0, x1 - x0);
-      rail.push(new THREE.BoxGeometry(L, 0.07, 0.07).rotateY(-a).translate((x0 + x1) / 2, y + 1.4, (z0 + z1) / 2));
-      for (let k = 0; k <= L; k += 2) rail.push(new THREE.BoxGeometry(0.06, 1.1, 0.06).translate(x0 + (x1 - x0) * k / L, y + 0.9, z0 + (z1 - z0) * k / L));
-    }
-    const rm = new THREE.Mesh(mergeGeometries(rail), P(0x303236, 0.4, { metalness: 0.6 }));
-    rm.position.set(SUMMIT.x, 0, SUMMIT.z); add(rm);
-  }
+  const mtn = makeMountainStuff(scene);
+  for (const m of mtn.group) group.push(m);
 
-  return { group, BALCONIES, TW, terrain, tmat };
+  return { group, BALCONIES, TW, terrain, tmat, mtn };
 }

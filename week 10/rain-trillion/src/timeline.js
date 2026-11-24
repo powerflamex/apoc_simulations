@@ -59,6 +59,10 @@ export function depthAt(v) {
   const i = Math.floor(x), k = x - i;
   return DT[i] * (1 - k) + DT[i + 1] * k;
 }
+// the water line the local scene is drawn at: the true depth, held at 40 km once only sea and black sky are left in
+// view (past ~33 s), so the bus, you and the camera never sit thousands of km up (float precision)
+export const LCAP = 40000;
+export const levelR = (v) => Math.min(depthAt(v), LCAP);
 export function vAtDepth(h) {
   let a = TV0, b = 59.9;
   for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (depthAt(m) < h) a = m; else b = m; }
@@ -69,20 +73,28 @@ export function vAtDepth(h) {
 export const BUS_ROOF = 3.15;                       // the bus roof above the street
 export const BUS_FLOAT = 2.3;                       // the depth at which the bus lifts off (doors shut, mostly air)
 export const TOWER_H = 400;                         // the city's tallest tower (to the roof deck)
-export const SUMMIT_H = 1850;                       // the mountain behind the city
+export const SUMMIT_H = 2300;                       // the mountain 5 km beyond the city (on a 600 m upland)
+export const UPLAND_H = 600;                        // the upland at its foot
+export const TOWN_H = 860;                          // the town on a terrace on its lower slope
 export const EVEREST_H = 8849;
 export const SPACE_H = 100e3;                       // where space begins
 export const V_BUS = vAtDepth(BUS_FLOAT);
 export const V_ROOFS = vAtDepth(24);                // the avenue's roofs (18-40 m) go under round here
 export const V_TOWER = vAtDepth(TOWER_H);
+export const V_TOWN = vAtDepth(TOWN_H + 8);           // the town on the mountain goes under
 export const V_SUMMIT = vAtDepth(SUMMIT_H);
 export const V_EVEREST = vAtDepth(EVEREST_H);
 export const V_SPACE = vAtDepth(SPACE_H);
 export const V_MILLION = 10, V_BILLION = 29;
 // the camera leaves you for space, the ball swells, the dive back, the wall of water, the white
 export const V_OUT = V_TRILLION;                    // pull-out starts on the 1 trillion beat
-export const V_DIVE = 43.6;                         // the dive back down to you
-export const V_LAND = 45.75;                        // back on the bus roof
+export const V_DIVE = 43.75;                        // the camera dives back toward you (in space)
+export const V_CUT2 = 44.7;                         // flash cut: back to you on the bus roof, the falling water above
+export const V_LAND = V_CUT2;
+// the two cut-aways: the last climbers on the mountain's summit, and the Himalaya (Everest the last land on Earth)
+export const V_SC0 = 28.55, V_SC1 = 29.85;
+export const V_EC0 = 30.4;
+export const V_EC1 = 31.68;
 export const V_WHITE = 46.55;                       // the falling water hits the lens: full white
 export const T_SWITCH = 47.0;                       // the loop point (inside the white)
 export const LOOP = 0.85;
@@ -93,8 +105,8 @@ export const BEATS = [
   { v: V_BUS, say: 'THE BUS FLOATS' },
   { v: V_ROOFS, say: 'THE ROOFS GO UNDER' },
   { v: V_TOWER, say: 'THE TALLEST TOWER GOES UNDER' },
-  { v: V_SUMMIT, say: 'THE MOUNTAIN GOES UNDER' },
-  { v: V_EVEREST, say: 'EVEREST GOES UNDER' },
+  { v: V_SUMMIT - 0.35, say: 'THE MOUNTAIN GOES UNDER' },
+  { v: V_EVEREST - 0.55, say: 'EVEREST GOES UNDER' },
   { v: V_SPACE, say: 'THE WATER REACHES SPACE' },
 ];
 export const POP = 1.6;
@@ -114,7 +126,7 @@ export const CAPTIONS = [
   [12.9, 15.6, 'You float past their windows.'],
   [18.6, 21.6, 'You rise 6 floors every second.'],
   [21.8, 24.6, 'Boats are lifted as fast as you.'],
-  [26.6, 28.95, 'It shoves you up so hard you weigh 10 times more.'],
+  [26.5, 28.45, 'It shoves you up so hard you weigh 10 times more.'],
   [37.3, 40.1, 'Every 17 seconds, the new water outweighs the Earth.'],
   [40.5, 43.3, 'It would reach the Moon in 9 minutes.'],
 ];
@@ -157,12 +169,13 @@ export function counterAt(v) {
 export function state(v) {
   const s = { v };
   s.L = logM(v);
-  s.level = depthAt(v);
+  s.depth = depthAt(v);
+  s.level = Math.min(s.depth, LCAP);
   s.rise = riseAt(v);
   s.title = 1 - smooth(2.6, 3.0, v);
   // lightning: at frame 0 (with the scream), at each step, and a few in between
   s.bolt = 0; s.boltV = -99;
-  for (const x of [-0.25, 2.2, 6.6, ...STEPS, 13.8, 19.5, 23.2, 26.4, V_TOWER, V_SUMMIT]) {
+  for (const x of [-0.25, 2.2, 6.6, ...STEPS, 13.8, 19.5, 23.2, V_TOWER, V_SUMMIT]) {
     if (v >= x - 0.02 && v - x < 1.3) { const b = boltCurve(v - x + 0.02); if (b > s.bolt) { s.bolt = b; s.boltV = x; } }
   }
   s.white = smooth(V_WHITE - 0.12, V_WHITE, v);

@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, V_WHITE, V_BUS, V_ROOFS, V_TOWER, V_SUMMIT, V_EVEREST, V_SPACE, V_TRILLION, V_OUT, V_DIVE, V_LAND, logM, vAtDepth, state } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, V_WHITE, V_BUS, V_ROOFS, V_TOWER, V_SUMMIT, V_EVEREST, V_SPACE, V_TRILLION, V_OUT, V_DIVE, V_LAND, V_CUT2, V_TOWN, V_SC0, V_SC1, V_EC0, V_EC1, logM, vAtDepth, state } from './src/timeline.js';
 import { B, BAL } from './src/layout.js';
 import { rng, smooth, clamp } from './src/util.js';
 
@@ -121,7 +121,7 @@ export function makeSoundtrack(outFile) {
   };
 
   // ---------------- the bed ----------------
-  const V_CUT1 = V_OUT + 0.95, V_CUT2 = V_DIVE + 1.45;
+  const V_CUT1 = V_OUT + 0.95;
   {
     const rainF = [new SVF(), new SVF()], roarF = [new SVF(), new SVF()], deepF = [new SVF(), new SVF()], windF = [new SVF(), new SVF()];
     const talkF = Array.from({ length: 6 }, () => new SVF()), talkE = Array.from({ length: 6 }, () => new OnePole(3));
@@ -130,14 +130,16 @@ export function makeSoundtrack(outFile) {
       const t = T0 + n / SR;
       const k = clamp((logM(Math.max(t, -1)) - 5) / 7);
       const sp = (t > V_CUT1 && t < V_CUT2) ? 1 : 0;
+      // the first seconds as loud as the rest: the downpour and the gushing street at full roar from frame 0
+      const early = 1 + 1.3 * (1 - smooth(3.5, 8, t));
       bL = bL * 0.996 + white() * 0.04; bR = bR * 0.996 + white() * 0.04;
       let l = 0, r = 0;
       // rain: a bright hiss (patter) that thickens and drops into a roar
-      const hiss = (0.55 + 0.6 * k) * (1 - 0.7 * sp);
+      const hiss = (0.55 + 0.6 * k) * (1 - 0.7 * sp) * early;
       const fc = 5200 - 3600 * k;
       l += rainF[0].run(white(), fc, 0.7).bp * 0.33 * hiss; r += rainF[1].run(white(), fc * 1.05, 0.7).bp * 0.33 * hiss;
       // the water's roar (the street river, then the open water churning), lower and bigger as it climbs
-      const roar = (0.25 + 0.9 * k) * (1 - 0.8 * sp);
+      const roar = (0.25 + 0.9 * k) * (1 - 0.8 * sp) * early;
       l += roarF[0].run(white() + bL * 2, 300 + 500 * (1 - k), 0.7).lp * 0.35 * roar; r += roarF[1].run(white() + bR * 2, 320 + 520 * (1 - k), 0.7).lp * 0.35 * roar;
       // wind
       const w = (0.3 + 0.5 * k + 0.2 * Math.sin(t * 0.7)) * (1 - 0.9 * sp);
@@ -160,7 +162,7 @@ export function makeSoundtrack(outFile) {
   }
 
   // ---------------- the hits ----------------
-  const clips = [['scream.mp3', 0.0, 1.9, 0.05, 0.85, 1, -0.15], ['gasp.mp3', 0, 1.0, 4.55, 0.45, 1, 0.25], ['omg.mp3', 0, 0.9, V_BUS + 0.25, 0.4, 1, -0.3]];
+  const clips = [['scream.mp3', 0.0, 1.9, 0.05, 1.0, 1, -0.15], ['scream.mp3', 0.0, 1.5, 1.75, 0.5, 1.12, 0.35], ['gasp.mp3', 0, 1.0, 4.55, 0.45, 1, 0.25], ['omg.mp3', 0, 0.9, V_BUS + 0.25, 0.4, 1, -0.3]];
   for (const [name, ss, len, t0, gain, rate, pan] of clips) {
     const c = loadClip(name, ss, len + 0.2);
     if (!c) continue;
@@ -178,6 +180,11 @@ export function makeSoundtrack(outFile) {
       const s = state(t);
       if (s.bolt > 0.5 && !seen.has(s.boltV)) { seen.add(s.boltV); const t0 = s.boltV; crack(t0 + 0.02, 0.35); boom(t0 + 0.08, 0.5, 45, 0.9); crash(t0 + 0.1, 0.25, 500, 0.8, 0); }
     }
+  }
+  // the waterfalls off the roofs and awnings and the gushing drainpipes (a churning splash bed for the first seconds)
+  {
+    const f1 = new SVF(), f2 = new SVF();
+    add(-0.5, 9, (dt) => { const t = dt - 0.5; const e = 1 - smooth(5, 8.5, t); const o = (f1.run(white(), 900, 0.5).bp * 0.5 + f2.run(white(), 2600, 0.6).bp * 0.35) * e * 0.55; return [o, o * 0.9]; });
   }
   // cars knocking together as they float off, the pile-up at the cross street
   for (const t of [0.6, 1.4, 2.1, 2.9, 3.6, 4.8]) crash(t, 0.18, 1200, 0.12, (GR() - 0.5) * 0.8);
@@ -198,6 +205,9 @@ export function makeSoundtrack(outFile) {
   for (const b of B) if (!b.front && b.h > 70) { const t = vAtDepth(b.h); if (t > 19 && t < 25.5 && GR() < 0.5) boom(t, 0.25, 45, 0.4); }
   // the tallest tower, the summit, Everest, the edge of space: each bigger
   boom(V_TOWER, 1.0, 38, 1.3); crash(V_TOWER, 0.6, 900, 0.6, 0); glass(V_TOWER + 0.05, 0.35, 16, 0.2); splash(V_TOWER, 0.8, 1.2);
+  boom(V_TOWN, 0.6, 50, 0.7); splash(V_TOWN, 0.6, 0.8);
+  // the cut-aways: a whoosh into the summit and back, into the Himalaya and back
+  for (const t of [V_SC0, V_SC1, V_EC0, V_EC1]) whoosh(t - 0.18, 0.45, 200, 1600, 0.6, 0);
   boom(V_SUMMIT, 1.15, 33, 1.6); crash(V_SUMMIT, 0.8, 600, 0.9, 0); splash(V_SUMMIT, 1.0, 1.4);
   boom(V_EVEREST, 1.3, 28, 1.9); crash(V_EVEREST, 0.6, 400, 1.2, 0);
   boom(V_SPACE, 1.1, 30, 2.0); whoosh(V_SPACE - 0.4, 0.6, 80, 500, 1.6, 0);
@@ -205,12 +215,13 @@ export function makeSoundtrack(outFile) {
   boom(V_TRILLION, 1.5, 26, 2.2); crash(V_TRILLION, 0.7, 500, 1.0, 0);
   whoosh(V_OUT, 0.8, 70, 900, 1.2, 0); whoosh(V_CUT1 - 0.15, 0.6, 200, 1800, 0.6, 0);
   whoosh(V_DIVE, 0.6, 60, 700, V_CUT2 - V_DIVE + 0.2, 0); whoosh(V_CUT2 - 0.15, 0.7, 200, 1800, 0.7, 0);
+  boom(V_CUT2, 0.6, 40, 0.8);
   // the falling water: a roar rising from the landing into the white, then a hard boom on the lens
   {
     const wf = new SVF(), wf2 = new SVF();
-    add(V_LAND - 0.5, T_SWITCH + 0.6 - (V_LAND - 0.5), (dt) => {
-      const t = V_LAND - 0.5 + dt;
-      const k = smooth(V_LAND - 0.5, V_WHITE, t);
+    add(V_LAND, T_SWITCH + 0.6 - V_LAND, (dt) => {
+      const t = V_LAND + dt;
+      const k = smooth(V_LAND, V_WHITE, t);
       const e = (0.2 + 1.4 * k * k) * (1 - 0.8 * smooth(V_WHITE, V_WHITE + 0.15, t)) * (1 - smooth(T_SWITCH - 0.2, T_SWITCH + 0.5, t));
       const o = (wf.run(white(), 250 + 2200 * k, 1.0).lp * 0.8 + wf2.run(white(), 3000, 0.6).bp * 0.4 * k) * e * 0.7;
       return [o, o];

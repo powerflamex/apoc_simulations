@@ -3227,35 +3227,46 @@ Which ending of the universe should I simulate next? 👇
 
 ## Next Short. What if it rained 1 trillion times harder? — `week 10/rain-trillion/out/rain-trillion_v4_1080x1920_60fps_tiktok.mp4`
 
-47.85 s, loops. The trillion formula with a journey: you (yellow raincoat) ride a floating city bus from a flooded avenue up
-past balconies, the roofs, the city's tallest tower and a granite peak, up past the weather into black sky; then the
-camera pulls out to space (Earth swelling into a ball of water), dives back down to you, and the falling water hits the
-lens. Counter: TIMES HARDER, racing from frame 0; the one line under it is the water's depth until 1 million x, then how
-fast it rises. One continuous ride with you in frame except the 8 s in space (a YOU label marks your point).
+47.85 s, loops. The trillion formula with a journey: you (yellow raincoat, hood up) ride a floating city bus from a flooded
+avenue up past balconies, the roofs and the city's tallest tower, watch a mountain 5 km away drown, then two short
+cut-aways (the last climbers on its summit, then Everest), up past the weather into black sky; then the camera pulls out
+to space (Earth swelling into a ball of water), and back on the bus a wall of falling foam hits the lens. Counter: TIMES
+HARDER, racing from frame 0; the one line under it is the water's depth until 1 million x, then how fast it rises.
+Fix pass, Nov 23 (the owner's 8 notes): a real downpour from frame 0 (dense rain, splashes on the water, car roofs, the bus
+and your hood, water pouring off roofs and awnings, drainpipes gushing, junk floating up the street in a brown current,
+foam against the cars and walls), a flood gauge beside you so you see the water climb from 2 to 3 ft by 0:03; a proper
+hood joined to the collar; the bus filmed from the side at roof height (the roof is now a thin strip, and it has hatches,
+the fleet number and more people on it); a whole green mountain with a tree line, snow cap, town, road and climbers'
+headlamps; the summit and Everest shown going under; a dashed outline of the old Earth and the Moon in the space shot;
+a white wall of foam to end; captions and popups end above 1,250 px.
 In order:
-0:00 the flooded avenue in a storm, water at your knees, you close to the camera looking up, a woman screaming with her
-arms up behind you, people standing on the roofs of floating cars, the red bus on the right; title, 100,000x, "WATER: 2.0
-FT DEEP", lightning and the owner's scream. 0:02.6 you wade to the taxi wedged behind the bus, 0:03.6 climb onto it
-("Two feet of water floats a car."), 0:04.6 reach up and a man on the bus roof pulls you up. 0:06.4 you stand on the bus
-roof with three others, the cars jamming and piling up the avenue ("Get onto something tall."). 0:08.4 the bus floats
-(popup). 0:10 1 million x, the line switches to "RISING 2.3 FT A SECOND" ("Enough to fill every ocean in an hour."). 0:11-0:17
-you drift past a residential block: people on every balcony reach out as you rise past their floors and step back inside
-as the water comes over them ("You float past their windows."). 0:17.3 the roofs go under (popup), a run of splashes.
-0:18-0:25 boats and wreckage rise with you, towers going under round you ("You rise 6 floors every second." "Boats are
-lifted as fast as you."); 0:25.1 you pass the tallest tower's lit crown as it goes under (popup). 0:26.5-0:29 carried up
-the sheer face of the mountain behind the city, you pressed down onto your knees ("It shoves you up so hard you weigh 10
-times more."); 0:29 1 billion x, the camera tilts up to the peak as it comes down to you, 0:29.3 it goes under (popup).
-0:31.6 Everest goes under (popup), the clouds tear open; 0:33.9 the sky goes black with stars (popup "THE WATER REACHES
-SPACE"). 0:35.6 1 trillion x, "RISING 438 MILES A SECOND": the camera flies straight up off you, a flash, and Earth from
-space, a ball of water in storms with rain streaming in from all sides, YOU marked on it, swelling ("Every 17 seconds, the
-new water outweighs the Earth." "It would reach the Moon in 9 minutes."). 0:43.6 the dive back down, a flash, onto the
-bus roof; 0:45.8 you look up as a ceiling of falling water comes down; it hits the lens at 0:46.55: white, which clears
-onto frame 0 (the loop).
-Sound: rain hiss that thickens into a roar, wind, a deep rumble stepping up, panicked voices; the scream at 0:00, thunder
-with every lightning stroke, cars knocking and piling up, the bus's groan and boom as it lifts, a splash for every balcony
-floor and every roof that goes under, the street lamps popping, bigger booms for the tower, the peak, Everest and the edge
-of space, the trillion slam, whooshes on the two cuts, the falling water's roar into a hard boom on the white.
-Every second sits between about -5 and -17 dB.
+0:00 the flooded avenue in a downpour, water at your knees, a flood gauge beside you at 2 ft, a woman screaming with her
+arms up behind you, people on the roofs of floating cars, water pouring off the roofs, the red bus on the right; title,
+100,000x, "WATER: 2.0 FT DEEP", lightning and two screams. 0:02.6 you wade to the taxi wedged behind the bus (the water now
+3 ft), 0:03.6 climb onto it ("Two feet of water floats a car."), 0:04.6 a man on the bus roof pulls you up. 0:06.4 you
+stand on the bus roof with five others, seen from the side ("Get onto something tall."). 0:08.4 the bus floats (popup).
+0:10 1 million x, "RISING 2.3 FT A SECOND" ("Enough to fill every ocean in an hour."). 0:11-0:17 you drift past a
+residential block: people on every balcony reach out and step back inside as the water comes over them ("You float past
+their windows."). 0:17.3 the roofs go under (popup). 0:18-0:25 boats and wreckage rise with you ("You rise 6 floors every
+second." "Boats are lifted as fast as you."); 0:25.1 the tallest tower goes under (popup). 0:25.7-0:28.5 the whole
+mountain ahead, both sides in frame: green forest, a tree line, rock and a snow cap, a town with its lights on and a
+switchback road on its lower slope, headlamps on the trail; the water climbs it, the town goes under at 0:27.4, you are
+pressed onto your knees ("It shoves you up so hard you weigh 10 times more."). 0:28.55 cut to the summit: seven climbers
+round the summit cross, looking down at the sea racing up; 0:29 1 billion x; 0:29.4 "THE MOUNTAIN GOES UNDER", 0:29.75
+the water covers them. 0:29.85 back to you, the clouds tearing open. 0:30.4 cut to the Himalaya: a jagged snowy range,
+the water swallowing the peaks, closing in on Everest, the last land on Earth ("EVEREST GOES UNDER" from 0:31.0, it goes
+under at 0:31.57). 0:31.7 back to you; 0:33.9 the sky goes black (popup "THE WATER REACHES SPACE"). 0:35.6 1 trillion x,
+"RISING 438 MILES A SECOND": the camera flies up off you, a flash, Earth from space, a ball of water in storms, a dashed
+ring marked EARTH BEFORE showing its old size, the Moon marked off its edge, YOU marked; the ball swells to nearly double
+across, filling the frame ("Every 17 seconds, the new water outweighs the Earth." "It would reach the Moon in 9
+minutes."). 0:44.7 a flash, back on the bus roof: you look up as a ceiling of white falling water comes down; it hits the
+lens at 0:46.55: white, which clears onto frame 0 (the loop).
+Sound: rain hiss that thickens into a roar (at full roar from frame 0), the splashing falls in the first seconds, wind, a
+deep rumble stepping up, panicked voices; two screams in the first 2 s, thunder with every lightning stroke, cars knocking
+and piling up, the bus's groan and boom as it lifts, a splash for every balcony floor and every roof that goes under, the
+street lamps popping, booms for the tower, the town, the summit, Everest and the edge of space, whooshes on every cut, the
+trillion slam, the falling water's roar into a hard boom on the white. Every second sits between about -9 and -17 dB;
+the first three are -12 to -13 dB.
 
 The numbers (also at the top of `src/timeline.js`): 1x = 0.1 inch of rain an hour, so the water rises 7.06e-7 m/s x the
 counter. 1,000x = 100 in/h; 10,000x = 83 ft/h; 1,000,000x = 2.3 ft/s: all the oceans' water (1.335 billion km³ over 510
@@ -3263,14 +3274,17 @@ million km²) in 1.03 hours; 1 billion x = 1,578 mph: a whole ocean every 3.7 s,
 1 trillion x = 706 km/s (438 mi/s): 3.6e23 kg of new water a second, Earth's mass (5.97e24 kg) every 16.6 s, the Moon
 (384,400 km) reached in 8.9 minutes. The counter runs in real time and the depth shown is the honest sum of the rain so far
 (it starts at 2 ft, the street having filled). That is why it starts at 100,000x and not 1,000x: at 1,000x the water rises
-about an inch a minute, so riding up past windows in seconds needs ~1,000,000x. Then: the bus floats at 2.3 m of water
-(0:08.4), 1 million x at 0:10 (3.2 m), the avenue's roofs (~24 m) at 0:17.3, the 400 m tower at 0:25.1, the 1,850 m peak at
-0:29.3, Everest at 0:31.6, 100 km (where space begins) at 0:33.9, 1 trillion x at 0:35.6; by the end the water is ~8,000
-km deep and Earth's radius has more than doubled. Being shoved up that fast: ~4 g at 0:25, ~11 g at 0:27, ~20 g at 0:28.
-Honest notes: the rain is drawn see-through (at a million times and up it would be a solid waterfall and you'd see nothing);
-the air would really ride up on top of the water, the video lets the sky go black as the water passes 100 km; past ~0:28
-the push (20 g and rising) would kill you; the current carrying the bus across to the mountain is made up so the peak can
-pass close. The peak's summit station has people on it, but they are too small to read.
+about an inch a minute. Then: the bus floats at 2.3 m of water (0:08.4), 1 million x at 0:10 (3.2 m), the avenue's roofs
+(~24 m) at 0:17.3, the 400 m tower at 0:25.1, the town (860 m) at 0:27.4, the 2,300 m summit at 0:29.75, Everest at
+0:31.57, 100 km (where space begins) at 0:33.9, 1 trillion x at 0:35.6; Earth's radius goes from about 7,900 km to 13,600
+km during the space shot. Being shoved up that fast: ~4 g at 0:25, ~11 g at 0:27, ~20 g at 0:28.
+Honest notes: the rain is drawn see-through (at a million times and up it would be a solid waterfall and you'd see
+nothing); the air would really ride up on top of the water, the video lets the sky go black as the water passes 100 km;
+past ~0:28 the push (20 g and rising) would kill you; the mountain lit by a break in the storm and the cut-aways to the
+summit and the Himalaya are staged (the water rises everywhere at once, so the times are right); the Moon is shown where
+it would be behind the swelling ball (it does not come closer; the ball's edge closes in on it). From ~0:33 the scene
+round you is drawn at a fixed 40 km water height (only sea and black sky are in view; the counter and the space shot use
+the true depth).
 
 **YouTube title (83 chars, emoji counted as 2)**
 What if it rained 1 trillion times harder? Earth becomes a ball of water 🌧️ #whatif
@@ -3280,14 +3294,14 @@ What if it rained 1 trillion times harder? Earth becomes a ball of water 🌧️
 100,000x: your street floods 2 feet deep. Cars float.
 1,000,000x: the water rises 2.3 feet a second. Enough to fill every ocean in an hour.
 10,000,000x: the rooftops go under.
-1,000,000,000x: rising 1,578 mph. Everest goes under in 13 seconds.
+1,000,000,000x: rising 1,578 mph. A 7,500 ft mountain goes under in seconds, Everest in 13.
 1,000,000,000,000x: rising 438 miles a second. Every 17 seconds the new water outweighs the whole Earth, and it would reach the Moon in 9 minutes.
 
 How long would you last on the bus roof? 👇
 
 #whatif #science #rain #physics #simulation
 
-Cover: `week 10/rain-trillion/out/rain-trillion_v4_cover.png` (`node render.mjs --cover 24.6`: you from behind on the floating bus roof, the flood up to the tallest tower's top floors, its lit crown above, boats and the mountain behind; "WHAT IF IT RAINED / 1 trillion / times harder?")
+Cover: `week 10/rain-trillion/out/rain-trillion_v4_cover.png` (`node render.mjs --cover 42`: Earth from space swollen into a ball of water, the dashed ring of its old size inside it, rain streaming in; "WHAT IF IT RAINED / 1 trillion / times harder?")
 
 ## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
 

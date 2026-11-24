@@ -8,11 +8,10 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeSky } from './sky.js';
 import { makeWorld } from './world.js';
 import { makeBus } from './bus.js';
-import { makeActors, carRoof } from './actors.js';
+import { makeActors, carRoof, carFrame, VIEW_T } from './actors.js';
 import { makeYou } from './you.js';
 import { makeGlows } from './glows.js';
 import { makeWater } from './water.js';
@@ -22,10 +21,13 @@ import { makeOverlay } from './overlay.js';
 import { DW } from './drown.js';
 import { F } from './facade.js';
 import { TU } from './terrain.js';
-import { CARS, TAXI_I, YOU0, BAL, TOWER, SUMMIT, LAMPS, busAt } from './layout.js';
+import { makeStreet, GAUGE } from './street.js';
+import { makeEverest, everestH } from './everest.js';
+import { mtnH, TO_CITY } from './mountain.js';
+import { CARS, TAXI_I, YOU0, BAL, TOWER, SUMMIT, TOWN, LAMPS, busAt } from './layout.js';
 import {
   state, popupAt, POP, VIDEO_DURATION, LOOP, STEPS, V_BUS, V_TOWER, V_SUMMIT, V_EVEREST, V_SPACE, V_TRILLION, V_OUT, V_DIVE, V_LAND, V_WHITE,
-  depthAt, logM,
+  V_CUT2, V_SC0, V_SC1, V_EC0, V_EC1, depthAt, logM,
 } from './timeline.js';
 import { DEG, lerp, smooth, clamp, wobble, rng, keys } from './util.js';
 import { makeCompositor } from './compose.js';
@@ -59,23 +61,50 @@ scene.add(sky.mesh);
 const world = makeWorld(scene);
 const bus = makeBus(scene);
 const actors = makeActors(scene);
-const you = makeYou(scene, { hoodie: 0xf6c21c, jeans: 0x1e2a44, skin: 0xd8a07a, hair: 0x2a1a10 });
+const you = makeYou(scene, { hoodie: 0xf6c21c, jeans: 0x1e2a44, skin: 0xd8a07a, hair: 0x2a1a10, hoodUp: true });
 you.M.hoodie.roughness = 0.32;                          // a wet raincoat
 {
-  // the raincoat's hood, up over your head (open at the face)
-  const g = mergeGeometries([
-    new THREE.SphereGeometry(0.128, 24, 14, Math.PI / 2 + 0.95, Math.PI * 2 - 1.9, 0, Math.PI * 0.64),
-    new THREE.SphereGeometry(0.128, 24, 8, 0, Math.PI * 2, 0, Math.PI * 0.2),
-  ]).scale(0.95, 1.05, 1.05).translate(0, 0.112, -0.012);
-  const hood = new THREE.Mesh(g, you.M.hoodie);
-  hood.material.side = THREE.DoubleSide;
+  // the raincoat's hood, up: a shell round the head (open at the face) whose skirt runs down the neck into the coat's
+  // high collar (the collar sits on the torso, so the gap never shows when you turn or tip your head)
+  const prof = [[0.0, 0.232], [0.05, 0.226], [0.088, 0.205], [0.114, 0.165], [0.124, 0.115], [0.122, 0.07], [0.112, 0.03],
+    [0.098, -0.01], [0.094, -0.045], [0.104, -0.075], [0.128, -0.1]].map(([r, y]) => new THREE.Vector2(r, y));
+  const open = 0.95;                                    // half-angle of the face opening (rad)
+  const g = new THREE.LatheGeometry(prof, 40, open, Math.PI * 2 - 2 * open);
+  const pa = g.attributes.position;
+  for (let i = 0; i < pa.count; i++) {
+    const y = pa.getY(i), k = Math.min(1, Math.max(0, -y / 0.1));
+    pa.setX(i, pa.getX(i) * (1 + 0.32 * k)); pa.setZ(i, pa.getZ(i) * (1.04 - 0.1 * k) - 0.012);
+  }
+  g.computeVertexNormals();
+  const hoodMat = you.M.hoodie.clone(); hoodMat.side = THREE.DoubleSide;
+  const hood = new THREE.Mesh(g, hoodMat);
+  hood.position.y = 0.0;
   you.head.add(hood);
+  // the rim of the face opening: a rolled edge
+  const rimPts = [];
+  for (let k = 0; k <= 24; k++) {
+    const y = 0.205 - (0.205 + 0.045) * k / 24;
+    let r = 0; for (let j = 0; j < prof.length - 1; j++) if (y <= prof[j].y && y >= prof[j + 1].y) { const t = (y - prof[j].y) / (prof[j + 1].y - prof[j].y); r = prof[j].x + (prof[j + 1].x - prof[j].x) * t; }
+    const kk = Math.min(1, Math.max(0, -y / 0.1));
+    for (const sgn of [-1, 1]) rimPts[sgn < 0 ? 'push' : 'push']([sgn, new THREE.Vector3(sgn * Math.sin(open) * r * (1 + 0.32 * kk), y, Math.cos(open) * r * (1.04 - 0.1 * kk) - 0.012)]);
+  }
+  for (const sgn of [-1, 1]) {
+    const pts = rimPts.filter((q) => q[0] === sgn).map((q) => q[1]);
+    const top = new THREE.Vector3(0, 0.226, 0.03);
+    const curve = new THREE.CatmullRomCurve3([top, ...pts]);
+    you.head.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 30, 0.011, 6, false), hoodMat));
+  }
+  // the coat's high collar round the neck (on the torso)
+  const col = new THREE.LatheGeometry([[0.15, 0.5], [0.12, 0.54], [0.095, 0.575], [0.084, 0.61], [0.086, 0.632]].map(([r, y]) => new THREE.Vector2(r, y)), 36);
+  you.torso.add(new THREE.Mesh(col, hoodMat));
   you.tufts.forEach((t) => { t.visible = false; });
 }
 you.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
 const glows = makeGlows(scene, 3000);
+const street = makeStreet(scene);
+const everest = makeEverest(scene);
 const water = makeWater(scene);
-const rain = makeRain(scene, 16000);
+const rain = makeRain(scene, 26000);
 const space = makeSpace();
 const spaceCam = new THREE.PerspectiveCamera(50, W / H, 50, 3e6);
 
@@ -91,13 +120,16 @@ const wall = new THREE.Mesh(new THREE.PlaneGeometry(900, 900, 1, 1).rotateX(Math
     float fbm(vec2 p) { float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++) { s += a * n2(p); p = p * 2.03 + 3.7; a *= 0.5; } return s; }
     void main() {
       vec2 p = vW.xz * 0.06;
+      p += vec2(sin(uTime * 2.3 + vW.z * 0.02), cos(uTime * 1.9 + vW.x * 0.02)) * 0.4;
       float f = fbm(p + vec2(uTime * 0.9, -uTime * 0.6)) * 0.6 + fbm(p * 3.0 - vec2(uTime * 1.7, uTime * 1.1)) * 0.4;
-      // dark falling water with white foam tearing through it, streaming toward the edges as it nears
+      // a churning white mass of foam and spray, grey-blue in the folds, tearing apart into streamers at its edges
       float st = fbm(vec2(atan(vW.z - cameraPosition.z, vW.x - cameraPosition.x) * 12.0, length(vW.xz - cameraPosition.xz) * 0.05 - uTime * 3.0));
-      vec3 c = mix(vec3(0.02, 0.07, 0.13), vec3(0.08, 0.22, 0.32), smoothstep(0.3, 0.7, f));
-      c = mix(c, vec3(0.85, 0.9, 0.92), smoothstep(0.62, 0.78, f * 0.6 + st * 0.5));
+      float near = 1.0 - smoothstep(4.0, 60.0, vW.y - cameraPosition.y);
+      vec3 c = mix(vec3(0.3, 0.38, 0.46), vec3(0.95, 0.97, 0.99), smoothstep(0.28, 0.6, f));
+      c = mix(c, vec3(0.95), near * 0.6);
+      c = mix(c, vec3(1.0), smoothstep(0.55, 0.8, f * 0.6 + st * 0.5));
       float d = length(vW.xz - cameraPosition.xz);
-      gl_FragColor = vec4(c * 1.2, uK * (1.0 - smoothstep(250.0, 440.0, d)));
+      gl_FragColor = vec4(c * 1.05, uK * (1.0 - smoothstep(200.0 * (0.5 + 0.5 * f), 300.0, d)));
     }`,
 }));
 wall.frustumCulled = false; wall.renderOrder = 8;
@@ -118,6 +150,8 @@ const SUN_DIR = new THREE.Vector3(0.5, 0.42, 0.75).normalize();     // behind th
 const overlay = makeOverlay();
 const stampEl = document.getElementById('stamp');
 const youEl = document.getElementById('you');
+const moonEl = document.getElementById('moonlab');
+const ringEl = document.getElementById('ringlab');
 
 // ---------- post ----------
 const rt = new THREE.WebGLRenderTarget(RW, RH, { type: THREE.HalfFloatType, samples: 4 });
@@ -314,46 +348,82 @@ function placeYou(y) {
 // Keys: [t, az (deg: where the camera is from you, in the world; 0 = +z, behind you up the avenue; 90 = +x), dist (m),
 // h (m above your feet), lookY (m above your feet), fov, focus, w (0 = look at you .. 1 = at the focus)].
 // az may be a string 'opp:tower' / 'opp:summit': on the far side of you from that place.
+// On the bus roof the camera stays low (about a metre above the roof, out past its edge) so the roof is a strip at the
+// bottom and the water and the city fill the frame.
 const CK = [
   [-2, 12, 3.2, 2.35, 2.12, 62, null, 0],
   [2.5, 12, 3.2, 2.35, 2.12, 62, null, 0],
   [3.55, 6, 4.0, 2.0, 1.4, 62, null, 0],
   [4.5, 10, 4.6, 2.4, 1.7, 62, null, 0],
-  [5.6, 12, 5.0, 2.5, 0.7, 62, null, 0],
-  [6.6, -22, 4.2, 1.7, 1.0, 62, 'ahead', 0.25],
-  [9.8, -18, 4.4, 1.8, 1.0, 62, 'ahead', 0.25],
+  [5.6, 12, 5.0, 2.3, 0.9, 62, null, 0],
+  [6.6, -62, 8.0, 0.3, 1.0, 60, 'ahead', 0.06],
+  [9.8, -58, 8.2, 0.3, 1.0, 60, 'ahead', 0.06],
   [11.0, -100, 4.2, 0.9, 1.6, 64, 'balc', 0.45],
   [16.4, -104, 4.4, 0.9, 1.7, 64, 'balc', 0.45],
-  [18.0, 20, 6.0, 2.6, 0.9, 64, null, 0],
-  [20.8, 'opp:tower', 6.0, 2.2, 1.0, 64, 'tower', 0.35],
-  [25.35, -46, 5.5, 1.6, 1.0, 64, 'tower', 0.15],
-  [26.5, 20, 5.0, 2.4, 1.1, 64, null, 0],
-  [26.9, 15, 5.5, 1.8, 1.0, 62, null, 0],
-  [27.6, -62, 5.6, 1.5, 1.8, 62, 'summit', 0.06],
-  [28.4, -62, 5.4, 1.4, 1.8, 64, 'summit', 0.12],
-  [28.9, -66, 5.0, 0.9, 1.8, 70, 'summit', 0.4],
-  [29.3, -66, 5.0, 0.9, 1.6, 70, 'summit', 0.4],
-  [29.9, 10, 4.8, 2.2, 0.8, 64, null, 0],
-  [31.2, 20, 4.8, 1.6, 0.6, 64, null, 0],
-  [35.6, 10, 4.4, 1.6, 0.6, 66, null, 0],
+  [18.0, -62, 8.0, 0.3, 1.0, 60, 'ahead', 0.06],
+  [20.8, ['opp:tower', -32], 8.0, 0.3, 1.1, 62, 'tower', 0.2],
+  [25.0, ['opp:tower', -36], 8.0, 0.3, 1.0, 62, 'tower', 0.15],
+  [25.7, ['opp:summit', 7], 9.0, 5.0, 1.0, 58, 'mtnLow', 1.0],
+  [28.6, ['opp:summit', 5], 8.5, 4.6, 0.8, 58, 'mtnLow', 1.0],
+  [29.85, 30, 6.0, 0.35, 0.8, 60, null, 0],
+  [30.4, 25, 6.0, 0.35, 0.8, 60, null, 0],
+  [31.72, 20, 6.0, 0.4, 0.8, 62, null, 0],
+  [35.6, 10, 5.0, 0.6, 0.8, 66, null, 0],
 ];
+let LEVEL = 0;
 const focusPoint = (name, P) => {
   switch (name) {
     case 'ahead': return new THREE.Vector3(8, P.y + 2, P.z - 140);
     case 'balc': return new THREE.Vector3(BAL.x0 - 1, P.y + 4.0, P.z - 2.5);
     case 'tower': return new THREE.Vector3(TOWER.x - TOWER.w / 2 + 4, Math.max(TOWER.h + 4, P.y + 1.5), TOWER.z + TOWER.w / 2 - 4);
     case 'summit': return new THREE.Vector3(SUMMIT.x - 2, Math.max(SUMMIT.h + 3, P.y + 1.5), SUMMIT.z + 7);
+    // the mountain: aim between its waterline and its top, never below your eye line
+    // the mountain in the band above the counter: look 13° down toward it (you below the counter)
+    case 'mtnLow': return new THREE.Vector3(SUMMIT.x + 220, P.y + 4.8 - 980, SUMMIT.z);
+    case 'mtn': return new THREE.Vector3(SUMMIT.x + 250, Math.max(P.y + 1.5, (Math.max(LEVEL, 600) + SUMMIT.h) * 0.5), SUMMIT.z);
   }
   return null;
 };
 function keyCam(k, P) {
   let az = k[1];
-  if (typeof az === 'string') { const t = az === 'opp:tower' ? TOWER : SUMMIT; az = Math.atan2(P.x - t.x, P.z - t.z) / DEG; }
+  if (Array.isArray(az) || typeof az === 'string') {
+    const [name, off] = Array.isArray(az) ? az : [az, 0];
+    const t = name === 'opp:tower' ? TOWER : SUMMIT;
+    az = Math.atan2(P.x - t.x, P.z - t.z) / DEG + off;
+  }
   const pos = new THREE.Vector3(P.x + Math.sin(az * DEG) * k[2], P.y + k[3], P.z + Math.cos(az * DEG) * k[2]);
   const look = new THREE.Vector3(P.x, P.y + k[4], P.z);
   const f = k[6] ? focusPoint(k[6], P) : null;
   if (f) { const d1 = look.clone().sub(pos).normalize(), d2 = f.clone().sub(pos).normalize(); look.copy(pos).add(d1.lerp(d2, k[7]).normalize().multiplyScalar(10)); }
   return { pos, look, fov: k[5], az };
+}
+
+// ---------- the cut-aways ----------
+// the summit: just behind and above the last climbers, looking down the city face as the water races up it
+const SC_CAM = (() => {
+  const back = 7.0, side = 2.0;
+  const x = SUMMIT.x - TO_CITY.x * back - TO_CITY.y * side, z = SUMMIT.z - TO_CITY.y * back + TO_CITY.x * side;
+  return { x, z };
+})();
+function summitCam(v, L) {
+  // at the climbers' eye level, a few metres behind them; tipping down the face as the water comes up it
+  const y = Math.max(SUMMIT.h + 4.2, L + 3);
+  const k = smooth(V_SC0, V_SUMMIT, v);
+  camera.position.set(SC_CAM.x, y, SC_CAM.z);
+  const reach = 60;
+  const tgt = new THREE.Vector3(SUMMIT.x + TO_CITY.x * reach, SUMMIT.h - lerp(9, 13, k), SUMMIT.z + TO_CITY.y * reach);
+  if (L > SUMMIT.h) tgt.y = Math.max(tgt.y, L - 12);
+  const dir = tgt.sub(camera.position).normalize();
+  return { pos: camera.position.clone(), dir, fov: 60 };
+}
+// the Himalaya: from the south-west, high over the water, the range ahead; closing in on Everest's top at the end
+function everestCam(v, L) {
+  const d = 13500;
+  const pos = new THREE.Vector3(-0.707 * d, Math.max(10800, L + 260), -0.707 * d - 2500);
+  const k = smooth(30.8, V_EVEREST - 0.05, v);
+  const tgt = new THREE.Vector3(-1200 * (1 - k), lerp(6400, 8760, k), 600 * (1 - k));
+  if (L > 8849) tgt.y = Math.max(tgt.y, L - 400);
+  return { pos, dir: tgt.sub(pos).normalize(), fov: lerp(58, 12, k) };
 }
 function camLocal(v, P) {
   let i = 0;
@@ -372,28 +442,48 @@ function camLocal(v, P) {
 
 // ---------- space ----------
 const YDIR = new THREE.Vector3(0.16, 0.1, 0.98).normalize();       // where you are on the ball (day side)
-const VIEW = new THREE.Vector3(0.1, 0.38, 1.0).normalize();         // where the camera ends up looking from
+const VIEW = new THREE.Vector3(0.1, 0.3, 1.0).normalize();          // where the camera ends up looking from
 space.u.uSun.value.set(-0.35, 0.5, 0.8).normalize();
-const MOON_DIR = VIEW.clone().negate().add(new THREE.Vector3(-0.2, 0.26, 0)).normalize();
-const V_CUT1 = V_OUT + 0.95, V_CUT2 = V_DIVE + 1.45;                // the two flash cuts (local <-> space)
+// the Moon: behind the ball, 21° off the line to the camera, so from the camera it sits just past the ball's edge at
+// the end (the swelling ball closes in on it)
+const MOON_DIR = (() => {
+  const up = new THREE.Vector3(0, 1, 0).sub(VIEW.clone().multiplyScalar(VIEW.y)).normalize();
+  const side = new THREE.Vector3().crossVectors(VIEW, up).normalize();
+  const off = up.clone().multiplyScalar(Math.cos(0.5)).addScaledVector(side, Math.sin(0.5));
+  return VIEW.clone().negate().multiplyScalar(Math.cos(21 * DEG)).addScaledVector(off, Math.sin(21 * DEG)).normalize();
+})();
+const V_CUT1 = V_OUT + 0.95;                                         // flash cut: local -> space
+const FAR = 42000;                                                   // km from Earth's centre: the camera holds here
 function spaceCamAt(v, R) {
-  // altitude above you (km): out from ~3,000 km to 48,000 km; the dive back in
-  let alt;
-  if (v < V_DIVE) alt = Math.exp(lerp(Math.log(2600), Math.log(48000), smooth(V_CUT1, V_CUT1 + 2.8, v)));
-  else alt = Math.exp(lerp(Math.log(48000), Math.log(2600), Math.pow(clamp((v - V_DIVE) / (V_CUT2 - V_DIVE)), 1.25)));
-  const k = smooth(Math.log(2600), Math.log(30000), Math.log(alt));
+  // out from ~2,600 km above you to 42,000 km from the centre, then held still while the ball swells; the dive back in
+  let D;
+  const D0 = R + 2600;
+  if (v < V_DIVE) D = Math.exp(lerp(Math.log(D0), Math.log(FAR), smooth(V_CUT1, V_CUT1 + 1.7, v)));
+  else D = Math.exp(lerp(Math.log(FAR), Math.log(D0), Math.pow(clamp((v - V_DIVE) / (V_CUT2 - V_DIVE)), 1.4)));
+  const k = smooth(Math.log(D0), Math.log(FAR * 0.8), Math.log(D));
   const dir = YDIR.clone().lerp(VIEW, k).normalize();
   const youP = YDIR.clone().multiplyScalar(R);
-  spaceCam.position.copy(dir).multiplyScalar(R + alt);
-  const tgt = youP.clone().lerp(new THREE.Vector3(0, R * 0.62, 0), k);
+  spaceCam.position.copy(dir).multiplyScalar(D);
+  // aim a little above the centre, so the ball sits low in the frame (under the counter)
+  const tgt = youP.clone().lerp(new THREE.Vector3(0, D * Math.tan(5.5 * DEG), 0), k);
   spaceCam.up.set(0, 1, 0);
   spaceCam.lookAt(tgt);
   spaceCam.fov = 50;
-  spaceCam.near = Math.max(1, alt * 0.05); spaceCam.far = 3e6;
+  spaceCam.near = Math.max(1, (D - R) * 0.05); spaceCam.far = 3e6;
   spaceCam.updateProjectionMatrix();
   spaceCam.updateMatrixWorld();
-  return { alt, youP };
+  return { D, youP, k };
 }
+// the old Earth's outline: a dashed ring the size of the Earth before the rain, facing the camera (drawn over the ball)
+const ringU = { uK: { value: 0 } };
+const oldRing = new THREE.Mesh(new THREE.RingGeometry(RE * 0.986, RE * 1.014, 256, 1), new THREE.ShaderMaterial({
+  uniforms: ringU, transparent: true, depthTest: false, depthWrite: false,
+  vertexShader: `varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `uniform float uK; varying vec2 vP; void main(){ float a = atan(vP.y, vP.x); float dash = step(0.45, fract(a * 72.0 / 6.2831853));
+    gl_FragColor = vec4(vec3(1.0, 0.97, 0.9) * 1.6, dash * uK); }`,
+}));
+oldRing.renderOrder = 20;
+space.scene.add(oldRing);
 
 // ---------- lamps (glows) ----------
 const tmpV = new THREE.Vector3(), tmpC = new THREE.Color();
@@ -403,47 +493,50 @@ let lastV = -1e9, fallAcc = 0;
 function update(v, cover = -1) {
   const s = state(v);
   const L = s.level;
+  LEVEL = L;
   DW.uLevel.value = L;
   const b = placeBus(v);
   const inSpace = v >= V_CUT1 && v < V_CUT2 && cover < 0;
+  const inSummit = v >= V_SC0 && v < V_SC1 && cover < 0;
+  const inEverest = v >= V_EC0 && v < V_EC1 && cover < 0;
 
   // ---------- you and the camera ----------
   const y = youAt(v, L, b);
   placeYou(y);
   const P = y.p;
   let cam = camLocal(v, P);
-  // the pull-out (local, before the cut): straight up off you, looking down; the dive (local, after the cut): down onto you
+  // the pull-out (local, before the cut): straight up off you, looking down
   let up = 0;
   if (v > V_OUT && v < V_CUT1 + 0.01) up = smooth(V_OUT, V_CUT1, v);
-  const down = v >= V_CUT2 ? 1 - smooth(V_CUT2, V_LAND, v) : 0;
-  if (up > 0 || (v >= V_CUT2 && v < V_LAND)) {
-    const kk = up > 0 ? Math.pow(up, 1.6) : Math.pow(down, 1.6);
+  if (up > 0) {
+    const kk = Math.pow(up, 1.6);
     const h = Math.exp(lerp(Math.log(5), Math.log(2600), kk));
     const back = new THREE.Vector3(Math.sin(10 * DEG), 0, Math.cos(10 * DEG));
     cam.pos.set(P.x + back.x * 4.4 * (1 - kk), P.y + Math.max(1.6, h), P.z + back.z * 4.4 * (1 - kk));
     const toYou = P.clone().add(new THREE.Vector3(0, 0.6, 0)).sub(cam.pos).normalize();
     cam.dir = cam.dir.clone().lerp(toYou, smooth(0, 0.25, kk)).normalize();
-    if (cam.dir.y > -0.999) { /* ok */ }
     cam.fov = 66;
   }
   if (v >= V_LAND) {
-    // the end: low behind you, looking up past you at the water coming down
-    const k = smooth(V_LAND, V_LAND + 0.35, v);
-    cam.pos.set(P.x + Math.sin(10 * DEG) * 3.2, P.y + 1.0, P.z + Math.cos(10 * DEG) * 3.2);
-    const lookAt = P.clone().add(new THREE.Vector3(0, 1.3 + 30 * k, 0)).sub(cam.pos).normalize();
-    cam.dir = lookAt; cam.fov = 70;
+    // the end: low behind you on the bus roof, looking up past you at the falling water coming down
+    const k = smooth(V_LAND, V_LAND + 0.5, v);
+    cam.pos.set(P.x + Math.sin(10 * DEG) * 3.4, P.y + 0.9, P.z + Math.cos(10 * DEG) * 3.4);
+    const lookAt = P.clone().add(new THREE.Vector3(0, 1.3 + 1.5 * k, 0)).sub(cam.pos).normalize();
+    cam.dir = lookAt; cam.fov = 72;
   }
+  if (inSummit) cam = summitCam(v, L);
+  if (inEverest) cam = everestCam(v, L);
   // handheld drift, a jolt at the counter's big steps and when the bus lifts
   let punch = 0;
   for (const t of [...STEPS, V_BUS]) if (v >= t) punch = Math.max(punch, smooth(0, 0.05, v - t) * Math.exp(-Math.max(0, v - t - 0.05) * 4));
   if (window.__cover) punch = 0;
   camera.position.copy(cam.pos);
   const yawC = Math.atan2(-cam.dir.x, -cam.dir.z), pitchC = Math.asin(clamp(cam.dir.y, -1, 1));
-  const shake = 1 + 2.5 * smooth(17, 29, v) * (1 - smooth(30, 32, v));
+  const shake = (1 + 2.5 * smooth(17, 29, v) * (1 - smooth(30, 32, v))) * (inEverest ? 0.3 : 1);
   camera.rotation.set(pitchC + (wobble(v * 0.35, 7) * 0.4 * shake - punch * 1.0) * DEG, yawC + (wobble(v * 0.4, 5) * 0.5 * shake + wobble(v * 9, 2) * 0.3 * punch) * DEG, (wobble(v * 0.3, 9) * 0.6 + wobble(v * 11, 3) * 0.7 * punch) * DEG);
   camera.fov = cam.fov - 2.5 * punch;
-  camera.near = up > 0.3 || (v >= V_CUT2 && v < V_LAND - 0.3) ? 2 : 0.25;
-  camera.far = 300000;
+  camera.near = inEverest ? 5 : up > 0.3 ? 2 : 0.25;
+  camera.far = inEverest ? 200000 : 300000;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   // keep the camera above the water (never the underwater screen)
@@ -451,8 +544,8 @@ function update(v, cover = -1) {
 
   // ---------- sky, air, light ----------
   const space01 = smooth(V_EVEREST - 0.2, V_SPACE + 0.3, v);        // the sky goes black as the water passes the weather
-  const clear = smooth(V_SUMMIT + 0.6, V_EVEREST, v);               // the clouds tear open
-  const bolt = s.bolt * (1 - space01);
+  const clear = smooth(V_SUMMIT + 0.4, V_EVEREST - 0.4, v);         // the clouds tear open
+  const bolt = s.bolt * (1 - space01) * (inEverest ? 0.3 : 1);
   const Rb = rng(Math.floor(s.boltV * 100) + 3);
   const su = sky.uniforms;
   sky.mesh.position.copy(camera.position);
@@ -460,20 +553,28 @@ function update(v, cover = -1) {
   su.uBolt.value = bolt > 0.2 ? bolt : 0; su.uBoltAz.value = -camera.rotation.y + (Rb() - 0.5) * 40 * DEG; su.uBoltSeed.value = Rb() * 100;
   su.uSpace.value = space01; su.uClear.value = clear; su.uSun.value.copy(SUN_DIR);
   const fogD = 0.0013 * (1 - smooth(16, 22, v)) + 0.0003 * (1 - space01);
-  scene.fog.density = fogD;
+  scene.fog.density = inEverest ? 0.00001 : fogD;
   scene.fog.color.copy(FOG0).lerp(tmpC.setRGB(0.7, 0.74, 0.85), bolt * 0.3).lerp(tmpC.setRGB(0.25, 0.35, 0.55), clear);
-  glows.mat.uniforms.uFogD.value = fogD;
-  TU.uFogD.value = fogD * 0.35; TU.uFogC.value.copy(scene.fog.color); TU.uFlash.value = bolt * 0.5;
-  TU.uAmb.value.setRGB(0.42, 0.45, 0.5).multiplyScalar(1 - 0.6 * space01); TU.uSun.value.setRGB(0.25, 0.25, 0.25).lerp(tmpC.setRGB(1.2, 1.1, 0.95), clear);
+  glows.mat.uniforms.uFogD.value = inEverest ? 0.000005 : v > 17 ? Math.min(fogD, 0.00012) : fogD;
+  // the land: little haze (the mountain 5 km off has to read), a touch more in the storm
+  TU.uFogD.value = inEverest ? 0.000012 : lerp(0.00011, 0.00004, clear);
+  TU.uFogC.value.copy(scene.fog.color); TU.uFlash.value = bolt * 0.5;
+  TU.uAmb.value.setRGB(0.62, 0.66, 0.7).multiplyScalar(1 - 0.5 * space01); TU.uSun.value.setRGB(0.3, 0.3, 0.3).lerp(tmpC.setRGB(1.3, 1.2, 1.05), clear);
+  // the mountain catches a break of light in the storm (it has to read 5 km off); the Himalaya in hard high sun
+  { const m = smooth(24.8, 25.6, v) * (1 - smooth(28.5, 28.6, v)); TU.uSun.value.lerp(tmpC.setRGB(1.0, 0.92, 0.78), m); TU.uAmb.value.multiplyScalar(1 - 0.25 * m); }
+  if (inEverest) { TU.uAmb.value.setRGB(0.2, 0.24, 0.32); TU.uSun.value.setRGB(1.05, 0.98, 0.86); }
   TU.uLight.value.copy(SUN_DIR);
-  water.u.uFogD.value = fogD; water.u.uFogC.value.copy(scene.fog.color); water.u.uFlash.value = bolt;
+  if (inEverest) TU.uLight.value.set(-0.75, 0.45, 0.2).normalize();
+  water.u.uFogD.value = inEverest ? 0.000008 : fogD; water.u.uFogC.value.copy(scene.fog.color); water.u.uFlash.value = bolt;
   water.u.uSkyTop.value.setRGB(0.15, 0.17, 0.2); water.u.uSkyLow.value.setRGB(0.3, 0.33, 0.37);
   water.u.uSpace.value = space01; water.u.uSun.value.copy(SUN_DIR);
-  water.u.uChop.value = lerp(0.35, 1.0, smooth(12, 30, v));
-  water.u.uFoam.value = 0.6 * (1 - smooth(14, 20, v)) + 0.15;
+  water.u.uChop.value = lerp(0.45, 1.0, smooth(12, 30, v));
+  water.u.uFoam.value = 1.0 * (1 - smooth(14, 20, v)) + 0.15;
   water.u.uFlow.value.set(0, -(v < 12 ? 2.6 * v : 31.2 + (v - 12) * 0.8));
+  water.u.uBrown.value = 1 - smooth(10, 18, v);
+  water.u.uRefl.value = lerp(0.6, 1.0, smooth(10, 18, v));
   // the water: brown flood in the street, green-grey over the city, blue in the open
-  DW.uMurk.value.setRGB(0.07, 0.065, 0.045).lerp(tmpC.setRGB(0.03, 0.06, 0.06), smooth(10, 20, v)).lerp(tmpC.setRGB(0.008, 0.035, 0.07), smooth(24, 32, v));
+  DW.uMurk.value.setRGB(0.09, 0.075, 0.045).lerp(tmpC.setRGB(0.03, 0.06, 0.06), smooth(10, 20, v)).lerp(tmpC.setRGB(0.008, 0.035, 0.07), smooth(24, 32, v));
   F.uFlash.value = bolt * 0.6; F.uTime.value = v; F.uGrid.value = 1;
   const storm = 1 - space01;
   hemi.intensity = (1.7 + 1.4 * bolt) * (0.35 + 0.65 * storm);
@@ -481,80 +582,132 @@ function update(v, cover = -1) {
   skyL.intensity = 0.9 * storm;
   sun.intensity = 3.0 * clear;
   sun.position.copy(camera.position).addScaledVector(SUN_DIR, 500); sun.target.position.copy(camera.position);
-  key.position.copy(camera.position).add(new THREE.Vector3(0, 1.2, 0)); key.intensity = 2.5 * storm * (v < V_OUT ? 1 : 0);
+  key.position.copy(camera.position).add(new THREE.Vector3(0, 1.2, 0)); key.intensity = 2.5 * storm * (v < V_OUT || v >= V_LAND ? 1 : 0) * (inSummit || inEverest ? 0 : 1);
 
   // ---------- everything ----------
+  const local = !inSpace && !inEverest;
   glows.begin(inSpace ? spaceCam : camera);
-  const showStreet = v < 30;
-  for (const o of world.group) o.visible = !inSpace;
-  bus.group.visible = !inSpace; you.root.visible = !inSpace;
+  const showStreet = v < 30 && !inSummit;
+  for (const o of world.group) o.visible = local;
+  for (const o of everest.group) o.visible = inEverest;
+  bus.group.visible = local && !inSummit; you.root.visible = local && !inSummit;
   bus.group.position.copy(busObj.position); bus.group.quaternion.copy(busObj.quaternion);
-  for (const o of actors.group) o.visible = !inSpace;
-  actors.frame(v, s, b, busObj, glows, camera.position, showStreet && !inSpace);
-  if (!inSpace) {
-    // street lamps (dim under the water)
-    if (camera.position.y < 120) for (const l of LAMPS) {
-      const hx = l.x - l.side * 1.7, hy = 7.75, hz = l.z;
-      const kk = hy > L ? 1 : Math.exp(-(L - hy) / 0.8) * 0.6;
-      if (kk > 0.02) glows.add(hx, hy, hz, 1.2, 2.6 * kk, 2.2 * kk, 1.6 * kk);
+  for (const o of actors.group) o.visible = local;
+  VIEW_T.copy(P);
+  actors.frame(v, s, b, busObj, glows, camera.position, showStreet && local);
+  // the street up close (the first seconds): gauge, junk, falls, splashes; foam round what stands in the current
+  const nearStreet = local && !inSummit && v < 15;
+  {
+    const rate = 1 + 1.2 * clamp((s.L - 5) / 3);
+    street.frame(v, L, rate, tmpC.setRGB(0.62, 0.65, 0.7).multiplyScalar(1 + 2.5 * bolt), nearStreet);
+    street.beginSurf();
+    const obs = water.u.uObs.value, obsS = water.u.uObsS.value;
+    let no = 0;
+    const ob = (x, z, yaw, hw, hl, k = 1) => { if (no >= 24) return; obs[no].set(x, z, Math.cos(yaw), Math.sin(yaw)); obsS[no].set(hw, hl, k, 0); no++; };
+    if (nearStreet) {
+      // the water in view: a few big patches ahead of the camera
+      const fw = new THREE.Vector3(); camera.getWorldDirection(fw); fw.y = 0; fw.normalize();
+      const cyaw = Math.atan2(fw.x, fw.z);
+      for (const [dd, hw, hl, dn] of [[3.5, 2.2, 1.6, 1], [7, 4, 2, 1], [12, 6, 3, 0.9], [19, 8, 4, 0.7]]) for (let r = 0; r < (dd > 10 ? 2 : 3); r++) street.surf(camera.position.x + fw.x * dd, L + 0.01, camera.position.z + fw.z * dd, cyaw, hw, hl, dn);
+      // car roofs and bonnets near the camera
+      const near = CARS.map((c) => ({ c, f: carFrame(c, v, L) })).filter((o) => o.f.y + 1.2 > L && camera.position.distanceTo(tmpV.set(o.f.x, o.f.y, o.f.z)) < 28)
+        .sort((a, b2) => camera.position.distanceToSquared(tmpV.set(a.f.x, 0, a.f.z)) - camera.position.distanceToSquared(tmpV.set(b2.f.x, 0, b2.f.z)));
+      for (const { c, f } of near.slice(0, 12)) {
+        if (v < c.vSink + 0.5) { const r = carRoof(c, v, L, 0, 0).p; street.surf(r.x, r.y + 0.02, r.z, f.yaw, 0.7, 0.95, 0.8); }
+        if (f.y + 0.95 > L) street.surf(f.x, f.y + 0.95, f.z, f.yaw, 0.85, 2.2, 0.6);
+        ob(f.x, f.z, -f.yaw, 0.95, 2.35, f.y + 0.3 > L - 0.6 ? 1 : 0.5);
+      }
+      // the bus roof, you (hood and shoulders), the gauge, the awnings
+      street.surf(busObj.position.x, busObj.position.y + 0.08, busObj.position.z, busObj.rotation.y, 1.15, 5.8, 1);
+      { const hd = new THREE.Vector3(); you.head.getWorldPosition(hd); street.surf(hd.x, hd.y + 0.23, hd.z, 0, 0.09, 0.09, 1); street.surf(hd.x, hd.y - 0.12, hd.z, y.yaw, 0.2, 0.08, 1); }
+      street.surf(GAUGE.x, 2.27, GAUGE.z, 0.25, 0.16, 0.05, 1);
+      for (const a of street.AWN) if (a.y > L && Math.abs(a.z - camera.position.z) < 45) street.surf(a.x, a.y + 0.2, a.z, 0, 0.6, a.w / 2, 0.7);
+      ob(busObj.position.x, busObj.position.z, -busObj.rotation.y, 1.3, 6.1, 1);
+      if (!y.onBus) ob(P.x, P.z, 0, 0.22, 0.15, 1);
+      ob(GAUGE.x, GAUGE.z, 0, 0.06, 0.06, 1);
     }
-    // the tower's spire light and the summit station's lamps
-    if (L < TOWER.h + TOWER.spire) glows.add(TOWER.x, TOWER.h + TOWER.spire + 0.5, TOWER.z, 3.5, 6 * (Math.sin(v * 4) > 0 ? 1 : 0.2), 0.3, 0.2);
-    if (L < SUMMIT.h + 4) for (const [dx, dz] of [[-12, 0.5], [0, 0.5], [12, 10], [-6, 10]]) glows.add(SUMMIT.x + dx, SUMMIT.h + 3.5, SUMMIT.z + dz, 1.8, 3, 2.6, 2);
-    // the bus's own lights
-    const bl = (lx, ly, lz, sz, r, g, bb) => { tmpV.set(lx, ly, lz).applyMatrix4(busObj.matrixWorld); const kk = tmpV.y > L ? 1 : Math.exp(-(L - tmpV.y) / 0.8) * 0.6; glows.add(tmpV.x, tmpV.y, tmpV.z, sz, r * kk, g * kk, bb * kk); };
-    for (const sx of [-1, 1]) { bl(sx * 0.98, -2.33, -6.2, 0.8, 3, 2.8, 2.4); bl(sx * 1.02, -2.13, 6.2, 0.6, 2.5, 0.15, 0.05); }
+    street.endSurf();
+    for (let i = no; i < 24; i++) obsS[i].set(0, 0, 0, 0);
+    water.u.uWall.value = nearStreet ? 1 : 0;
+  }
+  if (local) {
+    if (!inSummit) {
+      // street lamps (dim under the water)
+      if (camera.position.y < 120) for (const l of LAMPS) {
+        const hx = l.x - l.side * 1.7, hy = 7.75, hz = l.z;
+        const kk = hy > L ? 1 : Math.exp(-(L - hy) / 0.8) * 0.6;
+        if (kk > 0.02) glows.add(hx, hy, hz, 1.2, 2.6 * kk, 2.2 * kk, 1.6 * kk);
+      }
+      // the tower's spire light
+      if (L < TOWER.h + TOWER.spire) glows.add(TOWER.x, TOWER.h + TOWER.spire + 0.5, TOWER.z, 3.5, 6 * (Math.sin(v * 4) > 0 ? 1 : 0.2), 0.3, 0.2);
+      // the bus's own lights
+      const bl = (lx, ly, lz, sz, r, g, bb) => { tmpV.set(lx, ly, lz).applyMatrix4(busObj.matrixWorld); const kk = tmpV.y > L ? 1 : Math.exp(-(L - tmpV.y) / 0.8) * 0.6; glows.add(tmpV.x, tmpV.y, tmpV.z, sz, r * kk, g * kk, bb * kk); };
+      for (const sx of [-1, 1]) { bl(sx * 0.98, -2.33, -6.2, 0.8, 3, 2.8, 2.4); bl(sx * 1.02, -2.13, 6.2, 0.6, 2.5, 0.15, 0.05); }
+    }
+    // the mountain's lights: the town, cars on the road, headlamps on the trail
+    if (v > 15 && v < 31) world.mtn.frame(v, glows, camera, L);
   }
   glows.end();
   if (!inSpace) {
-    water.frame(v, L, camera, 160000);
-    // the rain: heavier, faster, thicker with every step
+    water.frame(v, L, camera, inEverest ? 2400000 : 160000);
+    // the rain: heavier, faster, thicker with every step (dense from the very first frame)
     const k = clamp((s.L - 5) / 7);
     const dt = clamp(v - lastV, 0, 0.1); lastV = v;
     const spd = 1 + 1.6 * k;
     fallAcc = dt > 0 ? fallAcc + dt * spd : v * spd;
     rain.u.uFall.value = fallAcc; rain.u.uSpeed.value = spd;
-    rain.u.uLen.value = 1 + 2.2 * k; rain.u.uWid.value = 1 + 0.9 * k; rain.u.uN.value = 0.6 + 0.4 * k;
-    rain.u.uK.value = (1.2 + 0.05 * k) * (1 - 0.5 * space01) * (v > 26.5 && v < 30 ? 0.7 : 1);
+    rain.u.uLen.value = 1.35 + 1.9 * k; rain.u.uWid.value = 1.15 + 0.8 * k; rain.u.uN.value = 0.85 + 0.15 * k;
+    const mtnShot = smooth(25.2, 25.8, v) * (1 - smooth(28.4, 28.6, v));
+    rain.u.uK.value = 1.55 * (1 - 0.45 * k) * (1 - 0.5 * space01) * (1 - 0.55 * mtnShot) * (inEverest ? 0 : inSummit ? 0.6 : 1) * (1 + 0.8 * smooth(V_LAND, V_WHITE, v));
     rain.u.uRide.value = L;
     rain.frame(v, camera, L);
     rain.u.uLight.value.setRGB(0.55, 0.58, 0.64).multiplyScalar(1 + 3 * bolt).lerp(tmpC.setRGB(1.0, 0.95, 0.85), clear);
   }
   // the falling water at the very end
   {
-    const k = clamp((V_WHITE - v) / (V_WHITE - V_LAND + 0.3));
-    const hgt = 3 + 260 * Math.pow(k, 1.7);
-    wall.visible = !inSpace && v > V_LAND - 0.3 && v < V_WHITE + 0.5;
+    const k = clamp((V_WHITE - v) / (V_WHITE - V_LAND));
+    const hgt = 2.2 + 240 * Math.pow(k, 1.5);
+    wall.visible = local && v > V_LAND - 0.05 && v < V_WHITE + 0.5;
     wall.position.set(P.x, P.y + hgt, P.z);
-    wallU.uTime.value = v; wallU.uK.value = smooth(V_LAND - 0.3, V_LAND, v);
+    wallU.uTime.value = v; wallU.uK.value = smooth(V_LAND - 0.05, V_LAND + 0.25, v);
   }
 
   // ---------- space ----------
-  let R = RE + L / 1000;
-  let youScreen = null;
+  const R = RE + s.depth / 1000;
+  let youScreen = null, moonScreen = null, ringScreen = null;
   if (inSpace) {
-    const sc = spaceCamAt(v, R);
+    spaceCamAt(v, R);
     space.frame(v, R, YDIR, spaceCam);
-    space.rain.uK.value = 0.9;
+    space.rain.uK.value = 0.6;
     space.moon.position.copy(MOON_DIR).multiplyScalar(384400);
     youScreen = space.you.position.clone().project(spaceCam);
-  } else if (up > 0 || (v >= V_CUT2 && v < V_LAND)) {
+    // the old Earth's outline (once the camera has pulled out), and where to put the two small labels
+    oldRing.position.set(0, 0, 0); oldRing.lookAt(spaceCam.position);
+    ringU.uK.value = smooth(V_CUT1 + 1.0, V_CUT1 + 1.8, v) * (1 - smooth(V_DIVE, V_DIVE + 0.3, v));
+    const upS = new THREE.Vector3().setFromMatrixColumn(spaceCam.matrixWorld, 1), rtS = new THREE.Vector3().setFromMatrixColumn(spaceCam.matrixWorld, 0);
+    ringScreen = upS.multiplyScalar(Math.sin(-62 * DEG)).addScaledVector(rtS, Math.cos(-62 * DEG)).multiplyScalar(RE * 0.8).project(spaceCam);
+    moonScreen = space.moon.position.clone().project(spaceCam);
+  } else if (up > 0) {
     youScreen = P.clone().add(new THREE.Vector3(0, 1.0, 0)).project(camera);
   }
   renderPass.scene = inSpace ? space.scene : scene;
   renderPass.camera = inSpace ? spaceCam : camera;
 
   // ---------- post ----------
-  renderer.toneMappingExposure = inSpace ? 1.15 : lerp(1.05, 0.95, clear);
+  renderer.toneMappingExposure = inSpace ? 1.15 : inEverest ? 0.95 : lerp(1.05, 0.95, clear);
   bloom.strength = inSpace ? 0.7 : 0.45;
   const f = finish.uniforms;
   f.uTime.value = v;
-  f.uRainK.value = inSpace ? 0 : 1 + 0.3 * clamp((s.L - 5) / 7);
+  {
+    const mtnShot = smooth(25.2, 25.8, v) * (1 - smooth(28.4, 28.6, v));
+    f.uRainK.value = inSpace ? 0 : (1.8 - 0.9 * clamp((s.L - 5) / 7)) * (1 - 0.6 * mtnShot) * (inEverest ? 0.3 : 1);
+  }
   f.uSheet.value = 1 / (1 + 2.5 * clamp((s.L - 5) / 7));
-  f.uDrops.value = inSpace ? 0 : 0.55;
+  f.uDrops.value = inSpace || inEverest ? 0 : 0.55;
   // a flash on each cut (lightning-white), plus a little at each lightning stroke
-  const cutF = Math.max(Math.exp(-Math.abs(v - V_CUT1) / 0.07), Math.exp(-Math.abs(v - V_CUT2) / 0.07));
-  f.uFlash.value = bolt * 0.07 + 0.9 * cutF;
+  let cutF = 0;
+  for (const t of [V_CUT1, V_CUT2, V_SC0, V_SC1, V_EC0, V_EC1]) cutF = Math.max(cutF, Math.exp(-Math.abs(v - t) / 0.06));
+  f.uFlash.value = bolt * 0.07 + 0.85 * cutF;
   let white = s.white;
   if (cover >= 0) white = cover;
   f.uWhite.value = window.__cover ? 0 : white;
@@ -576,16 +729,14 @@ function update(v, cover = -1) {
       stampEl.style.transform = `translateY(${(22 * (1 - smooth(0, 0.18, p.dt))).toFixed(1)}px)`;
     }
   }
-  // the YOU label over your point from far away
-  {
-    let a = 0;
-    if (youScreen && youScreen.z < 1) {
-      a = inSpace ? 1 : clamp((camera.position.y - P.y - 25) / 60);
-      const sx = (youScreen.x * 0.5 + 0.5) * W, sy = (1 - (youScreen.y * 0.5 + 0.5)) * H;
-      youEl.style.left = `${(sx - 120).toFixed(1)}px`; youEl.style.top = `${(sy - 128).toFixed(1)}px`;
-    }
-    youEl.style.opacity = (window.__cover ? 0 : a * (1 - white)).toFixed(3);
-  }
+  // the small labels in space: YOU over your point, MOON, and the old Earth's size on its ring
+  const place = (el, scr, a, dx, dy) => {
+    if (scr && scr.z < 1) { el.style.left = `${((scr.x * 0.5 + 0.5) * W + dx).toFixed(1)}px`; el.style.top = `${((1 - (scr.y * 0.5 + 0.5)) * H + dy).toFixed(1)}px`; }
+    el.style.opacity = (window.__cover || !scr ? 0 : a * (1 - white)).toFixed(3);
+  };
+  place(youEl, youScreen, inSpace ? 1 : clamp((camera.position.y - P.y - 25) / 60), -120, -128);
+  place(moonEl, moonScreen, inSpace ? smooth(V_CUT1 + 1.2, V_CUT1 + 1.8, v) * (1 - smooth(V_DIVE, V_DIVE + 0.3, v)) : 0, -120, -78);
+  place(ringEl, ringScreen, inSpace ? ringU.uK.value : 0, -200, -18);
   return s;
 }
 
