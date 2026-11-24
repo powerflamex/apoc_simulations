@@ -619,12 +619,15 @@ export function makeWorld(scene) {
         const k = smooth(0.0, 0.3, tt);
         su.uTear.value = k * (N ? 1 : 0.8); su.uChop.value = N ? 1.6 : 1.2;
         GU.uStream.value = k;
-        // sand and spray streaming past, fast; scraps and chips tumbling through
+        // sand and spray streaming past, fast; scraps and chips tumbling through (streaks start 4 m out: at
+        // 40-70 m/s a nearer one is a line clean across the frame)
         const sp = N ? 70 : 42;
-        box(N ? 3000 : 2200, 5.5, tt, 0.7, 60, 0, N ? 9 : 4, 0, sp, 0.4, (x, y, z, j, f, d) => {
+        box(N ? 3000 : 2200, 5.5, tt, 4, 60, 0, N ? 9 : 4, 0, sp, 0.4, (x, y, z, j, f, d) => {
           const v = sp * (0.7 + 0.6 * d);
           const ice = N && d > 0.55;
-          parts.add(x, y, z, 0.006 + 0.006 * d, RT.x * v, 0.4, RT.z * v, 1, ice ? 0.9 : 0.86, ice ? 0.95 : 0.74, ice ? 1.0 : 0.52, (N ? 0.32 : 0.24) * k, d);
+          // fainter near the lens and up high (above ~3 m they'd cross the title as thin lines)
+          const fade = (0.35 + 0.65 * smooth(4, 12, f)) * (1 - 0.85 * smooth(2.5, 7, y - landY(x)));
+          parts.add(x, y, z, 0.006 + 0.006 * d, RT.x * v, 0.4, RT.z * v, 1, ice ? 0.9 : 0.86, ice ? 0.95 : 0.74, ice ? 1.0 : 0.52, (N ? 0.32 : 0.24) * k * fade, d);
         });
         box(N ? 90 : 50, 6.6, tt, 6, 50, 0.3, N ? 12 : 5, 0, sp * 0.8, 0.5, (x, y, z, j, f, d) => {
           const col = [[0.75, 0.3, 0.22], [0.85, 0.75, 0.3], [0.25, 0.45, 0.7], [0.9, 0.88, 0.82], [0.45, 0.35, 0.25]][j % 5];
@@ -658,7 +661,7 @@ export function makeWorld(scene) {
           out.veil = [0.62, 0.52, 0.36, 0.2 * smooth(-0.05, 0.15, g) * (1 - 0.6 * smooth(0.6, 2.5, g))];
           out.streak = 0.55 * smooth(-0.05, 0.15, g) * (1 - 0.5 * smooth(0.8, 3, g));
           scene.fog.density += 0.004 * smooth(0, 0.5, g);
-          box(1400, 9.4, tt, 1.5, 40, 0, 3, 0, 60, 0.6, (x, y, z, j, f, d) => {
+          box(1400, 9.4, tt, 5, 40, 0, 3, 0, 60, 0.6, (x, y, z, j, f, d) => {
             const ang = Math.atan2((x - cx) * RT.x + (z - cz) * RT.z, (x - cx) * F.x + (z - cz) * F.z);
             const on = smooth(-0.05, 0.1, tt - satFrontT(ang));
             parts.add(x, y, z, 0.008 + 0.01 * d, RT.x * 60, 0.6, RT.z * 60, 1, 0.9, 0.78, 0.56, 0.4 * on, d);
