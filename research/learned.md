@@ -1053,3 +1053,22 @@ shrink 1,000,701 (now past 1M), planet picker 534K. Channel: 11.9M views in 28 d
   the pile from 0:17 to 0:36. Planet swap (44.5 s): Earth beach, Sun swelling by 0:01.5, fires by 0:02 (Mercury), then Mars, Venus, Jupiter,
   Pluto; its caption line is still at 1495 px (reworked before the text-height rule) and each cold stop holds a near-still shot for ~5 s.
 - Order given: rain trillion Nov 25, magnet Nov 26, planet swap Nov 27 (third "other planets" Short in nine days, so last).
+
+## Nov 25 read (~4:45 PM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 |
+|---|---|---|---|---|---|---|---|---|---|
+| rain trillion (`m1NIKGTHUsQ`) | Nov 25, ~10 AM | 6,874 | 35,940 | | | | 38.6K (6.7 h) | 66.5% | not out |
+| gravity off, time ladder | Nov 24, ~10 AM | 3,166 | 11,404 | 17,220 | 23,544 | | 27.0K (30.7 h) | 58.7% | not out ("not enough data") |
+| planet gravity | Nov 23, ~10 AM | 5,545 | 32,929 | 54,123 | 85,878 | 101,279 | 104.9K (54.7 h) | 59.5% | 104 / 91 / 71 / **63** |
+| trillion stronger | Nov 22 | 6,271 | 29,973 | 46,100 | 81,186 | 101,779 | 117.3K (76 h) | 63.9% | 96 / 85 / 73 / **66.5** |
+List counts: fast trillion 540K (+45K in 18 h), heavy 346K, planet weather 320K, scream 273K (+20K), asteroid sizes 220K, hot 181K (+3K in
+18 h, stopped), shrink 1.019M, planet picker 542K. Channel: 12.1M views in 28 days, 31,890 subscribers, 943,370 views in the last 48 h
+(1.10M on Nov 24, 1.54M on Nov 23, 1.65M on Nov 22).
+- **Ads are on.** The Earn page now reads "You're a YouTube Partner" with Watch Page Ads and Shorts Feed Ads under "What you're using"
+  (on Nov 24 it still showed them as a future milestone at 9.8M of 10M). Estimated revenue still shows $0; it lags.
+- Rain trillion's first 6 h (35.9K) is the best since fast trillion (51.7K); the others at 6 h: planet gravity 32.9K, stronger 30.0K, hot
+  28.4K, gravity off 11.4K. First hour 6,874 (fast 7,331). Above YouTube's "typical" band (12-30K). Under 12 h old, so no verdict.
+- Gravity off made 23.5K in its first day, a third of the weakest of the eight before it (asteroid sizes 69K), and YouTube still shows no
+  retention curve for it. It is the only time-ladder Short ("5 seconds? 1 minute? 1 hour?"), so the second time ladder stays on hold. One
+  video: not proof the format is the problem.
+- Hot trillion has stopped at ~181K (51% at 0:30, the weakest curve of the series); fast trillion (77%) is still adding ~60K a day on day 5.
