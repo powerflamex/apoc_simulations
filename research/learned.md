@@ -1024,3 +1024,32 @@ scheduled for Nov 23 and gravity off (time ladder) for Nov 24. After those nothi
 - Magnet trillion (week 10, 47.2 s): you are buried by 0:09 and the same locked shot of the same pile runs to 0:43, with the new arrivals
   (cars, towers, ships) up behind the counter text; 0.4 s of near silence at 0:36.0-0:36.4 (-47 dB); 2.3 s of full white at the end
   (0:44.0-0:46.3; fast trillion's is ~0.5 s); the "atoms stretch" look is pale pixel blocks that read as a glitch. Fix prompt given.
+
+## Nov 24 read (~10:25 PM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|
+| gravity off, time ladder (`QGRneNZJZVA`) | Nov 24, ~10 AM | 3,267 | 11,431 | 17,301 | | | 17.4K (12.4 h) | 58.3% | not out |
+| planet gravity (`PCyltv-AOiU`, 39 s) | Nov 23, ~10 AM | 5,545 | 32,929 | 54,123 | 85,875 | | 94.6K (36.4 h) | 60.1% | 104 / 91 / 71 / **63** / 39 (the end) |
+| trillion stronger | Nov 22, ~12:15 PM | 6,271 | 29,973 | 46,100 | 81,186 | 101,775 | 107.0K (58 h) | 64.2% | 96 / 85 / 73 / **66.5** / 62 |
+| hot trillion | Nov 21 | 4,907 | 28,429 | 57,282 | 134,526 | 164,037 | 177.7K (80 h) | 66.1% | 98 / 81 / 56 / **51** / 48 |
+List counts: fast trillion 495K, heavy 333K, planet weather 312K, scream 253K, asteroid sizes 208K, trillion seconds 145K, planet stand 141K,
+shrink 1,000,701 (now past 1M), planet picker 534K. Channel: 11.9M views in 28 days, 31,718 subscribers,
+1,102,559 views in the last 48 h (1.54M on Nov 23, 1.65M on Nov 22). Earn page: 9.8M of 10M qualified Shorts views, data as of Nov 19.
+- Gravity off started far slower than the three before it: 17.3K at 12 h against 46-57K for the three before it, under YouTube's own "typical"
+  band (24-38K), and the lowest stayed-to-watch of the recent ones (58.3%). Curve not out. In the frames: frame 0 is you floating one foot up
+  by a fountain (nothing dangerous), a full white frame at 0:07 between the 5-second and 1-minute stops, aerial from 0:08 and space from
+  0:24, the caption line at the very bottom (1640 px). That fits the Nov 10 findings, but planet gravity also opened on people floating and
+  got 86K, so wait for the curve before blaming anything.
+- The 48 h channel total fell by a third in two days because the last three posts are small (81K, 86K, ~25K pace at 24 h) after the
+  Nov 19-21 run (153K, 76K, 198K, 135K), not because old videos stopped: fast trillion still added 78K in 38 h, scream 47K.
+- % at 0:30 did not sort first-day views this week (8 Shorts): fast 77% / 198K, planet weather 69% / 153K, hot 51% / 135K, heavy 61% / 112K,
+  planet gravity 63% / 86K, stronger 66.5% / 81K, scream 59% / 76K, asteroid sizes 64% / 69K. Only the top one lines up. Stayed-to-watch
+  does not sort them either (58-68%, no order). So first-day size this week is not explained by anything I can measure.
+- The three week-10 fix passes checked in the renders (Nov 23 evening): rain trillion (47.85 s) now opens on you waist-deep in brown water
+  beside a depth ruler with cars and headlights, hood joined, the green mountain shown whole at 0:26-0:28, people on its snowy summit at
+  0:28.6-0:29.4, Everest's peaks with the sea closing at 0:30.6-0:31.8, text at mid-height, ends on fog then white (~0.4 s); left over:
+  the Earth-from-space shot is nearly still 0:38-0:43. Magnet trillion (45.4 s): bright keys and phones on you at frame 0, camera pulls back
+  from 0:04 and you stay in view (small) in the pile, sound even (-9 to -16 dB, no gap), white ~0.5 s; left over: the same wide shot of
+  the pile from 0:17 to 0:36. Planet swap (44.5 s): Earth beach, Sun swelling by 0:01.5, fires by 0:02 (Mercury), then Mars, Venus, Jupiter,
+  Pluto; its caption line is still at 1495 px (reworked before the text-height rule) and each cold stop holds a near-still shot for ~5 s.
+- Order given: rain trillion Nov 25, magnet Nov 26, planet swap Nov 27 (third "other planets" Short in nine days, so last).
