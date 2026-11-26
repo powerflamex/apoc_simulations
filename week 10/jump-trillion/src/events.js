@@ -13,23 +13,18 @@ import { A, P } from './layout.js';
 export const EVENTS = [];
 const add = (o) => EVENTS.push({ x: P.x, z: P.z, cars: 0, glass: 0, wreck: 0, fire: 0, dust: 1, kick: 0.2, crater: [0, 0], ...o });
 add({ kind: 'push', t: JUMPS[0].p, N: 10, x: A.x, z: A.z, crater: [0, 0], dust: 0.6, kick: 0.05 });
-add({ kind: 'land', t: JUMPS[0].l, N: 10, crater: [0.5, 0.02], dust: 0.7, kick: 0.15 });
-add({ kind: 'push', t: JUMPS[1].p, N: 100, crater: [0.7, 0.04], dust: 1.2, kick: 0.2 });
-add({ kind: 'land', t: JUMPS[1].l, N: 100, crater: [0.9, 0.08], dust: 1.8, kick: 0.35 });
+add({ kind: 'land', t: JUMPS[0].l, N: 10, crater: [0.5, 0.02], dust: 0.8, kick: 0.25 });
+add({ kind: 'push', t: JUMPS[1].p, N: 100, crater: [0.7, 0.04], dust: 1.3, kick: 0.2 });
+add({ kind: 'land', t: JUMPS[1].l, N: 100, crater: [0.9, 0.08], dust: 1.8, kick: 0.4 });
 add({ kind: 'push', t: JUMPS[2].p, N: 1e3, crater: [1.2, 0.2], dust: 2.5, kick: 0.35 });
-add({ kind: 'land', t: JUMPS[2].l, N: 1e3, crater: [1.6, 0.4], cars: 8.5, dust: 3.5, kick: 0.5 });
-add({ kind: 'push', t: JUMPS[3].p, N: 1e4, crater: [2.0, 0.55], cars: 8, dust: 5, kick: 0.5, rattle: 1 });
-add({ kind: 'land', t: JUMPS[3].l, N: 1e4, crater: [2.6, 0.8], cars: 11, dust: 7, kick: 0.6 });
+add({ kind: 'land', t: JUMPS[2].l, N: 1e3, crater: [1.6, 0.4], cars: 8.5, dust: 3.5, kick: 0.55 });
+add({ kind: 'push', t: JUMPS[3].p, N: 1e4, crater: [2.0, 0.55], cars: 8, glass: 30, dust: 5, kick: 0.5, rattle: 1 });
+add({ kind: 'land', t: JUMPS[3].l, N: 1e4, crater: [2.6, 0.8], cars: 11, dust: 7, kick: 0.65 });
 add({ kind: 'push', t: JUMPS[4].p, N: 1e5, crater: [3.2, 1.0], cars: 14, glass: 240, dust: 10, kick: 0.8, boom: 1 });
 add({ kind: 'land', t: JUMPS[4].l, N: 1e5, crater: [4.0, 1.4], cars: 18, glass: 280, dust: 13, kick: 0.8 });
-add({ kind: 'push', t: JUMPS[5].p, N: 1e6, crater: [5.0, 1.8], cars: 26, glass: 450, dust: 18, kick: 0.9, boom: 1, streak: 1 });
-add({ kind: 'land', t: JUMPS[5].l, N: 1e6, crater: [6.5, 2.4], cars: 34, glass: 520, dust: 24, fire: 7, kick: 1.0 });
-add({ kind: 'push', t: JUMPS[6].p, N: 1.4e7, crater: [9, 3.2], cars: 60, glass: 900, wreck: 16, dust: 34, fire: 11, kick: 1.0, boom: 1, streak: 1 });
-add({ kind: 'push', t: JUMPS[7].p, N: 1e8, crater: [14, 4.2], cars: 110, glass: 1600, wreck: 38, dust: 55, fire: 22, kick: 1.0 });
-add({ kind: 'push', t: JUMPS[8].p, N: 1e9, crater: [25, 6.0], cars: 220, glass: 3000, wreck: 80, dust: 100, fire: 45, kick: 1.0 });
-add({ kind: 'push', t: JUMPS[9].p, N: 1e10, crater: [45, 9], cars: 450, glass: 5000, wreck: 170, dust: 200, fire: 95, kick: 1.0 });
-add({ kind: 'push', t: JUMPS[10].p, N: 1e11, crater: [80, 14], cars: 1000, glass: 9000, wreck: 420, dust: 420, fire: 210, kick: 1.0 });
-add({ kind: 'push', t: JUMPS[11].p, N: 1e12, crater: [140, 20], cars: 2500, glass: 20000, wreck: 1000, dust: 900, fire: 500, kick: 1.0 });
+add({ kind: 'push', t: JUMPS[5].p, N: 1e6, crater: [5.0, 1.8], cars: 26, glass: 450, dust: 18, kick: 0.9, boom: 1 });
+add({ kind: 'land', t: JUMPS[5].l, N: 1e6, crater: [6.5, 2.4], cars: 34, glass: 520, dust: 16, fire: 3.5, kick: 1.0 });
+add({ kind: 'push', t: JUMPS[6].p, N: 1e12, crater: [140, 20], cars: 1150, glass: 20000, wreck: 1000, wv: 600, dust: 900, fire: 500, kick: 1.0, streak: 1 });
 EVENTS.sort((a, b) => a.t - b.t);
 // how fast the blast front runs out (m/s) and how far it has got dt after an event of reach R
 export const SHOCK = 480;
@@ -47,8 +42,27 @@ export function craterAt(v) {
   }
   return { r, d };
 }
+// the 1-trillion push-off's wall of dust and wreckage: out from you at ~800 m/s, slowing; it reaches the far camera
+// (1.3 km down the avenue) 4.4 s later. Everything inside it is knocked down (the wreck radius follows it, to 1 km).
+export const WALL_T = 4.4, WALL_R = 1350;
+export function wallR(v) {
+  const e = EVENTS.find((x) => x.N >= 1e12), t = v - e.t;
+  if (t <= 0) return 0;
+  return WALL_R * (1 - Math.exp(-t / 1.9)) / (1 - Math.exp(-WALL_T / 1.9));
+}
 export function damageAt(v) {
   let glass = 0, wreck = 0;
-  for (const e of EVENTS) { glass = Math.max(glass, front(v - e.t, e.glass, GLASS_V + 0.4 * e.glass)); wreck = Math.max(wreck, front(v - e.t, e.wreck, 300 + 2 * e.wreck)); }
+  for (const e of EVENTS) {
+    glass = Math.max(glass, front(v - e.t, e.glass, GLASS_V + 0.4 * e.glass));
+    wreck = Math.max(wreck, e.N >= 1e12 ? Math.min(e.wreck, 0.92 * wallR(v)) : front(v - e.t, e.wreck, 300 + 2 * e.wreck));
+  }
   return { glass, wreck };
+}
+// the ground height at (x, z) from the crater at P at video time v (the same formula as world.js's shader)
+export function craterHAt(x, z, v) {
+  const { r: R, d } = craterAt(v);
+  if (d <= 0 || R <= 0) return 0;
+  const r = Math.hypot(x - P.x, z - P.z);
+  if (r < R) { const u = r / R; return -d * (1 - u * u) * (1 - u * u); }
+  return d * 0.12 * Math.exp(-Math.pow((r - R) / (0.3 * R), 2));
 }

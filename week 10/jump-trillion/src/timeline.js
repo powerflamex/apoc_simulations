@@ -17,19 +17,34 @@
 // The rule for air (said in the description): air never slows you down (the heights are counted with no air drag; your
 // body is unbreakable), but you still smash through it: the booms, the shaking glass and the fireball on the way down
 // are the air you hit. The street under your feet takes a kick as big as the energy you leave with.
-// Each jump is shown sped up (a 1,500 ft jump really takes 19 s in the air; 100,000x takes 3 minutes; 1,000,000x about
-// 20 minutes). From 1e8x on, every step is a new jump from the same spot: the push-off at the street, then where it
-// takes you.
+// The story (rework, Nov 26: ONE person, in order, cause before result):
+//   0:00-0:22.6 six jumps that land: 10x (frame 0, real time), 100x, 1,000x, 10,000x, 100,000x, 1,000,000x, each in the
+//   order crouch -> push-off (the kick at your feet) -> up -> the top -> down -> the landing hit. Each is shown sped up
+//   (1,500 ft is 19 s in the air, 1,000,000x about 20 minutes); from 1,000x the flight is drawn in log-height (the first
+//   and last metres slowed, so the kick and the hit can be seen).
+//   0:22.6-0:30.5 the last jump: you crouch in the crater and stay down while the counter races 1 million -> 1 trillion.
+//   0:30.5 the push-off (75 kilotons), at your feet, then from down the avenue; 0:35.2-0:43.6 your flight; white, loop.
 import { smooth, clamp, lerp } from './util.js';
 import { P, A } from './layout.js';
 
 export const STORY_START = 0;
 export const DT = 3.8;
 export const G = 9.81, R_E = 6.371e6, V1 = Math.sqrt(2 * G * 0.4572);    // 2.995 m/s
-export const logN = (v) => Math.min(12, 1 + v / DT);
+export const V_HOLD = 19.0, V_RACE = 23.0, V_TRILLION = 30.5;   // the counter: 10x/3.8 s to 1e6, held, then raced to 1e12
+export function logN(v) {
+  if (v < V_HOLD) return 1 + v / DT;
+  if (v < V_RACE) return 6;
+  const k = clamp((v - V_RACE) / (V_TRILLION - V_RACE));
+  return 6 + 6 * (0.35 * k + 0.65 * k * k);
+}
 export const timesAt = (v) => Math.pow(10, logN(v));
-export const timeOfN = (n) => (Math.log10(n) - 1) * DT;
-export const V_TRILLION = timeOfN(1e12);         // 41.8
+export function timeOfN(n) {
+  const L = Math.log10(n);
+  if (L <= 6) return (L - 1) * DT;
+  let lo = V_RACE, hi = V_TRILLION;
+  for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (logN(m) < L) lo = m; else hi = m; }
+  return hi;
+}
 export const N_ESC = Math.pow(11186 / V1, 2);    // 1.395e7
 // height (m) a jump of strength N reaches (Infinity past escape speed)
 export function heightOf(N) {
@@ -39,57 +54,65 @@ export function heightOf(N) {
 export const speedOf = (N) => V1 * Math.sqrt(N);
 export const tntTons = (N) => (70 * G * 0.4572 * N) / 4.184e9;
 
-// ---- the jumps: strength, push-off (p) and landing (l) in video time, where from and where to ----
-// The first one is in real time (a 15 ft jump is 1.93 s in the air, frame 0 at its top); the others are sped up so each
-// fits its 3.8 s step.
+// ---- the jumps: strength, push-off (p), landing (l), from, to ----
 const T10 = 2 * Math.sqrt(2 * heightOf(10) / G);
 export const JUMPS = [
   { n: 10, p: -T10 / 2, l: T10 / 2, from: A, to: P },
-  { n: 100, p: timeOfN(100), l: 7.2 },
-  { n: 1e3, p: timeOfN(1e3), l: 11.0 },
-  { n: 1e4, p: timeOfN(1e4), l: 14.8 },
-  { n: 1e5, p: timeOfN(1e5), l: 18.6 },
-  { n: 1e6, p: timeOfN(1e6), l: 22.4 },
-  { n: 1.4e7, p: timeOfN(1.4e7), l: Infinity },
-  { n: 1e8, p: timeOfN(1e8), l: Infinity },
-  { n: 1e9, p: timeOfN(1e9), l: Infinity },
-  { n: 1e10, p: timeOfN(1e10), l: Infinity },
-  { n: 1e11, p: timeOfN(1e11), l: Infinity },
+  { n: 100, p: 3.8, l: 7.2 },
+  { n: 1e3, p: 7.6, l: 11.0 },
+  { n: 1e4, p: 11.4, l: 14.8 },
+  { n: 1e5, p: 15.2, l: 18.6 },
+  { n: 1e6, p: 19.0, l: 22.6 },
   { n: 1e12, p: V_TRILLION, l: Infinity },
 ];
 for (const j of JUMPS) { j.h = heightOf(j.n); j.from = j.from || P; j.to = j.to || P; j.v0 = speedOf(j.n); }
-// the last jump that has pushed off by v (index), or -1
 export function jumpAt(v) { let k = -1; JUMPS.forEach((j, i) => { if (v >= j.p) k = i; }); return k; }
+// height above the take-off ground at fraction u of a landing jump's video time: the real parabola for the first two,
+// log-height for the rest (y0 ((h/y0 + 1)^G - 1), G = 1 - |2u - 1|^1.5)
+export function flightY(j, u) {
+  if (j.n <= 100) return j.h * 4 * u * (1 - u);
+  const G2 = 1 - Math.pow(Math.abs(2 * u - 1), 1.5);
+  return Math.pow(j.h + 1, G2) - 1;
+}
 
-export const V_WHITE = 45.0;                     // the 75-kiloton fireball has filled the frame: hard white
-export const T_SWITCH = 45.5;                    // the loop point (full white since V_WHITE)
+export const V_FEET = V_TRILLION;                // the push-off, at your feet
+export const V_FAR = 30.9;                       // from down the avenue
+export const V_SPACE = 35.2;                     // your flight
+export const V_WHITE = 44.1;
+export const T_SWITCH = 44.6;
 export const LOOP = 0.9;
 export const VIDEO_DURATION = Math.round((T_SWITCH + LOOP) * 60) / 60;
 
-// ---- the line under the counter: how high a jump at the counter's strength takes you ----
+// ---- the line under the counter ----
 const fmtInt = (x) => Math.round(x).toLocaleString('en-US');
 export function heightText(N) {
   const h = heightOf(N);
-  if (!isFinite(h) || h > 3.84e8) return 'FOREVER';
+  if (!isFinite(h)) return 'FOREVER';
   const ft = h / 0.3048, mi = h / 1609.344;
   if (ft < 5280) return `${fmtInt(ft)} FT`;
   if (mi < 100) return `${mi.toFixed(1)} MILES`;
   return `${fmtInt(mi)} MILES`;
 }
+export function lineAt(v) {
+  const n = timesAt(v);
+  if (v >= V_FEET) return 'YOU WILL LEAVE THE GALAXY';
+  if (v < V_RACE) return `YOU GO UP: ${heightText(n)}`;
+  if (n >= 1e11) return 'YOU WOULD LEAVE THE GALAXY';
+  if (n >= 1e9) return 'YOU WOULD LEAVE THE SOLAR SYSTEM';
+  if (n >= N_ESC) return 'YOU WOULD NEVER COME DOWN';
+  return `YOU WOULD GO UP: ${heightText(n)}`;
+}
 export function counterAt(v) {
   const n = timesAt(v);
   const value = v >= V_TRILLION - 1e-6 ? '1,000,000,000,000x' : `${fmtInt(n)}x`;
-  return { label: 'TIMES HIGHER', value, line: `YOU GO UP: ${heightText(n)}` };
+  return { label: 'TIMES HIGHER', value, line: lineAt(v) };
 }
 
 // ---- gold popups (a phrase, never a number); never with a caption ----
 export const BEATS = [
-  { v: JUMPS[4].p + 0.05, say: 'EVERY WINDOW BLOWS OUT' },
-  { v: 19.95, say: 'YOU PASS THE SPACE STATION' },
-  { v: JUMPS[6].p + 0.55, say: 'YOU NEVER COME DOWN' },
-  { v: 28.55, say: 'YOU PASS THE MOON' },
-  { v: 32.15, say: 'YOU LEAVE THE SOLAR SYSTEM' },
-  { v: 39.55, say: 'YOU LEAVE THE GALAXY' },
+  { v: 15.3, say: 'EVERY WINDOW BLOWS OUT' },
+  { v: 20.0, say: 'YOU PASS THE SPACE STATION' },
+  { v: V_SPACE + 0.15, say: 'YOU NEVER COME DOWN' },
 ];
 export const POP = 1.6;
 export function popupAt(v) {
@@ -100,17 +123,18 @@ export function popupAt(v) {
 
 // ---- captions (one at a time; none while the title or a popup is up) ----
 export const CAPTIONS = [
-  [4.35, 6.6, 'Higher than a 12-storey roof.'],
-  [7.75, 10.2, 'Over the tallest tower in the city.'],
-  [11.55, 14.0, 'You push off at almost the speed of sound.'],
-  [16.9, 18.55, 'Higher than anyone has ever skydived.'],
-  [21.65, 23.3, 'You come back down as a fireball.'],
-  [26.75, 28.45, 'Your push-off: 7.5 tons of TNT.'],
-  [30.55, 32.05, '75 tons of TNT.'],
-  [34.4, 37.6, '750 tons of TNT. The block is gone.'],
-  [38.15, 39.5, 'Half a Hiroshima bomb.'],
-  [41.95, 43.35, 'You leave at 1% of light speed.'],
-  [43.45, 44.95, 'Like 5 Hiroshima bombs at once.'],
+  [4.9, 6.9, 'Over a 12-storey roof.'],
+  [8.6, 10.6, 'Over the tallest tower.'],
+  [11.5, 13.0, 'Almost the speed of sound.'],
+  [13.1, 14.6, 'Above the clouds.'],
+  [16.95, 18.5, 'Higher than any skydive.'],
+  [21.65, 22.9, 'You come back as a fireball.'],
+  [23.1, 25.2, 'This time, push harder.'],
+  [31.0, 32.8, 'Like 5 Hiroshima bombs.'],
+  [32.95, 35.0, 'You leave at 1% of light speed.'],
+  [36.9, 38.85, 'The Moon, 2 minutes later.'],
+  [39.0, 40.9, 'Jupiter, 3 days later.'],
+  [41.0, 43.4, '17 days: the Sun is just a star.'],
 ];
 export function captionAt(v) {
   if (popupAt(v)) return null;
@@ -123,13 +147,20 @@ export function captionAt(v) {
   return null;
 }
 
-// ---- the state at video time v ----
 export function state(v) {
   const s = { v };
   s.L = logN(v);
   s.N = Math.pow(10, s.L);
-  s.flash = smooth(V_WHITE - 0.9, V_WHITE, v);
+  s.flash = smooth(V_WHITE - 0.6, V_WHITE, v);
+  // the 1-trillion push-off: a white flash at your feet
+  s.flash = Math.max(s.flash, smooth(V_TRILLION - 0.02, V_TRILLION, v) * (1 - smooth(V_TRILLION + 0.12, V_FAR + 0.05, v)) * 0.97);
   s.title = 1 - smooth(2.6, 3.0, v);
   return s;
 }
 export { lerp, smooth, clamp };
+// the video time a landing jump passes height y (on the way up, or down)
+export function timeAtY(j, y, down = false) {
+  let lo = down ? 0.5 : 0, hi = down ? 1 : 0.5;
+  for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; const above = flightY(j, m) > y; if (above !== down) hi = m; else lo = m; }
+  return j.p + ((lo + hi) / 2) * (j.l - j.p);
+}

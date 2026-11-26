@@ -22,6 +22,7 @@ export const GU = {
   uCk: { value: Array.from({ length: NCR }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uBl: { value: new THREE.Vector4(P.x, P.z, 0, 0) },
   uBurn: { value: 0 },
+  uCrGlow: { value: 0 },                                         // the crouch: the cracks under you glow
   uHaze: { value: new THREE.Color(0.7, 0.78, 0.88) }, uHazeD: { value: 2500 },
   uTime: { value: 0 },
   uHole: { value: new THREE.Vector4(P.x, P.z, 0, 0) },           // the hole in the cloud deck (x, z, radius, 0)
@@ -250,15 +251,16 @@ export function makeWorld(scene, ctx) {
     const prev = gMat.onBeforeCompile;
     gMat.onBeforeCompile = (sh, r) => {
       prev(sh, r);
-      Object.assign(sh.uniforms, { uCr: GU.uCr, uCk: GU.uCk, uTime: GU.uTime, uBl: GU.uBl, uBurn: GU.uBurn });
+      Object.assign(sh.uniforms, { uCr: GU.uCr, uCk: GU.uCk, uTime: GU.uTime, uBl: GU.uBl, uBurn: GU.uBurn, uCrGlow: GU.uCrGlow });
       sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>\n${NOISE}\n${CRATER_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
         .replace('#include <beginnormal_vertex>', `
           vec3 chg = craterHG(position.xz);
           vec3 objectNormal = normalize(vec3(-chg.y, 1.0, -chg.z));
           vCrD = -chg.x;`)
         .replace('#include <begin_vertex>', `vec3 transformed = position; transformed.y += chg.x; vGW = transformed;`);
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n${NOISE}\nuniform vec4 uCr[${NCR}]; uniform vec4 uCk[${NCR}]; uniform float uTime; uniform vec4 uBl; uniform float uBurn;\n${CRACK_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
-        .replace('#include <color_fragment>', `#include <color_fragment>
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n${NOISE}\nuniform vec4 uCr[${NCR}]; uniform vec4 uCk[${NCR}]; uniform float uTime; uniform vec4 uBl; uniform float uBurn; uniform float uCrGlow;\n${CRACK_GLSL}\nvarying vec3 vGW; varying float vCrD;`)
+        .replace('#include <color_fragment>', `float crE = 0.0;
+        #include <color_fragment>
         {
           vec2 p = vGW.xz;
           float px = length(fwidth(p));
@@ -304,7 +306,10 @@ export function makeWorld(scene, ctx) {
           c = mix(c, dirt, clamp(deep * 1.4 + ck.y * 0.65 * smoothstep(0.35, 0.65, gn(p * 1.7)), 0.0, 0.95));
           c = mix(c, vec3(0.05, 0.045, 0.04), ck.x * 0.92);
           diffuseColor.rgb = c;
-        }`);
+          crE = (ck.x * (1.1 + 0.6 * gn(p * 0.7 + uTime * 0.6)) + deep * 0.08) * uCrGlow;
+        }`)
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        totalEmissiveRadiance += vec3(2.4, 0.75, 0.12) * crE;`);
     };
     const key = gMat.customProgramCacheKey.bind(gMat);
     gMat.customProgramCacheKey = () => key() + '-ground';

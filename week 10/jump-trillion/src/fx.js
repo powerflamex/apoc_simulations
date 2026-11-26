@@ -4,21 +4,15 @@
 //   streak you leave going up (1,000,000x and on); the hole you punch in the cloud deck; the fireball coming down at
 //   1,000,000x; the push-off fireballs from 1 ton up (orange, then a dark rising column, mushroom caps from 750 tons).
 import * as THREE from 'three';
-import { EVENTS, craterAt, front, GLASS_V } from './events.js';
-import { JUMPS } from './timeline.js';
-import { timeAtHeight } from './choreo.js';
+import { EVENTS, craterAt, front, GLASS_V, wallR } from './events.js';
+import { JUMPS, timeAtY, V_TRILLION } from './timeline.js';
 import { P, A, WALK, CLOUD_Y } from './layout.js';
 import { smooth, clamp, lerp, rng } from './util.js';
 
 const G = 9.81;
-export const HOLE_T = timeAtHeight(JUMPS[3], CLOUD_Y);
-// the 1,000,000x fall as seen from the street: a fireball sliding down the sky onto P (from the north-north-west)
-export const FALL = { t0: 21.25, t1: JUMPS[5].l, from: new THREE.Vector3(P.x + 900, 5200, P.z - 5200) };
-export function fallPos(v, out = new THREE.Vector3()) {
-  const k = clamp((v - FALL.t0) / (FALL.t1 - FALL.t0));
-  const e = Math.pow(k, 1.6);
-  return out.set(lerp(FALL.from.x, P.x, e), lerp(FALL.from.y, 0.5, e), lerp(FALL.from.z, P.z, e));
-}
+export const HOLE_T = timeAtY(JUMPS[3], CLOUD_Y);
+// the 1,000,000x fall: the last 2.5 km into the street (you, wrapped in fire): when it starts
+export const FALL_T0 = timeAtY(JUMPS[5], 2500, true);
 
 export function makeFx(scene, ctx, { smoke, glows }) {
   const R = rng(9090);
@@ -117,7 +111,10 @@ export function makeFx(scene, ctx, { smoke, glows }) {
     // ---- the crater and its cracks (GU uniforms) ----
     craters(v, GU) {
       const c = craterAt(v);
-      const ck = c.r > 0 ? Math.max(c.r * 4.5, 3) : 0;
+      // the crouch before the last jump: the cracks run out across the street and start to glow
+      const cr = smooth(JUMPS[5].l + 0.3, V_TRILLION, v) * (v < V_TRILLION ? 1 : 0);
+      const ck = c.r > 0 ? Math.max(c.r * 4.5, 3) + 70 * cr : 0;
+      GU.uCrGlow.value = cr * (0.75 + 0.25 * Math.sin(v * 23));
       GU.uCr.value[0].set(P.x, P.z, Math.max(c.r, 0.001), c.d);
       GU.uCk.value[0].set(ck, c.r > 0 ? 1 : 0, 1.1, c.r > 0.3 ? 1 : 0.4);
       // the small crack where the 10x jump took off
@@ -154,7 +151,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
 
       // ---- dust: a ring bursting out of each push-off and landing, a low cloud left behind ----
       for (const ev of EVENTS) {
-        const t = v - ev.t, Rd = ev.dust, life = 3 + Math.sqrt(Rd) * 1.6;
+        const t = v - ev.t, Rd = ev.dust, life = ev.N < 1e9 ? Math.min(2.6, 1.2 + Math.sqrt(Rd) * 0.5) : 3 + Math.sqrt(Rd) * 1.6;
         if (t < 0 || t > life) continue;
         const n = Math.round(Math.min(70, 10 + Rd * 1.2));
         const grow = 1 - Math.exp(-t / (0.25 + Rd * 0.008));
@@ -171,7 +168,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
 
       // ---- the cloud deck's hole: torn open when you pass 2 km at 10,000x, bigger at 100,000x ----
       {
-        const t1 = v - HOLE_T, t2 = v - timeAtHeight(JUMPS[4], CLOUD_Y);
+        const t1 = v - HOLE_T, t2 = v - timeAtY(JUMPS[4], CLOUD_Y);
         let r = 0;
         if (t1 > 0) r = 60 + 190 * (1 - Math.exp(-t1 / 0.35));
         if (t2 > 0) r = Math.max(r, 170 + 330 * (1 - Math.exp(-t2 / 0.6)));
@@ -204,32 +201,37 @@ export function makeFx(scene, ctx, { smoke, glows }) {
         if (t < 0.25) glows.add(P.x, 8, P.z, 40 * (1 - t / 0.25) + 8, 14, 12, 10);
       }
 
-      // ---- the 1,000,000x fall: a fireball sliding down the sky, its smoke trail left hanging ----
-      {
-        if (v > FALL.t0 && v < FALL.t1 + 0.05) {
-          const hp = fallPos(v);
-          const heat = 1 - smooth(FALL.t1 - 0.05, FALL.t1, v);
-          const sz = 70 + 0.03 * hp.y;
-          glows.add(hp.x, hp.y, hp.z, sz * 2.2, 9 * heat, 5 * heat, 1.6 * heat);
-          glows.add(hp.x, hp.y, hp.z, sz * 0.7, 18 * heat, 16 * heat, 12 * heat);
-        }
-        const tt = v - FALL.t0;
-        if (tt > 0 && tt < 4.5) for (let i = 0; i < 50; i++) {
-          const f = i / 50;
-          const tb = FALL.t0 + f * (FALL.t1 - FALL.t0);
-          if (tb > v) break;
-          const pp = fallPos(tb);
-          const age = v - tb;
-          const r = (25 + 0.006 * pp.y) * (1 + 1.2 * age);
-          smoke.puff(pp.x, pp.y, pp.z, r, 0.55 * (1 - smooth(1.5, 4.5, age)), 0.55, age < 0.15 ? 0.9 : 0, f);
+      // ---- the 1,000,000x fall: you come down wrapped in fire (the air squeezed in front of you), a smoke trail above ----
+      if (o.youP && v > FALL_T0 - 0.2 && v < JUMPS[5].l + 0.02) {
+        const hp = o.youP, heat = 1 - smooth(JUMPS[5].l - 0.03, JUMPS[5].l, v);
+        glows.add(hp.x, hp.y + 0.3, hp.z, 2.4, 4.5 * heat, 1.9 * heat, 0.45 * heat);
+        for (let i = 0; i < 10; i++) { const a = i * 0.63 + v * 9, r = 0.45 + 0.15 * Math.sin(v * 31 + i); glows.add(hp.x + Math.cos(a) * r, hp.y - 0.4 + i * 0.22, hp.z + Math.sin(a) * r, 0.9, 3.2 * heat, 1.2 * heat, 0.25 * heat); }
+        for (let i = 0; i < 26; i++) {
+          const f = i / 26, g = (i * 0.618) % 1;
+          const up = 1.4 + f * f * Math.min(40, 6 + hp.y * 0.04);
+          smoke.puff(hp.x + (g - 0.5) * (0.3 + f * 1.5), hp.y + up, hp.z + ((i * 0.377) % 1 - 0.5) * (0.3 + f * 1.5), 0.35 + 1.0 * f, (0.8 - 0.45 * f) * heat, 0.25, (1.3 - 1.25 * f) * heat, g);
         }
       }
-
+      // ---- the 1-trillion wall: a ring of dark dust and wreckage racing out from the crater along the ground ----
+      {
+        const R = wallR(v);
+        if (R > 0) {
+          const n = Math.min(160, Math.round(30 + R / 9));
+          for (let i = 0; i < n; i++) {
+            const f = (i * 0.618) % 1, g = (i * 0.377) % 1, a = (i / n) * Math.PI * 2;
+            for (let row = 0; row < 3; row++) {
+              const rr = R * (0.97 - 0.07 * row) + (f - 0.5) * 40;
+              const sz = (22 + 0.045 * R) * (0.8 + 0.4 * g) * (1 - 0.1 * row);
+              smoke.puff(P.x + Math.cos(a) * rr, sz * (0.6 + 1.3 * row), P.z + Math.sin(a) * rr, sz, 1.0, 0.22 + 0.08 * row, 0, f + row);
+            }
+          }
+        }
+      }
       // ---- the fireball meshes: a dome that swells out of the street in a fraction of a second, then rises on a
       //      stem and cools (the biggest ones into a mushroom cap) ----
       for (const B of balls) {
         const e = B.e, t = v - e.t, Rf = e.fire;
-        const on = t > 0 && t < 16;
+        const on = t > 0 && t < (Rf < 20 ? 0.35 : 16);
         B.m.visible = on; B.stem.visible = on && Rf >= 90;
         if (!on) continue;
         const grow = 1 - Math.exp(-t / (0.08 + Rf * 0.0012));
@@ -252,7 +254,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
       for (const ev of EVENTS) {
         if (!ev.fire) continue;
         const t = v - ev.t;
-        if (t < 0 || t > 14) continue;
+        if (t < 0 || t > (ev.fire < 20 ? 0.9 : 14)) continue;
         const Rf = ev.fire;
         const grow = 1 - Math.exp(-t / (0.12 + Rf * 0.0016));
         const heat = Math.exp(-t / (0.9 + Rf * 0.012));
@@ -280,7 +282,7 @@ export function makeFx(scene, ctx, { smoke, glows }) {
           }
         }
         // the flash and the core's glow
-        glows.add(ev.x, Rf * 0.5 + rise * 0.5, ev.z, Rf * 3.5 * grow + 10, 10 * heat, 7 * heat, 4 * heat);
+        glows.add(ev.x, Rf * 0.5 + rise * 0.5, ev.z, Math.min(Rf * 3.5, Rf * 1.2 + 60) * grow + 10, 10 * heat * (Rf > 100 ? 0.35 : 1), 7 * heat * (Rf > 100 ? 0.35 : 1), 4 * heat * (Rf > 100 ? 0.35 : 1));
         if (t < 0.18) glows.add(ev.x, Rf * 0.3, ev.z, Rf * 6 + 60, 30 * (1 - t / 0.18), 28 * (1 - t / 0.18), 26 * (1 - t / 0.18));
         o.fireL.position.set(ev.x, Rf * 0.6, ev.z + Rf);
         o.fireL.intensity = Math.max(o.fireL.intensity, 2.5 * Rf * Rf * heat * smooth(0, 0.05, t));

@@ -10,7 +10,8 @@
 import * as THREE from 'three';
 import { makeYou, FLAP } from './you.js';
 import { makeISS } from './things.js';
-import { JUMPS, R_E } from './timeline.js';
+import { JUMPS, R_E, flightY } from './timeline.js';
+import { youAt } from './choreo.js';
 import { smooth, clamp, lerp } from './util.js';
 
 const LOG_V = /* glsl */ `
@@ -128,11 +129,15 @@ export async function makeSpace(renderer) {
         float c = 0.0;
         for (int o = 0; o < 4; o++) {
           float sc = 5.0 * pow(2.2, float(o));
-          vec3 q = p * sc; vec3 cell = floor(q);
-          vec3 ctr = cell + vec3(h3(cell + 1.3), h3(cell + 2.7), h3(cell + 4.1));
-          float r = 0.18 + 0.28 * h3(cell + 7.7);
-          float d = length(q - ctr) / r;
-          if (h3(cell + 9.1) < 0.5) c += (smoothstep(1.0, 0.65, d) * -0.5 + smoothstep(0.75, 1.0, d) * smoothstep(1.3, 1.0, d) * 0.7) / (1.0 + float(o) * 0.6);
+          vec3 q = p * sc; vec3 base = floor(q);
+          // (the neighbouring cells too, so a crater near a cell's edge isn't cut off in a straight line)
+          for (int i = 0; i < 27; i++) {
+            vec3 cell = base + vec3(float(i - (i / 3) * 3) - 1.0, float((i / 3) - (i / 9) * 3) - 1.0, float(i / 9) - 1.0);
+            vec3 ctr = cell + 0.25 + 0.5 * vec3(h3(cell + 1.3), h3(cell + 2.7), h3(cell + 4.1));
+            float r = 0.18 + 0.28 * h3(cell + 7.7);
+            float d = length(q - ctr) / r;
+            if (d < 1.35 && h3(cell + 9.1) < 0.5) c += (smoothstep(1.0, 0.65, d) * -0.5 + smoothstep(0.75, 1.0, d) * smoothstep(1.3, 1.0, d) * 0.7) / (1.0 + float(o) * 0.6);
+          }
         }
         return c;
       }
@@ -247,95 +252,142 @@ export async function makeSpace(renderer) {
   const ALL = [earth, atmo, moon, iss.g, sun, rings, galaxy];
   const show = (...on) => { for (const o of ALL) o.visible = on.includes(o); };
 
-  function update(v, name, shot) {
-    const s = clamp((v - shot.a) / (shot.b - shot.a));
-    you.pose(pose);
-    you.root.rotation.set(0, 0, 0);
+  // ---- Jupiter: cream and tan bands, a red spot ----
+  const jupMat = new THREE.ShaderMaterial({
+    uniforms: { uSun: { value: SUN } },
+    vertexShader: `varying vec3 vN; varying vec3 vO; ${LOG_V} void main(){ vO = normalize(position); vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+      #include <logdepthbuf_vertex>
+      }`,
+    fragmentShader: `uniform vec3 uSun; varying vec3 vN; varying vec3 vO; ${LOG_F} ${NOISE3}
+      void main(){
+        #include <logdepthbuf_fragment>
+        float lat = vO.y + 0.06 * (fbm3(vO * 6.0) - 0.5);
+        float b = 0.5 + 0.5 * sin(lat * 26.0 + 1.3 * sin(lat * 7.0));
+        vec3 c = mix(vec3(0.62, 0.45, 0.3), vec3(0.93, 0.86, 0.74), b);
+        c = mix(c, vec3(0.75, 0.62, 0.5), 0.3 * fbm3(vO * vec3(3.0, 30.0, 3.0)));
+        vec2 sp = vec2(atan(vO.z, vO.x) - 0.6, vO.y + 0.36);
+        float spot = 1.0 - smoothstep(0.06, 0.1, length(sp * vec2(0.55, 1.6)));
+        c = mix(c, vec3(0.75, 0.32, 0.2), spot);
+        float l = max(dot(normalize(vN), uSun), 0.0);
+        gl_FragColor = vec4(c * (0.03 + 1.2 * l), 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  const jupiter = new THREE.Mesh(new THREE.SphereGeometry(6.99e7, 128, 64), jupMat);
+  jupiter.frustumCulled = false;
+  scene.add(jupiter);
+  ALL.push(jupiter);
+  // ---- the fire round you as you come back into the air (1,000,000x): an additive glowing shell ----
+  const plasmaMat = new THREE.ShaderMaterial({
+    uniforms: { uA: { value: 0 }, uT: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vO; ${LOG_V} void main(){ vO = position; vec4 w = modelMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix) * normal); vV = normalize(cameraPosition - w.xyz); gl_Position = projectionMatrix * viewMatrix * w;
+      #include <logdepthbuf_vertex>
+      }`,
+    fragmentShader: `uniform float uA; uniform float uT; varying vec3 vN; varying vec3 vV; varying vec3 vO; ${LOG_F} ${NOISE3}
+      void main(){
+        #include <logdepthbuf_fragment>
+        float f = 1.0 - abs(dot(normalize(vN), normalize(vV)));
+        float n = fbm3(vO * 3.0 + vec3(0.0, uT * 6.0, 0.0));
+        float k = (0.35 + 0.9 * f) * (0.6 + 0.8 * n) * smoothstep(-1.0, 0.6, -vO.y);
+        gl_FragColor = vec4(vec3(1.6, 0.55, 0.12) * k * uA + vec3(1.2, 1.0, 0.7) * pow(f, 3.0) * uA * 0.6, 1.0);
+      }`,
+  });
+  const plasma = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), plasmaMat);
+  plasma.scale.set(0.62, 1.5, 0.62); plasma.position.set(0, 0.35, 0); plasma.frustumCulled = false; plasma.renderOrder = 5;
+  scene.add(plasma);
+
+  // the follow camera (as in camera.js): camera round you (az, d, height h above your middle), you dy degrees under the middle
+  const DEG = Math.PI / 180, upV = new THREE.Vector3(0, 1, 0);
+  const rigCam = (az, d, h, dy, fov) => {
+    const pos = new THREE.Vector3(Math.sin(az * DEG) * d, h, Math.cos(az * DEG) * d);
+    const dir = pos.clone().negate().normalize();
+    const right = new THREE.Vector3().crossVectors(dir, upV).normalize();
+    dir.applyAxisAngle(right, dy * DEG);
+    camera.position.copy(pos); camera.lookAt(pos.clone().add(dir)); camera.fov = fov;
+  };
+  // you: in the jump shots the same motion as on the street; in the flight a slower hitch-kick
+  const moveYou = (v, Y, slow) => {
+    if (Y && Y.mode === 'air' && (Y.drive >= 0.5 || Y.reach >= 0.35)) you.pose(Y.pose);
+    else you.run({ ph: v * (slow ? 6.0 : 10.5), amp: slow ? 0.6 : 0.85, float: 1, t: v, wind: 0.4 });
     you.root.position.set(-0.105, -0.95, 0);
-    FLAP.uFT.value = v; FLAP.uFlap.value = 0.2;
+    you.root.rotation.set(0, Math.atan2(camera.position.x, camera.position.z) + 0.45, 0);
+  };
+  const earthAt = (h, rot) => { earth.position.set(0, -R_E - h, 0); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position); earthMat.uniforms.uRot.value = rot; };
+
+  function update(v, cm) {
+    const name = cm.space;
+    FLAP.uFT.value = v; FLAP.uFlap.value = 0.3;
     starMat.uniforms.uA.value = 1; starMat.uniforms.uBand.value = 1;
-    sunL.position.copy(SUN); sunL.intensity = 3.2; camL.intensity = 0; camera.up.set(0, 1, 0);
+    sunL.position.copy(SUN); sunL.intensity = 3.2; camL.intensity = 0.6; camera.up.set(0, 1, 0);
+    plasmaMat.uniforms.uA.value = 0; plasmaMat.uniforms.uT.value = v;
     const cam = (px, py, pz, lx, ly, lz, fov) => { camera.position.set(px, py, pz); camera.lookAt(lx, ly, lz); camera.fov = fov; };
-    // looking past you along dir (at the Sun / the galaxy far below): you ~20 degrees above it on screen, it just below
-    // the middle; a light from the camera's side so your front reads
     const viewAlong = (dir) => {
       const upP = new THREE.Vector3(0, 1, 0).addScaledVector(dir, -dir.y).normalize();
       const sideP = new THREE.Vector3().crossVectors(dir, upP).normalize();
-      const c = dir.clone().multiplyScalar(-4.6).addScaledVector(upP, -1.7).addScaledVector(sideP, 0.5);
-      const look = c.clone().add(dir.clone().multiplyScalar(10).addScaledVector(upP, 0.5));
+      const c = dir.clone().multiplyScalar(-7.0).addScaledVector(upP, -1.5).addScaledVector(sideP, 0.4);
+      // you under the middle of the frame (below the counter), the Sun further down
+      const look = c.clone().add(dir.clone().multiplyScalar(10).addScaledVector(upP, 3.95));
       camera.up.copy(upP);
       cam(c.x, c.y, c.z, look.x, look.y, look.z, 64);
       camL.position.copy(c).normalize(); camL.intensity = 1.6;
     };
-    if (name === 'apex') {
-      // you at your height on the 100,000x jump; the Earth below
-      const j = JUMPS[4], u = (v - j.p) / (j.l - j.p), h = j.h * 4 * u * (1 - u);
-      show(earth, atmo);
-      earth.position.set(0, -R_E - h, 0); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position);
-      earthMat.uniforms.uRot.value = 0.62;
-      cam(-3.6 + 0.4 * s, 0.7 - 0.3 * s, 5.8, 0.3, -0.5, -2.0, 62);
-      you.root.rotation.set(0.12 * Math.sin(s * 2.0), 0.6, 0.05);
-      pose.armsUp = 1.45 * (1 - smooth(0.5, 0.9, s)) + 0.5 * smooth(0.5, 0.9, s);
-      pose.armsOut = 0.6 * smooth(0.5, 0.9, s);
-      you.pose(pose);
-      starMat.uniforms.uA.value = 0.6;
-    } else if (name === 'iss') {
-      const j = JUMPS[5], u = clamp((v - j.p) / (j.l - j.p), 0, 0.5), h = j.h * 4 * u * (1 - u);
-      show(earth, atmo, iss.g);
-      earth.position.set(0, -R_E - h, 0); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position);
-      earthMat.uniforms.uRot.value = 0.55;
-      // the station: 420 km up, ~40 m off your line, sliding down past you (slowed right down: really you pass it in
-      // a few thousandths of a second)
-      iss.g.position.set(-8, lerp(75, -95, smooth(0.0, 1.0, s)), -34);
-      iss.g.rotation.set(0.25, 0.5, 0.08);
-      iss.wingMat.uniforms.uSun.value.copy(SUN);
-      cam(3.4, 0.4, 4.2, -2.6, 0.6, -6, 66);
-      you.root.rotation.set(0.05, -0.5, 0.05);
-    } else if (name === 'escape') {
-      // the Earth falling away behind (below) you: 1,500 km to 70,000 km in 2.6 s
-      const alt = 1.5e6 * Math.pow(70e6 / 1.5e6, smooth(0, 1, s * 0.85 + 0.15 * s * s));
-      show(earth, atmo);
-      earth.position.set(0, -R_E - alt, 0); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position);
-      earthMat.uniforms.uRot.value = 0.55;
-      cam(1.8, 4.2, 2.6, 0, -40, -3.0, 66);
-      you.root.rotation.set(0, 0.4, 0);
-    } else if (name === 'moon') {
-      // the Moon slides down past you, 2,800 km off your line, lit from the side; the Earth a small ball far below
-      const y = lerp(4.2e6, -4.8e6, s);
-      show(moon, earth, atmo);
-      moon.position.set(-3.1e6, y, -2.4e6);
-      earth.position.set(2.2e7, -3.6e8, -1.0e8); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position);
-      cam(2.4, 1.1, 4.4, -1.4, 0.5, -1.6, 64);
-      you.root.rotation.set(0, -0.4, 0);
-    } else if (name === 'solar') {
-      // looking back down at the Sun and the planets' orbits as you leave them (drawn in AU x K, far enough away that
-      // the camera's small moves don't shift them; the orbits are guides)
-      const K = 1e7, d = 42 * Math.pow(5, s);
-      const dir = new THREE.Vector3(0.12, -0.86, -0.5).normalize();
-      show(sun, rings);
-      rings.position.copy(dir).multiplyScalar(d * K);
-      rings.scale.setScalar(K);
-      rings.rotation.set(0.12, s * 0.25, 0);
-      for (const m of dots) { const a = m.userData.a, ph = m.userData.ph + s * 0.5 / Math.pow(a, 1.5); m.position.set(Math.cos(ph) * a, 0, Math.sin(ph) * a); m.scale.setScalar(0.0045 * d); }
-      ringMat.uniforms.uA.value = 0.85;
-      sun.position.copy(rings.position); sun.scale.setScalar(5.5 * K);
-      sunMat.uniforms.uDisc.value = 0.025; sunMat.uniforms.uI.value = 1.4 * Math.pow(42 / d, 0.5);
-      viewAlong(dir);
-      sunL.position.copy(dir); sunL.intensity = 2.6;
-      you.root.rotation.set(0, 0.5, 0);
-    } else if (name === 'galaxy') {
-      // above the Milky Way's disc, rising away from it (drawn; 100,000 light years across)
-      const K = 1e9, d = 1.15 * Math.pow(2.0, s);
-      const dir = new THREE.Vector3(0.1, -0.8, -0.59).normalize();
-      show(galaxy);
-      galaxy.position.copy(dir).multiplyScalar(d * K);
-      galaxy.scale.setScalar(0.85 * K);
-      galaxy.rotation.set(0.35, 0.2, 0.05);
-      galMat.uniforms.uRot.value = 0.6 + 0.15 * s;
-      starMat.uniforms.uBand.value = 0;
-      viewAlong(dir);
-      sunL.position.copy(dir); sunL.intensity = 1.6;
-      you.root.rotation.set(0, 0.5, 0);
+    if (name === 'apex' || name === 'iss') {
+      // the top of the 100,000x / 1,000,000x jump: the same follow camera as on the street
+      const k = cm.k, j = JUMPS[k], Y = youAt(v), h = flightY(j, Y.u);
+      show(earth, atmo, ...(k === 5 ? [iss.g] : []));
+      earthAt(h, k === 4 ? 0.62 : 0.55);
+      const r = cm.rig;
+      rigCam(r.az, r.d, r.h - 0.9, r.dy, r.fov);
+      moveYou(v, Y, false);
+      starMat.uniforms.uA.value = 0.7;
+      if (k === 5) {
+        // the Station slides past you near the top (slowed right down: really you'd pass it in a few thousandths of a second)
+        const s = clamp((Y.u - 0.25) / 0.4);
+        iss.g.position.set(-20, lerp(32, -40, smooth(0.0, 1.0, s)), -36);
+        iss.g.rotation.set(0.25, 0.5, 0.08);
+        iss.wingMat.uniforms.uSun.value.copy(SUN);
+        // coming back down into the air: fire round you below ~120 km
+        if (Y.u > 0.5) plasmaMat.uniforms.uA.value = smooth(120000, 60000, h) * 0.75;
+      }
+    } else {
+      const s = clamp((v - cm.a) / (cm.b - cm.a));
+      if (name === 'escape') {
+        // the Earth falling away behind you: 1,500 km to 60,000 km, most of it in the first second
+        const alt = 1.5e6 * Math.pow(40, 1 - Math.pow(1 - Math.min(1, s * 1.25), 2.2));
+        show(earth, atmo);
+        earthAt(alt, 0.55);
+        // the camera above you looking down past you at the Earth (it starts filling the frame behind you)
+        camera.up.set(0, 0, -1);
+        rigCam(25, 0.9, 3.9, 15, 66);
+      } else if (name === 'moon') {
+        // the Moon whips past beside you (at 1% of light speed it takes about a second to go by)
+        show(moon, earth, atmo);
+        moon.position.set(-3.4e6, lerp(5.5e6, -6.5e6, smooth(0.15, 0.85, s)), -2.3e6);
+        earth.position.set(2.2e7, -3.6e8, -1.0e8); atmo.position.copy(earth.position); atmoMat.uniforms.uC.value.copy(earth.position);
+        rigCam(57, 5.0, 0.9, 9.6, 64);
+      } else if (name === 'jupiter') {
+        show(jupiter);
+        jupiter.position.set(-3.3e8, lerp(1.6e8, -1.9e8, smooth(0.1, 0.9, s)), -2.2e8);
+        jupiter.rotation.set(0.05, s * 0.3, 0.05);
+        rigCam(57, 5.0, 0.9, 9.6, 64);
+      } else if (name === 'solar') {
+        // looking back at the Sun shrinking to a star: from Jupiter's distance (3 days) out past Neptune's (17 days);
+        // drawn in AU x K, the orbits as guides
+        const K = 1e7, d = 5.2 * Math.pow(30 / 5.2, Math.pow(s, 0.55));
+        const dir = new THREE.Vector3(0.12, -0.86, -0.5).normalize();
+        show(sun, rings);
+        rings.position.copy(dir).multiplyScalar(d * K);
+        rings.scale.setScalar(K);
+        rings.rotation.set(0.12, s * 0.25, 0);
+        for (const m of dots) { const a = m.userData.a, ph = m.userData.ph + s * 0.5 / Math.pow(a, 1.5); m.position.set(Math.cos(ph) * a, 0, Math.sin(ph) * a); m.scale.setScalar(0.0045 * d); }
+        ringMat.uniforms.uA.value = 0.75;
+        sun.position.copy(rings.position); sun.scale.setScalar(1.6 * K * Math.pow(5.2 / d, 2.2));
+        sunMat.uniforms.uDisc.value = 0.03; sunMat.uniforms.uI.value = 1.8 * Math.pow(5.2 / d, 0.5);
+        viewAlong(dir);
+        sunL.position.copy(dir); sunL.intensity = 2.6;
+      }
+      moveYou(v, null, true);
     }
     camera.near = 0.05; camera.far = 1e13;
     camera.updateProjectionMatrix();

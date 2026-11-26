@@ -11,10 +11,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { VIDEO_DURATION, LOOP, T_SWITCH, V_WHITE, logN, JUMPS } from './src/timeline.js';
+import { VIDEO_DURATION, LOOP, T_SWITCH, V_WHITE, logN, JUMPS, V_TRILLION, V_FAR, V_SPACE } from './src/timeline.js';
 import { EVENTS } from './src/events.js';
-import { SHOTS } from './src/camera.js';
-import { HOLE_T, FALL } from './src/fx.js';
+import { camAt } from './src/camera.js';
+import { HOLE_T, FALL_T0 } from './src/fx.js';
 import { rng, smooth, clamp } from './src/util.js';
 
 const SR = 48000;
@@ -34,7 +34,8 @@ function loadClip(name, ss = 0, t = 30) {
   return { f, pk: pk || 1, n: f.length / 2 };
 }
 const at = (c, pos, ch) => { const i = Math.floor(pos), k = pos - i; if (i < 0 || i + 1 >= c.n) return 0; return c.f[i * 2 + ch] * (1 - k) + c.f[(i + 1) * 2 + ch] * k; };
-const inSpace = (t) => SHOTS.some((s) => s.space && t >= s.a && t < s.b);
+const SPACE_AT = new Map();
+const inSpace = (t) => { const q = Math.round(t * 50); if (!SPACE_AT.has(q)) SPACE_AT.set(q, !!camAt(q / 50).space); return SPACE_AT.get(q); };
 
 export function makeSoundtrack(outFile) {
   const T0 = -LOOP - 1.0;
@@ -145,7 +146,7 @@ export function makeSoundtrack(outFile) {
 
   // ---------------- the hits ----------------
   // the crowd's scream and gasp at frame 0 (in the loop's lead-in the same clip starts again on the seam)
-  const clips = [['scream.mp3', 0.05, 1.3, -0.15, 1.2, 1.0, -0.25], ['gasp.mp3', 0, 1.4, 0.15, 0.8, 1, 0.25], ['omg.mp3', 0, 1.8, JUMPS[4].p + 0.35, 0.55, 1, -0.35], ['scream.mp3', 0.1, 1.0, JUMPS[5].l + 0.2, 0.6, 0.92, 0.35]];
+  const clips = [['scream.mp3', 0.05, 1.3, -0.15, 1.2, 1.0, -0.25], ['omg.mp3', 0, 1.8, JUMPS[4].p + 0.35, 0.5, 1, -0.35], ['scream.mp3', 0.1, 1.0, JUMPS[5].l + 0.2, 0.55, 0.92, 0.35], ['scream.mp3', 0.1, 1.0, 23.6, 0.5, 1.08, -0.3]];
   for (const [name, ss, len, t0, gain, rate, pan] of clips) {
     const c = loadClip(name, ss, len + 0.2);
     if (!c) continue;
@@ -164,11 +165,11 @@ export function makeSoundtrack(outFile) {
     for (const t of [e.t, e.t - VIDEO_DURATION]) {
       if (e.kind === 'push') {
         if (e.N <= 1e6) { boom(t, 0.2 + 0.08 * L10, 70 - 3 * L10, 0.2 + 0.05 * L10); rise(t, 0.18 + 0.05 * L10, 0.5 + 0.1 * L10); if (e.N >= 100) crack(t, 0.08 + 0.04 * L10); }
-        else blast(t, (0.55 + 0.45 * size) * (size > 0.85 ? 0.85 : 1), 1 + 6 * size);
+        else if (e.N < 1e12) blast(t, (0.55 + 0.45 * size) * (size > 0.85 ? 0.85 : 1), 1 + 6 * size);
       } else {
-        boom(t, 0.25 + 0.12 * L10, 62 - 3 * L10, 0.25 + 0.08 * L10);
+        boom(t, (0.25 + 0.12 * L10) * (e.N >= 1e6 ? 0.55 : 1), 62 - 3 * L10, 0.25 + 0.08 * L10);
         crack(t, 0.1 + 0.07 * L10);
-        if (e.N >= 1e3) crash(t + 0.02, 0.2 + 0.1 * L10, 1300, 0.2 + 0.05 * L10, -0.1);
+        if (e.N >= 1e3) crash(t + 0.02, (0.2 + 0.1 * L10) * (e.N >= 1e6 ? 0.55 : 1), 1300, 0.2 + 0.05 * L10, -0.1);
       }
     }
   }
@@ -195,33 +196,43 @@ export function makeSoundtrack(outFile) {
     for (const dt of [0, 0.11]) { crack(t + dt, 0.55); boom(t + dt, 0.5, 45, 0.35); }
     for (let k = 0; k < 10; k++) glass(t + 0.08 + k * 0.14, 0.32 - 0.02 * k, 10, (k % 2 ? 0.5 : -0.5));
   }
-  // 1,000,000x: the fireball coming down (a rising roar), then its impact
+  // 1,000,000x: you come back down as a fireball (a rising roar), then the impact
   {
     const f = new SVF(), f2 = new SVF();
-    const t0 = FALL.t0, d = FALL.t1 - FALL.t0;
-    add(t0, d + 0.05, (dt) => { const k = dt / d; const o = (f.run(white(), 300 + 1800 * k, 0.8).lp * 0.8 + f2.run(white(), 120, 0.7).lp * 1.2) * (0.15 + 0.85 * k * k) * 0.55; return [o, o]; });
-    blast(FALL.t1, 0.7, 1.5);
-    glass(FALL.t1 + 0.15, 0.3, 14, 0.2);
+    const t0 = FALL_T0 - 1.4, d = JUMPS[5].l - t0;
+    add(t0, d + 0.05, (dt) => { const k = dt / d; const o = (f.run(white(), 300 + 1800 * k, 0.8).lp * 0.8 + f2.run(white(), 120, 0.7).lp * 1.2) * (0.2 + 0.8 * k * k) * 0.55; return [o, o]; });
+    blast(JUMPS[5].l, 0.28, 1.5);
+    glass(JUMPS[5].l + 0.15, 0.3, 14, 0.2);
   }
-  // the station and the Moon going past
-  whoosh(19.85, 0.4, 120, 900, 0.9, 0.4);
-  whoosh(28.6, 0.45, 60, 400, 1.6, -0.4);
-  // the last one: the roar rising into the white
+  // the crouch: a deep charge building under you, the ground cracking more and more often, a sizzle from the glowing
+  // cracks, the crowd fleeing, engines reversing
   {
+    const t0 = JUMPS[5].l + 0.3, t1 = V_TRILLION;
+    const f = new SVF(), lp = new OnePole(55), hs = new SVF();
+    add(t0, t1 - t0 + 0.02, (dt) => { const k = dt / (t1 - t0); const o = (f.run(white(), 50 + 260 * k * k, 0.7).lp * 1.3 + lp.run(white()) * 2.2) * (0.25 + 0.95 * k * k) * 0.6 + hs.run(white(), 3200, 1.5).bp * 0.05 * k; return [o, o * 0.97]; });
+    let t = t0 + 0.2, n = 0;
+    while (t < t1 - 0.05) { crack(t, 0.12 + 0.18 * (t - t0) / (t1 - t0)); n++; t += 0.55 - 0.4 * (t - t0) / (t1 - t0) + 0.1 * GR(); }
+    for (let i = 0; i < 5; i++) { const f2 = new SVF(); const ts = 23.6 + i * 0.35 + 0.2 * GR(); add(ts, 3.2, (dt) => { const o = f2.run(white(), 180 + 90 * Math.min(1, dt) + 30 * Math.sin(dt * 9), 6).bp * env(dt, 0.3, 1.8) * 0.12; return [o * (i % 2 ? 0.6 : 1.2), o * (i % 2 ? 1.2 : 0.6)]; }); }
+  }
+  // the 1-trillion push-off: the biggest blast at your feet, then the long roar of the fireball and the dust wall
+  {
+    blast(V_TRILLION, 0.26, 7);
     const wf = new SVF();
-    const t0 = JUMPS[11].p;
-    add(t0, T_SWITCH + 0.6 - t0, (dt) => {
-      const t = t0 + dt;
-      const k = smooth(t0, V_WHITE, t);
-      const e = (0.4 + 0.9 * k * k) * (1 - 0.7 * smooth(V_WHITE, V_WHITE + 0.15, t)) * (1 - smooth(T_SWITCH - 0.2, T_SWITCH + 0.5, t));
-      const o = wf.run(white(), 200 + 2400 * k, 1.0).lp * e * 0.65;
-      return [o, o];
-    });
+    add(V_FAR - 0.1, V_SPACE - V_FAR + 0.3, (dt) => { const t = V_FAR - 0.1 + dt, k = smooth(V_FAR, V_SPACE, t); const o = wf.run(white(), 150 + 1600 * k, 0.9).lp * (0.55 + 0.6 * k) * (1 - smooth(V_SPACE - 0.05, V_SPACE + 0.2, t)) * 0.42; return [o, o]; });
+    boom(V_SPACE - 0.4, 0.5, 30, 0.6);
+  }
+  // your flight: a rush away from the Earth, whooshes as the Moon and Jupiter go past, a shimmer into the white
+  whoosh(V_SPACE, 0.55, 80, 700, 1.4, 0);
+  whoosh(37.6, 0.6, 60, 500, 1.3, -0.4);
+  whoosh(39.7, 0.5, 50, 380, 1.4, 0.4);
+  {
+    const f = new SVF();
+    add(43.0, T_SWITCH + 0.6 - 43.0, (dt) => { const t = 43.0 + dt; const k = smooth(43.0, V_WHITE, t); const o = f.run(white(), 600 + 3000 * k, 1.2).bp * (0.15 + 0.7 * k) * (1 - smooth(T_SWITCH + 0.1, T_SWITCH + 0.6, t)); return [o, o]; });
   }
   // people screaming in the street shots after the big landings (a band-passed noise crowd)
   {
     const f = [new SVF(), new SVF(), new SVF()];
-    add(-1.9, 24, (dt) => { const t = -1.9 + dt; const e = (0.55 + 0.45 * Math.sin(t * 3.3)) * (0.75 + 0.25 * smooth(14.8, 15.6, t) + 0.6 * smooth(1.0, 1.6, t) * (1 - smooth(3.2, 3.8, t))) * (1 - smooth(22, 23.6, t)) * (inSpace(t) ? 0.15 : 1) * 0.55; let o = 0; [700, 1100, 1600].forEach((fc, i) => { o += f[i].run(white(), fc * (1 + 0.15 * Math.sin(t * (2 + i))), 6).bp; }); o *= e; return [o * 0.9, o]; });
+    add(-1.9, 32.6, (dt) => { const t = -1.9 + dt; const e = (0.55 + 0.45 * Math.sin(t * 3.3)) * (0.75 + 0.25 * smooth(14.8, 15.6, t) + 0.6 * smooth(1.0, 1.6, t) * (1 - smooth(3.2, 3.8, t)) + 0.5 * smooth(23.4, 24.2, t)) * (1 - smooth(V_TRILLION - 0.2, V_TRILLION + 0.1, t)) * (inSpace(t) ? 0.15 : 1) * 0.55; let o = 0; [700, 1100, 1600].forEach((fc, i) => { o += f[i].run(white(), fc * (1 + 0.15 * Math.sin(t * (2 + i))), 6).bp; }); o *= e; return [o * 0.9, o]; });
   }
 
   // ---------------- the mix ----------------
@@ -249,11 +260,23 @@ export function makeSoundtrack(outFile) {
     const aA = 1 - Math.exp(-1 / (0.06 * SR)), aR = 1 - Math.exp(-1 / (0.6 * SR));
     let en = T, g = 1;
     const G = new Float32Array(M);
-    for (let n = 0; n < M; n++) { const x = Math.sqrt((OL[n] * OL[n] + OR[n] * OR[n]) / 2); en += (x > en ? aA : aR) * (x - en); G[n] = Math.min(4.0, Math.max(0.55, Math.pow(T / Math.max(en, 1e-6), 0.62))); }
+    for (let n = 0; n < M; n++) { const x = Math.sqrt((OL[n] * OL[n] + OR[n] * OR[n]) / 2); en += (x > en ? aA : aR) * (x - en); G[n] = Math.min(5.0, Math.max(0.45, Math.pow(T / Math.max(en, 1e-6), 0.8))); }
     const aG = 1 - Math.exp(-1 / (0.08 * SR));
     for (let n = 0; n < M; n++) { g += aG * (G[n] - g); OL[n] *= g; OR[n] *= g; }
   }
   let e = 0; for (let n = 0; n < M; n++) e += OL[n] * OL[n] + OR[n] * OR[n];
+  // a second, slower pass on the half-second loudness: pulls every stretch toward the middle (keeps it in -9..-16 dB)
+  {
+    const T = Math.sqrt(e / (2 * M));
+    const W2 = Math.round(0.25 * SR), cs = new Float64Array(M + 1);
+    for (let n = 0; n < M; n++) cs[n + 1] = cs[n] + (OL[n] * OL[n] + OR[n] * OR[n]) / 2;
+    const G2 = new Float32Array(M);
+    for (let n = 0; n < M; n++) { const a = Math.max(0, n - W2), b = Math.min(M, n + W2); const r = Math.sqrt((cs[b] - cs[a]) / (b - a)); G2[n] = Math.min(1.6, Math.max(0.62, Math.pow(T / Math.max(r, 1e-6), 0.55))); }
+    const aG = 1 - Math.exp(-1 / (0.06 * SR));
+    let g = G2[0];
+    for (let n = 0; n < M; n++) { g += aG * (G2[n] - g); OL[n] *= g; OR[n] *= g; }
+    e = 0; for (let n = 0; n < M; n++) e += OL[n] * OL[n] + OR[n] * OR[n];
+  }
   const gl = Math.pow(10, -12.5 / 20) / Math.sqrt(e / (2 * M));
   const ceil = Math.pow(10, -1 / 20), knee = 0.6;
   const lim = (x) => { const a = Math.abs(x); if (a <= knee) return x; return Math.sign(x) * (knee + (ceil - knee) * Math.tanh((a - knee) / (ceil - knee))); };

@@ -3,7 +3,7 @@
 // harder the closer it is), tumbles, lands, slides to a stop and stays there on its wheels, side or roof, until a
 // bigger blast throws it again. All worked out at load; carAt(i, v) gives its matrix.
 import * as THREE from 'three';
-import { EVENTS, SHOCK } from './events.js';
+import { EVENTS, SHOCK, wallR } from './events.js';
 import { P, A, BUS, STREET } from './layout.js';
 import { rng } from './util.js';
 import { camAt } from './camera.js';
@@ -45,7 +45,8 @@ function plan(o, body, seed) {
     if (!e.cars) continue;
     const r = Math.hypot(rest.x - e.x, rest.z - e.z);
     if (r > e.cars) continue;
-    const t0 = e.t + r / SHOCK + 0.01;
+    let t0 = e.t + r / SHOCK + 0.01;
+    if (e.N >= 1e12) { let tt = e.t; while (wallR(tt) < r && tt < e.t + 6) tt += 0.02; t0 = tt; }
     // still flying from the last throw: skip (it lands first)
     const last = throws[throws.length - 1];
     if (last && t0 < last.t0 + last.tl + 0.3) continue;
@@ -67,6 +68,14 @@ function plan(o, body, seed) {
   return throws;
 }
 CARS.forEach((c, i) => { c.throws = plan(c, BODY.car, 1000 + i * 7); });
+// the crouch before the last jump: drivers still on their wheels near you back away up and down the avenue
+export const REV_T = 23.5;
+CARS.forEach((c, i) => {
+  const r = Math.hypot(c.x - P.x, c.z - P.z);
+  const before = c.throws.filter((t) => t.t0 < REV_T);
+  if (r > 160 || before.length) return;
+  c.rev = { t0: REV_T + 0.25 + 0.006 * r + 0.4 * ((i * 0.618) % 1), dir: Math.sign(c.z - P.z) || 1, vmax: 6 + 3 * ((i * 0.377) % 1) };
+});
 export const BUSP = { x: BUS.x, z: BUS.z, yaw: 0 };
 BUSP.throws = plan(BUSP, BODY.bus, 77);
 
@@ -88,6 +97,12 @@ function bodyAt(o, body, v) {
       x = th.x0 + th.vx * th.tl + th.ax * slide; z = th.z0 + th.vz * th.tl + th.az * slide; y = 0; tilt = th.restAng;
     }
     tax = th.ax; taz = th.az;
+  }
+  // backing away (until a blast throws it)
+  if (o.rev && v > o.rev.t0 && !(o.throws.length && v >= o.throws[0].t0 && o.throws[0].t0 > o.rev.t0)) {
+    const t = v - o.rev.t0, a = 3.0, tv = o.rev.vmax / a;
+    const d = t < tv ? 0.5 * a * t * t : 0.5 * a * tv * tv + o.rev.vmax * (t - tv);
+    z += o.rev.dir * d;
   }
   // tilt about the horizontal axis across the throw direction, through the body's middle
   ax.set(taz, 0, -tax).normalize();

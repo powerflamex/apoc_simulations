@@ -16,7 +16,9 @@ export function makeBus(ctx) {
     sign = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.6, 0.4) });
   const L = 12.2, W = 2.55;
   g.add(new THREE.Mesh(new RoundedBoxGeometry(W, 2.75, L, 3, 0.16).translate(0, 0.32 + 1.375, 0), red));
-  g.add(new THREE.Mesh(new RoundedBoxGeometry(W - 0.25, 0.25, L - 1.4, 2, 0.1).translate(0, 3.12, 0.3), white));
+  g.add(new THREE.Mesh(new RoundedBoxGeometry(W - 0.25, 0.22, L - 1.4, 2, 0.1).translate(0, 3.1, 0.3), M(0xa81b18, 0.5)));   // roof (red, seen from above)
+  g.add(new THREE.Mesh(new RoundedBoxGeometry(1.4, 0.28, 2.6, 2, 0.08).translate(0, 3.3, 2.6), M(0x6a6d72, 0.6)));       // the AC unit
+  g.add(new THREE.Mesh(box(0.9, 0.02, 3.2, 0, 3.22, -2.4), M(0xf2f0ea, 0.5)));                                        // the fleet number panel
   g.add(new THREE.Mesh(box(W + 0.03, 1.15, L - 1.9, 0, 2.05, 0.35), glass));
   const pil = [];
   for (let z = -4.6; z < 6.0; z += 1.55) for (const sx of [-1, 1]) pil.push(box(0.04, 1.17, 0.12, sx * (W / 2 + 0.02), 2.05, z));

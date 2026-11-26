@@ -4,7 +4,7 @@
 // landing comes near them they run straight away from it; when a big blast's front reaches them they duck, arms over
 // their heads, then run. Everything they do is a function of time.
 import { rng, smooth, clamp } from './util.js';
-import { camAt, SHOTS } from './camera.js';
+import { camAt, FAR_CAM } from './camera.js';
 import { SKIN, HAIR } from './crowd.js';
 import { EVENTS, SHOCK } from './events.js';
 import { P, A, BUS, STREET, WALK, MID, TOWER } from './layout.js';
@@ -14,6 +14,8 @@ const SHIRTS = [0x2f6fd0, 0xd23a3a, 0xf2f2ee, 0x1d1d1f, 0x3e8a4e, 0xe8c547, 0x7a
 const PANTS = [0x23262e, 0x34425e, 0x5a4a3a, 0xc8bfa8, 0x1d1d1f, 0x4a4f58];
 // the dangers people run from: every push-off and landing, out to a radius that grows with it
 const DANGER = EVENTS.filter((e) => !(e.kind === 'push' && e.N < 50)).map((e) => [e.t, e.x, e.z, Math.max(8.5, e.cars * 1.6, e.dust * 1.8, e.wreck * 1.6)]);
+// the crouch before the last jump: the ground glowing and cracking under you; everyone near runs
+DANGER.push([23.4, P.x, P.z, 140]);
 // keep out of: the bus, your take-off and landing spots, the line from A over the bus
 const KEEP = [[BUS.x - 1.8, BUS.x + 1.8, BUS.z - 7.0, BUS.z + 7.0], [A.x - 2.2, P.x + 2.4, -2.4, 3.2]];
 const inKeep = (x, z) => KEEP.some(([a, b, c, d]) => x > a && x < b && z > c && z < d) || (x > MID.x - 0.3 && z > MID.z0 && z < MID.z1)
@@ -46,41 +48,29 @@ export function makePeople() {
       act: R(), h: 0.92 + 0.14 * R(), seed: R() * 100, react: 0.12 + 0.3 * R(), speed: 4.0 + 2.2 * R(), ...o,
     });
   };
-  // right in front of the frame-0 camera (-5.8, 6.2), looking at you over the bus: [along the view, across]
-  {
-    const cx = -5.8, cz = 6.2, dx = 0.762, dz = -0.647;
-    for (const [a, b] of [[2.0, -0.55], [2.4, 0.6], [3.0, -0.2], [3.3, 0.95], [4.2, -1.1], [2.9, -1.0], [5.2, 1.3], [5.6, -0.4]]) add(cx + a * dx + b * -dz, cz + a * dz + b * dx, { ring: true, fg: true, act: [0.1, 0.3, 0.2, 0.9, 0.05, 0.6, 0.35, 0.15][Math.round(a * 10) % 8] });
-  }
   // on the 12-storey building's roof (by its street edge) and on the tower's open deck
   for (let k = 0; k < 7; k++) add(14.2 + 1.2 * R(), -9 + 3 * k + R(), { y0: 40.8, still: true });
   for (let k = 0; k < 14; k++) add(-16.4 - 1.2 * R(), -44 + 3.3 * k + R(), { y0: 366, still: true });
-  // round the frame-0 camera: on both sidewalks and between the stopped cars, none on its line to you over the bus
-  const C0 = { x: -5.8, z: 6.2 };
-  for (let k = 0; k < 160; k++) {
-    const x = -12.6 + 25 * R(), z = -6 + 34 * R();
-    const dx = x - C0.x, dz = z - C0.z, r = Math.hypot(dx, dz);
-    if (r < 1.6) continue;
-    // the line of sight to you (bearing ~ (11, -8.6)): keep 7 degrees either side clear out to 14 m
-    const ang = Math.abs(Math.atan2(dx * -5.6 - dz * 6.6, dx * 6.6 + dz * -5.6));
-    if (dx * 6.6 + dz * -5.6 > 0 && ang < 0.3 && r < 16) continue;
-    if (Math.abs(x) < STREET.x1 - 0.5 && R() < 0.55) continue;      // thinner in the street (between the stopped cars)
+  // round the bus at frame 0: across the avenue (west of the bus, facing the camera as they look up at you) and on the
+  // east sidewalk behind the camera
+  for (let k = 0; k < 220; k++) {
+    const x = -12.6 + 25 * R(), z = -14 + 30 * R();
+    if (x > 3.8 && x < 8.6 && z > -3 && z < 5) continue;          // the camera's crane and your landing spot
+    if (Math.abs(x) < 8 && R() < 0.45) continue;                   // thinner in the street (between the stopped cars)
     add(x, z, { ring: true });
   }
   // both sidewalks along the avenue, thinning out with distance
   for (const sx of [-1, 1]) for (let z = -160; z < 1900; z += 1.4 + 0.012 * Math.abs(z) + 2 * R()) add(sx * (STREET.x1 + 1.2 + 3.3 * R()), z);
-  // groups by the far cameras (in front of each and to its sides)
-  for (const s of SHOTS) {
-    if (!s.keys || s.a < 13) continue;
-    const k0 = s.keys[0], cx = k0[1], cz = k0[3];
-    const n = k0[2] > 3 ? 46 : 26, far = k0[2] > 3 ? 20 : 9;
-    for (let k = 0; k < n; k++) {
-      const a = -Math.PI / 2 + (R() - 0.5) * 2.4, r = 2.2 + far * R();
+  // the crowd down the avenue where the far shot of the last push-off is filmed from (in front of it and to its sides)
+  {
+    const cx = FAR_CAM[1], cz = FAR_CAM[3];
+    for (let k = 0; k < 60; k++) {
+      const a = -Math.PI / 2 + (R() - 0.5) * 2.6, r = 2.5 + 24 * R();
       const x = cx + Math.cos(a) * r * 0.8, z = cz + Math.sin(a) * r;
-      if (Math.abs(x - cx) < 1.3 && z < cz) continue;            // the camera's line up the avenue
+      if (Math.abs(x - cx) < 1.4 && z < cz) continue;
       add(x, z, { group: true });
     }
   }
-
   // runs: every danger that reaches a person sends them running straight away from it; a big blast front that only
   // reaches them makes them duck first
   const DS = [...DANGER].sort((a, b) => a[0] - b[0]);

@@ -1,149 +1,122 @@
-// The shots, in the order the viewer sees them. City shots are keyed here: [t, camera x, y, z, look x, y, z, fov, w]
-// (w = how much the look turns toward you: 0 = the fixed point, 1 = your chest); rel: true = the camera and its look
-// point ride with you (offsets from your pelvis). Space shots (space: true) are drawn by space.js with its own camera.
-//   0:00 street, frame 0 (you over the bus) -> the crouch -> 100x up the 12-storey building and back down (0:07)
-//   1,000x: the push-off from the street -> high over the tower -> the landing on the street
-//   10,000x: up through the clouds (the hole) -> above the clouds -> the landing; 100,000x: windows blow out
-//   then street / space in turn: apex at 46 km, the Space Station, the fireball, escape, the Moon, the solar system,
-//   the galaxy; each push-off seen from further down the avenue; the last fills the frame white.
+// The camera (rework, Nov 26): it never leaves you while you're on the street or in the air.
+//   0:00 the 10x jump: above the bus, you coming at the lens (a third of the frame), the camera cranes down as you land
+//        right in front of it and crouch.
+//   each landing jump: a follow rig: on the ground low beside you (east of the bus), then riding up with you, swinging
+//        round to show the landmark (roof, tower, clouds; above 2.5 km the space scene takes over: black sky, the Space
+//        Station), and back down; it never goes below street level, so on the push-off and the landing it holds still
+//        and you leave it / come back into it.
+//   the crouch: close above the crater, circling you.  the 1-trillion push-off: at your feet, then from 1.3 km down the
+//   avenue.  your flight: space.js.
+// You always sit about 30% of the way down from the middle of the frame to the bottom (dyOf: under the counter).
 import * as THREE from 'three';
+import { youAt } from './choreo.js';
+import { JUMPS, V_TRILLION, V_FAR, V_SPACE, V_WHITE } from './timeline.js';
 import { P } from './layout.js';
-import { youAt, ladderYou } from './choreo.js';
-import { fallPos, FALL } from './fx.js';
+import { smooth, lerp } from './util.js';
+import { craterHAt } from './events.js';
 
-export const SHOTS = [
-  // frame 0: low on the west side of the bus, people right in front pointing up, you over the bus (in the middle of the
-  // frame, between the counter and the caption line); then round to the south of the bus to see where you landed
-  { a: -2.0, b: 3.75, keys: [
-    [-2.0, -5.9, 0.95, 6.3, 0.4, 3.6, 0.6, 64, 1],
-    [0.0, -5.8, 0.95, 6.2, 0.8, 4.6, 0.4, 64, 1],
-    [0.95, -5.6, 0.95, 6.8, 3.4, 2.6, 0.0, 64, 0.6],
-    [2.3, 1.2, 1.1, 13.5, 4.2, 1.8, 0.0, 66, 0.5],
-    [3.75, 0.9, 0.8, 15.5, 4.2, 2.5, 0.0, 70, 0.5],
-  ] },
-  // 100x: the push-off from the street, then riding up beside you past the 12-storey building's windows to above its
-  // roof, then the landing seen low from the street
-  { a: 3.75, b: 4.12, keys: [
-    [3.75, 0.9, 0.8, 15.5, 4.2, 2.5, 0.0, 70, 0.5],
-    [4.12, 0.9, 0.8, 15.4, 4.2, 12, -1.0, 72, 0.3],
-  ] },
-  { a: 4.12, b: 6.8, rel: true, keys: [
-    [4.12, -3.6, -2.2, 6.2, 1.0, 0.4, -1.0, 70, 0],
-    [5.5, -4.2, -0.6, 6.8, 0.9, -0.6, -1.0, 70, 0],
-    [6.8, -4.0, 1.2, 6.6, 0.9, -1.0, -1.0, 70, 0],
-  ] },
-  { a: 6.8, b: 7.45, keys: [
-    [6.8, 0.8, 1.0, 16.5, 4.2, 9, 0, 68, 0.6],
-    [7.2, 0.8, 1.0, 16.3, 4.2, 1.6, 0, 68, 0.6],
-    [7.45, 0.8, 1.0, 16.2, 4.2, 2.0, 0, 68, 0.4],
-  ] },
-  // 1,000x: the push-off, then high beside you over the tallest tower (its top and mast below you), then the landing
-  { a: 7.45, b: 8.1, keys: [
-    [7.45, 0.8, 1.0, 16.2, 4.2, 2.0, 0, 68, 0.3],
-    [7.62, 0.85, 1.0, 16.1, 4.2, 2.4, 0, 68, 0],
-    [8.1, 0.9, 1.0, 16.0, 4.2, 12, -2, 70, 0],
-  ] },
-  { a: 8.1, b: 10.45, rel: true, keys: [
-    [8.1, 9.0, 0.6, 7.0, 1.6, -3.0, 2.0, 78, 0],
-    [9.3, 9.0, 1.0, 7.0, 1.6, -3.9, 2.0, 78, 0],
-    [10.45, 9.0, 1.6, 7.0, 1.6, -3.4, 2.0, 78, 0],
-  ] },
-  // the landing (cars flip) seen a little from above, the 10,000x push-off (windows rattle), a short tilt after you
-  { a: 10.45, b: 11.75, keys: [
-    [10.45, 2.2, 2.3, 12.5, 4.2, 5, 0, 66, 0],
-    [11.0, 2.2, 2.3, 12.3, 4.2, 0.6, 0, 66, 0],
-    [11.42, 2.2, 2.3, 12.2, 4.2, 1.0, 0, 66, 0],
-    [11.75, 2.2, 2.3, 12.2, 4.2, 30, -6, 68, 0],
-  ] },
-  // above the clouds: looking down past you at the cloud deck and the hole you punched, then round to the side at the top
-  { a: 11.75, b: 13.75, rel: true, keys: [
-    [11.75, -2.5, 5.5, 3.0, 0.6, -5.0, -0.8, 64, 0],
-    [12.6, -3.5, 4.0, 4.5, 0.6, -3.0, -1.0, 64, 0],
-    [13.75, -5.5, 1.6, 6.0, 0.4, -0.6, -0.6, 62, 0],
-  ] },
-  // the 10,000x landing up close (the bus shoved, cars thrown), then the long view up the avenue for the sonic boom
-  { a: 13.75, b: 15.05, keys: [
-    [13.75, 2.4, 2.4, 13.0, 4.2, 6, 0, 68, 0],
-    [14.8, 2.4, 2.4, 12.8, 4.2, 0.8, 0, 68, 0],
-    [15.05, 2.4, 2.4, 12.7, 4.2, 1.5, 0, 68, 0],
-  ] },
-  { a: 15.05, b: 16.45, keys: [
-    [15.05, -3.0, 1.6, 72, 3.0, 10, -20, 62, 0],
-    [16.45, -2.6, 1.7, 67, 3.0, 13, -30, 62, 0],
-  ] },
-  { a: 16.45, b: 17.7, space: 'apex' },
-  { a: 17.7, b: 19.3, keys: [
-    [17.7, -0.5, 1.3, 36, 4.2, 6, 0, 66, 0],
-    [18.6, -0.4, 1.3, 35, 4.2, 3, 0, 66, 0],
-    [19.05, -0.3, 1.3, 34.5, 4.2, 6, 0, 66, 0],
-    [19.3, -0.3, 1.3, 34.3, 4.2, 30, -8, 68, 0],
-  ] },
-  { a: 19.3, b: 21.35, space: 'iss' },
-  { a: 21.35, b: 23.7, track: 'fall', keys: [
-    [21.35, 3.0, 3.2, 80, 4.2, 130, -300, 66, 1],
-    [22.2, 3.0, 3.2, 79, 4.2, 70, -120, 66, 1],
-    [22.4, 3.0, 3.2, 78, 4.2, 12, -10, 66, 0.3],
-    [23.3, 3.0, 3.2, 77, 4.2, 12, -10, 66, 0],
-    [23.7, 3.0, 3.2, 76, 4.2, 70, -40, 68, 0],
-  ] },
-  { a: 23.7, b: 26.35, space: 'escape' },
-  // from here each push-off is seen from further down the avenue, from a little above the people (as if standing on
-  // a car), so the blast sits in the middle of the frame and its plume rises behind the counter
-  { a: 26.35, b: 28.4, keys: [
-    [26.35, -2.5, 4.2, 100, 4.2, 6, 0, 62, 0],
-    [28.4, -2.4, 4.3, 99, 4.2, 22, 0, 62, 0],
-  ] },
-  { a: 28.4, b: 30.3, space: 'moon' },
-  { a: 30.3, b: 32.0, keys: [
-    [30.3, 2.5, 30, 230, 4.2, 26, 0, 60, 0],
-    [32.0, 2.5, 30.2, 229, 4.2, 50, 0, 60, 0],
-  ] },
-  { a: 32.0, b: 34.1, space: 'solar' },
-  { a: 34.1, b: 39.45, keys: [
-    [34.1, -2.0, 30, 520, 4.2, 55, 0, 60, 0],
-    [37.9, -2.0, 30, 520, 4.2, 95, 0, 60, 0],
-    [39.45, -2.0, 30, 520, 4.2, 190, 0, 62, 0],
-  ] },
-  { a: 39.45, b: 41.65, space: 'galaxy' },
-  { a: 41.65, b: 47.0, keys: [
-    [41.65, 3.0, 70, 1900, 4.2, 230, 0, 58, 0],
-    [45.5, 3.0, 70, 1900, 4.2, 420, 0, 58, 0],
-  ] },
+const DEG = Math.PI / 180;
+// rig per jump: ground [az, dist, fov], top [az, dist, height above you, fov], dy (deg)
+// az: where the camera sits round you, 0 = south (+z), 90 = east (+x)
+export const RIG = [
+  null,
+  { g: [72, 4.3, 56], t: [-95, 5.4, 1.4, 62] },        // 100x: the 12-storey roof (east) behind you
+  { g: [76, 4.3, 56], t: [52, 5.2, 4.2, 70] },         // 1,000x: the tower's top below you
+  { g: [80, 4.3, 56], t: [20, 5.0, 3.5, 62] },         // 10,000x: the cloud deck below you
+  { g: [80, 4.3, 56], t: [40, 5.0, 3.0, 62] },         // 100,000x
+  { g: [84, 6.5, 58], t: [40, 5.0, 1.2, 62] },         // 1,000,000x (the landing filmed from further back)
 ];
+export const SPACE_Y = 2500;
+export const dyOf = (fov) => 0.3 * fov / 2;                     // above this the jump is drawn in the space scene
 
-// monotone cubic through a column of a shot's keys
-function col(keys, j) {
-  const x = keys.map((k) => k[0]), y = keys.map((k) => k[j]), n = x.length, d = [], m = [];
-  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
-  m[0] = 0; m[n - 1] = 0;
-  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (2 * d[i - 1] * d[i]) / (d[i - 1] + d[i]);
-  return (t) => {
-    if (n === 1 || t <= x[0]) return y[0];
-    if (t >= x[n - 1]) return y[n - 1];
-    let i = 0; while (t > x[i + 1]) i++;
-    const h = x[i + 1] - x[i], s = (t - x[i]) / h;
-    return (2 * s ** 3 - 3 * s ** 2 + 1) * y[i] + (s ** 3 - 2 * s ** 2 + s) * h * m[i] + (-2 * s ** 3 + 3 * s ** 2) * y[i + 1] + (s ** 3 - s ** 2) * h * m[i + 1];
-  };
+const up = new THREE.Vector3(0, 1, 0);
+// look from pos so that target sits dy degrees below the middle
+export function aim(pos, target, dy) {
+  const d = target.clone().sub(pos).normalize();
+  const right = new THREE.Vector3().crossVectors(d, up);
+  if (right.lengthSq() < 1e-8) right.set(1, 0, 0);
+  right.normalize();
+  d.applyAxisAngle(right, dy * DEG);
+  return pos.clone().add(d.multiplyScalar(10));
 }
-for (const s of SHOTS) if (s.keys) s.f = [1, 2, 3, 4, 5, 6, 7, 8].map((j) => col(s.keys, j));
-export function shotAt(v) {
-  for (const s of SHOTS) if (v >= s.a && v < s.b) return s;
-  return v < SHOTS[0].a ? SHOTS[0] : SHOTS[SHOTS.length - 1];
+const topW = (u) => smooth(0.02, 0.3, u) * (1 - smooth(0.72, 0.97, u));
+export function rigAt(k, u) {
+  const r = RIG[k], w = topW(u);
+  const fov = lerp(r.g[2], r.t[3], w);
+  return { az: lerp(r.g[0], r.t[0], w), d: lerp(r.g[1], r.t[1], w), h: lerp(1.25, r.t[2], w), fov, dy: dyOf(fov), w };
 }
-// the city camera at v: { pos, look, fov, shot }
+
+// the first jump: [t, x, y, z, fov, dy] (the camera looks at you)
+const K0 = [
+  [-2.0, 5.3, 9.6, 0.9, 44, 6.5],
+  [0.0, 5.5, 9.5, 0.9, 44, 6.5],
+  [0.35, 6.0, 7.4, 1.0, 46, 6.5],
+  [0.95, 6.6, 2.0, 1.3, 52, 7.0],
+  [1.4, 6.8, 1.3, 1.6, 54, 7.5],
+  [3.4, P.x + Math.sin(72 * DEG) * 4.3, 1.25, P.z + Math.cos(72 * DEG) * 4.3, 56, 8],
+];
+function keyed(K, v) {
+  let i = 0; while (i < K.length - 2 && v > K[i + 1][0]) i++;
+  const a = K[i], b = K[i + 1], k = smooth(a[0], b[0], v);
+  return a.map((x, j) => lerp(x, b[j], k));
+}
+// the far shot of the 1-trillion push-off: [t, x, y, z, lx, ly, lz, fov]
+const KFAR = [[V_FAR, 3.0, 2.2, 1300, 4.2, 330, 0, 60], [V_SPACE, 3.0, 2.2, 1300, 4.2, 420, 0, 62]];
+export const FAR_CAM = KFAR[0];
+
+export function youWorld(v) {
+  const Y = youAt(v);
+  const g = craterHAt(Y.x, Y.z, v);
+  return { Y, g, p: new THREE.Vector3(Y.x, g + Y.y + 0.9, Y.z) };
+}
+export const SPACE_SHOTS = [[V_SPACE, 37.0, 'escape'], [37.0, 39.0, 'moon'], [39.0, 41.0, 'jupiter'], [41.0, 99, 'solar']];
+// the camera at v: { pos, look, fov, space: name|undefined }
 export function camAt(v) {
-  const s = shotAt(v);
-  if (s.space) return { space: s.space, shot: s };
-  const [px, py, pz, lx, ly, lz, fov, w] = s.f.map((f) => f(v));
-  const Y = ladderYou(v) || youAt(v);
-  const me = new THREE.Vector3(Y.x, Y.y + 1.0, Y.z);
-  let pos = new THREE.Vector3(px, py, pz), look = new THREE.Vector3(lx, ly, lz);
-  if (s.rel) { pos.add(me).sub(new THREE.Vector3(0, 1, 0)); look.add(me).sub(new THREE.Vector3(0, 1, 0)); }
-  else if (s.track === 'fall') {
-    // follow the fireball down the sky (a third of the way between it and the street, so it stays high in the frame)
-    const fp = fallPos(Math.min(v, FALL.t1));
-    const k = Math.min(1, Math.max(0, w));
-    look.lerp(new THREE.Vector3(P.x, fp.y * 0.55, P.z + (fp.z - P.z) * 0.55), k);
-  } else look.lerp(me, Math.min(1, Math.max(0, w)));
-  return { pos, look, fov, shot: s };
+  const { Y, p } = youWorld(v);
+  if (v >= V_SPACE) { const s = SPACE_SHOTS.find((x) => v < x[1]); return { space: s[2], a: s[0], b: Math.min(s[1], V_WHITE) }; }
+  if (v >= V_FAR) {
+    const [, x, y, z, lx, ly, lz, fov] = keyed(KFAR, v);
+    return { pos: new THREE.Vector3(x, y, z), look: new THREE.Vector3(lx, ly, lz), fov, far: true };
+  }
+  if (v >= V_TRILLION - 0.3) {
+    // at your feet: low on the crater floor, close, looking at your legs and the ground under them
+    const fl = craterHAt(P.x, P.z, V_TRILLION - 0.31);
+    const az = 165 * DEG;
+    const pos = new THREE.Vector3(P.x + Math.sin(az) * 2.6, fl + 1.9, P.z + Math.cos(az) * 2.6);
+    return { pos, look: aim(pos, new THREE.Vector3(P.x, fl + 0.55, P.z), 0.38 * 31), fov: 62 };
+  }
+  if (v < JUMPS[1].p - 0.4) {
+    const [, x, y, z, fov] = keyed(K0, v);
+    const pos = new THREE.Vector3(x, y, z);
+    return { pos, look: aim(pos, p, dyOf(fov)), fov };
+  }
+  if (v >= JUMPS[5].l) {
+    // the crouch: circling you from above the crater's edge
+    const k = smooth(JUMPS[5].l, V_TRILLION - 0.3, v);
+    const r5 = RIG[5];
+    // round to the north side, so the avenue behind you (people running, cars backing away) is in view
+    const az = lerp(r5.g[0], 178, k) * DEG, d = lerp(r5.g[1], 4.8, smooth(0, 0.3, k));
+    const pos = new THREE.Vector3(P.x + Math.sin(az) * d, lerp(1.25, 1.0, k), P.z + Math.cos(az) * d);
+    const fov = lerp(r5.g[2], 58, k);
+    return { pos, look: aim(pos, p, dyOf(fov)), fov };
+  }
+  // the landing jumps
+  let k = 1;
+  for (let i = 1; i <= 5; i++) if (v >= JUMPS[i].p - 0.4) k = i;
+  const j = JUMPS[k];
+  let az, d, h, fov, dy;
+  if (v < j.p) {
+    // the short crouch between two jumps: swing from the last rig's ground setting to this one's
+    const prev = RIG[k - 1] || RIG[1];
+    const kk = smooth(j.p - 0.4, j.p, v);
+    az = lerp(prev.g[0], RIG[k].g[0], kk); d = lerp(prev.g[1], RIG[k].g[1], kk); h = 1.25; fov = lerp(prev.g[2], RIG[k].g[2], kk); dy = dyOf(fov);
+  } else {
+    const r = rigAt(k, Y.u);
+    ({ az, d, h, fov, dy } = r);
+    if (Y.y > SPACE_Y && k >= 4) return { space: k === 4 ? 'apex' : 'iss', rig: r, k };
+  }
+  const pos = new THREE.Vector3(p.x + Math.sin(az * DEG) * d, Math.max(1.25, p.y + h - 0.9), p.z + Math.cos(az * DEG) * d);
+  return { pos, look: aim(pos, p, dy), fov };
 }
+export const SHOTS = [];
+export const shotAt = () => null;

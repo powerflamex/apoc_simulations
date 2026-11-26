@@ -20,10 +20,10 @@ import { makeYou, FLAP } from './you.js';
 import { makePeople } from './people.js';
 import { makeFx } from './fx.js';
 import { makeSpace } from './space.js';
-import { youAt, ladderYou } from './choreo.js';
+import { youAt } from './choreo.js';
 import { EVENTS, damageAt } from './events.js';
 import { P } from './layout.js';
-import { state, VIDEO_DURATION, LOOP, captionAt, popupAt, POP, V_WHITE, JUMPS } from './timeline.js';
+import { state, VIDEO_DURATION, LOOP, captionAt, popupAt, POP, V_WHITE, JUMPS, V_SPACE } from './timeline.js';
 import { lerp, smooth, wobble, clamp } from './util.js';
 import { camAt } from './camera.js';
 
@@ -120,7 +120,7 @@ const finish = new ShaderPass({
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.85) / 0.09, 2.0));
       col *= 1.0 - uCounter * 0.42 * exp(-pow((vUv.y - 0.617) / 0.085, 2.0)) * smoothstep(1.1, 0.2, vUv.x);
       col *= 1.0 - uCap * 0.45 * exp(-pow((vUv.y - 0.385) / 0.045, 2.0));
-      col = mix(col, vec3(1.0, 0.93, 0.82), uWarm);
+      col = mix(col, vec3(0.42, 0.36, 0.3), uWarm);
       col = mix(col, vec3(1.0, 0.99, 0.96), uWhite);
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -144,7 +144,7 @@ function update(v, cover = -1) {
   const cm = camAt(v);
   s.space = !!cm.space;
   if (s.space) {
-    space.update(v, cm.space, cm.shot);
+    space.update(v, cm);
     renderPass.scene = space.scene; renderPass.camera = space.camera;
     bloom.strength = 0.35; bloom.radius = 0.4;
     renderer.toneMappingExposure = 1.0;
@@ -160,13 +160,18 @@ function update(v, cover = -1) {
     GU.uBl.value.set(P.x, P.z, dmg.glass, dmg.wreck);
     GU.uBurn.value = dmg.wreck > 0 ? 1 : 0;
     // ---- you ----
-    const Y = ladderYou(v) || youAt(v);
-    const ground = Y.y < 1 ? craterH(Y.x, Y.z) : 0;
-    you.pose(Y.pose);
+    const Y = youAt(v);
+    const ground = craterH(Y.x, Y.z);
+    // facing the camera (three-quarters on); in the air arms and legs working (a hitch-kick), straight on the drive,
+    // legs reaching down before the landing
+    if (cm.pos) Y.yaw = Math.atan2(cm.pos.x - Y.x, cm.pos.z - Y.z) + 0.45;
+    if (Y.mode === 'air' && Y.drive < 0.5 && Y.reach < 0.35) you.run({ ph: v * 10.5 + Y.jump, amp: 0.85, float: 1, t: v, wind: 0.6 });
+    else you.pose(Y.pose);
     placeYou(Y.x, ground + Y.y, Y.z, Y.yaw);
     you.root.visible = Y.visible;
     you.root.updateMatrixWorld(true);
     FLAP.uFT.value = v; FLAP.uFlap.value = Y.y > 3 ? 0.7 : 0.15;
+    const youP = new THREE.Vector3(Y.x, ground + Y.y + 0.9, Y.z);
     // ---- the camera ----
     if (DBG_CAM) {
       camera.position.set(DBG_CAM[0], DBG_CAM[1], DBG_CAM[2]);
@@ -210,7 +215,7 @@ function update(v, cover = -1) {
     smoke.begin();
     people.frame(v, crowd);
     fireL.intensity = 0;
-    fx.frame(v, { you: Y, camera, fireL, GU });
+    fx.frame(v, { you: Y, youP, camera, fireL, GU });
     smoke.end(); glows.end();
     smoke.mat.uniforms.uTime.value = v;
     smoke.mat.uniforms.uLight.value.setRGB(1.25, 1.2, 1.1);
@@ -220,10 +225,10 @@ function update(v, cover = -1) {
   // ---------- post ----------
   finish.uniforms.uAb.value = s.kick * 0.5;
   finish.uniforms.uWhite.value = window.__cover ? 0 : white;
-  finish.uniforms.uWarm.value = 0;
+  finish.uniforms.uWarm.value = smooth(V_SPACE - 0.55, V_SPACE - 0.05, v) * (v < V_SPACE ? 1 : 0);
   finish.uniforms.uTitle.value = window.__cover ? 1.15 : s.title;
   finish.uniforms.uCounter.value = window.__cover ? 0 : 1 - smooth(0.6, 1, white);
-  { const c = window.__cover ? null : captionAt(v); finish.uniforms.uCap.value = c ? c.alpha * (1 - smooth(0.6, 1, white)) : 0; }
+  finish.uniforms.uCap.value = 0;          // (no dark stripe behind the caption line)
   s.hide = smooth(0.6, 1.0, white);
   overlay(v, s);
   {
