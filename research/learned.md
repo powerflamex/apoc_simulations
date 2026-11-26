@@ -1072,3 +1072,20 @@ List counts: fast trillion 540K (+45K in 18 h), heavy 346K, planet weather 320K,
   retention curve for it. It is the only time-ladder Short ("5 seconds? 1 minute? 1 hour?"), so the second time ladder stays on hold. One
   video: not proof the format is the problem.
 - Hot trillion has stopped at ~181K (51% at 0:30, the weakest curve of the series); fast trillion (77%) is still adding ~60K a day on day 5.
+
+## Nov 26 read (~10:30 AM ET; exact views from each video's page)
+| Short | Posted (ET) | 1 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 |
+|---|---|---|---|---|---|---|---|---|---|
+| magnet trillion (`I5ucF1HVD_Q`) | Nov 26, ~10 AM | | | | | | 701 (0.4 h) | 68.2% | not out |
+| rain trillion (`m1NIKGTHUsQ`) | Nov 25, ~10 AM | 6,634 | 35,459 | 64,937 | 145,571 | | 147.6K (24.4 h) | 67.7% | not out |
+| gravity off, time ladder | Nov 24, ~10 AM | 3,166 | 11,404 | 17,220 | 23,544 | 33,945 | 34.2K (48.4 h) | 57.6% | still none at 48 h |
+| planet gravity | Nov 23, ~10 AM | 5,545 | 32,929 | 54,123 | 85,878 | 101,279 | 114.5K (72 h) | 59.2% | 104 / 91 / 71 / **63** |
+List counts: fast trillion 572K, heavy 356K, planet weather 327K, scream 283K, asteroid sizes 227K, hot 186K, stronger 124K, shrink 1.038M,
+planet picker 549K. Channel: 12.4M views in 28 days, 32,051 subscribers, 869,352 views in the last 48 h (943K on Nov 25, 1.10M on Nov 24).
+- Rain trillion's first day (145.6K) is the third best of the last eleven posts, after fast trillion (198K) and planet weather (153K), and
+  +83 subscribers in a day. The "you travel somewhere new at each step" lead holds once more: first days of the travelling trillion Shorts
+  are 112K (heavy), 198K (fast), 146K (rain); the one-street ones 72K (seconds), 76K (scream), 135K (hot), 81K (stronger). Hot is the
+  exception, and it stopped on day three. Still a lead, not a rule.
+- Ad revenue: the Revenue tab shows $0 through Nov 25 (Shorts: $0, RPM $0, 13.7K engaged views counted). Ads were first seen as on in the
+  Nov 25 afternoon read; the first money usually shows a day or two late.
+- Gravity off: 34K at 48 h and still no retention curve.
