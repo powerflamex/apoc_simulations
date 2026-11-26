@@ -9,7 +9,7 @@ import { makeGround, GU, heightAt, SEA_Y, LAKE_Y } from './ground.js';
 import { makeWater, WU } from './sea.js';
 import { makeNature } from './nature.js';
 import { makeStreet } from './street.js';
-import { makeAnimals, FOCUS, FOCUS2, sharkAt } from './animals.js';
+import { makeAnimals, FOCUS, FOCUS2, sharkAt, EYES } from './animals.js';
 import { makeYou } from './you.js';
 import { makeGlows } from './glows.js';
 import { makeSmoke } from './smoke.js';
@@ -76,11 +76,11 @@ const C = (r, g, b) => new THREE.Color(r, g, b);
 const dir = (x, y, z) => new THREE.Vector3(x, y, z).normalize();
 const LOOK = [
   { top: C(0.1, 0.3, 0.78), hor: C(0.62, 0.76, 0.93), sun: dir(0.45, 0.62, 0.65), sunC: C(1, 0.95, 0.86), sunI: 3.0, hs: C(0.62, 0.75, 1.0), hg: C(0.55, 0.5, 0.45), hI: 1.1, fog: 0.0011, cloud: 0.28, exp: 1.0, wind: 0.4 },
-  { top: C(0.06, 0.1, 0.3), hor: C(0.7, 0.46, 0.5), sun: dir(-0.45, 0.12, 0.88), sunC: C(1, 0.6, 0.32), sunI: 3.2, hs: C(0.42, 0.46, 0.8), hg: C(0.36, 0.26, 0.18), hI: 1.5, fog: 0.0028, cloud: 0.35, exp: 1.35, wind: 0.3, cloudLit: C(1.0, 0.6, 0.45), cloudDark: C(0.25, 0.2, 0.32) },
-  { top: C(0.3, 0.52, 0.75), hor: C(0.78, 0.84, 0.8), sun: dir(0.55, 0.38, 0.72), sunC: C(1, 0.93, 0.8), sunI: 2.7, hs: C(0.62, 0.72, 0.82), hg: C(0.25, 0.3, 0.15), hI: 1.0, fog: 0.0075, cloud: 0.2, exp: 1.05, wind: 0.5 },
+  { top: C(0.2, 0.4, 0.72), hor: C(0.8, 0.8, 0.76), sun: dir(-0.4, 0.55, 0.73), sunC: C(1, 0.88, 0.7), sunI: 3.2, hs: C(0.6, 0.65, 0.8), hg: C(0.45, 0.38, 0.3), hI: 1.1, fog: 0.0016, cloud: 0.35, exp: 1.0, wind: 0.3, cloudLit: C(1.0, 0.95, 0.85), cloudDark: C(0.6, 0.58, 0.55) },
+  { top: C(0.3, 0.52, 0.75), hor: C(0.78, 0.84, 0.8), sun: dir(0.55, 0.45, 0.7), sunC: C(1, 0.93, 0.8), sunI: 3.3, hs: C(0.62, 0.72, 0.82), hg: C(0.3, 0.34, 0.2), hI: 1.25, fog: 0.006, cloud: 0.2, exp: 1.2, wind: 0.5 },
   { top: C(0.36, 0.46, 0.6), hor: C(0.8, 0.84, 0.9), sun: dir(0.35, 0.22, 0.91), sunC: C(0.92, 0.96, 1.0), sunI: 1.6, hs: C(0.72, 0.8, 0.92), hg: C(0.5, 0.5, 0.5), hI: 1.35, fog: 0.0042, cloud: 0.72, exp: 1.0, wind: 1.0, cloudLit: C(0.9, 0.92, 0.95), cloudDark: C(0.48, 0.52, 0.6) },
   { top: C(0.18, 0.32, 0.62), hor: C(1.0, 0.7, 0.4), sun: dir(-0.38, 0.15, 0.91), sunC: C(1, 0.68, 0.38), sunI: 3.3, hs: C(0.5, 0.55, 0.78), hg: C(0.5, 0.35, 0.2), hI: 0.85, fog: 0.0028, cloud: 0.3, exp: 1.0, wind: 0.8, cloudLit: C(1.0, 0.75, 0.5), cloudDark: C(0.5, 0.4, 0.45) },
-  { top: C(0.03, 0.05, 0.2), hor: C(0.38, 0.3, 0.55), sun: dir(0.42, 0.3, 0.86), sunC: C(0.55, 0.66, 1.0), sunI: 1.7, hs: C(0.3, 0.36, 0.7), hg: C(0.14, 0.12, 0.18), hI: 0.95, fog: 0.0055, cloud: 0.15, exp: 1.3, wind: 0.6, stars: 1, moon: dir(-0.08, 0.36, -0.93), cloudLit: C(0.5, 0.45, 0.7), cloudDark: C(0.1, 0.1, 0.2) },
+  { top: C(0.05, 0.08, 0.27), hor: C(0.45, 0.38, 0.62), sun: dir(0.45, 0.5, 0.74), sunC: C(0.8, 0.86, 1.0), sunI: 3.2, hs: C(0.42, 0.48, 0.8), hg: C(0.25, 0.22, 0.3), hI: 1.3, fog: 0.004, cloud: 0.15, exp: 1.35, wind: 0.6, stars: 1, moon: dir(-0.08, 0.36, -0.93), cloudLit: C(0.55, 0.5, 0.75), cloudDark: C(0.12, 0.12, 0.24) },
   { top: C(0.04, 0.24, 0.72), hor: C(0.58, 0.8, 0.95), sun: dir(0.3, 0.75, 0.6), sunC: C(1, 0.97, 0.92), sunI: 3.2, hs: C(0.6, 0.75, 1.0), hg: C(0.4, 0.38, 0.35), hI: 1.15, fog: 0.0014, cloud: 0.32, exp: 1.0, wind: 1.0 },
   { top: C(0.28, 0.44, 0.56), hor: C(0.96, 0.8, 0.55), sun: dir(0.35, 0.55, 0.75), sunC: C(1, 0.88, 0.7), sunI: 3.0, hs: C(0.7, 0.72, 0.62), hg: C(0.42, 0.3, 0.16), hI: 1.0, fog: 0.0034, cloud: 0.4, exp: 1.0, wind: 0.6, cloudLit: C(1.0, 0.9, 0.75), cloudDark: C(0.55, 0.5, 0.45) },
 ];
@@ -144,72 +144,66 @@ const finish = new ShaderPass({
       col *= 1.0 - uVig * dot(c * vec2(1.0, 0.75), c * vec2(1.0, 0.75)) * 2.4;
       col *= 1.0 - uTitle * 0.5 * exp(-pow((vUv.y - 0.8) / 0.1, 2.0));
       col *= 1.0 - uCounter * 0.34 * exp(-pow((vUv.y - 0.64) / 0.07, 2.0)) * smoothstep(0.8, 0.1, vUv.x);
-      col *= 1.0 - uCap * 0.4 * exp(-pow((vUv.y - 0.385) / 0.04, 2.0));
-      col *= 1.0 - uPop * 0.4 * exp(-pow((vUv.y - 0.385) / 0.05, 2.0));
       col = mix(col, vec3(1.0), uWhite);
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
 composer.addPass(finish);
 
-// ---------- the camera: behind you at eye level, leaning toward each stop's danger ----------
-// per stop: how much the aim follows the danger, and the zoom over the stop (t = seconds into the stop)
-const TRACK = [0, 0.3, 0.45, 0.3, 0.3, 0.3, 0.3, 0.3];
+// ---------- the camera: one locked framing behind your left shoulder, the same at every stop ----------
+// Inside a stop it may lean a little toward the danger (and widen for the brachiosaur), but it leaves the locked framing
+// only 0.4 s after a flash and is back on it 0.4 s before the next one: on both sides of every flash you and the watch
+// are at exactly the same place on screen. No shake or hand-held drift within ~0.45 s of a flash either.
+const LOCK = { p: new THREE.Vector3(-0.72, 1.72, 5.0), look: new THREE.Vector3(-0.2, 6.6, -40), fov: 54 };
+// how free the camera is: 0 on the locked framing round every flash, 1 in the middle of a stop
+function freeAt(v, k) {
+  if (k === 0) return 0;
+  return smooth(stopStart(k) + 0.4, stopStart(k) + 1.0, v) * (1 - smooth(stopEnd(k) - 1.2, stopEnd(k) - 0.4, v));
+}
+// near a flash: 0 (still), else 1
+function calmAt(v) {
+  let q = 1;
+  for (const J of [...JUMPS, V_WHITE, 0]) q = Math.min(q, smooth(0.45, 0.7, Math.abs(v - J)));
+  return q;
+}
+const TRACK = [0, 0.2, 0.25, 0.2, 0.25, 0.2, 0.25, 0.25];
 function camAt(v, s) {
-  const k = s.k, c = CAMS[k], t = s.t;
-  const pos = new THREE.Vector3(...c.p);
-  const look = new THREE.Vector3(...c.look);
-  let fov = c.fov;
-  if (k === 0) { pos.z -= 0.25 * smooth(0, 4.9, v + 0.6); }
-  // the danger: lean the aim toward its head (never so far that you leave the frame)
-  let f = FOCUS[k].clone(), w = TRACK[k];
-  if (k === 7) {
-    const a = smooth(41.6, 42.6, v);
-    f = FOCUS2.clone().lerp(FOCUS[7], a);
-    w = lerp(0.55, 0.5, a);
-    fov = lerp(66, 58, a);
-  }
-  if (k === 6) { const S = sharkAt(v); f.set(S.x, Math.max(S.y, SEA_Y) + 0.5, S.z); w = 0.45; }
-  if (k >= 1) {
+  const k = s.k, m = freeAt(v, k);
+  const pos = LOCK.p.clone(), look = LOCK.look.clone();
+  let fov = LOCK.fov;
+  if (m > 0) {
+    // the danger: lean the aim toward its head
+    let f = FOCUS[k].clone();
+    if (k === 7) f = FOCUS2.clone().lerp(FOCUS[7], smooth(41.0, 42.0, v));
+    if (k === 6) { const S = sharkAt(v); f.set(S.x, Math.max(S.y, SEA_Y) + 0.5, S.z); }
     const dirL = look.clone().sub(pos).normalize(), dirF = f.clone().sub(pos);
-    if (dirF.length() > 0.5) {
-      dirF.normalize();
-      const m = dirL.lerp(dirF, w).normalize();
-      look.copy(pos).addScaledVector(m, 30);
-    }
-  }
-  // the dinosaurs: tilt up to the brachiosaur's head in the sky, then down to the one running at you
-  // the bear standing up: tilt up and widen so its head stays clear of the counter
-  if (k === 4) { const up = smooth(23.4, 24.2, v) * (1 - smooth(26.2, 26.7, v)); look.y += 4.5 * up; fov += 5 * up; }
-  if (k === 7) look.y = pos.y + (look.y - pos.y) * 0.4 + 30 * (0.26 - 0.16 * smooth(41.4, 42.6, v));
-  // keep you in the frame: your chest at most ~0.3 of the half-width from the right edge
-  {
+    if (dirF.length() > 0.5) { dirF.normalize(); look.copy(pos).addScaledVector(dirL.lerp(dirF, TRACK[k] * m).normalize(), 45); }
+    // the brachiosaur: widen so its head in the sky and all of you fit together
+    if (k === 7) fov += 8 * m * (1 - smooth(40.8, 41.8, v));
+    // keep you in the frame: you right of centre, never past ~0.8 of the width
     const lx = look.x - pos.x, lz = look.z - pos.z, yawL = Math.atan2(-lx, -lz);
-    const yawY = Math.atan2(pos.x, pos.z);              // the direction from the camera to you (at the origin)
+    const yawY = Math.atan2(pos.x, pos.z);
     const half = Math.atan(Math.tan(fov * DEG / 2) * W / H);
-    let d = yawL - yawY;
-    const lim = half * 0.62;
-    if (d > lim) d = lim; if (d < 0.05) d = 0.05;      // you right of centre, never past ~0.8 of the width
-    const yaw = yawY + d, r = Math.hypot(lx, lz);
-    look.x = pos.x - Math.sin(yaw) * r; look.z = pos.z - Math.cos(yaw) * r;
+    const d = clamp(yawL - yawY, 0.05, half * 0.62);
+    const yawN = yawY + d, r = Math.hypot(lx, lz);
+    look.x = pos.x - Math.sin(yawN) * r; look.z = pos.z - Math.cos(yawN) * r;
+    // never tilt down so far that your feet leave the frame
+    look.y = Math.max(look.y, pos.y + r * Math.tan(-0.2 * DEG));
   }
-  // as it gets close, widen a little so both of you stay in
-  const dF = FOCUS[k].distanceTo(pos);
-  if (k >= 1 && k <= 5) fov += 8 * smooth(12, 4, dF);
-  if (k === 7) fov += 6 * smooth(12, 5, FOCUS[7].distanceTo(pos)) * smooth(42, 43, v);
-  // a hand-held drift
-  pos.x += wobble(v * 0.5, 2) * 0.025; pos.y += wobble(v * 0.7, 5) * 0.02;
-  return { pos, look, fov };
+  // a hand-held drift (none round the flashes)
+  const q = calmAt(v);
+  pos.x += wobble(v * 0.5, 2) * 0.02 * q; pos.y += wobble(v * 0.7, 5) * 0.015 * q;
+  return { pos, look, fov, q };
 }
 
-// ground shaking: the mastodons, the brachiosaur and the Acrocanthosaurus' feet, the jumps
+// ground shaking: the mastodons, the brachiosaur and the hunter's feet, the bear's charge (never round a flash)
 function kickAt(v, s) {
   let k = 0;
-  for (const J of [...JUMPS, V_WHITE]) { const d = v - J; if (d > -0.05 && d < 0.5) k = Math.max(k, Math.exp(-Math.max(d, 0) / 0.12) * 0.6); }
-  if (s.k === 3) k = Math.max(k, 0.25 * Math.pow(Math.abs(Math.sin(v * 3.3)), 12) * smooth(17, 21, v));
-  if (s.k === 7) k = Math.max(k, 0.5 * Math.pow(Math.abs(Math.sin(v * 1.6)), 16) * (1 - smooth(41, 42, v)), 0.6 * Math.pow(Math.abs(Math.sin(v * 7.0)), 14) * smooth(42.3, 45.5, v));
-  if (s.k === 4) k = Math.max(k, 0.3 * Math.pow(Math.abs(Math.sin(v * 7.5)), 10) * (1 - smooth(23, 23.4, v)));
-  return k;
+  const S = stopStart(s.k);
+  if (s.k === 3) k = Math.max(k, 0.25 * Math.pow(Math.abs(Math.sin(v * 3.3)), 12) * smooth(S + 1, S + 4, v));
+  if (s.k === 7) k = Math.max(k, 0.5 * Math.pow(Math.abs(Math.sin(v * 1.6)), 16) * (1 - smooth(40.5, 41.5, v)), 0.6 * Math.pow(Math.abs(Math.sin(v * 6.0)), 14) * smooth(41.5, 45.0, v));
+  if (s.k === 4) k = Math.max(k, 0.3 * Math.pow(Math.abs(Math.sin(v * 7.5)), 10) * (1 - smooth(S + 2.0, S + 2.4, v)));
+  return k * calmAt(v);
 }
 
 const tmpV = new THREE.Vector3(), tmpS = new THREE.Vector3();
@@ -226,6 +220,8 @@ function update(v, cover = -1) {
   glows.begin(camera);
   smoke.begin();
   street.frame(k, v, s, glows);
+  // the cats' eyes shine in the moonlight
+  if (k === 5) for (const e of EYES) glows.add(e.x, e.y, e.z, 0.16, 1.4, 2.8, 0.9);
 
   // ---------- the camera ----------
   const cam = camAt(v, s);
@@ -233,9 +229,9 @@ function update(v, cover = -1) {
   camera.position.copy(cam.pos);
   camera.up.set(0, 1, 0);
   camera.lookAt(cam.look);
-  camera.rotateZ(wobble(v * 0.3, 7) * 0.4 * DEG + wobble(v * 29, 5) * kick * 0.01);
-  camera.rotateX(wobble(v * 43, 3) * kick * 0.012 + wobble(v * 0.55, 3) * 0.002);
-  camera.rotateY(wobble(v * 47, 4) * kick * 0.012 + wobble(v * 0.45, 4) * 0.002);
+  camera.rotateZ((wobble(v * 0.3, 7) * 0.4 * DEG + wobble(v * 29, 5) * kick * 0.01) * cam.q);
+  camera.rotateX((wobble(v * 43, 3) * kick * 0.012 + wobble(v * 0.55, 3) * 0.002) * cam.q);
+  camera.rotateY((wobble(v * 47, 4) * kick * 0.012 + wobble(v * 0.45, 4) * 0.002) * cam.q);
   camera.fov = cam.fov;
   if (params.has('dbg')) { const d = params.get('dbg').split(',').map(Number); camera.position.set(d[0], d[1], d[2]); camera.lookAt(d[3], d[4], d[5]); camera.fov = d[6] || 40; }
   camera.updateProjectionMatrix();
@@ -246,9 +242,10 @@ function update(v, cover = -1) {
     const head = FOCUS[k].clone().sub(tmpV.set(0, 1.6, 0));
     const yawTo = k === 0 ? 0 : clamp(Math.atan2(-head.x, -head.z), -0.6, 0.6);
     const pitchTo = k === 0 ? 0.05 : clamp(Math.atan2(head.y, Math.hypot(head.x, head.z)), -0.3, 0.6);
-    const flinch = smooth(stopEnd(k) - 0.6, stopEnd(k) - 0.1, v);
+    // (your head follows the danger only inside a stop: round every flash you are in the same pose)
+    const hm = k === 0 ? 0 : smooth(stopStart(k) + 0.4, stopStart(k) + 0.9, v) * (1 - smooth(stopEnd(k) - 0.9, stopEnd(k) - 0.45, v));
     you.pose({
-      lift: [0, 0], lean: -0.04 * flinch, head: [-pitchTo * 0.8, -yawTo * 0.9],
+      lift: [0, 0], lean: 0, head: [-pitchTo * 0.8 * hm, -yawTo * 0.9 * hm],
       reach: 0.62, reachDir: new THREE.Vector3(-0.3, -0.55 + 0.25 * s.tap, 0.78).normalize(), curl: 0.5,
       armsFwd: 0.85 * s.tap, armsOut: -0.55 * s.tap,
     });
@@ -289,30 +286,38 @@ function update(v, cover = -1) {
   if (k === 2) { WU.uDeep.value.setRGB(0.02, 0.06, 0.06); WU.uShallow.value.setRGB(0.1, 0.16, 0.12); WU.uWave.value = 0.4; }
   else { WU.uDeep.value.setRGB(0.0, 0.05, 0.12); WU.uShallow.value.setRGB(0.02, 0.32, 0.36); WU.uWave.value = 1.0; }
 
-  // ---------- the shark's splash ----------
+  // ---------- the shark: its wake grows as it speeds up; white water round its head once it breaks the surface ----------
   if (k === 6) {
-    const S = sharkAt(v);
-    const br = smooth(36.15, 36.4, v);
-    WU.uSplash.value.set(S.x, S.z + 3, 3.5 + 3 * br, br * (1 - 0.5 * smooth(37.2, 37.9, v)));
-    if (v < 35.6) {
-      // the fin's wake: a little white at its leading edge
-      const fx = S.x - Math.sin(S.yaw) * 6.0, fz = S.z - Math.cos(S.yaw) * 6.0;
-      for (let i = 0; i < 6; i++) smoke.puff(fx + Math.sin(i * 2.1) * 0.6, SEA_Y + 0.15, fz + Math.cos(i * 1.7) * 0.6, 0.35 + 0.1 * i, 0.35, 1.25, 0, (i * 0.17 + v * 0.3) % 1);
+    const S = sharkAt(v), fwx = Math.sin(S.yaw), fwz = Math.cos(S.yaw);
+    const sp = smooth(0, 4.5, S.t);
+    WU.uSplash.value.set(S.x - fwx * 1.5, S.z - fwz * 1.5, 2.0 + 3.5 * S.surf + 2 * S.lunge, Math.max(0.35 * sp, S.surf) * (1 - 0.3 * S.lunge));
+    // the wake: two white lines spreading back from the fin (and from the head once it's up), longer as it goes faster
+    const fx = S.x - fwx * 6.0, fz = S.z - fwz * 6.0;
+    const n = Math.round(10 + 26 * sp);
+    for (let i = 0; i < n; i++) {
+      const u = (i % 13) / 13, side = i % 2 ? 1 : -1, back = u * (4 + 10 * sp);
+      const ox = fx - fwx * back + (-fwz) * side * back * 0.35, oz = fz - fwz * back + fwx * side * back * 0.35;
+      smoke.puff(ox, SEA_Y + 0.1, oz, 0.25 + 0.35 * u, (0.25 + 0.4 * sp) * (1 - u), 1.3, 0, (i * 0.17 + v * 0.3) % 1);
     }
-    // spray: many small white droplets thrown up round the body where it leaves the water
+    // spray thrown up round the body where it leaves the water
+    const br = S.surf;
     if (br > 0) for (let i = 0; i < 90; i++) {
-      const a = i * 2.39, age = ((v - 36.2) * 1.3 + i * 0.0137) % 1.2;
-      const along = (i % 9) / 9 * 7, bx = S.x - Math.sin(S.yaw) * along, bz = S.z - Math.cos(S.yaw) * along;
-      const r = 0.8 + 3.0 * age;
-      smoke.puff(bx + Math.cos(a) * r, SEA_Y + 0.2 + 4.5 * age * (1.25 - age), bz + Math.sin(a) * r * 0.7, 0.12 + 0.3 * age, 0.85 * br * (1 - age / 1.2), 1.35, 0, (i * 0.13) % 1);
+      const a = i * 2.39, age = ((S.t - 2.2) * 1.3 + i * 0.0137) % 1.2;
+      const along = 1 + (i % 9) / 9 * 6 + 3 * S.lunge, bx = S.x - fwx * along, bz = S.z - fwz * along;
+      const r = 0.6 + 2.6 * age;
+      smoke.puff(bx + Math.cos(a) * r, SEA_Y + 0.2 + 3.5 * age * (1.25 - age) * (0.6 + 0.6 * S.lunge), bz + Math.sin(a) * r * 0.7, 0.1 + 0.28 * age, 0.85 * br * (1 - age / 1.2), 1.35, 0, (i * 0.13) % 1);
     }
   } else WU.uSplash.value.set(0, 0, 1, 0);
-  // dust under the charging animals' feet, snow kicked up on the ice
-  if (k === 4 || k === 7) {
-    const f = FOCUS[k];
-    for (let i = 0; i < 6; i++) {
-      const a = i * 1.7 + v * 2, age = (v * 0.9 + i / 6) % 1;
-      smoke.puff(f.x + Math.cos(a) * 1.5, heightAt(k, f.x, f.z) + 0.3 + age, f.z + Math.sin(a) * 1.5 + 1, 0.5 + 0.8 * age, 0.12 * (1 - age), k === 3 ? 1.4 : 1.05, 0, (i * 0.21) % 1);
+  // dust under the charging animals' feet
+  {
+    const S4 = stopStart(4);
+    const dusty = (k === 4 && (v < S4 + 2.4 || v > S4 + 3.6)) || (k === 7 && v > 41.2);
+    if (dusty) {
+      const f = FOCUS[k];
+      for (let i = 0; i < 6; i++) {
+        const a = i * 1.7 + v * 2, age = (v * 0.9 + i / 6) % 1;
+        smoke.puff(f.x + Math.cos(a) * 1.5, heightAt(k, f.x, f.z) + 0.3 + age, f.z + Math.sin(a) * 1.5 + 1, 0.5 + 0.8 * age, 0.12 * (1 - age), 1.05, 0, (i * 0.21) % 1);
+      }
     }
   }
   smoke.end();
@@ -322,7 +327,7 @@ function update(v, cover = -1) {
   smoke.mat.uniforms.uSun.value.copy(L.sun);
 
   // ---------- post ----------
-  bloom.strength = 0.22 + 0.25 * s.streak + (k === 1 || k === 5 ? 0.15 : 0);
+  bloom.strength = 0.22 + 0.25 * s.streak + (k === 5 ? 0.15 : 0);
   finish.uniforms.uTime.value = v;
   finish.uniforms.uKick.value = window.__cover ? 0 : kick;
   finish.uniforms.uStreak.value = window.__cover ? 0 : s.streak;
@@ -368,7 +373,7 @@ async function boot() {
   for (const t of [44, 40, 35, 30, 24, 19, 13, 8, 2, 0]) renderFrame(t);
   window.renderFrame = renderFrame;
   window.__comp = comp;
-  window.__dbg = { scene, camera, renderer, composer, sky, state, update, street, animals, you, FOCUS, comp: () => comp };
+  window.__dbg = { scene, camera, renderer, composer, sky, state, update, street, animals, you, FOCUS, finish, dev, comp: () => comp };
   window.DURATION = VIDEO_DURATION;
   window.__glInfo = (() => {
     const gl = renderer.getContext();

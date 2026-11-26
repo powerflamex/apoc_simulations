@@ -7,6 +7,7 @@ import { makeFleet } from './cars.js';
 import { makeOldFleet } from './oldcars.js';
 import { makeCrowd, SKIN, HAIR } from './crowd.js';
 import { HPY, JUMPS } from './timeline.js';
+import { GU } from './ground.js';
 import { rng, smooth, clamp, lerp } from './util.js';
 
 const R0 = rng(77);
@@ -135,8 +136,8 @@ export function makeStreet(scene, ctx) {
   const gbox = new THREE.CylinderGeometry(0.26, 0.15, 0.55, 6).translate(0, 3.9, 0);
   const gcap = new THREE.ConeGeometry(0.3, 0.3, 6).translate(0, 4.3, 0);
   const gm = ctx.plainMat(0x1c2a22, 0.6, { metalness: 0.3 });
-  const gpI = mkI(gpost, gm, gas.length, old), gcI = mkI(gcap, gm, gas.length, old);
-  const gbI = mkI(gbox, new THREE.MeshStandardMaterial({ color: 0xffd59a, emissive: 0xffa040, emissiveIntensity: 2.2, roughness: 0.3 }), gas.length, old);
+  const gpI = mkI(gpost, gm, gas.length, both), gcI = mkI(gcap, gm, gas.length, both);
+  const gbI = mkI(gbox, new THREE.MeshStandardMaterial({ color: 0xe8dcc0, emissive: 0xffa040, emissiveIntensity: 0.15, roughness: 0.2, metalness: 0.2 }), gas.length, both);
   gas.forEach(([x, z], i) => { m4.makeTranslation(x, 0, z); for (const im of [gpI, gbI, gcI]) im.setMatrixAt(i, m4); });
 
   // ---- the cars today: 4 lanes, driving BACKWARD (rewind). Lanes x>0 head north (-z) normally; x<0 south. ----
@@ -161,14 +162,24 @@ export function makeStreet(scene, ctx) {
   const PEOPLE = { now: [], old: [] };
   const rr = rng(9);
   // around you on the median (close to the camera, in frame), then the sidewalks
-  const near = [[-0.9, -2.2, 0.3], [0.8, -3.4, -0.4], [-0.5, -5.5, 0.1], [0.4, -8.2, 0.2], [-0.7, -11, 0], [0.6, -14.5, 0], [-1.6, 1.0, 0.6], [1.9, -1.0, -0.8]];
-  for (const [x, z, yaw] of near) PEOPLE.now.push({ x, z, yaw: Math.PI + yaw, walk: 0, sp: 0, phone: rr() < 0.6 });
+  // round you on the median: some standing, some walking backward right past you (the rewind, up close)
+  const near = [[-0.9, -2.2, 0.3, 0], [0.8, -3.4, -0.4, 0], [-0.75, -7.5, 0, 1.4], [0.75, -1.0, 0, 1.2], [-0.8, -12, 0, 1.5], [0.7, -9.5, 0, 1.3], [-1.6, 1.0, 0.6, 0], [1.9, -1.0, -0.8, 0], [0.65, -16, 0, 1.4], [0.7, -20, 0, 1.3]];
+  for (const [x, z, yaw, sp] of near) PEOPLE.now.push({ x, z, yaw: sp ? Math.PI : Math.PI + yaw, walk: rr() * 6, sp, phone: !sp && rr() < 0.6, near: true });
   for (let i = PEOPLE.now.length; i < 70; i++) {
     const sd = rr() < 0.5 ? -1 : 1;
     PEOPLE.now.push({ x: sd * (10 + rr() * 3.5), z: 20 - rr() * 200, yaw: rr() < 0.5 ? 0 : Math.PI, walk: rr() * 6, sp: 1.2 + rr() * 0.5, phone: rr() < 0.3 });
   }
+  const coatsOld = [0x1a1a1e, 0x2a2420, 0x3a3428, 0x22262e, 0x4a3a2a];
   const shirtsNow = [0xe04848, 0x2a6ad0, 0xf0c030, 0x20a070, 0xf2f2f2, 0x1a1a1a, 0xe07a30, 0x8a4ad0, 0x40b0e0];
-  PEOPLE.now.forEach((p, i) => crowdNow.color(i, shirtsNow[i % shirtsNow.length], [0x2a3a5a, 0x1a1a1a, 0x6a6a6a, 0xb8a888][i % 4], SKIN[i % SKIN.length], HAIR[i % HAIR.length]));
+  // each person's clothes go back in two steps (today -> the 1970s -> the 1910s), each at their own moment
+  const shirts70 = [0xb8762a, 0x6a4a2a, 0x2a7a7a, 0xc85a2a, 0x8a8a5a, 0x9a3a2a, 0xd8b048];
+  PEOPLE.now.forEach((p, i) => {
+    p.v1 = vOfYears(34 + rr() * 10); p.v2 = vOfYears(84 + rr() * 10);
+    p.c = [[shirtsNow[i % shirtsNow.length], [0x2a3a5a, 0x1a1a1a, 0x6a6a6a, 0xb8a888][i % 4]], [shirts70[i % shirts70.length], [0x5a4a3a, 0x3a3a5a, 0x7a6a4a][i % 3]], [coatsOld[i % coatsOld.length], 0x1e1c1a]];
+    p.era = -1;
+  });
+  const hatNowA = mkI(new THREE.SphereGeometry(0.12, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 1.1, 1.1).translate(0, 0.02, 0), ctx.plainMat(0x161412, 0.7), 70, today);
+  const hatNowB = mkI(new THREE.CylinderGeometry(0.17, 0.17, 0.015, 14), ctx.plainMat(0x161412, 0.7), 70, today);
   // 1912: a ring of people round you staring (they turn to you), others on the sidewalks
   const nearOld = [[-2.4, -3.2], [2.2, -4.6], [-3.4, -1.0], [3.6, -0.6], [-1.6, -7.5], [2.8, -9.5], [-4.2, -6.0], [4.6, -3.0], [-5.8, -11], [5.4, -12]];
   for (const [x, z] of nearOld) PEOPLE.old.push({ x, z, stare: 1, sp: 0, walk: 0 });
@@ -199,7 +210,11 @@ export function makeStreet(scene, ctx) {
     frame(k, v, s, glows, wagonX) {
       today.visible = k === 0; old.visible = k === 1; both.visible = k <= 1;
       if (k > 1) return;
-      FAC.uDusk.value = k === 1 ? 1 : 0;
+      FAC.uDusk.value = 0;
+      const eraG = k === 1 ? 1 : smooth(vOfYears(80), vOfYears(96), v);
+      GU.uEra.value = eraG;
+      const gasOn = k === 1 || v > vOfYears(88);
+      gpI.visible = gcI.visible = gbI.visible = gasOn;
       // buildings
       lots.forEach((L, i) => {
         let h = L.oldH, style = L.oldStyle, c = L.oc, cut = 0;
@@ -234,11 +249,18 @@ export function makeStreet(scene, ctx) {
         });
         fleet.commit(); f50.commit(); fT.commit();
         PEOPLE.now.forEach((p, i) => {
-          const z = p.sp ? wrapZ(p.z - Math.cos(p.yaw) * p.sp * v * 1.6) : p.z;
-          crowdNow.pose(i, { x: p.x, y: 0, z, yaw: p.yaw, walk: -(p.walk + v * 7 * (p.sp ? 1 : 0)), stride: p.sp ? 1 : 0, armR: p.phone ? 1 : 0, look: p.sp ? 0 : 0.15 });
+          const z = p.sp ? (p.near ? p.z - Math.cos(p.yaw) * p.sp * v * 1.6 : wrapZ(p.z - Math.cos(p.yaw) * p.sp * v * 1.6)) : p.z;
+          const era = v < p.v1 ? 0 : v < p.v2 ? 1 : 2;
+          if (era !== p.era) { p.era = era; crowdNow.color(i, p.c[era][0], p.c[era][1], SKIN[i % SKIN.length], HAIR[i % HAIR.length]); }
+          crowdNow.pose(i, { x: p.x, y: 0, z, yaw: p.yaw, walk: -(p.walk + v * 7 * (p.sp ? 1 : 0)), stride: p.sp ? 1 : 0, armR: p.phone && era === 0 ? 1 : 0, look: p.sp ? 0 : 0.15 });
+          m4.compose(vv.set(p.x, 1.73, z), q.setFromEuler(e.set(0, p.yaw, 0)), sc.set(1, 1, 1));
+          hatNowA.setMatrixAt(i, era === 2 ? m4 : zero); hatNowB.setMatrixAt(i, era === 2 ? m4 : zero);
+          // the change: a shimmer on each person as their clothes go back
+          for (const vc of [p.v1, p.v2]) { const d = v - vc; if (d > -0.03 && d < 0.2) glows.add(p.x, 1.2, z, 1.8 * (1 - d / 0.2), 2.4, 2.6, 3.0); }
         });
+        hatNowA.instanceMatrix.needsUpdate = true; hatNowB.instanceMatrix.needsUpdate = true;
         crowdNow.commit();
-        poleI.visible = armI.visible = headI.visible = true;
+        poleI.visible = armI.visible = headI.visible = v < vOfYears(88);
       } else {
         T1912.forEach(([x, dir, z0, sp], i) => {
           const z = z0 + dir * sp * (v - JUMPS[0]);
@@ -252,9 +274,9 @@ export function makeStreet(scene, ctx) {
           if (p.stare) {
             yaw = Math.atan2(x, z) + Math.PI;
             // the ones near the wagon's lane step back out of its way
-            const dodge = smooth(8.6, 9.4, v) * (Math.abs(x) < 3.5 && z > -12 ? 1 : 0);
+            const dodge = smooth(JUMPS[1] - 1.6, JUMPS[1] - 0.9, v) * (Math.abs(x) < 3.5 && z > -12 ? 1 : 0);
             x += Math.sign(x || 1) * 2.2 * dodge;
-            armR = i % 4 === 0 ? smooth(6.0, 6.6, v) * (1 - dodge) : 0;
+            armR = i % 4 === 0 ? smooth(JUMPS[0] + 0.4, JUMPS[0] + 1.0, v) * (1 - dodge) : 0;
             stride = dodge > 0 && dodge < 1 ? 1.4 : 0; walk = v * 9;
           }
           crowdOld.pose(i, { x, y: 0, z, yaw, walk, stride, armR, look: p.stare ? 0.1 : 0 });
@@ -271,7 +293,6 @@ export function makeStreet(scene, ctx) {
         });
         crowdOld.commit();
         for (const im of [...hats, ...brims, skirt]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
-        for (const [x, z] of gas) glows.add(x, 3.9, z, 1.6, 2.6, 1.6, 0.6);
       }
     },
   };

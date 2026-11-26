@@ -150,13 +150,25 @@ export function makeQuad(scene, S, { seed = 0, tint = 1 } = {}) {
         const LR = S.legR ? (front ? S.legR[0] : S.legR[1]) : null;
         const r0 = LR ? LR[0] : (front ? 0.3 : 0.42) * big, r1 = LR ? LR[1] : (front ? 0.2 : 0.24) * big, r2 = LR ? LR[2] : (front ? 0.16 : 0.17) * big;
         const kk = [
-          { p: lp(Hp, K, -0.2), w: r0, t: r0 * 1.05, b: r0 * 1.15 }, { p: lp(Hp, K, 0.35), w: r0 * 0.95, t: r0, b: r0 * 1.1 }, { p: K.clone(), w: r1, t: r1, b: r1 },
+          // (a paw held up: the arm starts inside the shoulder, so no tube end shows above it)
+          { p: lp(Hp, K, F.hang > 0.5 || (S.kind === 'bear' && front) ? 0.12 : -0.2), w: r0 * (F.hang > 0.5 || (S.kind === 'bear' && front) ? 0.8 : 1), t: r0 * 1.05, b: r0 * 1.15 }, { p: lp(Hp, K, 0.35), w: r0 * 0.95, t: r0, b: r0 * 1.1 }, { p: K.clone(), w: r1, t: r1, b: r1 },
           { p: lp(K, A, 0.5), w: r2, t: r2 * 1.05, b: r2 * 1.1 }, { p: A.clone(), w: r2 * 0.95, t: r2, b: r2 }, { p: B.clone(), w: r2 * 1.05, t: r2, b: r2 },
         ];
         for (const k of kk) k.up = fwd;
         legs[i].update(resample(kk, 3));
         // a round, padded foot with short blunt claws at the front
         const fy = B.y - 0.1;
+        if (F.hang > 0.5) {
+          // a paw hanging from the wrist (a bear standing up): the paw continues the forearm, claws curling down at its tip
+          const D = V3().subVectors(B, A).normalize();
+          const fh = V3(Math.sin(F.yaw), 0, Math.cos(F.yaw));
+          pads[i].update([{ p: B.clone().addScaledVector(D, -0.03), up: fh, w: r2 * 1.05, t: r2 * 1.0, b: r2 * 1.0 }, { p: B.clone().addScaledVector(D, 0.09), up: fh, w: r2 * 1.3, t: r2 * 0.95, b: r2 * 0.9 }, { p: B.clone().addScaledVector(D, 0.19), up: fh, w: r2 * 1.1, t: r2 * 0.7, b: r2 * 0.7 }]);
+          if (S.claws !== false) for (let t = -2; t <= 2; t++) {
+            const side = V3().crossVectors(D, UPW).normalize();
+            claws.add(B.clone().addScaledVector(D, 0.2).addScaledVector(side, t * r2 * 0.32), D.clone().addScaledVector(fh, 0.7), (S.clawL ?? 0.16) * big, (S.clawR ?? 0.06) * big);
+          }
+          continue;
+        }
         pads[i].update([{ p: V3().set(B.x, fy + 0.22, B.z), up: fd, w: r2 * 1.1, t: r2 * 1.1, b: r2 * 1.1 }, { p: V3().set(B.x, fy + 0.08, B.z), up: fd, w: r2 * 1.45, t: r2 * 1.5, b: r2 * 1.35 }, { p: V3().set(B.x, fy - 0.0, B.z), up: fd, w: r2 * 1.35, t: r2 * 1.4, b: r2 * 1.25 }]);
         if (S.claws !== false) for (let t = -1; t <= 1; t++) {
           const a = t * 0.45, d = V3().set(Math.sin(F.yaw + a), 0, Math.cos(F.yaw + a));

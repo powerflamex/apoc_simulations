@@ -25,7 +25,7 @@ import { smooth, clamp, lerp } from './util.js';
 export const STORY_START = 0;
 export const HPY = 8766;                       // hours in a year
 // the jumps (video time of the white peak) and the stops between them
-export const JUMPS = [4.9, 10.4, 15.9, 21.4, 26.9, 32.4, 37.9];
+export const JUMPS = [2.5, 8.0, 13.5, 19.0, 24.5, 31.2, 37.9];   // the cats and the shark get 6.7 s each
 export const STOPS = ['today', 'street1912', 'forest', 'ice', 'bear', 'cats', 'shore', 'dinos'];
 export const V_WHITE = 46.0;                   // the last jump: back to today (full white)
 export const V_FLASH = V_WHITE - 0.06;
@@ -47,11 +47,11 @@ export const stopEnd = (k) => (k < JUMPS.length ? JUMPS[k] : V_WHITE);
 // ---- the counter: log10(hours back) ----
 // today: a steady rewind from 10^5 (frame 0) toward 10^6; at each stop a slow creep (the low digits still spin), the
 // bear stop creeping further (past 300,000 years), the last one landing on exactly 1 trillion and holding.
-const CREEP = [null, [5.985, 6.03], [6.98, 7.03], [8.09, 8.22], [8.98, 9.75], [9.98, 10.03], [10.98, 11.03], [11.985, 12.0]];
+const CREEP = [null, [5.985, 6.03], [6.98, 7.03], [8.09, 8.22], [8.98, 9.9], [9.98, 10.03], [10.98, 11.03], [11.985, 12.0]];
 const L_TODAY = (v) => 5.0 + v * (0.94 / (JUMPS[0] - RISE));
 function creepL(k, v) {
   const [a, b] = CREEP[k];
-  const t0 = stopStart(k) + LAND, t1 = k === 7 ? 42.0 : stopEnd(k) - RISE;
+  const t0 = stopStart(k) + LAND, t1 = k === 7 ? 40.6 : stopEnd(k) - RISE;
   return lerp(a, b, k === 7 ? smooth(t0, t1, v) : clamp((v - t0) / (t1 - t0)));
 }
 export function logHours(v) {
@@ -93,33 +93,36 @@ export function deviceAt(v) {
 // your free hand going to the device before each jump (0..1)
 export function tapAt(v) {
   let s = 0;
-  for (const J of [...JUMPS, V_WHITE]) s = Math.max(s, smooth(J - 0.75, J - 0.35, v) * (1 - smooth(J + 0.15, J + 0.6, v)));
+  // (held through the white and 0.5 s after it, so you are in the same pose on both sides of every flash)
+  for (const J of [...JUMPS, V_WHITE]) s = Math.max(s, smooth(J - 0.75, J - 0.35, v) * (1 - smooth(J + 0.5, J + 0.9, v)));
+  // today: your hand is on the device the whole time the street rewinds (also under the loop's white)
+  if (v < JUMPS[0] + 0.9) s = Math.max(s, 1 - smooth(JUMPS[0] + 0.5, JUMPS[0] + 0.9, v));
   return s;
 }
 
 // ---- text: the gold popups (a phrase, no number) and the captions (never at the same time; none while the title is up) ----
-export const POP = 1.7;
+export const POP = 1.5;
+// shown at the start of each stop, while the danger is still far off (they sit just under the counter, above it)
 export const POPUPS = [
-  [5.25, 'HORSES INSTEAD OF CARS'],
-  [10.75, 'THE CITY IS GONE'],
-  [16.25, 'THE ICE AGE'],
-  [21.75, 'A GIANT BEAR'],
-  [27.25, 'SABERTOOTH CATS'],
-  [36.0, 'A MEGALODON'],
-  [38.25, 'DINOSAURS'],
+  [2.72, 'HORSES INSTEAD OF CARS'],
+  [8.22, 'THE CITY IS GONE'],
+  [13.72, 'THE ICE AGE'],
+  [19.22, 'A GIANT BEAR'],
+  [24.72, 'SABERTOOTH CATS'],
+  [31.42, 'A MEGALODON'],
+  [38.12, 'DINOSAURS'],
 ];
+// captions start at least 0.25 s after a popup has gone
 export const CAPTIONS = [
-  [2.85, 4.6, 'Everything around you runs backward.'],
-  [7.1, 10.05, 'Nobody here has ever seen a phone.'],
-  [12.6, 14.0, 'Something big is in the trees.'],
-  [14.15, 15.6, 'A 1,400-pound bull moose.'],
-  [18.1, 21.05, 'Mastodons, 10 feet tall, walk right at you.'],
-  [23.45, 25.15, 'It stands 11 feet tall.'],
-  [25.35, 26.65, "Your species doesn't exist yet."],
-  [29.1, 32.05, 'Their fangs are 7 inches long.'],
-  [32.75, 35.75, 'A 50-foot shark is circling you.'],
-  [40.1, 42.3, 'Its head is 50 feet above you.'],
-  [42.5, 45.2, 'A 38-foot hunter runs right at you.'],
+  [4.5, 7.6, 'Nobody here has ever seen a phone.'],
+  [10.0, 13.15, 'A 1,400-pound bull moose.'],
+  [15.5, 18.65, 'Mastodons, 10 feet tall, walk right at you.'],
+  [21.45, 22.55, 'It stands 11 feet tall.'],
+  [22.8, 24.2, "Your species doesn't exist yet."],
+  [26.5, 30.6, 'Their fangs are 7 inches long.'],
+  [33.2, 35.9, 'A 50-foot shark is coming at you.'],
+  [39.9, 41.6, 'Its head is 50 feet above you.'],
+  [41.9, 45.2, 'A 38-foot hunter runs right at you.'],
 ];
 export function popupAt(v) {
   for (const [a, say] of POPUPS) if (v >= a && v < a + POP) return { say, dt: v - a };
@@ -158,7 +161,7 @@ export function state(v) {
   s.years = Math.pow(10, s.L) / HPY;
   s.streak = streakAt(v);
   s.white = smooth(V_WHITE - 0.3, V_WHITE, v);
-  s.title = 1 - smooth(2.45, 2.8, v);
+  s.title = 1 - smooth(2.0, 2.35, v);
   s.device = deviceAt(v);
   s.tap = tapAt(v);
   return s;

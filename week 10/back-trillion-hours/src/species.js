@@ -78,7 +78,7 @@ export const MOOSE = {
   hind: { L1: 0.58, L2: 0.6, L3: 0.6, at: [-0.05, -0.12, 0.2], ang: 1.45 },
   fore: { L1: 0.55, L2: 0.55, L3: 0.55, at: [1.45, -0.25, 0.22], ang: 1.5 },
   legR: [[0.14, 0.08, 0.055], [0.17, 0.085, 0.06]],
-  colors: { back: 0x241a12, flank: 0x3a2a1c, belly: 0x2a2018, stripe: 0x120c08, foot: 0x9a8a70 },
+  colors: { back: 0x3e2c1e, flank: 0x5e4430, belly: 0x4a3626, stripe: 0x120c08, foot: 0xa89a80 },
   fur: { shag: 0.3, bump: 1.5 }, claws: false, footY: 0.06, liftH: 0.35, eyeR: 0.03, eyeAt: [0.22, 0.06, 0.11], bands: 0, kind: 'moose',
   makeExtra(scene) {
     const bone = solid(0x8a7254, 0.8), dark = solid(0x1e1610, 0.95);
@@ -166,17 +166,21 @@ export const BEAR = {
   SKULL: [[-0.1, 0, 0.2, 0.2, 0.18], [0.1, 0.0, 0.22, 0.2, 0.2], [0.25, -0.03, 0.15, 0.14, 0.12], [0.38, -0.06, 0.1, 0.1, 0.08], [0.44, -0.08, 0.07, 0.06, 0.06]],
   headTilt: -0.2, H: 1.35,
   hind: { L1: 0.6, L2: 0.58, L3: 0.3, at: [0, -0.15, 0.28], ang: 0.5 },
-  fore: { L1: 0.62, L2: 0.62, L3: 0.25, at: [1.55, -0.3, 0.3], ang: 0.9 },
-  legR: [[0.23, 0.16, 0.13], [0.27, 0.16, 0.13]],
+  fore: { L1: 0.62, L2: 0.62, L3: 0.25, at: [1.55, -0.3, 0.26], ang: 0.9 },
+  legR: [[0.19, 0.13, 0.11], [0.26, 0.15, 0.12]],
   colors: { back: 0x4a2e18, flank: 0x8a5a30, belly: 0x5a3a20, stripe: 0x1a1008, foot: 0x2a1c10 },
   fur: { shag: 0.55, bump: 2.2 }, claws: true, clawL: 0.13, clawR: 0.03, clawColor: 0x1a1612, footY: 0.06, liftH: 0.3, eyeR: 0.03, eyeAt: [0.22, 0.08, 0.12], bands: 0, kind: 'bear',
   makeExtra(scene) {
     const jaw = makeJaw(scene, { len: 0.36, w: 0.13, hinge: [0.02, -0.1], teeth: 8, toothL: 0.045, color: 0x4a3020 });
     const ears = [0, 1].map(() => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8).scale(1, 1, 0.5), solid(0x2e1c10, 0.95)); scene.add(e); return e; });
     const nose = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), solid(0x0c0a08, 0.4)); scene.add(nose);
+    // round shoulders (the tops of the arms, seen when it stands up)
+    const fur = new THREE.MeshStandardMaterial({ color: 0x6a4222, roughness: 0.95 });
+    const shoulders = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), fur); m.castShadow = true; scene.add(m); return m; });
     return {
-      meshes: [...jaw.meshes, ...ears, nose],
-      pose({ H, P }) {
+      meshes: [...jaw.meshes, ...ears, nose, ...shoulders],
+      pose({ H, P, root }) {
+        for (const [i, sd] of [[0, -1], [1, 1]]) shoulders[i].position.copy(root.at(BEAR.fore.at[0] - 0.05, BEAR.fore.at[1] + 0.02, sd * BEAR.fore.at[2] * 0.95));
         jaw.pose(H, P.jaw || 0);
         for (const [i, sd] of [[0, -1], [1, 1]]) { ears[i].position.copy(H.at(-0.05, 0.18, sd * 0.16)); ears[i].quaternion.copy(H.q); }
         nose.position.copy(H.at(0.45, -0.06, 0));
@@ -195,7 +199,7 @@ export const CAT = {
   hind: { L1: 0.4, L2: 0.4, L3: 0.25, at: [0, -0.1, 0.15], ang: 1.2 },
   fore: { L1: 0.38, L2: 0.36, L3: 0.12, at: [1.15, -0.2, 0.16], ang: 1.3 },
   legR: [[0.13, 0.09, 0.075], [0.15, 0.08, 0.065]],
-  colors: { back: 0x7a5a30, flank: 0xa8844c, belly: 0xd8c8a0, stripe: 0x4a3418, foot: 0x6a5030 },
+  colors: { back: 0x9a7040, flank: 0xc89a58, belly: 0xe8d8b0, stripe: 0x4a3418, foot: 0x7a5a38 },
   fur: { shag: 0.12, bump: 1.0 }, claws: true, clawL: 0.05, clawR: 0.015, clawColor: 0x2a2620, footY: 0.05, liftH: 0.22, eyeR: 0.026, eyeAt: [0.13, 0.05, 0.075],
   eyeGlow: 0xb8ff70, eyeGlowK: 6, bands: 0, kind: 'cat',
   makeExtra(scene) {

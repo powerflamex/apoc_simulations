@@ -55,7 +55,7 @@ const NOISE = /* glsl */ `
   vec3 srgb(vec3 c){ return pow(c, vec3(2.2)); }
 `;
 
-export const GU = { uStop: { value: 0 }, uTime: { value: 0 }, uWet: { value: 0 } };
+export const GU = { uStop: { value: 0 }, uTime: { value: 0 }, uWet: { value: 0 }, uEra: { value: 0 } };
 
 export function makeGround(scene) {
   const geo = new THREE.PlaneGeometry(2600, 2600, 520, 520).rotateX(-Math.PI / 2);
@@ -81,7 +81,7 @@ export function makeGround(scene) {
           vec3 objectTangent = vec3(tangent.xyz);
         #endif`)
       .replace('#include <begin_vertex>', `vec3 transformed = vec3(position.x, groundH(uStop, position.x, position.z), position.z); vW = transformed;`);
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\nuniform int uStop; uniform float uTime; varying vec3 vW;\n${NOISE}`)
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\nuniform int uStop; uniform float uTime; uniform float uEra; varying vec3 vW;\n${NOISE}`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float gRough = 0.95;
         {
@@ -99,8 +99,10 @@ export function makeGround(scene) {
             if (ax > 9.0) { c = srgb(vec3(0.66, 0.64, 0.6)) * (0.88 + 0.18 * n2); float j = min(abs(fract(q.y / 2.0) - 0.5), abs(fract(q.x / 2.0) - 0.5)); c *= mix(0.8, 1.0, smoothstep(0.0, 0.02, j)); }
             if (ax > 9.0 && ax < 9.25) c = srgb(vec3(0.75, 0.74, 0.7));
             // a zebra crossing just behind you
-            if (ax < 9.0 && q.y > 3.0 && q.y < 7.0 && fract(q.x / 1.2) < 0.5) c = srgb(vec3(0.86));
+            if (ax < 9.0 && q.y > 3.0 && q.y < 7.0 && fract(q.x / 1.2) < 0.5) c = mix(srgb(vec3(0.86)), c, uEra);
             rough = 0.9;
+            // the rewind: the paint and the asphalt go, the old setts come back (uEra 0 today .. 1 the 1910s)
+            if (ax < 9.0 && uEra > 0.0) { float cb = cell(vec2(q.x * 2.4, q.y * 1.6)); vec3 old = srgb(mix(vec3(0.42, 0.39, 0.35), vec3(0.55, 0.5, 0.44), gh(floor(vec2(q.x * 2.4, q.y * 1.6))))) * (0.6 + 0.45 * smoothstep(0.08, 0.32, cb)); float gq = gf(q * 0.2) * 0.6; c = mix(c, old, smoothstep(gq, gq + 0.4, uEra)); }
           } else if (uStop == 1) {
             // 1912: cobbles (setts) in the road, tram rails down the middle, brick sidewalks, dirt in the gutters
             float cb = cell(vec2(q.x * 2.4, q.y * 1.6));
