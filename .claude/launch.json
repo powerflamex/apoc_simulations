@@ -316,6 +316,17 @@
       "env": {
         "PORT": "5361"
       }
+    },
+    {
+      "name": "back-trillion-hours",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "week 10/back-trillion-hours/server.mjs"
+      ],
+      "port": 5371,
+      "env": {
+        "PORT": "5371"
+      }
     }
   ]
 }

@@ -3303,6 +3303,69 @@ How long would you last on the bus roof? 👇
 
 Cover: `week 10/rain-trillion/out/rain-trillion_v4_cover.png` (`node render.mjs --cover 42`: Earth from space swollen into a ball of water, the dashed ring of its old size inside it, rain streaming in; "WHAT IF IT RAINED / 1 trillion / times harder?")
 
+## Next Short. What if you went back in time 1 trillion hours? — `week 10/back-trillion-hours/out/back-trillion-hours_v4_1080x1920_60fps_tiktok.mp4`
+
+46.8 s, loops. You (orange hoodie) stand on one spot the whole time with a glowing time device on your wrist; the camera
+is behind your left shoulder at eye level, you on the right of the frame, each stop's danger coming down the middle.
+Counter: HOURS BACK, racing from 100,000 to 1,000,000,000,000 (10x every 5.5 s); the one line under it says how long ago
+that is (1 year = 8,766 hours). Every jump: the device charges, a white streak out of it with the counter racing, a new
+place. Captions and popups end above 1250 px. In order: 0:00 a busy avenue today, people around you, already rewinding:
+cars drive backward and turn into 1950s cars, then 1910s cars, people walk backward, towers come down floor by floor to
+brick blocks; a scream; "Everything around you runs backward." 0:05 1912 at dusk, gas lamps and lit windows, people in
+hats and long dresses staring at you, carts and a Model T; "HORSES INSTEAD OF CARS", "Nobody here has ever seen a
+phone."; a runaway two-horse wagon gallops down the tram tracks at you. 0:10.4 jump: forest down to a lake, misty
+morning; "THE CITY IS GONE", "Something big is in the trees.", a bull moose comes out of the trees and charges ("A
+1,400-pound bull moose."). 0:16 the ice age (counter at 14,000-19,000 years): grey sky, old snow on brown tundra; "THE ICE
+AGE", "Mastodons, 10 feet tall, walk right at you."; the herd walks through, the lead one trumpets and comes at you.
+0:21.4 golden grassland at sunset: "A GIANT BEAR": a short-faced bear charges, stops, rears up ("It stands 11 feet
+tall."), roars; "Your species doesn't exist yet." (once the line is past 400,000 years); it drops onto you. 0:27 blue
+dusk under a big moon: "SABERTOOTH CATS", "Their fangs are 7 inches long."; three stalk in, the one on your left springs.
+0:32.4 dark rocks over a turquoise sea: a big fin crosses ("A 50-foot shark is circling you."), turns in, and at 0:36
+"A MEGALODON" breaks the surface right off the rocks, jaws open, rising at you. 0:38 the Early Cretaceous: ferns, red
+soil, tall conifers; "DINOSAURS": a long-necked giant walks across in front of you, its neck towering ("Its head is 50
+feet above you."); the counter lands on exactly 1 trillion (114 million years); an Acrocanthosaurus roars under its belly
+and runs at the lens ("A 38-foot hunter runs right at you."); its jaws reach your wrist as you hit the device: 0:46 white
+for about half a second, which clears onto frame 0 (the device brings you back to today). Sound: each stop's own air
+(traffic swishing backward with tape-rewind chirps, a 1912 crowd, leaves and birds, a cold wind, grass and insects,
+crickets, surf, a Cretaceous insect hum), hooves and wheels and a whinny, the moose's bellow, mastodon footsteps and
+trumpets, bear roars, cat growls and a hiss, the shark's splash, the giant's footsteps and call, the hunter's roars and
+running feet; every jump a rising whine, a whoosh and a boom; a minor drone that steps down at every jump; -9.5 to -16 dB
+every half second, no gaps.
+
+Facts (checked Nov 26, 2026; numbers also at the top of `src/timeline.js`): 1,000,000 hours = 114 years (1912: horse
+wagons and early cars shared city streets; gas street lamps were still common). 10 million hours = 1,141 years: an
+eastern bull moose is about 6 ft at the shoulder and up to ~1,400 lb (moose lived in New York and New England until
+colonial times). American mastodons: big males 9-10 ft at the shoulder; the last reliable dates are ~12,700-13,000 years
+ago, so this stop lands at 14,000 years (the ice age ended 11,700 years ago). Giant short-faced bear (Arctodus simus):
+North America from ~1.3 million to ~12,800 years ago, 8-11 ft standing. The oldest Homo sapiens (Jebel Irhoud) are
+315,000 +- 34,000 years old, so "Your species doesn't exist yet" only shows once the line is past 400,000. Smilodon
+fatalis (1.6 million to 10,000 years ago): fangs ~7 in (18 cm). Megalodon: ~23 to 3.6 million years ago, teeth common on
+the US east coast (Calvert Cliffs); big ones 47-65 ft. Acrocanthosaurus: Early Cretaceous North America (incl. a 2024 find
+in Maryland), up to ~38 ft. Sauroposeidon (113-110 million years ago): head up to ~54-59 ft. T. rex lived 69-66 million
+years ago, ~45 million years after this stop. Honest notes: the animals' looks are simplified; the long-necked giant is
+drawn as a big brachiosaur (Sauroposeidon was one); the shark lunges much farther out of the water than a real one would;
+the city isn't named.
+
+**YouTube title (97 chars, emoji counted as 2)**
+What if you went back in time 1 trillion hours? Mastodons, a megalodon, then dinosaurs ⏳ #whatif
+
+**YouTube description**
+Every jump takes you 10 times further back. At every stop, something comes at you.
+1 million hours (114 years): horses instead of cars.
+10 million hours (1,141 years): no city, just forest. A 1,400-pound moose.
+120 million hours (14,000 years): the ice age. Mastodons, 10 feet tall.
+1 billion hours (114,000 years): a short-faced bear, 11 feet tall standing up.
+Past 400,000 years: your species doesn't exist yet.
+10 billion hours (1.14 million years): sabertooth cats with 7-inch fangs.
+100 billion hours (11.4 million years): a megalodon.
+1 trillion hours (114 million years): dinosaurs. T. rex won't exist for another 45 million years.
+
+Which stop would you survive longest at? 👇
+
+#whatif #timetravel #dinosaurs #science #simulation
+
+Cover: `week 10/back-trillion-hours/out/back-trillion-hours_v4_cover.png` (`node render.mjs --cover 37.55`: the megalodon bursting out of the turquoise sea right off the rocks, jaws wide open, you on the rock with your device glowing; "WHAT IF YOU WENT BACK / 1 trillion / hours in time?")
+
 ## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
 
 16:9, 6:33, narrated by the owner, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
