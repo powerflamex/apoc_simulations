@@ -1089,3 +1089,16 @@ planet picker 549K. Channel: 12.4M views in 28 days, 32,051 subscribers, 869,352
 - Ad revenue: the Revenue tab shows $0 through Nov 25 (Shorts: $0, RPM $0, 13.7K engaged views counted). Ads were first seen as on in the
   Nov 25 afternoon read; the first money usually shows a day or two late.
 - Gravity off: 34K at 48 h and still no retention curve.
+
+## Nov 26: two prompts given (queue was empty after planet swap, Nov 27)
+- **Jump 1 trillion times higher** (`week 10/jump-trillion`). Why: the two earlier "doubling" topics redone as trillion Shorts are both hits
+  (speed doubles -> fast trillion 572K, gravity doubles -> heavy trillion 356K), and it is a "you travel somewhere new at each step"
+  trillion Short, the kind with the bigger first days. Risk: jump doubles (Oct 20) held only 57% at 0:30 with its long sky stretch, so the
+  prompt keeps coming back to the street (landings, the push-off blast) instead of staying in the sky. YouTube search Nov 26: only small
+  clones of "jump 2x higher every time" at 1-3K views, no trillion version. Key numbers for the builder to verify: push-off speed
+  6.7 mph x sqrt(N); never come down from ~14 million x (escape speed); 1 trillion x = ~1% of light speed and a push-off of ~75 kilotons.
+- **Back in time 1 trillion hours** (`week 10/back-trillion-hours`). Why: trillion years (forward in time) is the second biggest Short
+  (2.2M) and this is its mirror, with a new eye-level place and a new animal coming at you at every step (114 years, 1,141, 11,400,
+  114,000, 1.14 million, 11.4 million, 114 million years ago = dinosaurs). Risks: dinosaurs alone did not pull (dinosaurs return 60K, dino
+  asteroid 94K) and it is the heaviest build of the two. NOT checked on YouTube: the search page stopped loading in the Browser pane.
+- Planet swap's low-text prompt given again (caption line from 1495 px to above 1250 px).
