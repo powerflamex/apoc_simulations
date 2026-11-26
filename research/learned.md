@@ -1102,3 +1102,21 @@ planet picker 549K. Channel: 12.4M views in 28 days, 32,051 subscribers, 869,352
   114,000, 1.14 million, 11.4 million, 114 million years ago = dinosaurs). Risks: dinosaurs alone did not pull (dinosaurs return 60K, dino
   asteroid 94K) and it is the heaviest build of the two. NOT checked on YouTube: the search page stopped loading in the Browser pane.
 - Planet swap's low-text prompt given again (caption line from 1495 px to above 1250 px).
+
+## Nov 26: first check of jump trillion and back trillion hours (frames from the rendered upload copies; fix prompts given)
+- **Jump trillion (46.4 s), the owner: "makes no sense".** After the YOU NEVER COME DOWN popup (0:24) the video still cuts back to the
+  street for four more push-off blasts (0:26.5, 0:30.5, 0:34.5-0:39, 0:42-0:44.5), each shown right after a shot of you already in
+  space, so the blast reads as coming after the flight. The cause is my prompt ("cut back and forth between the street you left and
+  what you pass"), not the build. Also: on frame 0 you are ~110 px tall of 1,920 and behind the bus and the crowd's backs by 0:00.6;
+  no street shot shows you landing or pushing off (dust only, far away); ~13 s of near-black space frames with you standing stiff;
+  the line under the counter reads YOU GO UP: FOREVER for the last 22 s; the last three blasts are the same far aerial shot.
+  Fix asked for: six jumps that land (10x to 1,000,000x), each in the order crouch, push-off, top, landing with you in every shot; then
+  one last jump: you stay crouched while the counter races to 1 trillion, the 75-kiloton push-off, the flight, YOU NEVER COME DOWN, white.
+- **Back trillion hours (46.8 s), the owner's points, all confirmed in the frames:** the watch shifts 60 / 146 / 100 / 134 / 124 / 117 /
+  284 px across the seven flashes (camera and pose differ on each side); the bear holds one frozen standing pose 0:24.0-0:26.3 with its
+  forelegs as fat tubes held in front of the chest and one hind leg lifted; the megalodon's fin crosses at ~11 mph for 3 s, whips through
+  a turn and dive in 0.9 s, and the breach is on screen ~1 s, half under the A MEGALODON popup; the cats walk in from the left edge for
+  4.5 s and the leap lasts 0.3 s. Mine: 0:00-0:04.9 reads as a normal street (the rewind is only the towers changing); the 1912 stop is
+  dusk with black silhouettes and no clear horse until 0:10; the moose and the 38 ft hunter are small and far for most of their stops;
+  the gold popups sit on top of the animal; you are cut off at the waist 0:38-0:41. The mastodon stop (big, close, walking at you for the
+  whole 5.5 s) is the model for the others. Sound even on both (-10 to -16 dB, no gaps); both loops and text heights fine.
