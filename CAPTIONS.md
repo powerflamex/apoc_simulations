@@ -3366,6 +3366,75 @@ Which stop would you survive longest at? 👇
 
 Cover: `week 10/back-trillion-hours/out/back-trillion-hours_v4_cover.png` (`node render.mjs --cover 37.55`: the megalodon bursting out of the turquoise sea right off the rocks, jaws wide open, you on the rock with your device glowing; "WHAT IF YOU WENT BACK / 1 trillion / hours in time?")
 
+## Next Short. What if you jumped 1 trillion times higher? — `week 10/jump-trillion/out/jump-trillion_v4_1080x1920_60fps_tiktok.mp4`
+
+46.4 s, loops. Counter: TIMES HIGHER (1x = an ordinary 1.5 ft jump), racing 10x every 3.8 s from 10x on frame 0 to
+1 trillion x at 0:41.8; the one line under it is how high a jump at that strength takes you ("YOU GO UP: 150 FT" ...
+"306 MILES", then "FOREVER"). A downtown avenue with a red bus, a 12-storey building beside you and a 1,250 ft tower.
+In order:
+0:00 you're 15 ft up over the bus, people right in front of the camera pointing up and screaming; title, 10x. 0:01 you
+land behind the bus (a small crack), crouch. 0:03.8 100x: the camera rides up beside you past the 12-storey building to
+above its roof, people on the roof ("Higher than a 12-storey roof."); 0:07.2 you land, the street cracks, people jump back.
+0:07.6 1,000x: high beside you, the tallest tower's top and mast far below you ("Over the tallest tower in the city."),
+0:11.0 the landing leaves a pit and flips the parked cars. 0:11.4 10,000x ("You push off at almost the speed of sound."):
+up through the clouds (a hole torn in them), above the cloud deck, 0:14.8 landing: bigger crater, cars thrown.
+0:15.2 100,000x: the sonic boom, glass bursting out of the facades down the avenue (popup EVERY WINDOW BLOWS OUT); 0:16.5
+at 46 km: black sky over the curved Earth ("Higher than anyone has ever skydived."); 0:18.6 the landing overturns the bus.
+0:19.0 1,000,000x: a white column shoots up; 0:19.3 you pass the Space Station (popup); 0:21.3 back on the street you come
+down as a fireball across the sky, 0:22.4 the impact. 0:23.4 14 million x: the push-off blasts the street, you leave for
+good: the Earth falls away behind you (popup YOU NEVER COME DOWN). From here every step is one more push-off from the same
+crater, seen from further down the avenue, cut with where it takes you: 0:26.6 100 million x, cars flung at the camera
+("Your push-off: 7.5 tons of TNT."), 0:28.4 the Moon goes past (popup); 0:30.4 1 billion x, a fireball between the
+towers ("75 tons of TNT."), 0:32 the Sun and the planets' orbits falling away (popup YOU LEAVE THE SOLAR SYSTEM); 0:34.2
+10 billion x, a fireball and smoke column over the avenue ("750 tons of TNT. The block is gone."), 0:38 100 billion x,
+a mushroom fireball ("Half a Hiroshima bomb."), 0:39.5 the Milky Way below you (popup YOU LEAVE THE GALAXY); 0:41.8
+1 trillion x: a fireball swelling over the whole city ("You leave at 1% of light speed." "Like 5 Hiroshima bombs at
+once."), white from 0:45.0, the loop at 0:45.5 clears onto frame 0.
+Sound: a scream and a gasp at 0:00, city hum and voices, a riser into each push-off, thumps, cracks and crunches at the
+landings (bigger each time), the window rattle and a muffled punch through the clouds, a double sonic boom and glass, the
+fireball's roar coming down, deep blasts (longer and lower each step) from 14 million x on, whooshes past the Station and
+the Moon, a low hum in space (never silent), the last roar into the white. Every half second sits between -9 and -16 dB.
+
+The numbers (also at the top of `src/timeline.js`): push-off speed = 6.7 mph x the square root of the counter; height
+= 1.5 ft x the counter until gravity weakening matters (h = v0^2 R/(2gR - v0^2)): 100x 150 ft (the roof is ~134 ft),
+1,000x 1,500 ft (the tower is 1,250 ft), 10,000x 2.8 miles (push-off 670 mph = Mach 0.87), 100,000x 28.6 miles (record
+skydive: 135,890 ft = 25.7 miles, Alan Eustace 2014; push-off 2,120 mph = Mach 2.8, a sonic boom), 1,000,000x 306 miles
+(the brief said 284; gravity weakens with height; the Station flies at ~260 miles; you land at 6,700 mph = Mach 9, and the
+air squeezed in front of you heats to thousands of degrees: the fireball). Escape speed (25,020 mph) at 13.9 million x.
+Energy = 70 kg x g x 1.5 ft x the counter = 314 J x N: 100 million x 7.5 tons of TNT, 1 billion x 75 tons, 10 billion
+x 750 tons, 100 billion x 7.5 kilotons, 1 trillion x 75 kilotons = 5 Hiroshimas (15 kt). 100 million x: 30 km/s, past the
+Moon in ~4 hours; 1 billion x: 95 km/s, more than the Sun's escape speed from here (42 km/s, 72 the wrong way); 100
+billion x: 947 km/s, more than the Milky Way's escape speed here (~550 km/s, ~780 the wrong way); 1 trillion x: 2,995
+km/s = 1.0% of light speed.
+The rule for air (in the description): air never slows you down (the heights are counted with no air drag; your body is
+unbreakable), but you still smash through it: the booms, the glass and the fireball are the air you hit. Real air would
+cut the big jumps short (10,000x would reach ~0.6 miles).
+Honest notes: every jump is shown sped up (1,500 ft is 19 s in the air, 1,000,000x about 20 minutes); you can't push off
+again once you've left, so from 100 million x each step is a new jump from the same crater (a ladder, like the brief); the
+street "takes a kick as big as the energy you leave with" (the push-off energy really goes into you); the fireball at
+100,000x in the brief was moved to 1,000,000x (at Mach 2.8 the air only reaches ~400 C, no glow); the fireball comes down
+at a slant so the street camera can see it; the cloud hole, the Station's pass (really a few thousandths of a second) and
+the orbit rings and galaxy are drawn for readability.
+
+**YouTube title (74 chars, emoji counted as 2)**
+What if you jumped 1 trillion times higher? You never come down 🚀 #whatif
+
+**YouTube description**
+1x = an ordinary 1.5 ft jump.
+100x: 150 feet, over a 12-storey roof.
+10,000x: 2.8 miles, through the clouds. You push off at 670 mph.
+100,000x: 28 miles up, higher than anyone has ever skydived. Your push-off is a sonic boom that blows out every window.
+14,000,000x: you leave at 25,000 mph and never come down.
+1,000,000,000,000x: 1% of light speed. Your push-off hits the city like 5 Hiroshima bombs.
+
+The rule: air never slows you down (we count the heights with no air drag), but you still smash through it.
+
+How high would you dare to jump? 👇
+
+#whatif #science #physics #space #simulation
+
+Cover: `week 10/jump-trillion/out/jump-trillion_v4_cover.png` (`node render.mjs --cover 43.2`: the 1-trillion fireball swelling over the avenue; "WHAT IF YOU JUMPED / 1 trillion / times higher?")
+
 ## Long video 4. The Big Crunch — `longform/out/big-crunch_1920x1080.mp4`
 
 16:9, 6:33, narrated by the owner, on the Big Crunch Short's seaside promenade (plan `longform/BIG-CRUNCH.md`). Opens on a flash-forward of
