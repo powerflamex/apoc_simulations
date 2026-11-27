@@ -1120,3 +1120,35 @@ planet picker 549K. Channel: 12.4M views in 28 days, 32,051 subscribers, 869,352
   dusk with black silhouettes and no clear horse until 0:10; the moose and the 38 ft hunter are small and far for most of their stops;
   the gold popups sit on top of the animal; you are cut off at the waist 0:38-0:41. The mastodon stop (big, close, walking at you for the
   whole 5.5 s) is the model for the others. Sound even on both (-10 to -16 dB, no gaps); both loops and text heights fine.
+
+## Nov 26 evening read (~9:40 PM ET; exact views from each video's page) and the first ad money
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| magnet trillion (`I5ucF1HVD_Q`) | Nov 26, 10 AM | 2,405 | 6,986 | 11,093 | | | | 19.6K (11.6 h) | 65.4% | not out |
+| rain trillion | Nov 25, 10 AM | 6,634 | 17,942 | 35,460 | 64,937 | 145,121 | | 171.8K (35.6 h) | 66.6% | 106 / 89 / 73 / **67** / 61 |
+| gravity off | Nov 24, 10 AM | 3,166 | 8,052 | 11,404 | 17,220 | 23,544 | 33,856 | 37.8K (59.6 h) | 56.3% | 102 / 91 / 73.5 / **63** / 56 |
+| planet gravity | Nov 23 | 5,545 | 19,233 | 32,929 | 54,123 | 85,878 | 101,279 | 119.1K | 58.9% | 102.5 / 89 / 70 / **62** |
+| trillion stronger | Nov 22 | 6,218 | 15,968 | 29,597 | 45,402 | 80,374 | 100,967 | 129.5K | 63.7% | 96 / 85 / 73 / **66.6** / 62 |
+| hot trillion | Nov 21 | 4,798 | 16,518 | 27,914 | 55,922 | 132,701 | 161,605 | 190.2K | 66.2% | 97 / 81 / 56 / **51** / 48 |
+| fast trillion | Nov 20 | 7,328 | 21,661 | 51,696 | 99,073 | 197,183 | 311,326 | 600.0K | 60.6% | 113 / 100 / 84 / **73** / 66 |
+| scream trillion | Nov 19, 1 PM | 1,505 | 6,570 | 11,624 | 26,504 | 75,351 | 132,774 | 291.1K | 67.7% | 104 / 90 / 66 / **57** / 53 |
+Channel: 12.3M views in 28 days, 32,159 subscribers, 849,001 views in the last 48 h. Daily views (Pacific days): Nov 20 816K, Nov 21 785K,
+Nov 22 790K, Nov 23 612K, Nov 24 461K, Nov 25 432K.
+- **Magnet trillion is the slowest start since gravity off**: 2.4K in the first hour against 4.8-7.3K for fast, hot, stronger, planet
+  gravity and rain, 11.1K at 6 h (gravity off 11.4K), under YouTube's "typical" band (25-55K). Stayed-to-watch is normal (65.4%; rain 66.6%,
+  hot 66.2%), 69% average viewed (~31 s of 45.4 s), no curve yet. So the people who get it stay about as often as usual; YouTube is simply
+  handing it to fewer people, and Studio does not say why. Not the day (US Thanksgiving): rain added 26.6K in the same 11.6 h and fast
+  trillion 28K, their normal pace. Scream had the same first 12 h (26.5K, posted at 1 PM) and is at 291K, so 12 h is not the final word.
+- What the frames show (posted version, 45.4 s): 0:00-0:03 is one near-still picture (your back, keys and phones on a red jacket);
+  from 0:04 the camera pulls back and you are ~240 px tall, ~100 px from 0:18; one wide shot of the same pile runs 0:18-0:36 with the
+  towers and ships up behind the counter; nothing ever threatens you (you stand with your arms out to the end). My reading, not proven:
+  the question is neither a wish nor a fear, and the topic had no proof (best magnet Short found on Nov 6 had 12K; I gave the prompt
+  on Nov 23 without a YouTube check). Both slow starts this week (gravity off, magnet) are videos where you are never in danger.
+- Gravity off's curve is finally out: 63% at 0:30, normal. Its problem was reach from the first hour too, not the hold.
+- **First ad money: $32.94, all of it on Nov 25** (Shorts feed ads $32.30, long videos $0.64); Nov 26 not in yet. Studio's own RPM
+  ($0.01 per 1,000 engaged views for Shorts) divides one day of money by 28 days of views (6.2M engaged). Real rate for the paid day:
+  $32.94 / 431,628 views on Nov 25 = **$0.076 per 1,000 views**, or about $0.15 per 1,000 engaged views (engaged views are ~50% of views:
+  6.2M of 12.3M). Per video, Nov 25 money / Nov 25 views: rain $0.087, gravity off $0.066, hot $0.074, planet gravity $0.057, stronger
+  $0.055, scream $0.048, fast $0.047. Caveat: ads switched on some time between Nov 24 7:25 PM PT and Nov 25 1:45 PM PT, so Nov 25 may
+  be a part day and the real rate a little higher (rain, whose views all came after 7 AM PT, is the highest). Recheck with Nov 26-27.
+  At $0.076-0.087 the last 28 days' 12.3M views would have paid about $930-1,070.
