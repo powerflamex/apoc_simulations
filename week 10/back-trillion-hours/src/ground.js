@@ -129,8 +129,8 @@ export function makeGround(scene) {
             c = srgb(mix(vec3(0.68, 0.52, 0.26), vec3(0.82, 0.66, 0.34), n)) * (0.8 + 0.35 * n2);
             c = mix(c, srgb(vec3(0.42, 0.33, 0.2)), 0.35 * smoothstep(0.55, 0.7, gf(q * 0.15)));
           } else if (uStop == 5) {
-            // dusk on stony scrub: blue-grey stone, pale sand
-            c = srgb(mix(vec3(0.36, 0.34, 0.32), vec3(0.52, 0.47, 0.4), smoothstep(0.35, 0.65, n))) * (0.7 + 0.5 * n2);
+            // moonlit scrub: dark earth and grey-green stone, so the tawny cats stand out
+            c = srgb(mix(vec3(0.13, 0.13, 0.12), vec3(0.2, 0.21, 0.17), smoothstep(0.35, 0.65, n))) * (0.7 + 0.5 * n2);
             c *= 0.75 + 0.45 * smoothstep(0.1, 0.35, cell(q * 1.2));
           } else if (uStop == 6) {
             // dark basalt rocks by the sea, lichen on top, wet and black near the water

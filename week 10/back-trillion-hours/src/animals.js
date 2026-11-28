@@ -133,25 +133,38 @@ export function makeAnimals(scene, ctx) {
     }
   }
 
-  // ---------- forest: a bull moose steps out of the trees ~33 m off and charges you for 4.5 s ----------
+  // ---------- forest: a bull moose walks into a sunlit clearing ~8 m off, stands, paws the ground and tosses its antlers,
+  //            then lowers its head and charges, pulling up right beside you on your left, antlers swinging at you ----------
   {
     const S = J[1], E = J[2];
     const path = makePath(LANES[2][0]);
-    const sEnd = sAtDist(path, 2.4);
-    // (it walks out of the trees 14 m off with its head low, then charges for the last 1.8 s)
-    const speed = (v) => 1.5 + 5.0 * smooth(S + 3.3, S + 4.1, v);
-    const sAt = distance(speed, E - 0.02, sEnd);
-    const m = quadOn(scene, MOOSE, 2, { path, sAt, speedAt: speed, C: 4.4, vFull: 8.5, offs: WALK, beta: 0.5 });
+    const sStop = sAtZ(path, -2.0);
+    const speed = (v) => 1.6 * (1 - smooth(S + 1.2, S + 1.6, v)) + 5.6 * smooth(S + 3.0, S + 3.35, v) * (1 - smooth(S + 3.95, S + 4.45, v));
+    const sAt = distance(speed, S + 4.5, sStop);
+    const m = quadOn(scene, MOOSE, 2, { path, sAt, speedAt: speed, C: 3.4, vFull: 5.5, offs: WALK, beta: 0.55 });
     const plants = [false, false, true, true].map((front, i) => (vm) => {
       const p = path.at(sAt(vm) + (front ? MOOSE.fore.at[0] : 0)), sd = i % 2 ? 1 : -1, side = (front ? MOOSE.fore.at[2] : MOOSE.hind.at[2]) * sd;
       const x = p.x - Math.cos(p.yaw) * side, z = p.z + Math.sin(p.yaw) * side;
       return { x, z, yaw: p.yaw, y: heightAt(2, x, z) };
     });
     add(2, m.q.meshes, (v) => {
-      const b = m.base(v), ch = smooth(S + 3.3, S + 3.9, v), ph = b.g * Math.PI * 2;
+      const b = m.base(v), ph = b.g * Math.PI * 2;
+      const ch = smooth(S + 2.9, S + 3.3, v) * (1 - smooth(S + 4.2, S + 4.6, v));   // charging
+      const low = smooth(S + 2.7, S + 3.2, v);                                        // head down, antlers forward
+      const still = 1 - smooth(0.25, 0.9, speed(v));
       const offs = WALK.map((o, i) => lerp(o, GALLOP[i], ch));
-      const feet = plants.map((pl, i) => { const f = m.gait.foot(v, offs[i], lerp(0.65, 0.42, ch), pl); return { x: f.p.x, y: f.p.y, z: f.p.z, yaw: f.p.yaw, lift: f.lift }; });
-      m.q.pose({ x: b.p.x, z: b.p.z, yaw: b.p.yaw, h: MOOSE.H + b.gy + 0.07 * Math.sin(ph * 2) * ch, lean: -b.pitch + 0.05 * Math.sin(ph) * ch, neckPitch: lerp(-0.2 + 0.05 * Math.sin(v * 2.0), -0.35, ch) + 0.05 * Math.sin(ph) * ch, neckYaw: lerp(0.25 * Math.sin(v * 1.4), 0, ch), headPitch: lerp(-0.15, -0.25, ch), headYaw: 0, tail: [0, 0], feet });
+      const feet = plants.map((pl, i) => {
+        const f = m.gait.foot(v, offs[i], lerp(0.62, 0.42, ch), pl), P0 = pl(v);
+        // standing: every hoof on the ground, except the stamp of a front hoof (pawing the ground, then at you)
+        const stamp = i === 3 ? 0.55 * win(v, S + 2.0, S + 2.12, S + 2.25, S + 2.4) + 0.5 * win(v, S + 4.75, S + 4.9, S + 5.0, S + 5.15) : 0;
+        return { x: lerp(f.p.x, P0.x, still), y: lerp(f.p.y, P0.y, still), z: lerp(f.p.z, P0.z, still), yaw: f.p.yaw, lift: f.lift * (1 - still) + stamp };
+      });
+      const toss = win(v, S + 1.7, S + 1.9, S + 2.4, S + 2.6), swing = smooth(S + 4.4, S + 4.7, v);
+      m.q.pose({
+        x: b.p.x, z: b.p.z, yaw: b.p.yaw, h: MOOSE.H + b.gy + 0.07 * Math.sin(ph * 2) * ch, lean: -b.pitch + 0.05 * Math.sin(ph) * ch + 0.06 * low,
+        neckPitch: 0.05 + 0.25 * toss * Math.sin(v * 9) - 0.5 * low + 0.05 * Math.sin(ph) * ch, neckYaw: 0.25 * Math.sin(v * 1.3) * (1 - low) + 0.25 * swing,
+        headPitch: -0.05 - 0.3 * low + 0.15 * toss, headYaw: swing * (0.25 + 0.3 * Math.sin(v * 7.5)), tail: [0, 0], feet,
+      });
       FOCUS[2].copy(m.q.lastH.o);
     });
   }
@@ -176,77 +189,84 @@ export function makeAnimals(scene, ctx) {
     }
   }
 
-  // ---------- the short-faced bear: charges (a four-legged gallop), stops ~16 m off, rears for ~1 s, drops, runs at you ----------
+  // ---------- the short-faced bear: a fast gallop in, it stops ~4 m off and stands up for 1.8 s (the camera backs off
+  //            and tilts up so it towers over you), drops and lunges into the flash ----------
   {
     const S = J[3], E = J[4];
     const path = makePath(LANES[4][0]);
-    const V_STOP = S + 2.4, UP0 = S + 2.45, UP1 = S + 2.8, DN0 = S + 3.1, DN1 = S + 3.45;
-    const speed = (v) => 12 * (1 - smooth(S + 1.8, V_STOP, v)) + 4.2 * smooth(S + 3.4, S + 3.85, v);
-    const sAt = distance(speed, E, sAtDist(path, 2.6));
+    const V_STOP = S + 2.3, UP0 = S + 2.35, UP1 = S + 2.65, DN0 = S + 4.1, DN1 = S + 4.4;
+    const speed = (v) => 15 * (1 - smooth(S + 1.75, V_STOP, v)) + 0.9 * smooth(DN1, DN1 + 0.2, v);
+    const sAt = distance(speed, V_STOP, sAtZ(path, -3.9));
     const RUN = [0, 0.15, 0.5, 0.65];
-    const m = quadOn(scene, BEAR, 4, { path, sAt, speedAt: speed, C: 3.0, vFull: 10, offs: RUN, beta: 0.38 });
-    // where its hind feet stand while it's up
+    const m = quadOn(scene, BEAR, 4, { path, sAt, speedAt: speed, C: 3.4, vFull: 12, offs: RUN, beta: 0.36 });
     const ps = path.at(sAt(V_STOP)), rs = rightOf(ps.yaw);
     const hindStand = [-1, 1].map((sd) => ({ x: ps.x + rs.x * sd * 0.3, z: ps.z + rs.z * sd * 0.3, yaw: ps.yaw, lift: 0 }));
     for (const f of hindStand) f.y = heightAt(4, f.x, f.z);
-    const UPV = new THREE.Vector3(0, 1, 0);
     add(4, m.q.meshes, (v) => {
       const b = m.base(v), ph = b.g * Math.PI * 2;
-      const run = clamp(speed(v) / 9, 0, 1);
+      const run = clamp(speed(v) / 12, 0, 1);
       const up = smooth(UP0, UP1, v) * (1 - smooth(DN0, DN1, v));
-      const stand = smooth(V_STOP - 0.25, V_STOP, v) * (1 - smooth(DN1 - 0.05, DN1 + 0.25, v));
-      const roar = Math.max(win(v, UP0 + 0.15, UP0 + 0.3, DN0 - 0.05, DN0 + 0.1), win(v, S + 4.3, S + 4.45, S + 4.85, S + 5.0) * 0.8, win(v, E - 0.4, E - 0.25, E + 0.3, E + 0.5));
+      const stand = smooth(V_STOP - 0.25, V_STOP, v);
+      const roar = Math.max(win(v, UP0 + 0.25, UP0 + 0.4, UP0 + 1.0, UP0 + 1.2), win(v, DN1 + 0.1, DN1 + 0.25, E + 0.3, E + 0.5));
       const fwd = { x: Math.sin(b.p.yaw), z: Math.cos(b.p.yaw) }, rt = rightOf(b.p.yaw);
-      // weight shifting from foot to foot while it stands
       const sway = 0.07 * Math.sin((v - UP0) * 3.2) * up;
       const feet = b.feet.map((f, i) => {
-        if (i < 2) {               // hind feet: both planted while it stands (never one hanging in the air)
+        if (i < 2) {
           const h = hindStand[i];
           return stand > 0.001 ? { x: lerp(f.x, h.x, stand), y: lerp(f.y, h.y, stand), z: lerp(f.z, h.z, stand), yaw: f.yaw, lift: f.lift * (1 - stand) } : f;
         }
-        if (up < 0.001) return f;
-        // front paws: hanging from bent elbows in front of the chest, claws down, swaying a little
+        const P0 = { x: f.x, y: f.y, z: f.z };
+        if (stand > 0.001 && up < 0.001) { const p = path.at(sAt(v) + BEAR.fore.at[0]); const sd = i === 2 ? -1 : 1; P0.x = lerp(f.x, p.x - Math.cos(p.yaw) * sd * 0.26, stand); P0.z = lerp(f.z, p.z + Math.sin(p.yaw) * sd * 0.26, stand); P0.y = lerp(f.y, heightAt(4, P0.x, P0.z), stand); }
+        if (up < 0.001) return { ...f, ...P0, lift: f.lift * (1 - stand) };
         const sd = i === 2 ? -1 : 1;
         const reach = 0.3 + 0.1 * Math.sin(v * 2.6 + sd), hy = 1.62 + 0.12 * Math.sin(v * 2.1 + sd * 1.3);
         const tx = b.p.x + fwd.x * reach + rt.x * sd * 0.5 + rt.x * sway, tz = b.p.z + fwd.z * reach + rt.z * sd * 0.5 + rt.z * sway;
-        return { x: lerp(f.x, tx, up), y: lerp(f.y, b.gy + hy, up), z: lerp(f.z, tz, up), yaw: b.p.yaw, lift: 0, hang: up };
+        return { x: lerp(P0.x, tx, up), y: lerp(P0.y, b.gy + hy, up), z: lerp(P0.z, tz, up), yaw: b.p.yaw, lift: 0, hang: up };
       });
+      const lunge = smooth(DN1, E, v);
       m.q.pose({
         x: b.p.x + rt.x * sway, z: b.p.z + rt.z * sway, yaw: b.p.yaw,
-        h: BEAR.H + b.gy + 0.07 * Math.sin(ph * 2) * run + 0.1 * up,
-        lean: -b.pitch + (0.07 * Math.sin(ph) - 0.03) * run - 1.25 * up, roll: 0.05 * Math.sin((v - UP0) * 3.2) * up,
-        neckPitch: -0.12 * run - 0.45 * up + 0.12 * Math.sin(v * 1.7) * up, headPitch: -0.55 * up + 0.2 * roar, headYaw: 0.12 * Math.sin(v * 1.1) * up,
-        tail: [0, 0], feet, jaw: 0.9 * roar + 0.08,
+        h: BEAR.H + b.gy + 0.07 * Math.sin(ph * 2) * run + 0.1 * up - 0.08 * lunge,
+        lean: -b.pitch + (0.07 * Math.sin(ph) - 0.03) * run - 1.25 * up + 0.08 * lunge, roll: 0.05 * Math.sin((v - UP0) * 3.2) * up,
+        neckPitch: -0.12 * run - 0.45 * up + 0.12 * Math.sin(v * 1.7) * up - 0.1 * lunge, headPitch: -0.55 * up + 0.2 * roar, headYaw: 0.12 * Math.sin(v * 1.1) * up,
+        tail: [0, 0], feet, jaw: 0.95 * roar + 0.08,
       });
       FOCUS[4].copy(m.q.lastH.o);
     });
   }
 
-  // ---------- three sabertooths: far off in the middle at first, running by 2 s, a long charge, the lead one leaps ----------
+  // ---------- a pack of four sabertooths: the first one walks in down the middle, the others spread out beside it;
+  //            they stalk in low with their mouths open (the sabres show), rush from ~29 s, and the nearest one leaps
+  //            into the flash ----------
   {
-    const S = J[4], E = J[5];
-    const lanes = [[2, true], [0, false], [1, false]];
-    for (const [lane, lead] of lanes) {
+    const S = J[4], E = J[5], L0 = E - 0.6;
+    // [lane, lead?, pelvis z at its key time, key time, speed profile]
+    const cats = [
+      [2, true, -2.9, S + 2.5, (v) => 2.7 * (1 - smooth(S + 2.2, S + 2.6, v)) + 0.3 + 1.0 * smooth(S + 4.6, S + 5.0, v) * (1 - smooth(L0 - 0.05, L0 + 0.05, v)) + 3.4 * smooth(L0, L0 + 0.12, v)],
+      [0, false, -4.4, S + 2.5, (v) => 2.4 * (1 - smooth(S + 2.2, S + 2.7, v)) + 0.35 + 1.4 * smooth(S + 4.4, S + 5.0, v)],
+      [1, false, -5.4, S + 2.5, (v) => 2.4 * (1 - smooth(S + 2.2, S + 2.7, v)) + 0.35 + 1.4 * smooth(S + 4.6, S + 5.2, v)],
+      [3, false, -9.5, S + 2.5, (v) => 2.6 * (1 - smooth(S + 2.4, S + 2.9, v)) + 0.4 + 1.8 * smooth(S + 4.5, S + 5.1, v)],
+    ];
+    for (const [lane, lead, zKey, vKey, speed] of cats) {
       const path = makePath(LANES[5][lane]);
-      const speed = lead ? (v) => 3.0 + 6.5 * smooth(S + 0.9, S + 2.0, v) : (v) => 2.4 + 5.6 * smooth(S + 1.3 + lane * 0.3, S + 2.4 + lane * 0.3, v);
-      const sAt = lead ? distance(speed, E, sAtZ(path, 0.3)) : distance(speed, E + 0.1, sAtDist(path, lane ? 4.4 : 3.8));
-      const m = quadOn(scene, CAT, 5, { path, sAt, speedAt: speed, C: 2.4, vFull: 8.5, offs: GALLOP, beta: 0.42 });
-      const L0 = E - 0.8;                // the leap
+      const sAt = distance(speed, vKey, sAtZ(path, zKey));
+      const m = quadOn(scene, CAT, 5, { path, sAt, speedAt: speed, C: 1.6, vFull: 4.5, offs: GALLOP, beta: 0.5 });
       add(5, m.q.meshes, (v) => {
         const b = m.base(v), ph = b.g * Math.PI * 2;
-        const run = clamp(speed(v) / 8.5, 0, 1);
-        const air = lead ? smooth(L0 - 0.05, L0 + 0.12, v) : 0;
-        const arc = lead ? Math.sin(Math.PI * clamp((v - L0) / 1.0, 0, 1)) : 0;
+        const run = clamp(speed(v) / 4, 0, 1);
+        const stalk = smooth(S + 2.0, S + 2.6, v) * (1 - smooth(S + 4.4, S + 4.9, v));      // low, slow, mouth open
+        const air = lead ? smooth(L0 - 0.05, L0 + 0.1, v) : 0;
+        const arc = lead ? Math.sin(Math.PI * clamp((v - L0) / 0.9, 0, 1)) : 0;
         const crouch = lead ? win(v, L0 - 0.35, L0 - 0.15, L0 - 0.05, L0 + 0.05) : 0;
-        const snarl = Math.max(lead ? smooth(L0 - 0.3, L0, v) : win(v, S + 3.5 + lane, S + 3.8 + lane, S + 4.6 + lane, S + 5.0 + lane), 0);
+        const snarl = Math.max(stalk * (0.75 + 0.25 * Math.sin(v * 3 + lane)), lead ? smooth(L0 - 0.3, L0, v) : smooth(S + 4.4, S + 4.8, v) * 0.8);
         const fwd = { x: Math.sin(b.p.yaw), z: Math.cos(b.p.yaw) };
         const feet = b.feet.map((f, j) => {
           if (air < 0.01) return f;
           const front = j >= 2, reach = front ? CAT.fore.at[0] + 0.6 : -0.45;
           return { x: lerp(f.x, b.p.x + fwd.x * reach, air), y: lerp(f.y, b.gy + 0.9 * arc + (front ? 0.85 : 0.35), air), z: lerp(f.z, b.p.z + fwd.z * reach, air), yaw: f.yaw, lift: 0 };
         });
-        m.q.pose({ x: b.p.x, z: b.p.z, yaw: b.p.yaw, h: CAT.H + b.gy + 0.05 * Math.sin(ph * 2) * run * (1 - air) - 0.18 * crouch + (0.9 * arc + 0.35) * air,
-          lean: -b.pitch + (0.06 * Math.sin(ph) - 0.04) * run * (1 - air) + 0.1 * crouch - 0.12 * air, neckPitch: -0.12 + 0.1 * air, neckYaw: 0, headPitch: 0.12 + 0.2 * snarl, tail: [0.2 * Math.sin(v * 2 + lane), 0.3], feet, jaw: 0.85 * snarl + 0.05 });
+        m.q.pose({ x: b.p.x, z: b.p.z, yaw: b.p.yaw, h: CAT.H + b.gy + 0.05 * Math.sin(ph * 2) * run * (1 - air) - 0.2 * stalk - 0.18 * crouch + (0.9 * arc + 0.35) * air,
+          lean: -b.pitch + (0.06 * Math.sin(ph) - 0.04) * run * (1 - air) + 0.08 * stalk + 0.1 * crouch - 0.12 * air, neckPitch: -0.12 - 0.12 * stalk + 0.1 * air, neckYaw: 0, headPitch: 0.25 * stalk + 0.12 + 0.2 * snarl * (1 - stalk), tail: [0.2 * Math.sin(v * 2 + lane), 0.3], feet, jaw: 0.9 * snarl + 0.05 });
         const H = m.q.lastH;
         EYES.push(H.at(CAT.eyeAt[0] + 0.02, CAT.eyeAt[1], -CAT.eyeAt[2]), H.at(CAT.eyeAt[0] + 0.02, CAT.eyeAt[1], CAT.eyeAt[2]));
         if (lead) FOCUS[5].copy(H.o);
@@ -272,25 +292,28 @@ export function makeAnimals(scene, ctx) {
     });
   }
   {
+    // the hunter: runs in from ~30 m, at least your height by 0:43, then slows, crouches and brings its head down beside
+    // you, jaws open at the lens (nothing touches you: the flash takes you away first)
     const path = makePath(LANES[7][1]);
-    const sEnd = sAtDist(path, 6.4);
-    const speed = (v) => 1.2 + 4.6 * smooth(40.9, 41.9, v);
-    const sAt = distance(speed, V_WHITE - 0.05, sEnd);
-    const rex = makeTheropod(scene, { seed: 3, colors: { back: 0x3a1e12, flank: 0x7a4a2a, belly: 0xd0b890, stripe: 0x1e0e08 } });
-    // the high spines along its back (Acrocanthosaurus: "high-spined lizard"): a low ridge from the neck to the tail
-    const ridge = makeLoft(21, 8, { mat: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }), color: (u, a) => (Math.sin(a) > 0.3 ? [0.3, 0.13, 0.07] : [0.24, 0.12, 0.07]) });
+    const speed = (v) => 5.2 * (1 - smooth(42.6, 43.2, v)) + 0.9 * smooth(42.6, 43.2, v) * (1 - smooth(45.0, 45.5, v)) + 0.3;
+    const sAt = distance(speed, 45.6, sAtZ(path, -3.7));
+    const rex = makeTheropod(scene, { seed: 3, colors: { back: 0x24120a, flank: 0xc07a38, belly: 0xf2e6c8, stripe: 0x1a0c06 } });
+    const ridge = makeLoft(21, 8, { mat: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }), color: (u, a) => (Math.sin(a) > 0.3 ? [0.22, 0.09, 0.04] : [0.3, 0.13, 0.06]) });
     scene.add(ridge.mesh);
-    const gait = makeGait({ sAt, speedAt: speed, C: 3.4, vFull: 5.6, minStep: 0.3, v0: -2, v1: 50 });
+    const gait = makeGait({ sAt, speedAt: speed, C: 3.4, vFull: 4.6, minStep: 0.3, v0: -2, v1: 50 });
     const LAT = 0.5;
     const plant = (sd) => (vm) => { const q = path.at(sAt(vm)); const x = q.x - Math.cos(q.yaw) * LAT * sd, z = q.z + Math.sin(q.yaw) * LAT * sd; return { x, z, yaw: q.yaw, y: heightAt(7, x, z) }; };
     add(7, [...rex.meshes, ridge.mesh], (v) => {
       const q = path.at(sAt(v)), g = gait.gAt(v), ph = g * Math.PI * 2;
-      const run = smooth(40.9, 41.9, v);
-      const feet = [plant(-1), plant(1)].map((pl, i) => { const f = gait.foot(v, i * 0.5, lerp(0.62, 0.42, run), pl); return { x: f.p.x, y: f.p.y, z: f.p.z, yaw: f.p.yaw, lift: f.lift }; });
-      const roar = Math.max(win(v, 40.2, 40.5, 41.0, 41.4), win(v, 45.25, 45.45, 46.2, 46.4) * 1.1);
+      const run = clamp(speed(v) / 4.6, 0, 1);
+      const still = 1 - smooth(0.4, 1.0, speed(v));
+      const feet = [plant(-1), plant(1)].map((pl, i) => { const f = gait.foot(v, i * 0.5, lerp(0.62, 0.42, run), pl), P0 = pl(v); return { x: lerp(f.p.x, P0.x, still), y: lerp(f.p.y, P0.y, still), z: lerp(f.p.z, P0.z, still), yaw: f.p.yaw, lift: f.lift * (1 - still) }; });
+      const roar = Math.max(win(v, 40.2, 40.5, 41.0, 41.4), win(v, 44.9, 45.15, 46.2, 46.4) * 1.1);
       const gy = heightAt(7, q.x, q.z);
-      const low = smooth(44.6, 45.8, v);
-      const out = rex.pose({ x: q.x, z: q.z, yaw: q.yaw, h: 3.35 + gy + 0.12 * Math.abs(Math.sin(ph)) * run - 0.35 * low, lean: 0.05 + 0.1 * run + 0.12 * low, neckPitch: 0.1 - 0.2 * run - 0.3 * low + 0.25 * win(v, 40.2, 40.5, 41.0, 41.4), neckYaw: 0.15 * Math.sin(v * 0.6) * (1 - run), headPitch: -0.05 + 0.25 * roar - 0.15 * low, headYaw: 0, jaw: 1.05 * roar + 0.06, tail: [0.12 * Math.sin(ph), 0.05], breath: 0, feet, arm: 0.5 + 0.5 * Math.sin(ph) });
+      const low = smooth(43.6, 45.0, v);
+      const out = rex.pose({ x: q.x, z: q.z, yaw: q.yaw, h: 3.35 + gy + 0.12 * Math.abs(Math.sin(ph)) * run - 0.5 * low, lean: 0.05 + 0.1 * run + 0.12 * low,
+        neckPitch: 0.1 - 0.2 * run - 0.3 * low + 0.25 * win(v, 40.2, 40.5, 41.0, 41.4), neckYaw: 0.15 * Math.sin(v * 0.6) * (1 - run) * (1 - low) + 0.3 * low,
+        headPitch: -0.05 + 0.3 * roar - 0.05 * low, headYaw: 0.3 * low, jaw: 1.1 * roar + 0.06, tail: [0.12 * Math.sin(ph), 0.05], breath: 0, feet, arm: 0.5 + 0.5 * Math.sin(ph) });
       FOCUS[7].copy(out.head.o);
       const st = [];
       const frames = [];

@@ -149,23 +149,24 @@ export function makeSoundtrack(outFile) {
   const VOICES = [
     makeWhinny({ t0: J[0] + 3.0, gain: 0.55, pan: 0.1 }),                                                           // the team spooks
     makeWhinny({ t0: J[1] - 0.9, gain: 0.45, pan: -0.05 }),
-    makeVoice({ t0: J[1] + 0.6, dur: 1.4, f0: 95, gain: 0.55, pan: -0.4, seed: 3, shape: 'growl', formant: 1.3 }),     // the moose
-    makeVoice({ t0: J[2] - 2.0, dur: 0.8, f0: 110, gain: 0.7, pan: -0.1, seed: 4, formant: 1.3 }),
+    makeVoice({ t0: J[1] + 1.7, dur: 1.0, f0: 95, gain: 0.6, pan: -0.4, seed: 3, shape: 'growl', formant: 1.3 }),     // the moose tosses its antlers
+    makeVoice({ t0: J[1] + 2.9, dur: 0.8, f0: 110, gain: 0.75, pan: -0.2, seed: 4, formant: 1.3 }),                 // and charges
+    makeVoice({ t0: J[1] + 4.6, dur: 0.7, f0: 100, gain: 0.8, pan: -0.3, seed: 5, shape: 'growl', formant: 1.3 }),
     makeTrumpet({ t0: J[2] + 2.35, dur: 1.5, f0: 300, gain: 0.55, pan: -0.2 }),                                     // mastodons
     makeTrumpet({ t0: J[2] + 3.75, dur: 1.1, f0: 240, gain: 0.35, pan: -0.5 }),
     makeTrumpet({ t0: J[2] + 4.9, dur: 0.9, f0: 330, gain: 0.5, pan: -0.05 }),
     makeVoice({ t0: J[3] + 2.55, dur: 0.9, f0: 72, gain: 1.0, pan: -0.15, seed: 7 }),                               // the bear stands and roars
-    makeVoice({ t0: J[3] + 3.4, dur: 0.8, f0: 52, gain: 0.45, pan: -0.15, seed: 8, shape: 'growl' }),
-    makeVoice({ t0: J[3] + 4.3, dur: 0.6, f0: 78, gain: 0.8, pan: -0.15, seed: 9 }),
+    makeVoice({ t0: J[3] + 3.4, dur: 0.7, f0: 52, gain: 0.45, pan: -0.15, seed: 8, shape: 'growl' }),
+    makeVoice({ t0: J[3] + 4.45, dur: 0.6, f0: 78, gain: 0.85, pan: -0.15, seed: 9 }),
     makeVoice({ t0: J[4] - 0.4, dur: 0.6, f0: 70, gain: 1.1, pan: -0.05, seed: 10 }),
-    makeVoice({ t0: J[4] + 1.5, dur: 1.3, f0: 120, gain: 0.45, pan: -0.6, seed: 11, shape: 'growl', formant: 1.5 }),  // cats
+    makeVoice({ t0: J[4] + 1.2, dur: 1.3, f0: 120, gain: 0.45, pan: -0.6, seed: 11, shape: 'growl', formant: 1.5 }),  // cats
     makeVoice({ t0: J[4] + 2.6, dur: 1.2, f0: 105, gain: 0.4, pan: 0.6, seed: 12, shape: 'growl', formant: 1.5 }),
     makeVoice({ t0: J[4] + 3.7, dur: 1.4, f0: 115, gain: 0.5, pan: -0.3, seed: 13, shape: 'growl', formant: 1.5 }),
-    makeVoice({ t0: J[5] - 1.25, dur: 0.45, f0: 0, gain: 0.5, pan: -0.2, seed: 14, shape: 'hiss' }),
-    makeVoice({ t0: J[5] - 0.8, dur: 0.7, f0: 150, gain: 0.9, pan: -0.1, seed: 15, formant: 1.6, glide: 0.5 }),
+    makeVoice({ t0: J[5] - 1.05, dur: 0.45, f0: 0, gain: 0.5, pan: -0.2, seed: 14, shape: 'hiss' }),
+    makeVoice({ t0: J[5] - 0.6, dur: 0.7, f0: 150, gain: 0.9, pan: -0.1, seed: 15, formant: 1.6, glide: 0.5 }),
     makeVoice({ t0: 40.0, dur: 2.2, f0: 38, gain: 0.55, pan: -0.3, seed: 16, shape: 'growl', formant: 0.6 }),       // the brachiosaur's call
     makeVoice({ t0: 40.2, dur: 1.1, f0: 60, gain: 0.9, pan: -0.1, seed: 17 }),                                      // Acrocanthosaurus
-    makeVoice({ t0: 45.25, dur: 1.0, f0: 56, gain: 1.5, pan: 0, seed: 19 }),
+    makeVoice({ t0: 44.9, dur: 1.3, f0: 56, gain: 1.5, pan: -0.1, seed: 19 }),
   ];
   // ---------- footfalls: [time, gain, pan, weight (0 light .. 1 huge)] ----------
   const STEPS = [];
@@ -176,20 +177,23 @@ export function makeSoundtrack(outFile) {
     STEPS.push([t, 0.08 + 0.5 * near, -0.05, 0.15]); t += per * (0.85 + 0.3 * ((t * 7.3) % 1));
   }
   // the moose: heavy steps, then its charge
-  for (let t = J[1] + 0.3; t < J[2] - 1.9; t += 0.42 + 0.1 * ((t * 3.1) % 1)) STEPS.push([t, 0.12 + 0.2 * smooth(J[1], J[2] - 2, t), -0.3, 0.45]);
-  for (let t = J[2] - 1.9; t < J[2]; ) { STEPS.push([t, 0.2 + 0.5 * smooth(J[2] - 1.9, J[2], t) ** 2, -0.2, 0.4]); t += 0.12 + 0.08 * ((t * 13.1) % 1); }
+  for (let t = J[1] + 0.2; t < J[1] + 1.4; t += 0.42 + 0.1 * ((t * 3.1) % 1)) STEPS.push([t, 0.2, -0.3, 0.45]);
+  STEPS.push([J[1] + 2.3, 0.45, -0.3, 0.5]);                      // it paws the ground
+  for (let t = J[1] + 3.05; t < J[1] + 4.4; ) { STEPS.push([t, 0.3 + 0.5 * smooth(J[1] + 3, J[1] + 4.4, t) ** 2, -0.2, 0.45]); t += 0.12 + 0.06 * ((t * 13.1) % 1); }
+  STEPS.push([J[1] + 5.05, 0.8, -0.2, 0.5]);                      // a hoof stamps beside you
   // the mastodons
   for (let t = J[2] + 0.1; t < J[3]; t += 0.42 + 0.2 * ((t * 3.7) % 1)) STEPS.push([t, 0.18 + 0.45 * smooth(J[2], J[3] - 0.1, t), ((t * 5.1) % 1) - 0.6, 0.85]);
   // the bear's charge, the thump as it drops from standing, its run at you
-  for (let t = J[3]; t < J[3] + 2.4; ) { STEPS.push([t, 0.2 + 0.5 * smooth(J[3], J[3] + 2.3, t), -0.2, 0.55]); t += 0.11 + 0.06 * ((t * 9.7) % 1); }
-  STEPS.push([J[3] + 3.4, 0.9, 0, 0.7]);
-  for (let t = J[3] + 3.6; t < J[4]; ) { STEPS.push([t, 0.4 + 0.5 * smooth(J[3] + 3.6, J[4], t), -0.1, 0.6]); t += 0.16 + 0.05 * ((t * 7.7) % 1); }
+  for (let t = J[3]; t < J[3] + 2.3; ) { STEPS.push([t, 0.2 + 0.55 * smooth(J[3], J[3] + 2.2, t), -0.2, 0.55]); t += 0.09 + 0.05 * ((t * 9.7) % 1); }
+  STEPS.push([J[3] + 4.4, 0.95, 0, 0.7]);                         // it drops back onto all fours
+  for (let t = J[3] + 4.6; t < J[4]; t += 0.3) STEPS.push([t, 0.6, -0.1, 0.6]);
   // the lead cat's run (light, quick), then its leap
-  for (let t = J[4] + 1.0; t < J[5] - 0.8; ) { STEPS.push([t, 0.05 + 0.3 * smooth(J[4] + 1, J[5] - 0.8, t) ** 2, -0.05, 0.2]); t += 0.13 + 0.04 * ((t * 11.3) % 1); }
-  STEPS.push([J[5] - 0.82, 0.55, -0.05, 0.4]);
+  for (let t = J[4] + 4.5; t < J[5] - 0.6; ) { STEPS.push([t, 0.15 + 0.3 * smooth(J[4] + 4.5, J[5] - 0.6, t), -0.05, 0.25]); t += 0.11 + 0.04 * ((t * 11.3) % 1); }
+  STEPS.push([J[5] - 0.62, 0.55, -0.05, 0.4]);
   // the brachiosaur (huge, slow) and the Acrocanthosaurus running
   for (let t = 38.6; t < 42.5; t += 0.95) STEPS.push([t, 0.55, -0.2, 1.0]);
-  for (let t = 41.0; t < V_WHITE; t += 0.38) STEPS.push([t, 0.2 + 0.8 * smooth(41.0, 45.8, t) ** 1.5, -0.05, 0.8]);
+  for (let t = 38.0; t < 42.9; t += 0.36) STEPS.push([t, 0.2 + 0.5 * smooth(38, 42.9, t) ** 1.5, -0.05, 0.8]);
+  for (let t = 43.2; t < 45.3; t += 0.7) STEPS.push([t, 0.85, -0.1, 0.9]);
   // the jumps: [time] -> charge, whoosh, boom
   const revL = new Reverb(11), revR = new Reverb(12);
   {

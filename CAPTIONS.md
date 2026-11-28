@@ -3305,7 +3305,8 @@ Cover: `week 10/rain-trillion/out/rain-trillion_v4_cover.png` (`node render.mjs 
 
 ## Next Short. What if you went back in time 1 trillion hours? — `week 10/back-trillion-hours/out/back-trillion-hours_v4_1080x1920_60fps_tiktok.mp4`
 
-46.8 s, loops (fix pass Nov 26: the framing is locked on both sides of every flash, so you and the watch never move
+46.8 s, loops (fix pass 2, Nov 27: the moose, the bear, the cats and the hunter are big and close for most of their stops,
+the camera moving inside those stops and back on the locked framing before each flash. Fix pass Nov 26: the framing is locked on both sides of every flash, so you and the watch never move
 across a flash; first jump at 0:02.5; 1912 in daylight with a horse team; a rebuilt bear; a longer cat charge and leap;
 a shark whose speed only rises; every danger big and coming at you for at least half its stop; popups above the
 danger; no dark stripe behind the captions). You (orange hoodie) stand on one spot the whole time with a glowing time
@@ -3319,25 +3320,31 @@ their clothes go back to the 1970s, then to dark 1910s coats and hats; the lane 
 street lights to gas lamps, the towers come down floor by floor. 0:02.5 1912 in afternoon light: "HORSES INSTEAD OF
 CARS", a two-horse wagon crosses right in front of you, people in hats and long dresses stare at you ("Nobody here has
 ever seen a phone."), the team spooks, runs a loop up the street and bolts straight at you. 0:08 forest down to a lake:
-"THE CITY IS GONE", a bull moose walks out of the trees 14 m off, head low, and charges ("A 1,400-pound bull moose.").
+"THE CITY IS GONE", a bull moose walks into a sunlit clearing ~8 m off (over 400 px tall by 0:09.5, dark against the pale
+misty forest), paws the ground and tosses its antlers, lowers its head at 0:11 and charges ("A 1,400-pound bull moose."),
+pulling up beside you on your left, taller than you by 0:12.5, its head and antlers filling the left half at the flash.
 0:13.5 the ice age (counter at 14,000-19,000 years): "THE ICE AGE", "Mastodons, 10 feet tall, walk right at you."; the
 lead one trumpets and comes at you the whole stop. 0:19 golden grassland: "A GIANT BEAR": a short-faced bear gallops
-in, stops about 9 m off, rears up on both hind feet with its front paws hanging and claws out, roars ("It stands 11 feet
-tall."), drops and runs at you ("Your species doesn't exist yet.", once the line is past 400,000 years). 0:24.5 bright
-moonlight under a big moon: "SABERTOOTH CATS", three tawny cats with shining eyes, the lead one far off in the middle
-at first, running by 2 s in, a 4 s charge straight at the lens ("Their fangs are 7 inches long."), then 0.8 s in the
-air, jaws open. 0:31.2 dark rocks over a turquoise sea: "A MEGALODON", a fin 36 m out turns toward you within 1.6 s and
+in fast, stops ~4 m off and stands up on both hind feet for 1.8 s, front paws hanging and claws out, roaring, while the
+camera backs off and tilts up so it is 1.45x your height with its head under the counter ("It stands 11 feet tall."),
+then drops and lunges into the flash ("Your species doesn't exist yet.", once the line is past 400,000 years). 0:24.5 bright
+moonlight under a big moon on dark ground: "SABERTOOTH CATS", the camera moves in low over your shoulder as a pack of
+four tawny cats with shining eyes walks in (the first one 310 px by 0:25.5), spreads out and stalks in low with mouths
+open so the sabres show ("Their fangs are 7 inches long.", from 0:27, nearest cat ~490 px), rushes from 0:29, and the
+nearest one leaps for the last 0.6 s. 0:31.2 dark rocks over a turquoise sea: "A MEGALODON", a fin 36 m out turns toward you within 1.6 s and
 comes straight in, always speeding up, its wake growing; the head breaks the surface at 0:33.4 ("A 50-foot shark is
 coming at you."), and from 0:35.5 it lunges up out of the sea at you, jaws wide open. 0:37.9 the Early Cretaceous: an
 Acrocanthosaurus already walking toward you, "DINOSAURS", then a long-necked giant's neck sweeps in over you ("Its head
-is 50 feet above you."), the counter lands on exactly 1 trillion (114 million years), the hunter roars and runs at you
-for the last 5 s ("A 38-foot hunter runs right at you."); its jaws reach your wrist as you hit the device: 0:46 white
+is 50 feet above you."), the counter lands on exactly 1 trillion (114 million years), the hunter (orange-tan with a pale
+belly, so it stands out from the red soil and the grey giant) roars and runs at you, taller than you by 0:43 ("A 38-foot
+hunter runs right at you."), then crouches and brings its head down beside you, jaws open at the lens, the head ~700 px
+wide in the last 0.6 s; nothing touches you, you hit the device: 0:46 white
 for about half a second, which clears onto frame 0 (the device brings you back to today). Sound: each stop's own air
 (traffic swishing backward with tape-rewind chirps, a 1912 crowd, leaves and birds, a cold wind, grass and insects,
 crickets, surf, a Cretaceous insect hum), hooves and wheels and whinnies, the moose's bellow and charge, mastodon
 footsteps and trumpets, the bear's gallop, roars and the thump as it drops, cat growls, a hiss and a snarl, the shark's
 bow wave and splash, the giant's footsteps and call, the hunter's roars and running feet; every jump a rising whine, a
-whoosh and a boom; a minor drone that steps down at every jump; -9.7 to -15.9 dB every half second, no gaps.
+whoosh and a boom; a minor drone that steps down at every jump; -9.7 to -15.8 dB every half second, no gaps.
 
 Facts (checked Nov 26, 2026; numbers also at the top of `src/timeline.js`): 1,000,000 hours = 114 years (1912: horse
 wagons and early cars shared city streets; gas street lamps were still common). 10 million hours = 1,141 years: an

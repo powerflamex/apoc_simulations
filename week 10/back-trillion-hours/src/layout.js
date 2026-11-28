@@ -40,12 +40,12 @@ export function makePath(pts) {
 // the animals' lanes (their paths, as drawn on the ground) per stop; plants keep out of these
 export const LANES = {
   1: [[[-16, -13.5], [-8, -14], [0, -14.5], [5, -17], [7, -22], [5, -27], [1, -28], [-2, -25], [-1.5, -15], [-0.5, -5], [-0.2, -1.5]]],
-  2: [[[-12, -24], [-8.5, -18], [-5.5, -14], [-3.2, -9], [-1.8, -4.5], [-1.0, -1.5]]],
+  2: [[[-7, -11.5], [-4.6, -9.6], [-2.8, -8.2], [-2.2, -5.5], [-1.9, -2.5], [-1.8, 0], [-1.8, 2.5]]],
   3: [[[-34, -60], [-16, -30], [-1.2, -4], [4, 6]], [[-40, -50], [-20, -20], [-6, 0], [-2, 16]], [[-22, -70], [-4, -40], [6, -14], [12, 4]], [[-50, -30], [-28, -10], [-12, 8]], [[-12, -80], [6, -50], [18, -26]]],
-  4: [[[-12, -44], [-7, -30], [-3.5, -18], [-1.6, -8], [-1.0, -2]]],
-  5: [[[-11, -40], [-7, -24], [-3.6, -8], [-2.6, -3.8]], [[8, -42], [5, -24], [2.6, -8], [1.8, -4]], [[-6, -56], [-4, -38], [-2.4, -20], [-1.7, -8], [-1.5, -1], [-1.5, 1.8]]],
+  4: [[[-10, -40], [-6, -26], [-3.5, -14], [-2.2, -7], [-1.6, -3.4], [-1.3, -1]]],
+  5: [[[-5.5, -26], [-3.6, -14], [-2.5, -7], [-2.1, -3.4]], [[2, -30], [0.8, -16], [-0.1, -8], [-0.3, -4.6]], [[-1.4, -30], [-1.0, -12], [-0.9, -4.8], [-1.1, -2.6], [-1.5, -0.6], [-1.6, 1.0], [-1.6, 3.0]], [[-4, -40], [-2.6, -22], [-1.9, -12], [-1.8, -7]]],
   6: [],
-  7: [[[-70, -23], [-20, -22], [40, -26]], [[-3, -70], [-2, -30], [-0.4, -1.2]]],
+  7: [[[-70, -23], [-20, -22], [40, -26]], [[-4, -48], [-2.8, -30], [-2.0, -15], [-1.7, -7], [-1.6, -4.2], [-1.6, -2]]],
 };
 const segDist = (x, z, ax, az, bx, bz) => {
   const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
@@ -55,9 +55,16 @@ const segDist = (x, z, ax, az, bx, bz) => {
 // may something stand at (x, z) at stop k? (keep: extra margin for wide things like trees)
 export function clearOf(k, x, z, keep = 0) {
   const c = CAMS[k];
+  if (k === 2 && keep > 0.5) {
+    if (Math.hypot(x + 2.6, z + 7.5) < 8 + keep * 2) return false;              // the clearing it stands in
+    if (z < -6 && z > -110 && x > -16 + z * 0.08 && x < 5 - z * 0.06) return false;   // the meadow behind it
+    if (x > -3 && x < 14 && z > -14 && z < 6) return false;                        // nothing between it and the Sun
+  }
   if (Math.hypot(x, z) < 1.6 + keep * 1.5) return false;
   // the camera, and the corridor from it past you to what you look at
   if (segDist(x, z, c.p[0], c.p[2], 0, 0) < 1.4 + keep * 1.5) return false;
+  // (the bear stop: the camera backs off to z ~10.6 while it stands; keep that corridor clear too)
+  if (k === 4 && segDist(x, z, -0.72, 11.5, 0, 0) < 2.2 + keep * 1.5) return false;
   if (Math.hypot(x - c.p[0], z - c.p[2]) < 2.5 + keep * 2) return false;
   for (const lane of LANES[k] || []) {
     for (let i = 0; i < lane.length - 1; i++) {

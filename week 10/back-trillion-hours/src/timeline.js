@@ -119,7 +119,7 @@ export const CAPTIONS = [
   [15.5, 18.65, 'Mastodons, 10 feet tall, walk right at you.'],
   [21.45, 22.55, 'It stands 11 feet tall.'],
   [22.8, 24.2, "Your species doesn't exist yet."],
-  [26.5, 30.6, 'Their fangs are 7 inches long.'],
+  [27.0, 30.4, 'Their fangs are 7 inches long.'],
   [33.2, 35.9, 'A 50-foot shark is coming at you.'],
   [39.9, 41.6, 'Its head is 50 feet above you.'],
   [41.9, 45.2, 'A 38-foot hunter runs right at you.'],

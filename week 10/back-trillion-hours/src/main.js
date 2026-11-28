@@ -77,10 +77,10 @@ const dir = (x, y, z) => new THREE.Vector3(x, y, z).normalize();
 const LOOK = [
   { top: C(0.1, 0.3, 0.78), hor: C(0.62, 0.76, 0.93), sun: dir(0.45, 0.62, 0.65), sunC: C(1, 0.95, 0.86), sunI: 3.0, hs: C(0.62, 0.75, 1.0), hg: C(0.55, 0.5, 0.45), hI: 1.1, fog: 0.0011, cloud: 0.28, exp: 1.0, wind: 0.4 },
   { top: C(0.2, 0.4, 0.72), hor: C(0.8, 0.8, 0.76), sun: dir(-0.4, 0.55, 0.73), sunC: C(1, 0.88, 0.7), sunI: 3.2, hs: C(0.6, 0.65, 0.8), hg: C(0.45, 0.38, 0.3), hI: 1.1, fog: 0.0016, cloud: 0.35, exp: 1.0, wind: 0.3, cloudLit: C(1.0, 0.95, 0.85), cloudDark: C(0.6, 0.58, 0.55) },
-  { top: C(0.3, 0.52, 0.75), hor: C(0.78, 0.84, 0.8), sun: dir(0.55, 0.45, 0.7), sunC: C(1, 0.93, 0.8), sunI: 3.3, hs: C(0.62, 0.72, 0.82), hg: C(0.3, 0.34, 0.2), hI: 1.25, fog: 0.006, cloud: 0.2, exp: 1.2, wind: 0.5 },
+  { top: C(0.3, 0.52, 0.75), hor: C(0.82, 0.87, 0.84), sun: dir(0.55, 0.45, 0.7), sunC: C(1, 0.93, 0.8), sunI: 3.5, hs: C(0.62, 0.72, 0.82), hg: C(0.3, 0.34, 0.2), hI: 1.2, fog: 0.0065, cloud: 0.2, exp: 1.2, wind: 0.5 },
   { top: C(0.36, 0.46, 0.6), hor: C(0.8, 0.84, 0.9), sun: dir(0.35, 0.22, 0.91), sunC: C(0.92, 0.96, 1.0), sunI: 1.6, hs: C(0.72, 0.8, 0.92), hg: C(0.5, 0.5, 0.5), hI: 1.35, fog: 0.0042, cloud: 0.72, exp: 1.0, wind: 1.0, cloudLit: C(0.9, 0.92, 0.95), cloudDark: C(0.48, 0.52, 0.6) },
   { top: C(0.18, 0.32, 0.62), hor: C(1.0, 0.7, 0.4), sun: dir(-0.38, 0.15, 0.91), sunC: C(1, 0.68, 0.38), sunI: 3.3, hs: C(0.5, 0.55, 0.78), hg: C(0.5, 0.35, 0.2), hI: 0.85, fog: 0.0028, cloud: 0.3, exp: 1.0, wind: 0.8, cloudLit: C(1.0, 0.75, 0.5), cloudDark: C(0.5, 0.4, 0.45) },
-  { top: C(0.05, 0.08, 0.27), hor: C(0.45, 0.38, 0.62), sun: dir(0.45, 0.5, 0.74), sunC: C(0.8, 0.86, 1.0), sunI: 3.2, hs: C(0.42, 0.48, 0.8), hg: C(0.25, 0.22, 0.3), hI: 1.3, fog: 0.004, cloud: 0.15, exp: 1.35, wind: 0.6, stars: 1, moon: dir(-0.08, 0.36, -0.93), cloudLit: C(0.55, 0.5, 0.75), cloudDark: C(0.12, 0.12, 0.24) },
+  { top: C(0.05, 0.08, 0.27), hor: C(0.45, 0.38, 0.62), sun: dir(0.45, 0.5, 0.74), sunC: C(0.8, 0.86, 1.0), sunI: 3.2, hs: C(0.42, 0.48, 0.8), hg: C(0.25, 0.22, 0.3), hI: 1.0, fog: 0.0016, cloud: 0.15, exp: 1.35, wind: 0.6, stars: 1, moon: dir(-0.08, 0.36, -0.93), cloudLit: C(0.55, 0.5, 0.75), cloudDark: C(0.12, 0.12, 0.24) },
   { top: C(0.04, 0.24, 0.72), hor: C(0.58, 0.8, 0.95), sun: dir(0.3, 0.75, 0.6), sunC: C(1, 0.97, 0.92), sunI: 3.2, hs: C(0.6, 0.75, 1.0), hg: C(0.4, 0.38, 0.35), hI: 1.15, fog: 0.0014, cloud: 0.32, exp: 1.0, wind: 1.0 },
   { top: C(0.28, 0.44, 0.56), hor: C(0.96, 0.8, 0.55), sun: dir(0.35, 0.55, 0.75), sunC: C(1, 0.88, 0.7), sunI: 3.0, hs: C(0.7, 0.72, 0.62), hg: C(0.42, 0.3, 0.16), hI: 1.0, fog: 0.0034, cloud: 0.4, exp: 1.0, wind: 0.6, cloudLit: C(1.0, 0.9, 0.75), cloudDark: C(0.55, 0.5, 0.45) },
 ];
@@ -155,6 +155,7 @@ composer.addPass(finish);
 // only 0.4 s after a flash and is back on it 0.4 s before the next one: on both sides of every flash you and the watch
 // are at exactly the same place on screen. No shake or hand-held drift within ~0.45 s of a flash either.
 const LOCK = { p: new THREE.Vector3(-0.72, 1.72, 5.0), look: new THREE.Vector3(-0.2, 6.6, -40), fov: 54 };
+const CAT_CAM = { p: new THREE.Vector3(-0.6, 1.95, 3.9), look: new THREE.Vector3(-1.3, -1.2, -40), fov: 46 };
 // how free the camera is: 0 on the locked framing round every flash, 1 in the middle of a stop
 function freeAt(v, k) {
   if (k === 0) return 0;
@@ -171,13 +172,25 @@ function camAt(v, s) {
   const k = s.k, m = freeAt(v, k);
   const pos = LOCK.p.clone(), look = LOCK.look.clone();
   let fov = LOCK.fov;
+  // the bear: the camera backs off and tilts up while it stands, so it towers over you and its head stays under the
+  // counter; the cats: the camera moves in low behind you and narrows, so the pack is big from the start
+  const S = stopStart(k), E = stopEnd(k);
+  let tw = 1;
+  if (k === 4) {
+    const d = smooth(S + 1.5, S + 2.3, v) * (1 - smooth(E - 1.25, E - 0.45, v));
+    pos.z += 5.6 * d; pos.y -= 0.25 * d; look.y += 6.8 * d; tw = 1 - d;
+  }
+  if (k === 5) {
+    const d = smooth(S + 0.4, S + 0.95, v) * (1 - smooth(E - 1.3, E - 0.45, v));
+    pos.lerp(CAT_CAM.p, d); look.lerp(CAT_CAM.look, d); fov = lerp(fov, CAT_CAM.fov, d); tw = 1 - d;
+  }
   if (m > 0) {
     // the danger: lean the aim toward its head
     let f = FOCUS[k].clone();
     if (k === 7) f = FOCUS2.clone().lerp(FOCUS[7], smooth(41.0, 42.0, v));
     if (k === 6) { const S = sharkAt(v); f.set(S.x, Math.max(S.y, SEA_Y) + 0.5, S.z); }
     const dirL = look.clone().sub(pos).normalize(), dirF = f.clone().sub(pos);
-    if (dirF.length() > 0.5) { dirF.normalize(); look.copy(pos).addScaledVector(dirL.lerp(dirF, TRACK[k] * m).normalize(), 45); }
+    if (dirF.length() > 0.5) { dirF.normalize(); const ly = look.y; look.copy(pos).addScaledVector(dirL.lerp(dirF, TRACK[k] * m * tw).normalize(), 45); look.y = ly; }   // (sideways only: you never leave the frame)
     // the brachiosaur: widen so its head in the sky and all of you fit together
     if (k === 7) fov += 8 * m * (1 - smooth(40.8, 41.8, v));
     // keep you in the frame: you right of centre, never past ~0.8 of the width
@@ -311,7 +324,7 @@ function update(v, cover = -1) {
   // dust under the charging animals' feet
   {
     const S4 = stopStart(4);
-    const dusty = (k === 4 && (v < S4 + 2.4 || v > S4 + 3.6)) || (k === 7 && v > 41.2);
+    const dusty = (k === 4 && (v < S4 + 2.3 || v > S4 + 4.4)) || (k === 7 && v > 41.2);
     if (dusty) {
       const f = FOCUS[k];
       for (let i = 0; i < 6; i++) {
@@ -372,6 +385,29 @@ async function boot() {
   }
   for (const t of [44, 40, 35, 30, 24, 19, 13, 8, 2, 0]) renderFrame(t);
   window.renderFrame = renderFrame;
+  // (checking: the on-screen box of every animal at its stop, and yours, in 1080x1920 pixels)
+  window.__measure = (t) => {
+    renderFrame(t);
+    const v3 = new THREE.Vector3();
+    const boxOf = (meshes) => {
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const m of meshes) {
+        if (!m.isMesh || m.isInstancedMesh || !m.visible) continue;
+        m.updateMatrixWorld(true);
+        const p = m.geometry.attributes.position;
+        for (let i = 0; i < p.count; i += 3) {
+          v3.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld).project(camera);
+          if (v3.z > 1) continue;
+          const x = (v3.x * 0.5 + 0.5) * W, y = (1 - (v3.y * 0.5 + 0.5)) * H;
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        }
+      }
+      return [Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1), Math.round(y1 - y0)];
+    };
+    const yous = []; you.root.traverse((o) => { if (o.isMesh) yous.push(o); });
+    const k = state(t).k;
+    return { t, you: boxOf(yous), animals: animals.all.filter((a) => a.k === k).map((a) => boxOf(a.meshes)) };
+  };
   window.__comp = comp;
   window.__dbg = { scene, camera, renderer, composer, sky, state, update, street, animals, you, FOCUS, finish, dev, comp: () => comp };
   window.DURATION = VIDEO_DURATION;
