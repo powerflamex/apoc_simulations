@@ -1183,3 +1183,30 @@ Nov 22 789K, Nov 23 612K, Nov 24 460K, Nov 25 431K, Nov 26 421K.
 - Studio banner seen Nov 27: "Please sign in to your AdSense account to verify your identity. This is required to receive future
   payments and continue monetizing." Told the owner; it is his to do.
 - How to get this table: `/channel/<id>/analytics/hub_overview/explore?entity_type=CHANNEL&entity_id=<id>&ur_dimensions=CREATOR_CONTENT_TYPE&ur_values='SHORTS'&time_period=4_weeks&explore_type=TABLE_AND_CHART&metric=ENGAGED_VIEWS&granularity=DAY&t_metrics=ENGAGED_VIEWS&t_metrics=EXTERNAL_VIEWS&t_metrics=TOTAL_ESTIMATED_EARNINGS&dimension=DAY&o_column=DAY&o_direction=ANALYTICS_ORDER_DIRECTION_DESC`, then read the page text.
+
+## Nov 28: long-video ad rate from the two paid days, and what a compilation is worth
+Long videos only (Advanced mode, Content type = Videos, custom dates Nov 25-26; Nov 27 money not in yet):
+| Long video | Length | Engaged views | Views | Watch hours | Money | per 1,000 engaged |
+|---|---|---|---|---|---|---|
+| Black hole passed Earth | 5:30 | 219 | 353 | 10.6 | CA$0.46 | CA$2.10 |
+| Nuke hit your city | 4:19 | 84 | 145 | 2.8 | CA$0.32 | CA$3.81 |
+| IQ 1,000x | 5:35 | 74 | 122 | 1.4 | CA$0.12 | CA$1.62 |
+| Big Rip | 6:56 | 63 | 77 | 2.9 | CA$0.16 | CA$2.54 |
+| Gardener (film) | 6:00 | 63 | 154 | 0.7 | CA$0.19 | CA$3.02 |
+| 7 Ways (compilation) | 7:12 | 61 | 97 | 2.3 | CA$0.06 | CA$0.98 |
+| Universe dies | 3:44 | 56 | 72 | 1.0 | CA$0.22 | CA$3.93 |
+| Universe collapsed | 6:34 | 44 | 61 | 1.4 | CA$0.09 | CA$2.05 |
+| 6 More Ways (compilation) | 6:34 | 43 | 57 | 1.9 | CA$0.05 | CA$1.16 |
+| **All nine** | | **707** | 1,138 | 25.0 | **CA$1.67** | **CA$2.36** |
+- CA$2.36 per 1,000 engaged views, CA$1.47 per 1,000 views, 6.7 cents per watch hour: about ten times a Short's CA$0.24. Two days and
+  707 views, money rounded to the cent, so the per-video rates are noise. The two compilations together: CA$0.11 from 104 engaged views
+  (CA$1.06 per 1,000), under half the originals' CA$2.59 (CA$1.56 from 603), but on CA$0.11 that proves nothing yet.
+- Lifetime engaged views (Oct 3 - Nov 27): 7 Ways 25,362 (1,333 watch hours), black hole 6,069, IQ 2,841, 6 More Ways 2,227, Big Rip
+  2,064, nuke 1,248, universe dies 1,154, universe collapsed 1,083, gardener 667; all nine 42,715 (1,958 hours). All nine now get ~350
+  engaged views a day together = about CA$0.85 a day.
+- So another compilation at today's rate: like 6 More Ways (2.2K) about CA$5 over its life, like 7 Ways (25K) about CA$60. One day of
+  Shorts makes ~CA$48. Every long video so far is under 8 minutes, the length where YouTube allows ads in the middle (general knowledge,
+  not measured here).
+- How to get it: the same Advanced-mode URL with `ur_values='VIDEO_ON_DEMAND'`, `dimension=VIDEO`, and custom dates as
+  `time_period=<start ms>,<end ms>` (UTC midnights; Nov 25-26 = `1795593600000,1795766400000`; `lifetime` also works). The pane must be
+  wide (resize to ~1500 px) or the table is not drawn; read `document.querySelector('yta-explore-table').innerText` (body.innerText misses it).
