@@ -1152,3 +1152,34 @@ Nov 22 790K, Nov 23 612K, Nov 24 461K, Nov 25 432K.
   $0.055, scream $0.048, fast $0.047. Caveat: ads switched on some time between Nov 24 7:25 PM PT and Nov 25 1:45 PM PT, so Nov 25 may
   be a part day and the real rate a little higher (rain, whose views all came after 7 AM PT, is the highest). Recheck with Nov 26-27.
   At $0.076-0.087 the last 28 days' 12.3M views would have paid about $930-1,070.
+
+## Nov 27 read (~8:20 PM ET) and the ad rate from two full paid days (Studio now shows CA$)
+| Short | Posted (ET) | 1 h | 3 h | 6 h | 12 h | 24 h | 48 h | Now | Stayed | 0:03 / 0:07 / 0:10 / 0:20 / 0:30 / 0:40 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| jump trillion (`JhIKFoTt6GU`) | Nov 27, 10 AM | 2,986 | 8,666 | 16,148 | | | | 32.4K (10.3 h) | 66.5% | not out |
+| magnet trillion | Nov 26, 10 AM | 2,308 | 6,945 | 11,032 | 20,042 | 35,503 | | 39.1K (34.3 h) | 63.5% | 120 / 97 / 82 / 65 / **57** / 54 |
+| rain trillion | Nov 25, 10 AM | 6,634 | 17,942 | 35,460 | 64,937 | 145,122 | 185,762 | 197.2K (58 h) | 65.0% | 129 / 105 / 87.5 / 71.5 / **65** / 59 |
+| fast trillion | Nov 20 | 7,328 | 21,661 | 51,696 | 99,073 | 197,183 | 311,326 | 636.3K | 60.6% | 134 / 113 / 100 / 84 / **73** / 65.5 |
+List counts: gravity off 40.9K, planet gravity 123.5K, stronger 133.8K, hot 195.5K, scream 296.8K, planet weather 336.5K, asteroid sizes
+237.0K, heavy 375.4K. Planet swap (`lkqYdbMG3hQ`) is scheduled for Nov 28. Shorts views per Pacific day: Nov 20 815K, Nov 21 784K,
+Nov 22 789K, Nov 23 612K, Nov 24 460K, Nov 25 431K, Nov 26 421K.
+- **Jump trillion (reworked) is inside YouTube's "typical" band (24-49K)**: 16.1K at 6 h against magnet 11.0K and gravity off 11.4K, but
+  under rain 35.5K, planet gravity 32.9K, stronger 29.6K, hot 27.9K. It is speeding up (2.5K an hour in hours 3-6, 3.8K an hour in
+  hours 6-10). Stayed 66.5%. Under 12 h: no verdict.
+- **Magnet's curve is out and it is the weak kind**: 57% at 0:30 (rain 65, stronger 67, fast 73; only hot 51 is lower among the trillion
+  Shorts). It loses 38 points from 0:03 to 0:10 (120 -> 82), which is where the camera pulls back and you turn tiny, and it keeps
+  falling through the pile shot (82 at 0:10 -> 59 at 0:25). So it was the video as well as the reach. 35.5K in its first day.
+- Three of the last four posts opened with a small first hour (gravity off 3.2K, magnet 2.3K, jump 3.0K; rain 6.6K between them).
+- **Ad rate, Shorts only, Pacific days (Advanced mode, Content type = Shorts; estimates can still be revised):**
+  | Day | Money | Engaged views | Views | per 1,000 engaged | per 1,000 views |
+  |---|---|---|---|---|---|
+  | Nov 25 | CA$45.98 | 203,391 | 431,031 | CA$0.226 | CA$0.107 |
+  | Nov 26 | CA$50.17 | 195,925 | 421,138 | CA$0.256 | CA$0.119 |
+  | both | CA$96.15 | 399,316 | 852,169 | **CA$0.241** | CA$0.113 |
+  Shorts money = feed ads CA$89.80 + YouTube Premium CA$6.35. Engaged views are 47% of views. Studio's own "RPM" still divides by 28
+  days of engaged views (6.26M), which comes to about CA$0.02. Nov 25 may be a part day (ads came on during it), so Nov 26's CA$0.256 is the
+  better single-day read. Late November is ad high season, so this may not hold in January (general knowledge, not checked).
+  Long videos: CA$1.67 from 707 engaged views in the two days = about CA$2.36 per 1,000, ten times a Short's rate (tiny sample).
+- Studio banner seen Nov 27: "Please sign in to your AdSense account to verify your identity. This is required to receive future
+  payments and continue monetizing." Told the owner; it is his to do.
+- How to get this table: `/channel/<id>/analytics/hub_overview/explore?entity_type=CHANNEL&entity_id=<id>&ur_dimensions=CREATOR_CONTENT_TYPE&ur_values='SHORTS'&time_period=4_weeks&explore_type=TABLE_AND_CHART&metric=ENGAGED_VIEWS&granularity=DAY&t_metrics=ENGAGED_VIEWS&t_metrics=EXTERNAL_VIEWS&t_metrics=TOTAL_ESTIMATED_EARNINGS&dimension=DAY&o_column=DAY&o_direction=ANALYTICS_ORDER_DIRECTION_DESC`, then read the page text.
